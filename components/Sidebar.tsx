@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/app/supabase'
+import { useLanguage } from '@/lib/LanguageContext'
 import {
   LayoutDashboard,
   Users,
@@ -15,14 +16,6 @@ import {
   Wrench,
 } from 'lucide-react'
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/customers', label: 'Customers', icon: Users },
-  { href: '/jobs', label: 'Jobs', icon: Briefcase },
-  { href: '/invoices', label: 'Invoices', icon: FileText },
-  { href: '/assistant', label: 'AI Assistant', icon: Sparkles },
-]
-
 interface SidebarProps {
   open: boolean
   onClose: () => void
@@ -31,6 +24,15 @@ interface SidebarProps {
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname()
   const [user, setUser] = useState<{ email?: string } | null>(null)
+  const { lang, setLang, t } = useLanguage()
+
+  const navItems = [
+    { href: '/dashboard', label: t.nav.dashboard, icon: LayoutDashboard },
+    { href: '/customers', label: t.nav.customers, icon: Users },
+    { href: '/jobs', label: t.nav.jobs, icon: Briefcase },
+    { href: '/invoices', label: t.nav.invoices, icon: FileText },
+    { href: '/assistant', label: t.nav.assistant, icon: Sparkles },
+  ]
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user))
@@ -82,7 +84,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         {/* Navigation */}
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
           <p className="px-3 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-widest">
-            Main Menu
+            {t.nav.menu}
           </p>
           {navItems.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href
@@ -116,6 +118,34 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           })}
         </nav>
 
+        {/* Language switcher */}
+        <div className="px-4 pb-3">
+          <div className="flex items-center gap-1 rounded-xl border border-gray-100 bg-gray-50 p-1">
+            <button
+              onClick={() => setLang('en')}
+              className={[
+                'flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all duration-150',
+                lang === 'en'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-400 hover:text-gray-600',
+              ].join(' ')}
+            >
+              🇨🇦 EN
+            </button>
+            <button
+              onClick={() => setLang('fr')}
+              className={[
+                'flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all duration-150',
+                lang === 'fr'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-400 hover:text-gray-600',
+              ].join(' ')}
+            >
+              🇨🇦 FR
+            </button>
+          </div>
+        </div>
+
         {/* User section */}
         <div className="shrink-0 border-t border-gray-100 p-4">
           {user && (
@@ -127,7 +157,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-semibold text-gray-900">{user.email}</p>
-                <p className="text-xs text-gray-400">Field Manager</p>
+                <p className="text-xs text-gray-400">{t.nav.role}</p>
               </div>
             </div>
           )}
@@ -136,7 +166,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-150"
           >
             <LogOut className="h-4 w-4 shrink-0" />
-            Sign out
+            {t.nav.signOut}
           </button>
         </div>
       </aside>
