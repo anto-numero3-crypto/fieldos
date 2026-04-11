@@ -1,8 +1,6 @@
 import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 type EmailType = 'invoice' | 'payment_reminder' | 'quote' | 'job_confirmation' | 'custom'
 
 interface EmailPayload {
@@ -132,6 +130,11 @@ function buildEmailContent(payload: EmailPayload): { subject: string; html: stri
 
 export async function POST(req: NextRequest) {
   try {
+    if (!process.env.RESEND_API_KEY) {
+      return NextResponse.json({ error: 'Email not configured. Add RESEND_API_KEY to environment variables.' }, { status: 503 })
+    }
+
+    const resend = new Resend(process.env.RESEND_API_KEY)
     const payload: EmailPayload = await req.json()
 
     if (!payload.to || !payload.customerName) {
