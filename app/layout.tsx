@@ -15,8 +15,34 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gestivio — Field Service Management Platform",
-  description: "Manage customers, jobs, and invoices for your field service business. Powered by AI.",
+  title: {
+    default: "Gestivio — Field Service Management Platform",
+    template: "%s | Gestivio",
+  },
+  description: "Manage customers, jobs, and invoices for your field service business. AI-powered scheduling, invoicing, and analytics. Made in Québec, Canada.",
+  keywords: ["field service management", "FSM software", "job management", "invoice software", "HVAC software", "plumbing software", "trade business software", "Canada", "Quebec"],
+  authors: [{ name: "Gestivio Inc." }],
+  creator: "Gestivio Inc.",
+  publisher: "Gestivio Inc.",
+  metadataBase: new URL("https://gestivio.ca"),
+  openGraph: {
+    type: "website",
+    locale: "en_CA",
+    alternateLocale: "fr_CA",
+    url: "https://gestivio.ca",
+    siteName: "Gestivio",
+    title: "Gestivio — Field Service Management Platform",
+    description: "Manage customers, jobs, and invoices for your field service business. AI-powered. Made in Québec, Canada.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Gestivio — Field Service Management Platform",
+    description: "Manage customers, jobs, and invoices for your field service business. AI-powered.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

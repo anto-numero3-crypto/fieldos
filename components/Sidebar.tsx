@@ -8,7 +8,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 import {
   LayoutDashboard, Users, Briefcase, FileText, Sparkles, X, LogOut, Wrench,
   Calendar, FileSignature, BarChart3, Settings, CreditCard, Users2,
-  Bell, ChevronDown, Globe,
+  Bell, ChevronDown, Globe, Lightbulb, Megaphone,
 } from 'lucide-react'
 
 interface SidebarProps { open: boolean; onClose: () => void }
@@ -33,17 +33,19 @@ const navSections = [
   {
     label: 'Business',
     items: [
-      { href: '/team',    label: 'Team',    icon: Users2 },
-      { href: '/reports', label: 'Reports', icon: BarChart3 },
+      { href: '/team',     label: 'Team',     icon: Users2 },
+      { href: '/reports',  label: 'Reports',  icon: BarChart3 },
+      { href: '/insights', label: 'AI Insights', icon: Lightbulb },
     ],
   },
 ]
 
 const bottomItems = [
-  { href: '/assistant', label: 'AI Assistant', icon: Sparkles },
-  { href: '/book',      label: 'Booking Portal', icon: Globe },
-  { href: '/settings',  label: 'Settings',     icon: Settings },
-  { href: '/billing',   label: 'Billing',      icon: CreditCard },
+  { href: '/assistant',          label: 'AI Assistant',   icon: Sparkles },
+  { href: '/customers/campaigns', label: 'Campaigns',     icon: Megaphone },
+  { href: '/book',               label: 'Booking Portal', icon: Globe },
+  { href: '/settings',           label: 'Settings',       icon: Settings },
+  { href: '/billing',            label: 'Billing',        icon: CreditCard },
 ]
 
 export default function Sidebar({ open, onClose }: SidebarProps) {

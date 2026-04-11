@@ -650,75 +650,91 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-gray-100 bg-white py-16">
+      <footer className="border-t border-gray-100 bg-white pt-16 pb-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 mb-12">
-            {/* Brand */}
-            <div className="lg:col-span-1">
+            {/* Col 1 — Brand */}
+            <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600">
                   <Wrench className="h-4 w-4 text-white" strokeWidth={2.5} />
                 </div>
-                <span className="text-base font-semibold text-gray-900">Gestivio</span>
+                <span className="text-base font-bold text-gray-900">Gestivio</span>
               </div>
               <p className="text-sm text-gray-500 leading-relaxed mb-5">
                 {lang === 'fr'
-                  ? 'La plateforme tout-en-un pour les entreprises de services terrain.'
-                  : 'The all-in-one platform for field service businesses.'}
+                  ? 'La façon plus intelligente de gérer votre entreprise de services terrain.'
+                  : 'The smarter way to run your field service business.'}
               </p>
-              <div className="flex items-center gap-3">
-                <a href="#" className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"><MessageSquare className="h-4 w-4" /></a>
-                <a href="#" className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"><Building2 className="h-4 w-4" /></a>
+              <div className="flex items-center gap-2 mb-4">
+                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-600 transition-colors" title="LinkedIn"><Building2 className="h-4 w-4" /></a>
+                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-sky-100 hover:text-sky-500 transition-colors" title="Twitter / X"><MessageSquare className="h-4 w-4" /></a>
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-700 transition-colors" title="Facebook"><Users className="h-4 w-4" /></a>
               </div>
+              <p className="text-xs text-gray-400">{lang === 'fr' ? 'Fait avec ❤️ au Québec, Canada 🍁' : 'Made with ❤️ in Québec, Canada 🍁'}</p>
             </div>
-            {/* Product */}
+
+            {/* Col 2 — Product */}
             <div>
               <h4 className="text-sm font-semibold text-gray-900 mb-4">{lang === 'fr' ? 'Produit' : 'Product'}</h4>
               <ul className="space-y-3">
                 {[
-                  { label: l.navFeatures, href: '#features' },
-                  { label: l.navPricing, href: '#pricing' },
-                  { label: l.navHowItWorks, href: '#how-it-works' },
+                  { label: lang === 'fr' ? 'Fonctionnalités' : 'Features', href: '#features' },
+                  { label: lang === 'fr' ? 'Tarification' : 'Pricing', href: '#pricing' },
+                  { label: lang === 'fr' ? 'Assistant IA' : 'AI Assistant', href: '/login' },
                   { label: lang === 'fr' ? 'Portail de réservation' : 'Booking Portal', href: '/book' },
+                  { label: lang === 'fr' ? 'Intégrations' : 'Integrations', href: '#features' },
+                  { label: lang === 'fr' ? 'Nouveautés' : 'Changelog', href: '/changelog' },
                 ].map((link) => (
                   <li key={link.label}><a href={link.href} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">{link.label}</a></li>
                 ))}
               </ul>
             </div>
-            {/* Company */}
+
+            {/* Col 3 — Company */}
             <div>
               <h4 className="text-sm font-semibold text-gray-900 mb-4">{lang === 'fr' ? 'Entreprise' : 'Company'}</h4>
               <ul className="space-y-3">
                 {[
-                  { label: lang === 'fr' ? 'À propos' : 'About', href: '#' },
-                  { label: lang === 'fr' ? 'Blogue' : 'Blog', href: '#' },
-                  { label: lang === 'fr' ? 'Carrières' : 'Careers', href: '#' },
-                  { label: l.footerContact, href: '#' },
+                  { label: lang === 'fr' ? 'À propos' : 'About Us', href: '/about' },
+                  { label: lang === 'fr' ? 'Blogue' : 'Blog', href: '/blog' },
+                  { label: lang === 'fr' ? 'Carrières' : 'Careers', href: '/careers' },
+                  { label: 'Press', href: '/press' },
+                  { label: lang === 'fr' ? 'Nous contacter' : 'Contact Us', href: '/contact' },
                 ].map((link) => (
                   <li key={link.label}><a href={link.href} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">{link.label}</a></li>
                 ))}
               </ul>
             </div>
-            {/* Legal */}
+
+            {/* Col 4 — Legal & Support */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">{lang === 'fr' ? 'Légal' : 'Legal'}</h4>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">{lang === 'fr' ? 'Légal & Support' : 'Legal & Support'}</h4>
               <ul className="space-y-3">
                 {[
-                  { label: l.footerPrivacy, href: '#' },
-                  { label: l.footerTerms, href: '#' },
-                  { label: lang === 'fr' ? 'Sécurité' : 'Security', href: '#' },
-                  { label: lang === 'fr' ? 'Accessibilité' : 'Accessibility', href: '#' },
+                  { label: lang === 'fr' ? 'Politique de confidentialité' : 'Privacy Policy', href: '/privacy' },
+                  { label: lang === 'fr' ? "Conditions d'utilisation" : 'Terms of Service', href: '/terms' },
+                  { label: lang === 'fr' ? 'Sécurité' : 'Security', href: '/security' },
+                  { label: lang === 'fr' ? 'Accessibilité' : 'Accessibility', href: '/accessibility' },
+                  { label: lang === 'fr' ? 'Cookies' : 'Cookie Policy', href: '/cookies' },
+                  { label: lang === 'fr' ? 'Centre d\'aide' : 'Support Center', href: '/support' },
                 ].map((link) => (
                   <li key={link.label}><a href={link.href} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">{link.label}</a></li>
                 ))}
               </ul>
             </div>
           </div>
+
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-100 pt-8">
             <p className="text-sm text-gray-400">{l.footerCopyright}</p>
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <span>🍁</span>
-              <span>{lang === 'fr' ? 'Fait avec fierté au Québec, Canada' : 'Made with pride in Québec, Canada'}</span>
+            <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-400">
+              <a href="/privacy" className="hover:text-gray-600">{lang === 'fr' ? 'Confidentialité' : 'Privacy'}</a>
+              <span>·</span>
+              <a href="/terms" className="hover:text-gray-600">{lang === 'fr' ? 'Conditions' : 'Terms'}</a>
+              <span>·</span>
+              <a href="/cookies" className="hover:text-gray-600">Cookies</a>
+              <span>·</span>
+              <a href="/security" className="hover:text-gray-600">{lang === 'fr' ? 'Sécurité' : 'Security'}</a>
             </div>
           </div>
         </div>

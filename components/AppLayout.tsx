@@ -8,6 +8,7 @@ import { supabase } from '@/app/supabase'
 import { useTheme } from './ThemeProvider'
 import FloatingAIChat from './FloatingAIChat'
 import CommandPalette from './CommandPalette'
+import MobileTabBar from './MobileTabBar'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -232,13 +233,16 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
         )}
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 pb-16 lg:pb-0">
           {children}
         </main>
       </div>
 
       {/* Floating AI Chat — available on every page */}
       <FloatingAIChat />
+
+      {/* Mobile bottom tab bar */}
+      <MobileTabBar />
     </div>
   )
 }
