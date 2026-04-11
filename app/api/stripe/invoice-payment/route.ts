@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     if (!invoice) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
 
     const customer = invoice.customers as unknown as { name: string; email?: string } | null
-    const origin = req.headers.get('origin') || 'https://gestivio-theta.vercel.app'
+    const origin = req.headers.get('origin') || 'https://gestivio.ca'
     const amountCents = Math.round(parseFloat(String(invoice.amount)) * 100)
 
     const session = await stripe.checkout.sessions.create({
