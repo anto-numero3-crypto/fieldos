@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import { useLanguage } from '@/lib/LanguageContext'
-import { FileText, Plus, X, DollarSign, Calendar, User, Briefcase, AlertCircle, CheckCircle, Clock } from 'lucide-react'
+import Link from 'next/link'
+import { FileText, Plus, X, DollarSign, Calendar, User, Briefcase, AlertCircle, CheckCircle, Clock, Hash, ExternalLink } from 'lucide-react'
 
 interface Invoice {
   id: string; amount: number; status: string; due_date: string | null
-  created_at: string; customers: { name: string } | null; jobs: { title: string } | null
+  created_at: string; invoice_number?: string
+  customers: { name: string } | null; jobs: { title: string } | null
 }
 interface Customer { id: string; name: string }
 interface Job { id: string; title: string }
@@ -160,7 +162,7 @@ export default function InvoicesPage() {
               <table className="min-w-full divide-y divide-gray-100">
                 <thead>
                   <tr className="bg-gray-50">
-                    {[l.colCustomer, l.colJob, l.colAmount, l.colDueDate, l.colStatus].map(col => (
+                    {['Invoice #', l.colCustomer, l.colJob, l.colAmount, l.colDueDate, l.colStatus].map(col => (
                       <th key={col} className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{col}</th>
                     ))}
                   </tr>
@@ -169,7 +171,12 @@ export default function InvoicesPage() {
                   {filtered.map((inv) => {
                     const cfg = statusConfig[inv.status]
                     return (
-                      <tr key={inv.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={inv.id} className="hover:bg-gray-50 transition-colors group cursor-pointer" onClick={() => window.location.href = `/invoices/${inv.id}`}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-semibold text-indigo-600 group-hover:underline">{inv.invoice_number || `INV-${inv.id.slice(0,4).toUpperCase()}`}</span>
+                          </div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           <span className="flex items-center gap-1.5"><User className="h-3.5 w-3.5 text-gray-300" />{inv.customers?.name || <span className="text-gray-300">—</span>}</span>
                         </td>
@@ -191,9 +198,12 @@ export default function InvoicesPage() {
               {filtered.map((inv) => {
                 const cfg = statusConfig[inv.status]
                 return (
-                  <div key={inv.id} className="p-4">
+                  <Link key={inv.id} href={`/invoices/${inv.id}`} className="block p-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <p className="text-base font-bold text-gray-900">{fmt(parseFloat(String(inv.amount)))}</p>
+                      <div>
+                        <p className="text-xs font-semibold text-indigo-600 mb-0.5">{inv.invoice_number || `INV-${inv.id.slice(0,4).toUpperCase()}`}</p>
+                        <p className="text-base font-bold text-gray-900">{fmt(parseFloat(String(inv.amount)))}</p>
+                      </div>
                       <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${cfg?.className || ''}`}>{cfg?.label || inv.status}</span>
                     </div>
                     <div className="space-y-0.5 text-xs text-gray-400">
@@ -201,7 +211,7 @@ export default function InvoicesPage() {
                       {inv.jobs && <p className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{inv.jobs.title}</p>}
                       {inv.due_date && <p className="flex items-center gap-1"><Calendar className="h-3 w-3" />{inv.due_date}</p>}
                     </div>
-                  </div>
+                  </Link>
                 )
               })}
             </div>

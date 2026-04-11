@@ -5,9 +5,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
-html {
-  scroll-behavior: smooth;
-}
+/* ─── Base ─────────────────────────────────── */
+html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
@@ -15,56 +14,104 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
-}
+/* ─── Scrollbar ─────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
-
+/* ─── Slide-over panel ──────────────────────── */
 @keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
 }
+.slide-over { animation: slideInRight 0.22s cubic-bezier(0.16,1,0.3,1); }
 
+/* ─── Fade ──────────────────────────────────── */
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
+.fade-in { animation: fadeIn 0.18s ease-out; }
 
-.slide-over {
-  animation: slideInRight 0.25s ease-out;
+/* ─── Slide up ──────────────────────────────── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
+.slide-up { animation: slideUp 0.25s cubic-bezier(0.16,1,0.3,1); }
 
-.fade-in {
-  animation: fadeIn 0.2s ease-out;
-}
-
+/* ─── Chat bubbles ──────────────────────────── */
 @keyframes bounceIn {
   from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
+.chat-bubble { animation: bounceIn 0.2s ease-out; }
 
-.chat-bubble {
-  animation: bounceIn 0.2s ease-out;
-}
-
+/* ─── Typing dots ───────────────────────────── */
 @keyframes typingDot {
   0%, 60%, 100% { opacity: 0.2; transform: translateY(0); }
-  30% { opacity: 1; transform: translateY(-4px); }
+  30%           { opacity: 1;   transform: translateY(-4px); }
 }
-
 .typing-dot:nth-child(1) { animation: typingDot 1.2s infinite 0s; }
 .typing-dot:nth-child(2) { animation: typingDot 1.2s infinite 0.2s; }
 .typing-dot:nth-child(3) { animation: typingDot 1.2s infinite 0.4s; }
+
+/* ─── Skeleton shimmer ──────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 8px;
+}
+
+/* ─── Toast ─────────────────────────────────── */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0)    scale(1); }
+  to   { opacity: 0; transform: translateY(16px) scale(0.97); }
+}
+.toast-in  { animation: toastIn  0.22s cubic-bezier(0.16,1,0.3,1) forwards; }
+.toast-out { animation: toastOut 0.18s ease-in forwards; }
+
+/* ─── Progress bar ──────────────────────────── */
+@keyframes progressFill {
+  from { width: 0%; }
+}
+.progress-fill { animation: progressFill 0.6s cubic-bezier(0.16,1,0.3,1); }
+
+/* ─── Calendar grid ─────────────────────────── */
+.cal-grid {
+  display: grid;
+  grid-template-columns: 56px repeat(7, 1fr);
+  min-height: 0;
+}
+
+/* ─── Recharts overrides ────────────────────── */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: #f3f4f6;
+}
+.recharts-tooltip-wrapper { outline: none; }
+
+/* ─── Custom select arrow ───────────────────── */
+select.custom-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  appearance: none;
+}
+
+/* ─── Print styles for invoices ─────────────── */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+}

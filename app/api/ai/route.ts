@@ -1,71 +1,131 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
+import { NextRequest, NextResponse } from 'next/server'
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-})
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! })
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-export async function POST(req: Request) {
-  const { message, userId } = await req.json()
+export async function POST(req: NextRequest) {
+  try {
+    const { message, userId, history = [] } = await req.json()
 
-  const { data: customers } = await supabase
-    .from('customers')
-    .select('*')
-    .eq('user_id', userId)
+    if (!message || !userId) {
+      return NextResponse.json({ error: 'Missing message or userId' }, { status: 400 })
+    }
 
-  const { data: jobs } = await supabase
-    .from('jobs')
-    .select('*, customers(name)')
-    .eq('user_id', userId)
+    // Fetch business data for context
+    const [
+      { data: customers, count: customerCount },
+      { data: jobs },
+      { data: invoices },
+      { data: quotes },
+    ] = await Promise.all([
+      supabase.from('customers').select('id, name, email, phone, tags, lifetime_value, created_at', { count: 'exact' }).eq('user_id', userId).order('created_at', { ascending: false }).limit(50),
+      supabase.from('jobs').select('id, title, status, priority, scheduled_date, created_at, customers(name)').eq('user_id', userId).order('created_at', { ascending: false }).limit(50),
+      supabase.from('invoices').select('id, amount, status, due_date, created_at, invoice_number, customers(name)').eq('user_id', userId).order('created_at', { ascending: false }).limit(50),
+      supabase.from('quotes').select('id, title, status, total, created_at, customers(name)').eq('user_id', userId).order('created_at', { ascending: false }).limit(20),
+    ])
 
-  const { data: invoices } = await supabase
-    .from('invoices')
-    .select('*, customers(name)')
-    .eq('user_id', userId)
+    // Compute business metrics
+    const allInvoices = invoices || []
+    const allJobs     = jobs || []
 
-  const totalInvoiced = invoices?.reduce((sum, inv) => sum + parseFloat(inv.amount), 0) || 0
-  const unpaidInvoices = invoices?.filter(inv => inv.status === 'unpaid') || []
-  const paidInvoices = invoices?.filter(inv => inv.status === 'paid') || []
-  const scheduledJobs = jobs?.filter(j => j.status === 'scheduled') || []
-  const completedJobs = jobs?.filter(j => j.status === 'complete') || []
+    const totalRevenue    = allInvoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+    const paidRevenue     = allInvoices.filter((i) => i.status === 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+    const unpaidRevenue   = allInvoices.filter((i) => i.status === 'unpaid').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+    const overdueRevenue  = allInvoices.filter((i) => i.status === 'overdue').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+    const overdueInvoices = allInvoices.filter((i) => i.status === 'overdue')
+    const unpaidInvoices  = allInvoices.filter((i) => i.status === 'unpaid')
+    const activeJobs      = allJobs.filter((j) => j.status === 'scheduled' || j.status === 'in_progress')
+    const completedJobs   = allJobs.filter((j) => j.status === 'complete')
 
-  const systemPrompt = `You are FieldOS Assistant, an AI co-pilot for a field service business.
+    // Monthly revenue breakdown
+    const monthlyRevenue: Record<string, number> = {}
+    allInvoices.forEach((inv) => {
+      const key = new Date(inv.created_at).toLocaleDateString('en', { month: 'short', year: 'numeric' })
+      monthlyRevenue[key] = (monthlyRevenue[key] || 0) + parseFloat(String(inv.amount))
+    })
 
-Here is the current business data:
+    const businessContext = `
+## FieldOS Business Data
 
-CUSTOMERS (${customers?.length || 0} total):
-${customers?.map(c => `- ${c.name} | ${c.email || 'no email'} | ${c.phone || 'no phone'}`).join('\n') || 'No customers yet'}
+**Overview:**
+- Customers: ${customerCount || 0}
+- Jobs: ${allJobs.length} total (${activeJobs.length} active, ${completedJobs.length} completed)
+- Total Revenue: $${totalRevenue.toFixed(2)}
+- Collected: $${paidRevenue.toFixed(2)} (${totalRevenue > 0 ? (paidRevenue / totalRevenue * 100).toFixed(1) : 0}% rate)
+- Outstanding: $${unpaidRevenue.toFixed(2)} (${unpaidInvoices.length} invoices)
+- Overdue: $${overdueRevenue.toFixed(2)} (${overdueInvoices.length} invoices)
 
-JOBS (${jobs?.length || 0} total):
-- Scheduled: ${scheduledJobs.length}
-- Completed: ${completedJobs.length}
-${jobs?.map(j => `- ${j.title} | Customer: ${j.customers?.name || 'none'} | Status: ${j.status} | Date: ${j.scheduled_date || 'no date'}`).join('\n') || 'No jobs yet'}
+**Customers (recent 10):**
+${(customers || []).slice(0, 10).map((c) => `- ${c.name}${c.email ? ` <${c.email}>` : ''}${c.phone ? ` · ${c.phone}` : ''}${(c.tags as string[]|null)?.length ? ` [${(c.tags as string[]).join(', ')}]` : ''}`).join('\n')}
 
-INVOICES (${invoices?.length || 0} total):
-- Total invoiced: $${totalInvoiced.toFixed(2)}
-- Unpaid: ${unpaidInvoices.length} invoices
-- Paid: ${paidInvoices.length} invoices
-${invoices?.map(inv => `- $${parseFloat(inv.amount).toFixed(2)} | Customer: ${inv.customers?.name || 'none'} | Status: ${inv.status} | Due: ${inv.due_date || 'no date'}`).join('\n') || 'No invoices yet'}
+**Jobs (recent 15):**
+${allJobs.slice(0, 15).map((j) => `- [${j.status}] "${j.title}" — ${(j.customers as {name:string}|null)?.name || 'No customer'}${j.scheduled_date ? ` on ${j.scheduled_date}` : ''}${j.priority && j.priority !== 'normal' ? ` (${j.priority})` : ''}`).join('\n')}
 
-Rules:
-- Only answer based on the data above
-- Be concise and helpful
-- If asked to do something you cannot do, explain what the user can do manually
-- Always be friendly and professional`
+**Invoices (recent 15):**
+${allInvoices.slice(0, 15).map((i) => `- [${i.status}] $${parseFloat(String(i.amount)).toFixed(2)} — ${(i.customers as {name:string}|null)?.name || 'Unknown'}${i.due_date ? ` due ${i.due_date}` : ''}${i.invoice_number ? ` (${i.invoice_number})` : ''}`).join('\n')}
 
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1000,
-    system: systemPrompt,
-    messages: [{ role: 'user', content: message }],
-  })
+**Quotes:**
+${(quotes || []).map((q) => `- [${q.status}] "${q.title}" $${q.total.toFixed(2)} — ${(q.customers as {name:string}|null)?.name || 'Unknown'}`).join('\n') || '(none)'}
 
-  const reply = response.content[0].type === 'text' ? response.content[0].text : ''
+**Monthly Revenue (last 6 months):**
+${Object.entries(monthlyRevenue).slice(-6).map(([m, r]) => `- ${m}: $${r.toFixed(2)}`).join('\n') || '(no data)'}
 
-  return Response.json({ reply })
+**Overdue invoices needing follow-up:**
+${overdueInvoices.slice(0, 5).map((i) => `- $${parseFloat(String(i.amount)).toFixed(2)} from ${(i.customers as {name:string}|null)?.name || 'Unknown'} (due ${i.due_date})`).join('\n') || '(none)'}
+`.trim()
+
+    const systemPrompt = `You are FieldOS AI — an expert business assistant for a field service management platform (think Jobber / ServiceTitan level intelligence).
+
+${businessContext}
+
+## Your role:
+Answer questions, provide insights, draft communications, and help the business owner make better decisions based on their real data.
+
+## What you can do:
+- Answer questions about customers, jobs, invoices, revenue with specific numbers
+- Draft professional follow-up emails for overdue invoices
+- Identify customers at churn risk (inactive for 90+ days)
+- Suggest optimal pricing based on job history
+- Generate weekly/monthly business summaries
+- Flag anomalies: unusual patterns, underbilling, pricing inconsistencies
+- Recommend upsell opportunities during active jobs
+- Analyze cash flow and AR aging
+
+## Response style:
+- Concise, professional, actionable
+- Use specific numbers from the data
+- Format currency as $X.XX
+- Use bullet points for lists
+- When drafting emails/documents, write them ready-to-use
+- Today: ${new Date().toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`
+
+    // Multi-turn conversation history
+    const messages: Anthropic.MessageParam[] = [
+      ...history.map((msg: { role: string; content: string }) => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+      })),
+      { role: 'user', content: message },
+    ]
+
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1500,
+      system: systemPrompt,
+      messages,
+    })
+
+    const reply = response.content[0].type === 'text' ? response.content[0].text : 'Sorry, I could not generate a response.'
+
+    return NextResponse.json({ reply })
+  } catch (err) {
+    console.error('AI route error:', err)
+    return NextResponse.json({ reply: 'Something went wrong. Please try again.', error: String(err) }, { status: 500 })
+  }
 }
