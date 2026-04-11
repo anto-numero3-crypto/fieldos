@@ -360,7 +360,7 @@ export default function BookingPage() {
               </button>
             </div>
             <p className="text-center text-[10px] text-gray-400 mt-2">
-              Powered by <span className="font-semibold text-indigo-500">FieldOS AI</span> · Responses are instant
+              Powered by <span className="font-semibold text-indigo-500">Gestivio AI</span> · Responses are instant
             </p>
           </div>
         </div>
@@ -378,7 +378,7 @@ export default function BookingPage() {
             </a>
           )}
           <p className="text-xs text-gray-400 mt-3">
-            Powered by <a href="/" className="text-indigo-500 font-medium">FieldOS</a>
+            Powered by <a href="/" className="text-indigo-500 font-medium">Gestivio</a>
           </p>
         </div>
       )}

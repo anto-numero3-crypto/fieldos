@@ -21,7 +21,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>('en')
 
   useEffect(() => {
-    const saved = localStorage.getItem('fieldos-lang') as Lang | null
+    const saved = localStorage.getItem('gestivio-lang') as Lang | null
     if (saved === 'en' || saved === 'fr') {
       setLangState(saved)
       document.documentElement.lang = saved
@@ -30,7 +30,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const setLang = (l: Lang) => {
     setLangState(l)
-    localStorage.setItem('fieldos-lang', l)
+    localStorage.setItem('gestivio-lang', l)
     document.documentElement.lang = l
   }
 

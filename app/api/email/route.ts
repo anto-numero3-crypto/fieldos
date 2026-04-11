@@ -23,7 +23,7 @@ interface EmailPayload {
 }
 
 function buildEmailContent(payload: EmailPayload): { subject: string; html: string } {
-  const biz = payload.businessName || 'FieldOS Business'
+  const biz = payload.businessName || 'Gestivio Business'
 
   switch (payload.type) {
     case 'invoice':
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
     const { subject, html } = buildEmailContent(payload)
 
     const { data, error } = await resend.emails.send({
-      from: `${payload.businessName || 'FieldOS'} <noreply@${process.env.RESEND_FROM_DOMAIN || 'resend.dev'}>`,
+      from: `${payload.businessName || 'Gestivio'} <noreply@${process.env.RESEND_FROM_DOMAIN || 'resend.dev'}>`,
       to: payload.to,
       subject,
       html,

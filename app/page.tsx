@@ -92,8 +92,8 @@ export default function LandingPage() {
   const testimonials = [
     {
       text: lang === 'fr'
-        ? "FieldOS a changé notre façon de travailler. On a réduit le temps admin de moitié et nos clients adorent recevoir leurs factures en un clic."
-        : "FieldOS changed how we run our whole operation. We cut admin time in half and our clients love getting their invoices with a single click.",
+        ? "Gestivio a changé notre façon de travailler. On a réduit le temps admin de moitié et nos clients adorent recevoir leurs factures en un clic."
+        : "Gestivio changed how we run our whole operation. We cut admin time in half and our clients love getting their invoices with a single click.",
       name: 'Marc Tremblay',
       role: lang === 'fr' ? 'Propriétaire, CVC Tremblay' : 'Owner, Tremblay HVAC',
       initials: 'MT',
@@ -121,7 +121,7 @@ export default function LandingPage() {
 
   const faqs = [
     {
-      q: lang === 'fr' ? 'Puis-je essayer FieldOS gratuitement ?' : 'Can I try FieldOS for free?',
+      q: lang === 'fr' ? 'Puis-je essayer Gestivio gratuitement ?' : 'Can I try Gestivio for free?',
       a: lang === 'fr' ? 'Oui ! Vous avez 14 jours d\'essai gratuit complet, sans carte de crédit requise. Vous pouvez annuler à tout moment.' : 'Yes! You get a full 14-day free trial with no credit card required. You can cancel at any time with no questions asked.',
     },
     {
@@ -138,11 +138,11 @@ export default function LandingPage() {
     },
     {
       q: lang === 'fr' ? 'Comment sont traités les paiements ?' : 'How are payments processed?',
-      a: lang === 'fr' ? "Les paiements en ligne sont traités par Stripe, la norme de l'industrie pour les paiements sécurisés. FieldOS ne stocke jamais les informations de carte de crédit." : 'Online payments are processed by Stripe, the industry standard for secure payments. FieldOS never stores credit card information directly.',
+      a: lang === 'fr' ? "Les paiements en ligne sont traités par Stripe, la norme de l'industrie pour les paiements sécurisés. Gestivio ne stocke jamais les informations de carte de crédit." : 'Online payments are processed by Stripe, the industry standard for secure payments. Gestivio never stores credit card information directly.',
     },
     {
       q: lang === 'fr' ? 'Y a-t-il une application mobile ?' : 'Is there a mobile app?',
-      a: lang === 'fr' ? "FieldOS est entièrement responsive et fonctionne parfaitement depuis votre navigateur mobile. Une application native iOS/Android est en développement." : 'FieldOS is fully responsive and works perfectly from your mobile browser. A native iOS/Android app is in development.',
+      a: lang === 'fr' ? "Gestivio est entièrement responsive et fonctionne parfaitement depuis votre navigateur mobile. Une application native iOS/Android est en développement." : 'Gestivio is fully responsive and works perfectly from your mobile browser. A native iOS/Android app is in development.',
     },
     {
       q: lang === 'fr' ? 'Puis-je importer mes données existantes ?' : 'Can I import my existing data?',
@@ -165,7 +165,7 @@ export default function LandingPage() {
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600">
                 <Wrench className="h-4 w-4 text-white" strokeWidth={2.5} />
               </div>
-              <span className="text-base font-semibold text-gray-900">FieldOS</span>
+              <span className="text-base font-semibold text-gray-900">Gestivio</span>
             </div>
 
             <div className="hidden md:flex items-center gap-8">
@@ -237,7 +237,7 @@ export default function LandingPage() {
                   <div className="h-3 w-3 rounded-full bg-green-400" />
                 </div>
                 <div className="mx-auto flex h-6 w-64 items-center justify-center rounded-md bg-white border border-gray-200">
-                  <span className="text-xs text-gray-400">app.fieldos.com/dashboard</span>
+                  <span className="text-xs text-gray-400">app.gestivio.com/dashboard</span>
                 </div>
               </div>
               <div className="flex h-80 bg-gray-50">
@@ -659,7 +659,7 @@ export default function LandingPage() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600">
                   <Wrench className="h-4 w-4 text-white" strokeWidth={2.5} />
                 </div>
-                <span className="text-base font-semibold text-gray-900">FieldOS</span>
+                <span className="text-base font-semibold text-gray-900">Gestivio</span>
               </div>
               <p className="text-sm text-gray-500 leading-relaxed mb-5">
                 {lang === 'fr'

@@ -55,7 +55,7 @@ function MessageContent({ content }: { content: string }) {
 export default function AssistantPage() {
   const [user, setUser]     = useState<{ id: string; email?: string } | null>(null)
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: "Hi! I'm your FieldOS AI assistant, powered by Claude.\n\nI have real-time access to all your business data — customers, jobs, invoices, quotes, and revenue analytics.\n\nAsk me anything, or let me draft something for you!" },
+    { role: 'assistant', content: "Hi! I'm your Gestivio AI assistant, powered by Claude.\n\nI have real-time access to all your business data — customers, jobs, invoices, quotes, and revenue analytics.\n\nAsk me anything, or let me draft something for you!" },
   ])
   const [input, setInput]   = useState('')
   const [loading, setLoading] = useState(false)
@@ -115,7 +115,7 @@ export default function AssistantPage() {
   }
 
   const resetConversation = () => {
-    setMessages([{ role: 'assistant', content: "Hi! I'm your FieldOS AI assistant, powered by Claude.\n\nI have real-time access to all your business data — customers, jobs, invoices, quotes, and revenue analytics.\n\nAsk me anything, or let me draft something for you!" }])
+    setMessages([{ role: 'assistant', content: "Hi! I'm your Gestivio AI assistant, powered by Claude.\n\nI have real-time access to all your business data — customers, jobs, invoices, quotes, and revenue analytics.\n\nAsk me anything, or let me draft something for you!" }])
   }
 
   const isOnlyWelcome = messages.length === 1

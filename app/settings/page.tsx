@@ -420,7 +420,7 @@ export default function SettingsPage() {
               <p className="text-sm font-semibold text-indigo-700 mb-1 flex items-center gap-2">
                 <Wrench className="h-4 w-4" /> Webhooks & Automation
               </p>
-              <p className="text-xs text-indigo-600 mb-3">Connect FieldOS to 5,000+ apps via Zapier, or build custom automations with webhooks.</p>
+              <p className="text-xs text-indigo-600 mb-3">Connect Gestivio to 5,000+ apps via Zapier, or build custom automations with webhooks.</p>
               <button className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">Configure Webhooks</button>
             </div>
           </div>

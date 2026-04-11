@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FieldOS — Field Service Management Platform",
+  title: "Gestivio — Field Service Management Platform",
   description: "Manage customers, jobs, and invoices for your field service business. Powered by AI.",
 };
 

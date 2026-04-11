@@ -57,7 +57,7 @@ export default function FloatingAIChat() {
 
   const pageContext = Object.entries(PAGE_CONTEXT).find(([path]) =>
     pathname === path || pathname.startsWith(path + '/')
-  )?.[1] || 'The user is navigating the FieldOS platform.'
+  )?.[1] || 'The user is navigating the Gestivio platform.'
 
   const send = useCallback(async (text?: string) => {
     const content = (text || input).trim()
@@ -129,7 +129,7 @@ export default function FloatingAIChat() {
               <Sparkles className="h-4 w-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white">FieldOS AI</p>
+              <p className="text-sm font-semibold text-white">Gestivio AI</p>
               <p className="text-xs text-indigo-200 truncate">{pageContext.split('.')[0]}</p>
             </div>
             <div className="flex items-center gap-1">

@@ -101,7 +101,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <Wrench className="h-4 w-4 text-white" strokeWidth={2.5} />
             </div>
             <div>
-              <span className="text-base font-bold text-gray-900 dark:text-white tracking-tight">FieldOS</span>
+              <span className="text-base font-bold text-gray-900 dark:text-white tracking-tight">Gestivio</span>
               <span className="ml-1.5 rounded-md bg-indigo-50 px-1.5 py-0.5 text-xs font-semibold text-indigo-600">PRO</span>
             </div>
           </Link>

@@ -12,10 +12,10 @@ import {
 interface Step { id: number; title: string; description: string; icon: typeof Wrench }
 
 const STEPS: Step[] = [
-  { id: 1, title: 'Welcome to FieldOS', description: 'Tell us about your business', icon: Building2 },
+  { id: 1, title: 'Welcome to Gestivio', description: 'Tell us about your business', icon: Building2 },
   { id: 2, title: 'Add Your First Customer', description: 'Add a customer to get started', icon: Users },
   { id: 3, title: 'Create Your First Job', description: 'Schedule your first work order', icon: Briefcase },
-  { id: 4, title: "You're all set!", description: 'FieldOS is ready to use', icon: CheckCircle },
+  { id: 4, title: "You're all set!", description: 'Gestivio is ready to use', icon: CheckCircle },
 ]
 
 export default function OnboardingPage() {
@@ -106,7 +106,7 @@ export default function OnboardingPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 shadow-sm">
             <Wrench className="h-5 w-5 text-white" strokeWidth={2.5} />
           </div>
-          <span className="text-xl font-bold text-gray-900">FieldOS</span>
+          <span className="text-xl font-bold text-gray-900">Gestivio</span>
         </div>
 
         {/* Progress */}
@@ -218,7 +218,7 @@ export default function OnboardingPage() {
             <div className="space-y-4">
               <div className="rounded-2xl bg-gradient-to-r from-indigo-50 to-violet-50 p-5 text-center">
                 <div className="text-4xl mb-3">🎉</div>
-                <p className="text-base font-bold text-gray-900 mb-1">Your FieldOS account is ready!</p>
+                <p className="text-base font-bold text-gray-900 mb-1">Your Gestivio account is ready!</p>
                 <p className="text-sm text-gray-500">Everything is set up. Let&apos;s start managing your field service business.</p>
               </div>
               <div className="grid grid-cols-2 gap-3 text-sm">
