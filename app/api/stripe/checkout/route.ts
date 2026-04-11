@@ -2,12 +2,7 @@ import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
-// Lazily initialized inside handler to avoid build-time errors when key is missing
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// All clients initialized lazily inside handler
 
 // Map plan IDs to Stripe price IDs (set these in your Stripe dashboard and .env)
 const PRICE_MAP: Record<string, string> = {
@@ -23,6 +18,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Stripe not configured. Add STRIPE_SECRET_KEY to environment variables.' }, { status: 503 })
     }
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2026-03-25.dahlia' })
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
 
     const { planId, userId, billingCycle } = await req.json()
 
