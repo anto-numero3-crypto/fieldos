@@ -18,7 +18,7 @@ const LanguageContext = createContext<LanguageContextValue>({
 })
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState<Lang>('en')
+  const [lang, setLangState] = useState<Lang>('fr')
 
   useEffect(() => {
     const saved = localStorage.getItem('gestivio-lang') as Lang | null

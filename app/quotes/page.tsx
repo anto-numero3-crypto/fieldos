@@ -17,11 +17,11 @@ interface Quote {
 interface Customer { id: string; name: string }
 
 const STATUS_CFG: Record<string, { label: string; cls: string }> = {
-  draft:    { label: 'Draft',    cls: 'bg-gray-50 text-gray-600 ring-1 ring-gray-100' },
-  sent:     { label: 'Sent',     cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
-  approved: { label: 'Approved', cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
-  rejected: { label: 'Rejected', cls: 'bg-red-50 text-red-700 ring-1 ring-red-100' },
-  expired:  { label: 'Expired',  cls: 'bg-amber-50 text-amber-600 ring-1 ring-amber-100' },
+  draft:    { label: 'Brouillon', cls: 'bg-gray-50 text-gray-600 ring-1 ring-gray-100' },
+  sent:     { label: 'Envoyé',    cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
+  approved: { label: 'Approuvé', cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
+  rejected: { label: 'Refusé',   cls: 'bg-red-50 text-red-700 ring-1 ring-red-100' },
+  expired:  { label: 'Expiré',   cls: 'bg-amber-50 text-amber-600 ring-1 ring-amber-100' },
 }
 
 const fmt = (n: number) => `$${n.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -77,7 +77,7 @@ export default function QuotesPage() {
 
   const createQuote = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!title.trim()) { setMessage({ text: 'Title is required.', type: 'error' }); return }
+    if (!title.trim()) { setMessage({ text: 'Le titre est requis.', type: 'error' }); return }
     setLoading(true); setMessage(null)
     const { error } = await supabase.from('quotes').insert({
       user_id: user!.id,
@@ -91,7 +91,7 @@ export default function QuotesPage() {
     })
     if (error) { setMessage({ text: error.message, type: 'error' }) }
     else {
-      setMessage({ text: 'Quote created!', type: 'success' })
+      setMessage({ text: 'Devis créé !', type: 'success' })
       setTitle(''); setCustId(''); setValidUntil(''); setTaxRate(0); setNotes(''); setLineItems([newItem()])
       await fetchQuotes(user!.id)
       setTimeout(() => { setPanelOpen(false); setMessage(null) }, 1000)
@@ -105,7 +105,7 @@ export default function QuotesPage() {
   }
 
   const deleteQuote = async (id: string) => {
-    if (!confirm('Delete this quote?')) return
+    if (!confirm('Supprimer ce devis ?')) return
     await supabase.from('quotes').delete().eq('id', id)
     setQuotes((prev) => prev.filter((q) => q.id !== id))
   }
@@ -121,12 +121,12 @@ export default function QuotesPage() {
 
   const AddButton = (
     <button onClick={() => { setPanelOpen(true); setMessage(null) }} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all">
-      <Plus className="h-4 w-4" /> New Quote
+      <Plus className="h-4 w-4" /> Nouveau devis
     </button>
   )
 
   if (pageLoading) return (
-    <AppLayout title="Quotes"><div className="p-6 space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-16 skeleton rounded-2xl" />)}</div></AppLayout>
+    <AppLayout title="Devis"><div className="p-6 space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-16 skeleton rounded-2xl" />)}</div></AppLayout>
   )
 
   const totalValue    = quotes.reduce((s, q) => s + q.total, 0)
@@ -134,16 +134,16 @@ export default function QuotesPage() {
   const acceptRate    = quotes.length > 0 ? (quotes.filter((q) => q.status === 'approved').length / quotes.filter((q) => q.status !== 'draft').length) * 100 : 0
 
   return (
-    <AppLayout title="Quotes" actions={AddButton}>
+    <AppLayout title="Devis" actions={AddButton}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
-            { label: 'Total Quotes', value: quotes.length, icon: FileSignature, bg: 'bg-indigo-50', color: 'text-indigo-600' },
-            { label: 'Total Value', value: fmt(totalValue), icon: DollarSign, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-            { label: 'Approved', value: fmt(approvedValue), icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-            { label: 'Acceptance Rate', value: `${isNaN(acceptRate) ? 0 : acceptRate.toFixed(0)}%`, icon: Tag, bg: 'bg-blue-50', color: 'text-blue-600' },
+            { label: 'Total devis', value: quotes.length, icon: FileSignature, bg: 'bg-indigo-50', color: 'text-indigo-600' },
+            { label: 'Valeur totale', value: fmt(totalValue), icon: DollarSign, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+            { label: 'Approuvés', value: fmt(approvedValue), icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+            { label: 'Taux d\'acceptation', value: `${isNaN(acceptRate) ? 0 : acceptRate.toFixed(0)}%`, icon: Tag, bg: 'bg-blue-50', color: 'text-blue-600' },
           ].map((s) => (
             <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${s.bg} mb-2`}><s.icon className={`h-4 w-4 ${s.color}`} /></div>
@@ -156,7 +156,7 @@ export default function QuotesPage() {
         {/* Filters */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
           <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 flex-wrap">
-            {[{ key: 'all', label: 'All', count: quotes.length }, ...Object.entries(STATUS_CFG).map(([key, cfg]) => ({ key, label: cfg.label, count: counts[key] || 0 }))].map((f) => (
+            {[{ key: 'all', label: 'Tous', count: quotes.length }, ...Object.entries(STATUS_CFG).map(([key, cfg]) => ({ key, label: cfg.label, count: counts[key] || 0 }))].map((f) => (
               <button key={f.key} onClick={() => setFilter(f.key)} className={['flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all', filter === f.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'].join(' ')}>
                 {f.label} <span className={`h-4 min-w-4 inline-flex items-center justify-center rounded-full px-1 text-xs ${filter === f.key ? 'bg-gray-100 text-gray-600' : 'text-gray-400'}`}>{f.count}</span>
               </button>
@@ -164,22 +164,22 @@ export default function QuotesPage() {
           </div>
           <div className="relative sm:ml-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input type="text" placeholder="Search quotes..." value={search} onChange={(e) => setSearch(e.target.value)} className="block rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm w-56" />
+            <input type="text" placeholder="Rechercher des devis..." value={search} onChange={(e) => setSearch(e.target.value)} className="block rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm w-56" />
           </div>
         </div>
 
         {quotes.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-20 text-center">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50"><FileSignature className="h-7 w-7 text-indigo-500" /></div>
-            <h3 className="text-base font-semibold text-gray-900 mb-1">No quotes yet</h3>
-            <p className="text-sm text-gray-400 mb-6 max-w-xs">Create professional quotes with line items and send them to customers for approval.</p>
-            <button onClick={() => setPanelOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"><Plus className="h-4 w-4" /> Create first quote</button>
+            <h3 className="text-base font-semibold text-gray-900 mb-1">Aucun devis pour l&apos;instant</h3>
+            <p className="text-sm text-gray-400 mb-6 max-w-xs">Créez des devis professionnels avec des lignes d&apos;articles et envoyez-les à vos clients pour approbation.</p>
+            <button onClick={() => setPanelOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"><Plus className="h-4 w-4" /> Créer le premier devis</button>
           </div>
         ) : (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="hidden sm:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-100">
-                <thead><tr className="bg-gray-50">{['Quote', 'Customer', 'Total', 'Valid Until', 'Status', ''].map((c) => <th key={c} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{c}</th>)}</tr></thead>
+                <thead><tr className="bg-gray-50">{['Devis', 'Client', 'Total', 'Valide jusqu\'au', 'Statut', ''].map((c) => <th key={c} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{c}</th>)}</tr></thead>
                 <tbody className="divide-y divide-gray-50">
                   {filtered.map((q) => {
                     const scfg = STATUS_CFG[q.status]
@@ -194,7 +194,7 @@ export default function QuotesPage() {
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap"><span className="text-sm font-semibold text-gray-900">{fmt(q.total)}</span></td>
                         <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {q.valid_until ? new Date(q.valid_until).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' }) : <span className="text-gray-300">—</span>}
+                          {q.valid_until ? new Date(q.valid_until).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : <span className="text-gray-300">—</span>}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{scfg?.label || q.status}</span>
@@ -251,25 +251,25 @@ export default function QuotesPage() {
           <div className="fixed inset-0 z-30 bg-gray-900/50 backdrop-blur-sm fade-in" onClick={() => setPanelOpen(false)} />
           <div className="fixed inset-y-0 right-0 z-40 w-full max-w-lg bg-white shadow-2xl slide-over flex flex-col">
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-              <div><h2 className="text-base font-semibold text-gray-900">New Quote</h2><p className="text-xs text-gray-400 mt-0.5">Build a professional quote with line items</p></div>
+              <div><h2 className="text-base font-semibold text-gray-900">Nouveau devis</h2><p className="text-xs text-gray-400 mt-0.5">Créez un devis professionnel avec des lignes d&apos;articles</p></div>
               <button type="button" onClick={() => setPanelOpen(false)} className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"><X className="h-5 w-5" /></button>
             </div>
 
             <form onSubmit={createQuote} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Title <span className="text-red-500">*</span></label>
-                <input type="text" placeholder="e.g. HVAC Installation — Smith Residence" value={title} onChange={(e) => setTitle(e.target.value)} required className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Titre <span className="text-red-500">*</span></label>
+                <input type="text" placeholder="ex. Installation HVAC — Résidence Tremblay" value={title} onChange={(e) => setTitle(e.target.value)} required className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Customer</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Client</label>
                   <select value={customerId} onChange={(e) => setCustId(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
-                    <option value="">Select customer</option>
+                    <option value="">Sélectionner un client</option>
                     {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Valid Until</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Valide jusqu&apos;au</label>
                   <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                 </div>
               </div>
@@ -277,9 +277,9 @@ export default function QuotesPage() {
               {/* Line items */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-gray-700">Line Items</label>
+                  <label className="text-sm font-medium text-gray-700">Lignes d&apos;articles</label>
                   <button type="button" onClick={() => setLineItems([...lineItems, newItem()])} className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                    <Plus className="h-3.5 w-3.5" /> Add item
+                    <Plus className="h-3.5 w-3.5" /> Ajouter une ligne
                   </button>
                 </div>
                 <div className="space-y-2">
@@ -304,18 +304,18 @@ export default function QuotesPage() {
               {/* Totals */}
               <div className="rounded-xl bg-gray-50 p-4 space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Subtotal</span>
+                  <span className="text-gray-500">Sous-total</span>
                   <span className="font-medium">{fmt(subtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Tax rate</span>
+                  <span className="text-gray-500">Taux de taxe</span>
                   <div className="flex items-center gap-1.5">
                     <input type="number" value={taxRate} onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)} min={0} max={100} step="0.5" className="w-16 rounded-lg border border-gray-200 px-2 py-1 text-sm text-right text-gray-900 focus:border-indigo-500 focus:outline-none" />
                     <span className="text-gray-500">%</span>
                   </div>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Tax</span>
+                  <span className="text-gray-500">Taxe</span>
                   <span className="font-medium">{fmt(taxAmount)}</span>
                 </div>
                 <div className="flex justify-between text-base font-bold border-t border-gray-200 pt-2 mt-2">
@@ -326,7 +326,7 @@ export default function QuotesPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
-                <textarea placeholder="Terms, notes, or additional information..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
+                <textarea placeholder="Conditions, notes ou informations supplémentaires..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               </div>
 
               {message && (
@@ -338,9 +338,9 @@ export default function QuotesPage() {
             </form>
 
             <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">
-              <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+              <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Annuler</button>
               <button onClick={createQuote} disabled={loading} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all">
-                {loading ? 'Creating...' : 'Create Quote'}
+                {loading ? 'Création en cours...' : 'Créer le devis'}
               </button>
             </div>
           </div>

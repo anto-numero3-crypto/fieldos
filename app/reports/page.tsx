@@ -13,7 +13,7 @@ interface Invoice { id: string; amount: number; status: string; created_at: stri
 interface Job { id: string; status: string; created_at: string; customers: { name: string } | null }
 interface Customer { id: string; name: string; created_at: string }
 
-const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+const MONTHS_SHORT = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc']
 
 type Period = '30d' | '90d' | '1y' | 'all'
 
@@ -109,10 +109,10 @@ export default function ReportsPage() {
     const counts: Record<string, number> = { scheduled: 0, in_progress: 0, complete: 0, cancelled: 0 }
     filteredJobs.forEach((j) => { counts[j.status] = (counts[j.status] || 0) + 1 })
     return [
-      { name: 'Scheduled',   value: counts.scheduled,   color: '#3b82f6' },
-      { name: 'In Progress', value: counts.in_progress, color: '#f59e0b' },
-      { name: 'Complete',    value: counts.complete,    color: '#10b981' },
-      { name: 'Cancelled',   value: counts.cancelled,   color: '#d1d5db' },
+      { name: 'Planifié',   value: counts.scheduled,   color: '#3b82f6' },
+      { name: 'En cours',   value: counts.in_progress, color: '#f59e0b' },
+      { name: 'Terminé',    value: counts.complete,    color: '#10b981' },
+      { name: 'Annulé',     value: counts.cancelled,   color: '#d1d5db' },
     ].filter((d) => d.value > 0)
   }
 
@@ -161,7 +161,7 @@ export default function ReportsPage() {
   const revenueChange = prevRevenue > 0 ? ((totalRevenue - prevRevenue) / prevRevenue * 100).toFixed(0) : null
 
   if (loading) return (
-    <AppLayout title="Reports">
+    <AppLayout title="Rapports">
       <div className="p-6 space-y-4">
         <div className="grid grid-cols-4 gap-4">{[...Array(4)].map((_, i) => <div key={i} className="h-24 skeleton rounded-2xl" />)}</div>
         <div className="h-64 skeleton rounded-2xl" />
@@ -170,13 +170,13 @@ export default function ReportsPage() {
   )
 
   return (
-    <AppLayout title="Reports">
+    <AppLayout title="Rapports">
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
 
         {/* Period selector */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
-            {([['30d', 'Last 30 days'], ['90d', 'Last 90 days'], ['1y', 'Last year'], ['all', 'All time']] as [Period, string][]).map(([key, label]) => (
+            {([['30d', '30 derniers jours'], ['90d', '90 derniers jours'], ['1y', 'Dernière année'], ['all', 'Depuis le début']] as [Period, string][]).map(([key, label]) => (
               <button
                 key={key}
                 onClick={() => setPeriod(key)}
@@ -187,7 +187,7 @@ export default function ReportsPage() {
             ))}
           </div>
           <button className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
-            <Download className="h-4 w-4" /> Export
+            <Download className="h-4 w-4" /> Exporter
           </button>
         </div>
 
@@ -195,25 +195,25 @@ export default function ReportsPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
-              label: 'Total Revenue', value: fmt(totalRevenue),
+              label: 'Revenus totaux', value: fmt(totalRevenue),
               icon: DollarSign, bg: 'bg-emerald-50', color: 'text-emerald-600',
-              change: revenueChange ? `${revenueChange > '0' ? '+' : ''}${revenueChange}% vs prev period` : null,
+              change: revenueChange ? `${revenueChange > '0' ? '+' : ''}${revenueChange}% vs période précédente` : null,
               up: revenueChange ? parseInt(revenueChange) >= 0 : null,
             },
             {
-              label: 'Collected', value: fmt(collectedRev),
+              label: 'Encaissé', value: fmt(collectedRev),
               icon: TrendingUp, bg: 'bg-indigo-50', color: 'text-indigo-600',
-              change: `${totalRevenue > 0 ? (collectedRev / totalRevenue * 100).toFixed(0) : 0}% collection rate`, up: null,
+              change: `${totalRevenue > 0 ? (collectedRev / totalRevenue * 100).toFixed(0) : 0}% taux de recouvrement`, up: null,
             },
             {
-              label: 'Outstanding', value: fmt(outstandingRev),
+              label: 'Impayés', value: fmt(outstandingRev),
               icon: DollarSign, bg: 'bg-amber-50', color: 'text-amber-600',
-              change: `${filteredInvoices.filter((i) => i.status !== 'paid').length} unpaid invoices`, up: null,
+              change: `${filteredInvoices.filter((i) => i.status !== 'paid').length} factures non payées`, up: null,
             },
             {
-              label: 'Jobs Created', value: filteredJobs.length,
+              label: 'Interventions créées', value: filteredJobs.length,
               icon: Briefcase, bg: 'bg-violet-50', color: 'text-violet-600',
-              change: `${completionRate}% completion rate`, up: null,
+              change: `${completionRate}% taux de complétion`, up: null,
             },
           ].map((card) => (
             <div key={card.label} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
@@ -237,8 +237,8 @@ export default function ReportsPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Revenue trend */}
           <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Revenue Trend</h2>
-            <p className="text-xs text-gray-400 mb-5">Total invoiced amount by month</p>
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">Tendance des revenus</h2>
+            <p className="text-xs text-gray-400 mb-5">Montant total facturé par mois</p>
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={revenueByMonth()}>
                 <defs>
@@ -258,8 +258,8 @@ export default function ReportsPage() {
 
           {/* Job status pie */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Job Status</h2>
-            <p className="text-xs text-gray-400 mb-4">Distribution for period</p>
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">Statut des interventions</h2>
+            <p className="text-xs text-gray-400 mb-4">Répartition pour la période</p>
             {jobStatusDist().length > 0 ? (
               <>
                 <ResponsiveContainer width="100%" height={140}>
@@ -280,7 +280,7 @@ export default function ReportsPage() {
                 </div>
               </>
             ) : (
-              <div className="flex items-center justify-center h-32 text-gray-400 text-sm">No job data for this period</div>
+              <div className="flex items-center justify-center h-32 text-gray-400 text-sm">Aucune donnée pour cette période</div>
             )}
           </div>
         </div>
@@ -288,8 +288,8 @@ export default function ReportsPage() {
         {/* Jobs per month + AR aging */}
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Jobs Created per Month</h2>
-            <p className="text-xs text-gray-400 mb-5">Volume of new work orders</p>
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">Interventions créées par mois</h2>
+            <p className="text-xs text-gray-400 mb-5">Volume de nouveaux bons de travail</p>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={jobsByMonth()} barSize={24}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -303,8 +303,8 @@ export default function ReportsPage() {
 
           {/* AR aging */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Accounts Receivable Aging</h2>
-            <p className="text-xs text-gray-400 mb-4">Outstanding invoices by age (days)</p>
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">Vieillissement des créances</h2>
+            <p className="text-xs text-gray-400 mb-4">Factures impayées par ancienneté (jours)</p>
             <div className="space-y-3">
               {arAging().map(({ bucket, amount }) => {
                 const isOverdue = bucket !== 'current'
@@ -312,7 +312,7 @@ export default function ReportsPage() {
                   <div key={bucket} className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm">
                       <span className={`h-2 w-2 rounded-full ${bucket === 'current' ? 'bg-blue-400' : bucket === '1-30' ? 'bg-amber-400' : bucket === '31-60' ? 'bg-orange-500' : 'bg-red-500'}`} />
-                      <span className="text-gray-600">{bucket === 'current' ? 'Current' : `${bucket} days`}</span>
+                      <span className="text-gray-600">{bucket === 'current' ? 'Courant' : `${bucket} jours`}</span>
                     </div>
                     <span className={`text-sm font-semibold ${isOverdue && amount > 0 ? 'text-red-600' : 'text-gray-900'}`}>{fmt(amount)}</span>
                   </div>
@@ -325,13 +325,13 @@ export default function ReportsPage() {
         {/* Top customers */}
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-900">Top Customers by Revenue</h2>
+            <h2 className="text-sm font-semibold text-gray-900">Meilleurs clients par revenu</h2>
           </div>
           {topCustomers().length === 0 ? (
-            <div className="flex items-center justify-center py-10 text-gray-400 text-sm">No revenue data for this period</div>
+            <div className="flex items-center justify-center py-10 text-gray-400 text-sm">Aucune donnée de revenus pour cette période</div>
           ) : (
             <table className="min-w-full">
-              <thead><tr className="bg-gray-50">{['Customer', 'Invoices', 'Revenue', '% of Total'].map((c) => <th key={c} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{c}</th>)}</tr></thead>
+              <thead><tr className="bg-gray-50">{['Client', 'Factures', 'Revenus', '% du total'].map((c) => <th key={c} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{c}</th>)}</tr></thead>
               <tbody className="divide-y divide-gray-50">
                 {topCustomers().map((c, i) => (
                   <tr key={c.name} className="hover:bg-gray-50 transition-colors">

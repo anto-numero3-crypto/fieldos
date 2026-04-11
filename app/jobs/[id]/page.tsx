@@ -21,20 +21,20 @@ interface Job {
 }
 
 const STATUS_CFG: Record<string, { label: string; cls: string; dotCls: string }> = {
-  scheduled:   { label: 'Scheduled',   cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100',     dotCls: 'bg-blue-500' },
-  in_progress: { label: 'In Progress', cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',  dotCls: 'bg-amber-500' },
-  complete:    { label: 'Complete',    cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100', dotCls: 'bg-emerald-500' },
-  cancelled:   { label: 'Cancelled',   cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100',      dotCls: 'bg-gray-400' },
+  scheduled:   { label: 'Planifié',   cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100',     dotCls: 'bg-blue-500' },
+  in_progress: { label: 'En cours',   cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',  dotCls: 'bg-amber-500' },
+  complete:    { label: 'Terminé',    cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100', dotCls: 'bg-emerald-500' },
+  cancelled:   { label: 'Annulé',     cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100',      dotCls: 'bg-gray-400' },
 }
 const PRIORITY_CFG: Record<string, { label: string; cls: string }> = {
-  low:    { label: 'Low Priority',    cls: 'text-gray-500' },
-  normal: { label: 'Normal Priority', cls: 'text-blue-500' },
-  high:   { label: 'High Priority',   cls: 'text-amber-600' },
-  urgent: { label: 'Urgent',          cls: 'text-red-600' },
+  low:    { label: 'Basse priorité',   cls: 'text-gray-500' },
+  normal: { label: 'Priorité normale', cls: 'text-blue-500' },
+  high:   { label: 'Haute priorité',   cls: 'text-amber-600' },
+  urgent: { label: 'Urgent',           cls: 'text-red-600' },
 }
 
-const fmtDate = (d: string) => new Date(d).toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-const fmt     = (n: number) => `$${n.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+const fmtDate = (d: string) => new Date(d).toLocaleDateString('fr-CA', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+const fmt     = (n: number) => `$${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -166,7 +166,7 @@ export default function JobDetailPage() {
   }
 
   const deleteJob = async () => {
-    if (!confirm('Delete this job?')) return
+    if (!confirm('Supprimer cette intervention ?')) return
     await supabase.from('jobs').delete().eq('id', id)
     router.push('/jobs')
   }
@@ -195,7 +195,7 @@ export default function JobDetailPage() {
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6">
           <Link href="/jobs" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Jobs
+            <ArrowLeft className="h-4 w-4" /> Interventions
           </Link>
           <span className="text-gray-300">/</span>
           <span className="text-sm font-medium text-gray-900 truncate">{job.title}</span>
@@ -205,10 +205,10 @@ export default function JobDetailPage() {
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm px-6 py-4 mb-4 overflow-x-auto">
           <div className="flex items-center gap-0 min-w-max">
             {[
-              { key: 'scheduled', label: 'Scheduled', dot: 'bg-blue-500' },
-              { key: 'in_progress', label: 'In Progress', dot: 'bg-amber-500' },
-              { key: 'complete', label: 'Complete', dot: 'bg-emerald-500' },
-              { key: 'invoiced', label: 'Invoiced', dot: 'bg-indigo-500' },
+              { key: 'scheduled', label: 'Planifié', dot: 'bg-blue-500' },
+              { key: 'in_progress', label: 'En cours', dot: 'bg-amber-500' },
+              { key: 'complete', label: 'Terminé', dot: 'bg-emerald-500' },
+              { key: 'invoiced', label: 'Facturé', dot: 'bg-indigo-500' },
             ].map((step, i) => {
               const statuses = ['scheduled', 'in_progress', 'complete', 'invoiced']
               const currentIdx = statuses.indexOf(job.status === 'cancelled' ? 'scheduled' : (invoiceLinked ? 'invoiced' : job.status))
@@ -237,7 +237,7 @@ export default function JobDetailPage() {
             })}
             {job.status === 'cancelled' && (
               <div className="ml-4 flex items-center gap-1.5 rounded-xl bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-400">
-                <span className="h-2 w-2 rounded-full bg-gray-300" /> Cancelled
+                <span className="h-2 w-2 rounded-full bg-gray-300" /> Annulé
               </div>
             )}
           </div>
@@ -294,15 +294,15 @@ export default function JobDetailPage() {
             <div className="flex items-center gap-2 shrink-0">
               {editMode ? (
                 <>
-                  <button onClick={() => setEditMode(false)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                  <button onClick={() => setEditMode(false)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Annuler</button>
                   <button onClick={saveEdit} disabled={saving} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors">
-                    <Save className="h-4 w-4" />{saving ? 'Saving...' : 'Save'}
+                    <Save className="h-4 w-4" />{saving ? 'Enregistrement...' : 'Enregistrer'}
                   </button>
                 </>
               ) : (
                 <>
                   <button onClick={() => setEditMode(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                    <Edit2 className="h-4 w-4" /> Edit
+                    <Edit2 className="h-4 w-4" /> Modifier
                   </button>
                   <button onClick={deleteJob} className="inline-flex items-center gap-1.5 rounded-xl border border-red-100 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
                     <Trash2 className="h-4 w-4" />
@@ -322,21 +322,21 @@ export default function JobDetailPage() {
                   <input type="date" value={eDate} onChange={(e) => setEDate(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Priority</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Priorité</label>
                   <select value={ePriority} onChange={(e) => setEPriority(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                    {['low', 'normal', 'high', 'urgent'].map((p) => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
+                    {[['low','Basse'],['normal','Normale'],['high','Haute'],['urgent','Urgent']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Start Time</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Heure de début</label>
                   <input type="time" value={eStart} onChange={(e) => setEStart(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">End Time</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Heure de fin</label>
                   <input type="time" value={eEnd} onChange={(e) => setEEnd(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
               </div>
-              <input value={eAddr} onChange={(e) => setEAddr(e.target.value)} placeholder="Service address..." className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+              <input value={eAddr} onChange={(e) => setEAddr(e.target.value)} placeholder="Adresse d'intervention..." className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
             </div>
           ) : (
             <div className="mt-4 space-y-3">
@@ -373,8 +373,8 @@ export default function JobDetailPage() {
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div>
-                  <h2 className="text-sm font-semibold text-gray-900">Checklist</h2>
-                  {checklist.length > 0 && <p className="text-xs text-gray-400">{doneCount}/{checklist.length} completed</p>}
+                  <h2 className="text-sm font-semibold text-gray-900">Liste de tâches</h2>
+                  {checklist.length > 0 && <p className="text-xs text-gray-400">{doneCount}/{checklist.length} terminée(s)</p>}
                 </div>
               </div>
 
@@ -406,7 +406,7 @@ export default function JobDetailPage() {
               <div className="flex gap-2 px-5 py-3 border-t border-gray-50">
                 <input
                   type="text"
-                  placeholder="Add checklist item..."
+                  placeholder="Ajouter une tâche..."
                   value={newCheckItem}
                   onChange={(e) => setNewCheckItem(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCheckItem() } }}
@@ -421,14 +421,14 @@ export default function JobDetailPage() {
             {/* Internal notes */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
               <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <StickyNote className="h-4 w-4 text-amber-500" /> Internal Notes
+                <StickyNote className="h-4 w-4 text-amber-500" /> Notes internes
               </h2>
               {editMode ? (
-                <textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} placeholder="Notes visible only to your team..." rows={4} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
+                <textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} placeholder="Notes visibles uniquement par votre équipe..." rows={4} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               ) : job.internal_notes ? (
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{job.internal_notes}</p>
               ) : (
-                <p className="text-sm text-gray-400 italic">No internal notes. Edit job to add notes.</p>
+                <p className="text-sm text-gray-400 italic">Aucune note. Modifiez l'intervention pour ajouter des notes.</p>
               )}
             </div>
           </div>
@@ -438,7 +438,7 @@ export default function JobDetailPage() {
             {/* Invoice */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
               <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <FileText className="h-4 w-4 text-emerald-500" /> Invoice
+                <FileText className="h-4 w-4 text-emerald-500" /> Facture
               </h2>
               {invoiceLinked ? (
                 <div className="rounded-xl bg-emerald-50 p-4">
@@ -448,18 +448,18 @@ export default function JobDetailPage() {
                       {invoiceLinked.status}
                     </span>
                   </div>
-                  <Link href="/invoices" className="text-xs text-indigo-600 hover:underline">View invoice →</Link>
+                  <Link href="/invoices" className="text-xs text-indigo-600 hover:underline">Voir la facture →</Link>
                 </div>
               ) : (
                 <div className="text-center py-4">
                   <DollarSign className="h-8 w-8 text-gray-200 mx-auto mb-2" />
-                  <p className="text-xs text-gray-400 mb-3">No invoice generated yet</p>
+                  <p className="text-xs text-gray-400 mb-3">Aucune facture générée</p>
                   <button
                     onClick={generateInvoice}
                     disabled={saving2}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
                   >
-                    <Plus className="h-3.5 w-3.5" />{saving2 ? 'Generating...' : 'Generate Invoice'}
+                    <Plus className="h-3.5 w-3.5" />{saving2 ? 'Génération...' : 'Générer une facture'}
                   </button>
                 </div>
               )}
@@ -467,31 +467,31 @@ export default function JobDetailPage() {
 
             {/* Job details */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
-              <h2 className="text-sm font-semibold text-gray-900 mb-3">Job Details</h2>
+              <h2 className="text-sm font-semibold text-gray-900 mb-3">Détails de l'intervention</h2>
               <dl className="space-y-2.5 text-sm">
                 <div className="flex justify-between">
-                  <dt className="text-gray-500">Status</dt>
+                  <dt className="text-gray-500">Statut</dt>
                   <dd><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scfg?.cls}`}>{scfg?.label}</span></dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-gray-500">Priority</dt>
+                  <dt className="text-gray-500">Priorité</dt>
                   <dd className={`font-medium text-xs ${pcfg.cls}`}>{pcfg.label}</dd>
                 </div>
                 {job.scheduled_date && (
                   <div className="flex justify-between">
                     <dt className="text-gray-500">Date</dt>
-                    <dd className="font-medium text-gray-900 text-xs">{new Date(job.scheduled_date).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })}</dd>
+                    <dd className="font-medium text-gray-900 text-xs">{new Date(job.scheduled_date).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' })}</dd>
                   </div>
                 )}
                 {job.start_time && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-500">Time</dt>
+                    <dt className="text-gray-500">Heure</dt>
                     <dd className="font-medium text-gray-900 text-xs">{job.start_time}{job.end_time ? ` – ${job.end_time}` : ''}</dd>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <dt className="text-gray-500">Created</dt>
-                  <dd className="font-medium text-gray-900 text-xs">{new Date(job.created_at).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })}</dd>
+                  <dt className="text-gray-500">Créé</dt>
+                  <dd className="font-medium text-gray-900 text-xs">{new Date(job.created_at).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' })}</dd>
                 </div>
               </dl>
             </div>

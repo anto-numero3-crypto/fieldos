@@ -31,9 +31,9 @@ interface Invoice {
 }
 
 const STATUS_CFG: Record<string, { label: string; className: string; icon: React.ElementType }> = {
-  unpaid:  { label: 'Unpaid',  className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',   icon: Clock },
-  paid:    { label: 'Paid',    className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', icon: CheckCircle },
-  overdue: { label: 'Overdue', className: 'bg-red-50 text-red-700 ring-1 ring-red-200',         icon: AlertCircle },
+  unpaid:  { label: 'Non payé',  className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',   icon: Clock },
+  paid:    { label: 'Payé',      className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', icon: CheckCircle },
+  overdue: { label: 'En retard', className: 'bg-red-50 text-red-700 ring-1 ring-red-200',         icon: AlertCircle },
 }
 
 export default function InvoiceDetailPage() {
@@ -109,7 +109,7 @@ export default function InvoiceDetailPage() {
     if (error) {
       setMessage({ text: error.message, type: 'error' })
     } else {
-      setMessage({ text: 'Invoice updated.', type: 'success' })
+      setMessage({ text: 'Facture mise à jour.', type: 'success' })
       setEditing(false)
       fetchInvoice()
       setTimeout(() => setMessage(null), 3000)
@@ -118,7 +118,7 @@ export default function InvoiceDetailPage() {
   }
 
   const deleteInvoice = async () => {
-    if (!confirm('Delete this invoice? This cannot be undone.')) return
+    if (!confirm('Supprimer cette facture ? Cette action est irréversible.')) return
     const { data: auth } = await supabase.auth.getUser()
     if (auth.user) writeAuditLog({ userId: auth.user.id, action: 'delete', resourceType: 'invoice', resourceId: id })
     await supabase.from('invoices').delete().eq('id', id)
@@ -143,17 +143,17 @@ export default function InvoiceDetailPage() {
           customerName: invoice.customers.name,
           invoiceNumber: invoice.invoice_number,
           amount: `$${parseFloat(String(invoice.amount)).toFixed(2)}`,
-          dueDate: invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' }) : undefined,
+          dueDate: invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('fr-CA', { month: 'long', day: 'numeric', year: 'numeric' }) : undefined,
         }),
       })
       const data = await res.json()
       if (data.success) {
-        setMessage({ text: `Email sent to ${invoice.customers.email}`, type: 'success' })
+        setMessage({ text: `Email envoyé à ${invoice.customers.email}`, type: 'success' })
       } else {
-        setMessage({ text: data.error || 'Email failed to send', type: 'error' })
+        setMessage({ text: data.error || 'Échec de l\'envoi de l\'email', type: 'error' })
       }
     } catch {
-      setMessage({ text: 'Failed to send email', type: 'error' })
+      setMessage({ text: 'Échec de l\'envoi de l\'email', type: 'error' })
     }
     setSending(false)
     setTimeout(() => setMessage(null), 4000)
@@ -171,11 +171,11 @@ export default function InvoiceDetailPage() {
       if (data.url) {
         window.open(data.url, '_blank')
       } else {
-        setMessage({ text: data.error || 'Could not create payment link', type: 'error' })
+        setMessage({ text: data.error || 'Impossible de créer le lien de paiement', type: 'error' })
         setTimeout(() => setMessage(null), 4000)
       }
     } catch {
-      setMessage({ text: 'Failed to create payment link', type: 'error' })
+      setMessage({ text: 'Impossible de créer le lien de paiement', type: 'error' })
       setTimeout(() => setMessage(null), 4000)
     }
     setPaying(false)
@@ -192,7 +192,7 @@ export default function InvoiceDetailPage() {
   const fmt = (n: number) => `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
   if (loading) return (
-    <AppLayout title="Invoice">
+    <AppLayout title="Facture">
       <div className="flex h-full items-center justify-center p-12">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-200 border-t-indigo-600" />
       </div>
@@ -200,11 +200,11 @@ export default function InvoiceDetailPage() {
   )
 
   if (!invoice) return (
-    <AppLayout title="Invoice">
+    <AppLayout title="Facture">
       <div className="flex flex-col items-center justify-center p-12 text-center">
         <FileText className="h-10 w-10 text-gray-300 mb-3" />
-        <p className="text-sm text-gray-500">Invoice not found.</p>
-        <Link href="/invoices" className="mt-4 text-sm text-indigo-600 hover:underline">Back to Invoices</Link>
+        <p className="text-sm text-gray-500">Facture introuvable.</p>
+        <Link href="/invoices" className="mt-4 text-sm text-indigo-600 hover:underline">Retour aux factures</Link>
       </div>
     </AppLayout>
   )
@@ -221,13 +221,13 @@ export default function InvoiceDetailPage() {
   const displayTax = displaySubtotal * ((invoice.tax_rate || 0) / 100)
 
   return (
-    <AppLayout title={invoice.invoice_number || 'Invoice'}>
+    <AppLayout title={invoice.invoice_number || 'Facture'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <Link href="/invoices" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Invoices
+            <ArrowLeft className="h-4 w-4" /> Factures
           </Link>
           <span className="text-gray-300">/</span>
           <span className="text-sm font-semibold text-gray-900">{invoice.invoice_number || invoice.id.slice(0, 8)}</span>
@@ -253,7 +253,7 @@ export default function InvoiceDetailPage() {
                   </div>
                   <div>
                     <p className="text-lg font-bold text-gray-900">{invoice.invoice_number || `INV-${invoice.id.slice(0,8).toUpperCase()}`}</p>
-                    <p className="text-xs text-gray-400">Created {new Date(invoice.created_at).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                    <p className="text-xs text-gray-400">Créé le {new Date(invoice.created_at).toLocaleDateString('fr-CA', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -262,20 +262,20 @@ export default function InvoiceDetailPage() {
                       onClick={markPaid}
                       className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-all shadow-sm"
                     >
-                      <CheckCircle className="h-4 w-4" /> Mark Paid
+                      <CheckCircle className="h-4 w-4" /> Marquer payé
                     </button>
                   )}
                   {!editing ? (
                     <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all">
-                      <Edit2 className="h-4 w-4" /> Edit
+                      <Edit2 className="h-4 w-4" /> Modifier
                     </button>
                   ) : (
                     <>
                       <button onClick={() => setEditing(false)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all">
-                        <X className="h-4 w-4" /> Cancel
+                        <X className="h-4 w-4" /> Annuler
                       </button>
                       <button onClick={saveEdits} disabled={saving} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-sm">
-                        <Save className="h-4 w-4" /> {saving ? 'Saving…' : 'Save'}
+                        <Save className="h-4 w-4" /> {saving ? 'Enregistrement…' : 'Enregistrer'}
                       </button>
                     </>
                   )}
@@ -286,16 +286,16 @@ export default function InvoiceDetailPage() {
               {editing ? (
                 <div className="px-6 py-4 grid grid-cols-2 gap-4 bg-gray-50 border-b border-gray-100">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Statut</label>
                     <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)}
                       className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                      <option value="unpaid">Unpaid</option>
-                      <option value="paid">Paid</option>
-                      <option value="overdue">Overdue</option>
+                      <option value="unpaid">Non payé</option>
+                      <option value="paid">Payé</option>
+                      <option value="overdue">En retard</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Due Date</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">Date d'échéance</label>
                     <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)}
                       className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                   </div>
@@ -308,13 +308,13 @@ export default function InvoiceDetailPage() {
                   {invoice.due_date && (
                     <span className="flex items-center gap-1.5 text-sm text-gray-500">
                       <Calendar className="h-4 w-4 text-gray-300" />
-                      Due {new Date(invoice.due_date).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      Éch. {new Date(invoice.due_date).toLocaleDateString('fr-CA', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </span>
                   )}
                   {invoice.paid_at && (
                     <span className="flex items-center gap-1.5 text-sm text-emerald-600">
                       <CheckCircle className="h-4 w-4" />
-                      Paid {new Date(invoice.paid_at).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      Payé le {new Date(invoice.paid_at).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
                   )}
                 </div>
@@ -323,16 +323,16 @@ export default function InvoiceDetailPage() {
               {/* Line items */}
               <div className="px-6 py-5">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold text-gray-900">Line Items</p>
+                  <p className="text-sm font-semibold text-gray-900">Lignes de la facture</p>
                   {editing && (
-                    <button onClick={addLineItem} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700">+ Add item</button>
+                    <button onClick={addLineItem} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700">+ Ajouter une ligne</button>
                   )}
                 </div>
 
                 {editing ? (
                   <div className="space-y-2">
                     {lineItems.length === 0 && (
-                      <p className="text-xs text-gray-400 text-center py-4">No line items. Add one above or save with just the invoice amount.</p>
+                      <p className="text-xs text-gray-400 text-center py-4">Aucune ligne. Ajoutez-en une ou enregistrez simplement le montant de la facture.</p>
                     )}
                     {lineItems.map((li, i) => (
                       <div key={i} className="grid grid-cols-12 gap-2 items-center">
@@ -360,7 +360,7 @@ export default function InvoiceDetailPage() {
                       </div>
                     ))}
                     <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
-                      <label className="text-xs text-gray-500">Tax rate:</label>
+                      <label className="text-xs text-gray-500">Taux de taxe :</label>
                       <input type="number" min="0" max="100" step="0.1" value={editTaxRate}
                         onChange={(e) => setEditTaxRate(e.target.value)}
                         className="w-20 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:outline-none" />
@@ -373,8 +373,8 @@ export default function InvoiceDetailPage() {
                       <thead>
                         <tr className="border-b border-gray-100">
                           <th className="pb-2 text-left text-xs font-medium text-gray-400">Description</th>
-                          <th className="pb-2 text-center text-xs font-medium text-gray-400">Qty</th>
-                          <th className="pb-2 text-right text-xs font-medium text-gray-400">Unit Price</th>
+                          <th className="pb-2 text-center text-xs font-medium text-gray-400">Qté</th>
+                          <th className="pb-2 text-right text-xs font-medium text-gray-400">Prix unitaire</th>
                           <th className="pb-2 text-right text-xs font-medium text-gray-400">Total</th>
                         </tr>
                       </thead>
@@ -390,7 +390,7 @@ export default function InvoiceDetailPage() {
                       </tbody>
                     </table>
                     <div className="mt-3 pt-3 border-t border-gray-100 space-y-1 text-sm">
-                      <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>{fmt(displaySubtotal)}</span></div>
+                      <div className="flex justify-between text-gray-500"><span>Sous-total</span><span>{fmt(displaySubtotal)}</span></div>
                       {(invoice.tax_rate || 0) > 0 && (
                         <div className="flex justify-between text-gray-500"><span>Tax ({invoice.tax_rate}%)</span><span>{fmt(displayTax)}</span></div>
                       )}
@@ -401,14 +401,14 @@ export default function InvoiceDetailPage() {
                   </div>
                 ) : (
                   <div className="flex justify-between items-center py-4 border-t border-gray-100">
-                    <span className="text-sm text-gray-500">Invoice amount</span>
+                    <span className="text-sm text-gray-500">Montant de la facture</span>
                     <span className="text-2xl font-bold text-gray-900">{fmt(invoice.amount)}</span>
                   </div>
                 )}
 
                 {editing && lineItems.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-gray-100 space-y-1 text-sm">
-                    <div className="flex justify-between text-gray-500"><span>Subtotal</span><span>{fmt(lineItemSubtotal)}</span></div>
+                    <div className="flex justify-between text-gray-500"><span>Sous-total</span><span>{fmt(lineItemSubtotal)}</span></div>
                     {parseFloat(editTaxRate) > 0 && (
                       <div className="flex justify-between text-gray-500"><span>Tax ({editTaxRate}%)</span><span>{fmt(taxAmount)}</span></div>
                     )}
@@ -426,17 +426,17 @@ export default function InvoiceDetailPage() {
 
             {/* Amount card */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Total Amount</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Montant total</p>
               <p className="text-4xl font-bold text-gray-900">{fmt(invoice.amount)}</p>
               {invoice.status === 'paid' && invoice.paid_at && (
-                <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> Paid {new Date(invoice.paid_at).toLocaleDateString()}</p>
+                <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> Payé le {new Date(invoice.paid_at).toLocaleDateString('fr-CA')}</p>
               )}
             </div>
 
             {/* Customer card */}
             {invoice.customers && (
               <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Customer</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Client</p>
                 <div className="flex items-start gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 font-bold text-sm">
                     {invoice.customers.name[0]?.toUpperCase()}
@@ -448,7 +448,7 @@ export default function InvoiceDetailPage() {
                   </div>
                 </div>
                 <Link href={`/customers/${invoice.customers.id}`} className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
-                  View profile <ExternalLink className="h-3 w-3" />
+                  Voir le profil <ExternalLink className="h-3 w-3" />
                 </Link>
               </div>
             )}
@@ -456,13 +456,13 @@ export default function InvoiceDetailPage() {
             {/* Job card */}
             {invoice.jobs && (
               <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Linked Job</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Intervention liée</p>
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-4 w-4 text-gray-400 shrink-0" />
                   <p className="text-sm font-medium text-gray-900 truncate">{invoice.jobs.title}</p>
                 </div>
                 <Link href={`/jobs/${invoice.jobs.id}`} className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
-                  View job <ExternalLink className="h-3 w-3" />
+                  Voir l'intervention <ExternalLink className="h-3 w-3" />
                 </Link>
               </div>
             )}
@@ -477,14 +477,14 @@ export default function InvoiceDetailPage() {
                   className="w-full flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors shadow-sm"
                 >
                   {paying ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <CreditCard className="h-4 w-4" />}
-                  Pay Now via Stripe
+                  Payer via Stripe
                 </button>
               )}
               <button
                 onClick={() => window.print()}
                 className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                <Printer className="h-4 w-4 text-gray-400" /> Print / Download PDF
+                <Printer className="h-4 w-4 text-gray-400" /> Imprimer / Télécharger PDF
               </button>
               {invoice.customers?.email && (
                 <>
@@ -494,7 +494,7 @@ export default function InvoiceDetailPage() {
                     className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-colors"
                   >
                     {sending ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" /> : <Send className="h-4 w-4 text-gray-400" />}
-                    Send Invoice Email
+                    Envoyer la facture par email
                   </button>
                   {invoice.status === 'overdue' && (
                     <button
@@ -502,7 +502,7 @@ export default function InvoiceDetailPage() {
                       disabled={sending}
                       className="w-full flex items-center gap-2 rounded-xl border border-red-100 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60 transition-colors"
                     >
-                      <Send className="h-4 w-4" /> Send Payment Reminder
+                      <Send className="h-4 w-4" /> Envoyer un rappel de paiement
                     </button>
                   )}
                 </>
@@ -511,7 +511,7 @@ export default function InvoiceDetailPage() {
                 onClick={deleteInvoice}
                 className="w-full flex items-center gap-2 rounded-xl border border-red-100 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
               >
-                <Trash2 className="h-4 w-4" /> Delete Invoice
+                <Trash2 className="h-4 w-4" /> Supprimer la facture
               </button>
             </div>
           </div>

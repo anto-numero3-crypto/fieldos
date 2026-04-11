@@ -8,14 +8,14 @@ import { Sparkles, Send, RotateCcw, Copy, Check, Zap } from 'lucide-react'
 interface Message { role: 'user' | 'assistant'; content: string }
 
 const SUGGESTED_PROMPTS = [
-  'What is my total revenue this month?',
-  'Which customers have overdue invoices?',
-  'Draft a payment reminder email for overdue invoices',
-  'Summarize my business performance this week',
-  'Which customers haven\'t had a job in 90+ days?',
-  'What are my most profitable job types?',
-  'How many active jobs do I have right now?',
-  'Generate a weekly business summary',
+  'Quel est mon revenu total ce mois-ci ?',
+  'Quels clients ont des factures en retard ?',
+  'Rédige un email de rappel de paiement pour les factures en retard',
+  'Résume mes performances commerciales cette semaine',
+  'Quels clients n\'ont pas eu d\'intervention depuis 90+ jours ?',
+  'Quels sont mes types d\'intervention les plus rentables ?',
+  'Combien d\'interventions actives ai-je en ce moment ?',
+  'Génère un résumé hebdomadaire de mon activité',
 ]
 
 function MessageContent({ content }: { content: string }) {
@@ -55,7 +55,7 @@ function MessageContent({ content }: { content: string }) {
 export default function AssistantPage() {
   const [user, setUser]     = useState<{ id: string; email?: string } | null>(null)
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: "Hi! I'm your Gestivio AI assistant, powered by Claude.\n\nI have real-time access to all your business data — customers, jobs, invoices, quotes, and revenue analytics.\n\nAsk me anything, or let me draft something for you!" },
+    { role: 'assistant', content: "Bonjour ! Je suis votre assistant IA Gestivio, propulsé par Claude.\n\nJ'ai accès en temps réel à toutes vos données — clients, interventions, factures, devis et analyses de revenus.\n\nPosez-moi n'importe quelle question ou demandez-moi de rédiger quelque chose !" },
   ])
   const [input, setInput]   = useState('')
   const [loading, setLoading] = useState(false)
@@ -105,7 +105,7 @@ export default function AssistantPage() {
       const data = await res.json()
       setMessages([...newMessages, { role: 'assistant', content: data.reply }])
     } catch {
-      setMessages([...newMessages, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
+      setMessages([...newMessages, { role: 'assistant', content: 'Une erreur s\'est produite. Veuillez réessayer.' }])
     }
     setLoading(false)
   }
@@ -115,13 +115,13 @@ export default function AssistantPage() {
   }
 
   const resetConversation = () => {
-    setMessages([{ role: 'assistant', content: "Hi! I'm your Gestivio AI assistant, powered by Claude.\n\nI have real-time access to all your business data — customers, jobs, invoices, quotes, and revenue analytics.\n\nAsk me anything, or let me draft something for you!" }])
+    setMessages([{ role: 'assistant', content: "Bonjour ! Je suis votre assistant IA Gestivio, propulsé par Claude.\n\nJ'ai accès en temps réel à toutes vos données — clients, interventions, factures, devis et analyses de revenus.\n\nPosez-moi n'importe quelle question ou demandez-moi de rédiger quelque chose !" }])
   }
 
   const isOnlyWelcome = messages.length === 1
 
   return (
-    <AppLayout title="AI Assistant">
+    <AppLayout title="Assistant IA">
       <div className="flex flex-col h-full max-h-[calc(100vh-64px)]">
 
         {/* Messages area */}
@@ -132,7 +132,7 @@ export default function AssistantPage() {
             {isOnlyWelcome && (
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <Zap className="h-3.5 w-3.5" /> Suggested questions
+                  <Zap className="h-3.5 w-3.5" /> Questions suggérées
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {SUGGESTED_PROMPTS.map((prompt) => (
@@ -207,7 +207,7 @@ export default function AssistantPage() {
               <div className="flex-1 relative">
                 <textarea
                   ref={textareaRef}
-                  placeholder="Ask anything about your business..."
+                  placeholder="Posez n'importe quelle question sur votre activité..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -227,7 +227,7 @@ export default function AssistantPage() {
               </div>
             </div>
             <p className="mt-2 text-center text-xs text-gray-400">
-              Powered by <span className="font-medium text-indigo-500">Claude Sonnet</span> · Real-time access to your business data · Press Enter to send
+              Propulsé par <span className="font-medium text-indigo-500">Claude Sonnet</span> · Accès en temps réel à vos données · Appuyez sur Entrée pour envoyer
             </p>
           </div>
         </div>

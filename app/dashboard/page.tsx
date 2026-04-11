@@ -33,13 +33,13 @@ interface Invoice {
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  scheduled:   { label: 'Scheduled',   className: 'bg-blue-50 text-blue-700' },
-  in_progress: { label: 'In Progress', className: 'bg-amber-50 text-amber-700' },
-  complete:    { label: 'Complete',    className: 'bg-emerald-50 text-emerald-700' },
-  cancelled:   { label: 'Cancelled',   className: 'bg-gray-50 text-gray-500' },
-  unpaid:      { label: 'Unpaid',      className: 'bg-amber-50 text-amber-700' },
-  paid:        { label: 'Paid',        className: 'bg-emerald-50 text-emerald-700' },
-  overdue:     { label: 'Overdue',     className: 'bg-red-50 text-red-700' },
+  scheduled:   { label: 'Planifié',    className: 'bg-blue-50 text-blue-700' },
+  in_progress: { label: 'En cours',    className: 'bg-amber-50 text-amber-700' },
+  complete:    { label: 'Terminé',     className: 'bg-emerald-50 text-emerald-700' },
+  cancelled:   { label: 'Annulé',      className: 'bg-gray-50 text-gray-500' },
+  unpaid:      { label: 'Non payé',    className: 'bg-amber-50 text-amber-700' },
+  paid:        { label: 'Payé',        className: 'bg-emerald-50 text-emerald-700' },
+  overdue:     { label: 'En retard',   className: 'bg-red-50 text-red-700' },
 }
 
 function buildMonthlyRevenue(invoices: Invoice[]) {
@@ -167,7 +167,7 @@ export default function Dashboard() {
 
   const fmt        = (n: number) => `$${n.toLocaleString('en', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
   const hour       = new Date().getHours()
-  const greeting   = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const greeting   = hour < 12 ? 'Bonjour' : hour < 17 ? 'Bon après-midi' : 'Bonsoir'
   const name       = user?.email?.split('@')[0] || ''
   const revenueΔ   = stats.revenueLastMonth > 0 ? ((stats.revenueThisMonth - stats.revenueLastMonth) / stats.revenueLastMonth) * 100 : null
   const collectionRate = stats.totalInvoiced > 0 ? (stats.paidAmount / stats.totalInvoiced) * 100 : 0
@@ -196,23 +196,23 @@ export default function Dashboard() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-1">
-              {new Date().toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              {new Date().toLocaleDateString('fr-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">{greeting}, {name} 👋</h1>
             <p className="mt-1 text-sm text-gray-500">
               {stats.overdueCount > 0
-                ? `⚠️ You have ${stats.overdueCount} overdue invoice${stats.overdueCount > 1 ? 's' : ''} that need attention.`
+                ? `⚠️ Vous avez ${stats.overdueCount} facture${stats.overdueCount > 1 ? 's' : ''} en retard qui nécessite${stats.overdueCount > 1 ? 'nt' : ''} votre attention.`
                 : stats.activeJobs > 0
-                ? `You have ${stats.activeJobs} active job${stats.activeJobs > 1 ? 's' : ''} in progress.`
-                : `Here's an overview of your business today.`}
+                ? `Vous avez ${stats.activeJobs} intervention${stats.activeJobs > 1 ? 's' : ''} en cours.`
+                : `Voici un aperçu de votre activité aujourd'hui.`}
             </p>
           </div>
           <div className="hidden sm:flex items-center gap-2 shrink-0">
             <Link href="/jobs" className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
-              <Plus className="h-4 w-4" /> New Job
+              <Plus className="h-4 w-4" /> Nouvelle intervention
             </Link>
             <Link href="/invoices" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm transition-colors">
-              <Plus className="h-4 w-4" /> New Invoice
+              <Plus className="h-4 w-4" /> Nouvelle facture
             </Link>
           </div>
         </div>
@@ -224,15 +224,15 @@ export default function Dashboard() {
             <div className="flex-1 min-w-0">
               <p className={`text-sm font-semibold ${stats.overdueCount > 0 ? 'text-red-800' : 'text-amber-800'}`}>
                 {stats.overdueCount > 0
-                  ? `${stats.overdueCount} overdue invoice${stats.overdueCount > 1 ? 's' : ''} — ${fmt(stats.unpaidAmount)} outstanding`
-                  : `${stats.unpaidCount} invoice${stats.unpaidCount > 1 ? 's' : ''} awaiting payment — ${fmt(stats.unpaidAmount)}`}
+                  ? `${stats.overdueCount} facture${stats.overdueCount > 1 ? 's' : ''} en retard — ${fmt(stats.unpaidAmount)} impayé${stats.unpaidAmount > 1 ? 's' : ''}`
+                  : `${stats.unpaidCount} facture${stats.unpaidCount > 1 ? 's' : ''} en attente de paiement — ${fmt(stats.unpaidAmount)}`}
               </p>
               <p className={`text-xs mt-0.5 ${stats.overdueCount > 0 ? 'text-red-600' : 'text-amber-600'}`}>
-                Send reminders to get paid faster
+                Envoyez des rappels pour être payé plus vite
               </p>
             </div>
             <Link href="/invoices" className={`shrink-0 text-xs font-semibold hover:underline ${stats.overdueCount > 0 ? 'text-red-700' : 'text-amber-700'}`}>
-              View invoices →
+              Voir les factures →
             </Link>
           </div>
         )}
@@ -241,42 +241,42 @@ export default function Dashboard() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[
             {
-              title: 'Revenue This Month',
+              title: 'Revenus ce mois',
               value: fmt(stats.revenueThisMonth),
               icon: DollarSign, href: '/invoices',
               iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600',
               sub: revenueΔ !== null
-                ? `${revenueΔ >= 0 ? '↑' : '↓'} ${Math.abs(revenueΔ).toFixed(0)}% vs last month`
-                : `${fmt(stats.paidAmount)} total collected`,
+                ? `${revenueΔ >= 0 ? '↑' : '↓'} ${Math.abs(revenueΔ).toFixed(0)}% vs mois dernier`
+                : `${fmt(stats.paidAmount)} total encaissé`,
               subColor: revenueΔ !== null ? (revenueΔ >= 0 ? 'text-emerald-600' : 'text-red-500') : 'text-gray-400',
               highlight: false,
             },
             {
-              title: 'Jobs This Month',
+              title: 'Interventions ce mois',
               value: stats.jobsThisMonth.toString(),
               icon: Briefcase, href: '/jobs',
               iconBg: 'bg-blue-100', iconColor: 'text-blue-600',
-              sub: `${stats.activeJobs} active · ${stats.completedJobs} done`,
+              sub: `${stats.activeJobs} actives · ${stats.completedJobs} terminées`,
               subColor: 'text-gray-400',
               highlight: false,
             },
             {
-              title: 'Outstanding',
+              title: 'Impayés',
               value: fmt(stats.unpaidAmount),
               icon: stats.overdueCount > 0 ? AlertCircle : Clock,
               href: '/invoices',
               iconBg: stats.overdueCount > 0 ? 'bg-red-100' : 'bg-amber-100',
               iconColor: stats.overdueCount > 0 ? 'text-red-600' : 'text-amber-600',
-              sub: stats.overdueCount > 0 ? `${stats.overdueCount} overdue` : `${stats.unpaidCount} unpaid`,
+              sub: stats.overdueCount > 0 ? `${stats.overdueCount} en retard` : `${stats.unpaidCount} non payées`,
               subColor: stats.overdueCount > 0 ? 'text-red-500' : 'text-amber-500',
               highlight: stats.overdueCount > 0,
             },
             {
-              title: 'New Customers',
+              title: 'Nouveaux clients',
               value: stats.newCustomersThisMonth.toString(),
               icon: Users, href: '/customers',
               iconBg: 'bg-violet-100', iconColor: 'text-violet-600',
-              sub: `${stats.customers} total clients`,
+              sub: `${stats.customers} clients au total`,
               subColor: 'text-gray-400',
               highlight: false,
             },
@@ -308,8 +308,8 @@ export default function Dashboard() {
           <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between mb-6">
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Revenue</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Collected · Last 12 months</p>
+                <h2 className="text-sm font-semibold text-gray-900">Revenus</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Encaissés · 12 derniers mois</p>
               </div>
               {revenueΔ !== null && (
                 <div className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold ${revenueΔ >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}`}>
@@ -337,8 +337,8 @@ export default function Dashboard() {
               <div className="flex items-center justify-center h-44 rounded-xl bg-gray-50">
                 <div className="text-center">
                   <TrendingUp className="h-10 w-10 text-gray-200 mx-auto mb-2" />
-                  <p className="text-sm text-gray-400">Revenue chart will appear once you have paid invoices</p>
-                  <Link href="/invoices" className="mt-2 inline-block text-xs font-medium text-indigo-600 hover:underline">Create an invoice →</Link>
+                  <p className="text-sm text-gray-400">Le graphique apparaîtra une fois que vous aurez des factures payées</p>
+                  <Link href="/invoices" className="mt-2 inline-block text-xs font-medium text-indigo-600 hover:underline">Créer une facture →</Link>
                 </div>
               </div>
             )}
@@ -348,14 +348,14 @@ export default function Dashboard() {
           <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col gap-5">
             <div>
               <h2 className="text-sm font-semibold text-gray-900">Performance</h2>
-              <p className="text-xs text-gray-400 mt-0.5">All time</p>
+              <p className="text-xs text-gray-400 mt-0.5">Depuis le début</p>
             </div>
 
             <div className="space-y-4">
               {[
-                { label: 'Job completion', value: completionRate, color: 'bg-emerald-500', icon: Target },
-                { label: 'Invoice collection', value: collectionRate, color: 'bg-indigo-500', icon: CheckCircle },
-                { label: 'Active workload', value: stats.totalJobs > 0 ? (stats.activeJobs / stats.totalJobs) * 100 : 0, color: 'bg-blue-400', icon: Activity },
+                { label: 'Taux de complétion', value: completionRate, color: 'bg-emerald-500', icon: Target },
+                { label: 'Taux de recouvrement', value: collectionRate, color: 'bg-indigo-500', icon: CheckCircle },
+                { label: 'Charge active', value: stats.totalJobs > 0 ? (stats.activeJobs / stats.totalJobs) * 100 : 0, color: 'bg-blue-400', icon: Activity },
               ].map((row) => (
                 <div key={row.label}>
                   <div className="flex items-center justify-between mb-1.5">
@@ -374,11 +374,11 @@ export default function Dashboard() {
             <div className="mt-auto border-t border-gray-100 pt-4 grid grid-cols-2 gap-3">
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{stats.totalJobs}</p>
-                <p className="text-xs text-gray-400">Total jobs</p>
+                <p className="text-xs text-gray-400">Total interventions</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{stats.customers}</p>
-                <p className="text-xs text-gray-400">Customers</p>
+                <p className="text-xs text-gray-400">Clients</p>
               </div>
             </div>
           </div>
@@ -390,11 +390,11 @@ export default function Dashboard() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-indigo-100">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-indigo-600" />
-                <h2 className="text-sm font-semibold text-indigo-900">Today&apos;s Schedule</h2>
+                <h2 className="text-sm font-semibold text-indigo-900">Planning du jour</h2>
                 <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">{todayJobs.length}</span>
               </div>
               <Link href="/schedule" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                Full calendar <ArrowRight className="h-3 w-3" />
+                Calendrier complet <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
             <div className="divide-y divide-indigo-100">
@@ -407,7 +407,7 @@ export default function Dashboard() {
                   <div className={`h-2 w-2 rounded-full shrink-0 ${job.status === 'in_progress' ? 'bg-amber-500' : 'bg-blue-500'}`} />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-gray-900 truncate">{job.title}</p>
-                    <p className="text-xs text-gray-500">{job.customers?.name || 'No customer'}</p>
+                    <p className="text-xs text-gray-500">{job.customers?.name || 'Sans client'}</p>
                   </div>
                   <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[job.status]?.className || ''}`}>
                     {statusConfig[job.status]?.label || job.status}
@@ -420,16 +420,16 @@ export default function Dashboard() {
 
         {/* Quick actions */}
         <div>
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Quick actions</h2>
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Actions rapides</h2>
           <div className="flex flex-wrap gap-2">
             {[
-              { label: 'New Customer', href: '/customers', color: 'hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700', icon: Users },
-              { label: 'New Job',      href: '/jobs',      color: 'hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700', icon: Briefcase },
-              { label: 'New Quote',    href: '/quotes',    color: 'hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700', icon: FileText },
-              { label: 'New Invoice',  href: '/invoices',  color: 'hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700', icon: DollarSign },
-              { label: 'Schedule',     href: '/schedule',  color: 'hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700', icon: Calendar },
-              { label: 'Reports',      href: '/reports',   color: 'hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700', icon: TrendingUp },
-              { label: 'Ask AI',       href: '/assistant', color: 'hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700', icon: Sparkles },
+              { label: 'Nouveau client',      href: '/customers', color: 'hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700', icon: Users },
+              { label: 'Nouvelle intervention', href: '/jobs',    color: 'hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700', icon: Briefcase },
+              { label: 'Nouveau devis',        href: '/quotes',   color: 'hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700', icon: FileText },
+              { label: 'Nouvelle facture',     href: '/invoices', color: 'hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700', icon: DollarSign },
+              { label: 'Calendrier',           href: '/schedule', color: 'hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700', icon: Calendar },
+              { label: 'Rapports',             href: '/reports',  color: 'hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700', icon: TrendingUp },
+              { label: 'Demander à l\'IA',     href: '/assistant', color: 'hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700', icon: Sparkles },
             ].map((action) => (
               <Link
                 key={action.label}
@@ -447,9 +447,9 @@ export default function Dashboard() {
           {/* Recent jobs */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">Recent Jobs</h2>
+              <h2 className="text-sm font-semibold text-gray-900">Interventions récentes</h2>
               <Link href="/jobs" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                View all <ArrowRight className="h-3 w-3" />
+                Voir tout <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
             {recentJobs.length === 0 ? (
@@ -457,10 +457,10 @@ export default function Dashboard() {
                 <div className="h-12 w-12 rounded-2xl bg-violet-50 flex items-center justify-center mb-3">
                   <Briefcase className="h-6 w-6 text-violet-300" />
                 </div>
-                <p className="text-sm font-medium text-gray-700 mb-1">No jobs yet</p>
-                <p className="text-xs text-gray-400 mb-3">Create your first work order to get started</p>
+                <p className="text-sm font-medium text-gray-700 mb-1">Aucune intervention</p>
+                <p className="text-xs text-gray-400 mb-3">Créez votre premier bon de travail pour démarrer</p>
                 <Link href="/jobs" className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700">
-                  <Plus className="h-3.5 w-3.5" /> Create job
+                  <Plus className="h-3.5 w-3.5" /> Créer une intervention
                 </Link>
               </div>
             ) : (
@@ -474,8 +474,8 @@ export default function Dashboard() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium text-gray-900">{job.title}</p>
                         <p className="text-xs text-gray-400">
-                          {job.customers?.name || 'No customer'}
-                          {job.scheduled_date ? ` · ${new Date(job.scheduled_date + 'T12:00:00').toLocaleDateString('en', { month: 'short', day: 'numeric' })}` : ''}
+                          {job.customers?.name || 'Sans client'}
+                          {job.scheduled_date ? ` · ${new Date(job.scheduled_date + 'T12:00:00').toLocaleDateString('fr-CA', { month: 'short', day: 'numeric' })}` : ''}
                         </p>
                       </div>
                       <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[job.status]?.className || ''}`}>
@@ -491,9 +491,9 @@ export default function Dashboard() {
           {/* Recent invoices */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">Recent Invoices</h2>
+              <h2 className="text-sm font-semibold text-gray-900">Factures récentes</h2>
               <Link href="/invoices" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                View all <ArrowRight className="h-3 w-3" />
+                Voir tout <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
             {recentInvoices.length === 0 ? (
@@ -501,10 +501,10 @@ export default function Dashboard() {
                 <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center mb-3">
                   <FileText className="h-6 w-6 text-emerald-300" />
                 </div>
-                <p className="text-sm font-medium text-gray-700 mb-1">No invoices yet</p>
-                <p className="text-xs text-gray-400 mb-3">Create an invoice to start getting paid</p>
+                <p className="text-sm font-medium text-gray-700 mb-1">Aucune facture</p>
+                <p className="text-xs text-gray-400 mb-3">Créez une facture pour commencer à être payé</p>
                 <Link href="/invoices" className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700">
-                  <Plus className="h-3.5 w-3.5" /> Create invoice
+                  <Plus className="h-3.5 w-3.5" /> Créer une facture
                 </Link>
               </div>
             ) : (
@@ -521,8 +521,8 @@ export default function Dashboard() {
                           {inv.invoice_number && <span className="text-xs text-gray-400">{inv.invoice_number}</span>}
                         </div>
                         <p className="text-xs text-gray-400">
-                          {inv.customers?.name || 'No customer'}
-                          {inv.due_date ? ` · Due ${new Date(inv.due_date + 'T12:00:00').toLocaleDateString('en', { month: 'short', day: 'numeric' })}` : ''}
+                          {inv.customers?.name || 'Sans client'}
+                          {inv.due_date ? ` · Échéance ${new Date(inv.due_date + 'T12:00:00').toLocaleDateString('fr-CA', { month: 'short', day: 'numeric' })}` : ''}
                         </p>
                       </div>
                       <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[inv.status]?.className || ''}`}>
@@ -541,8 +541,8 @@ export default function Dashboard() {
           <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Monthly Revenue Breakdown</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Collected revenue by month</p>
+                <h2 className="text-sm font-semibold text-gray-900">Revenus mensuels</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Revenus encaissés par mois</p>
               </div>
               <Zap className="h-4 w-4 text-amber-500" />
             </div>

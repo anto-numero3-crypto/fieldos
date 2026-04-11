@@ -56,7 +56,7 @@ export default function BillingPage() {
     init()
     // Check for Stripe redirect
     const params = new URLSearchParams(window.location.search)
-    if (params.get('success')) setSuccessMsg('Your subscription has been activated!')
+    if (params.get('success')) setSuccessMsg('Votre abonnement a été activé !')
     if (params.get('canceled')) setSuccessMsg(null)
   }, [])
 
@@ -81,7 +81,7 @@ export default function BillingPage() {
   const price = (plan: Plan) => billing === 'annual' ? plan.annualPrice : plan.price
 
   return (
-    <AppLayout title="Billing">
+    <AppLayout title="Facturation">
       <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
         {successMsg && (
           <div className="mb-6 flex items-center gap-2 rounded-2xl bg-emerald-50 border border-emerald-100 px-4 py-3 text-sm text-emerald-700">
@@ -96,29 +96,29 @@ export default function BillingPage() {
               <Zap className="h-5 w-5 text-white" />
             </div>
             <div>
-              <p className="text-sm font-bold text-gray-900">You&apos;re on the <span className="text-indigo-600">Starter</span> plan</p>
-              <p className="text-xs text-gray-500">14-day free trial · Ends April 24, 2026</p>
+              <p className="text-sm font-bold text-gray-900">Vous êtes sur le plan <span className="text-indigo-600">Starter</span></p>
+              <p className="text-xs text-gray-500">Essai gratuit 14 jours · Se termine le 24 avril 2026</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <div className="text-right mr-2">
               <p className="text-sm font-semibold text-gray-900">$39<span className="text-gray-400 font-normal">/month</span></p>
-              <p className="text-xs text-gray-400">No payment on file</p>
+              <p className="text-xs text-gray-400">Aucun moyen de paiement enregistré</p>
             </div>
             <button className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-all shadow-sm">
-              <CreditCard className="h-4 w-4" /> Add payment method
+              <CreditCard className="h-4 w-4" /> Ajouter un moyen de paiement
             </button>
           </div>
         </div>
 
         {/* Usage */}
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5 mb-8">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">Current Usage</h2>
+          <h2 className="text-sm font-semibold text-gray-900 mb-4">Utilisation actuelle</h2>
           <div className="grid grid-cols-3 gap-4">
             {[
-              { label: 'Customers', used: 3, limit: 50, color: 'bg-blue-500' },
-              { label: 'Jobs this month', used: 7, limit: 100, color: 'bg-violet-500' },
-              { label: 'Team members', used: 1, limit: 1, color: 'bg-amber-500' },
+              { label: 'Clients', used: 3, limit: 50, color: 'bg-blue-500' },
+              { label: 'Interventions ce mois', used: 7, limit: 100, color: 'bg-violet-500' },
+              { label: 'Membres d\'équipe', used: 1, limit: 1, color: 'bg-amber-500' },
             ].map((u) => {
               const pct = (u.used / u.limit) * 100
               return (
@@ -130,7 +130,7 @@ export default function BillingPage() {
                   <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
                     <div className={`h-full rounded-full ${u.color} ${pct >= 90 ? 'animate-pulse' : ''}`} style={{ width: `${Math.min(100, pct)}%` }} />
                   </div>
-                  {pct >= 80 && <p className="text-xs text-amber-600 mt-0.5">⚠ Approaching limit</p>}
+                  {pct >= 80 && <p className="text-xs text-amber-600 mt-0.5">⚠ Proche de la limite</p>}
                 </div>
               )
             })}
@@ -144,13 +144,13 @@ export default function BillingPage() {
               onClick={() => setBilling('monthly')}
               className={['rounded-lg px-5 py-2 text-sm font-semibold transition-all', billing === 'monthly' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'].join(' ')}
             >
-              Monthly
+              Mensuel
             </button>
             <button
               onClick={() => setBilling('annual')}
               className={['rounded-lg px-5 py-2 text-sm font-semibold transition-all', billing === 'annual' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'].join(' ')}
             >
-              Annual
+              Annuel
               <span className="ml-1.5 rounded-full bg-emerald-500 px-1.5 py-0.5 text-xs font-bold text-white">-20%</span>
             </button>
           </div>
@@ -171,7 +171,7 @@ export default function BillingPage() {
                   </div>
                 )}
                 {isCurrent && (
-                  <div className="absolute -top-3 left-4 rounded-full bg-emerald-500 px-2.5 py-1 text-xs font-bold text-white">Current</div>
+                  <div className="absolute -top-3 left-4 rounded-full bg-emerald-500 px-2.5 py-1 text-xs font-bold text-white">Actuel</div>
                 )}
 
                 <div className="mb-4">
@@ -215,8 +215,8 @@ export default function BillingPage() {
                   disabled={isCurrent || checkoutLoading === plan.id}
                 >
                   {checkoutLoading === plan.id
-                    ? <><div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" /> Processing…</>
-                    : isCurrent ? 'Current Plan' : `Upgrade to ${plan.name}`
+                    ? <><div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" /> Traitement…</>
+                    : isCurrent ? 'Plan actuel' : `Passer à ${plan.name}`
                   }
                 </button>
               </div>
@@ -227,9 +227,9 @@ export default function BillingPage() {
         {/* Trust signals */}
         <div className="grid grid-cols-3 gap-4">
           {[
-            { icon: Shield, title: 'Secure Payments', desc: 'All payments processed securely via Stripe. Card data never touches our servers.' },
-            { icon: CheckCircle, title: 'Cancel Anytime', desc: 'No long-term contracts. Cancel or downgrade at any time without penalty.' },
-            { icon: Users, title: 'Priority Support', desc: 'Growth and above plans include priority support with guaranteed response times.' },
+            { icon: Shield, title: 'Paiements sécurisés', desc: 'Tous les paiements sont traités de façon sécurisée via Stripe. Les données de carte ne touchent jamais nos serveurs.' },
+            { icon: CheckCircle, title: 'Annulation à tout moment', desc: 'Aucun contrat à long terme. Annulez ou rétrogradez à tout moment sans pénalité.' },
+            { icon: Users, title: 'Support prioritaire', desc: 'Les plans Growth et supérieurs incluent un support prioritaire avec des délais de réponse garantis.' },
           ].map((t) => (
             <div key={t.title} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <t.icon className="h-5 w-5 text-indigo-500 mb-2" />

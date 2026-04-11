@@ -82,7 +82,7 @@ export default function CustomersPage() {
 
   const addCustomer = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) { setMessage({ text: 'Name is required.', type: 'error' }); return }
+    if (!name.trim()) { setMessage({ text: 'Le nom est requis.', type: 'error' }); return }
     setLoading(true); setMessage(null)
     const { error } = await supabase.from('customers').insert({
       user_id: user!.id, name: name.trim(),
@@ -92,7 +92,7 @@ export default function CustomersPage() {
     })
     if (error) { setMessage({ text: error.message, type: 'error' }) }
     else {
-      setMessage({ text: 'Customer added!', type: 'success' })
+      setMessage({ text: 'Client ajouté !', type: 'success' })
       setName(''); setEmail(''); setPhone(''); setAddress(''); setNotes(''); setTags([])
       await fetch_(user!.id)
       setTimeout(() => { setPanelOpen(false); setMessage(null) }, 1000)
@@ -101,14 +101,14 @@ export default function CustomersPage() {
   }
 
   const deleteCustomer = async (id: string) => {
-    if (!confirm('Delete this customer? This cannot be undone.')) return
+    if (!confirm('Supprimer ce client ? Cette action est irréversible.')) return
     await supabase.from('customers').delete().eq('id', id)
     setCustomers((prev) => prev.filter((c) => c.id !== id))
     setMenuOpen(null)
   }
 
   const exportCSV = () => {
-    const header = ['Name', 'Email', 'Phone', 'Address', 'Tags', 'Lifetime Value', 'Added']
+    const header = ['Nom', 'Email', 'Téléphone', 'Adresse', 'Étiquettes', 'Valeur cumulée', 'Ajouté le']
     const rows = customers.map((c) => [
       c.name,
       c.email || '',
@@ -132,19 +132,19 @@ export default function CustomersPage() {
         onClick={exportCSV}
         className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-all"
       >
-        <Download className="h-4 w-4" /> Export CSV
+        <Download className="h-4 w-4" /> Exporter CSV
       </button>
       <button
         onClick={() => { setPanelOpen(true); setMessage(null) }}
         className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all"
       >
-        <Plus className="h-4 w-4" /> Add Customer
+        <Plus className="h-4 w-4" /> Ajouter un client
       </button>
     </div>
   )
 
   if (pageLoading) return (
-    <AppLayout title="Customers">
+    <AppLayout title="Clients">
       <div className="p-6 space-y-3">
         <div className="h-10 w-64 skeleton rounded-xl" />
         {[...Array(5)].map((_, i) => <div key={i} className="h-16 skeleton rounded-2xl" />)}
@@ -155,15 +155,15 @@ export default function CustomersPage() {
   const totalLTV = customers.reduce((s, c) => s + (c.lifetime_value || 0), 0)
 
   return (
-    <AppLayout title="Customers" actions={AddButton}>
+    <AppLayout title="Clients" actions={AddButton}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           {[
-            { label: 'Total Customers', value: customers.length, icon: Users, bg: 'bg-blue-50', color: 'text-blue-600' },
-            { label: 'With Email', value: customers.filter((c) => c.email).length, icon: Mail, bg: 'bg-indigo-50', color: 'text-indigo-600' },
-            { label: 'Total Lifetime Value', value: fmt(totalLTV), icon: TrendingUp, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+            { label: 'Total clients', value: customers.length, icon: Users, bg: 'bg-blue-50', color: 'text-blue-600' },
+            { label: 'Avec email', value: customers.filter((c) => c.email).length, icon: Mail, bg: 'bg-indigo-50', color: 'text-indigo-600' },
+            { label: 'Valeur cumulée totale', value: fmt(totalLTV), icon: TrendingUp, bg: 'bg-emerald-50', color: 'text-emerald-600' },
           ].map((s) => (
             <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${s.bg} mb-2`}>
@@ -181,7 +181,7 @@ export default function CustomersPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by name, email, phone, tags..."
+              placeholder="Rechercher par nom, email, téléphone, étiquettes..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="block w-full rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm"
@@ -195,16 +195,16 @@ export default function CustomersPage() {
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50">
               <Users className="h-7 w-7 text-indigo-500" />
             </div>
-            <h3 className="text-base font-semibold text-gray-900 mb-1">No customers yet</h3>
-            <p className="text-sm text-gray-400 mb-6 max-w-xs">Add your first customer to start managing your field service business.</p>
+            <h3 className="text-base font-semibold text-gray-900 mb-1">Aucun client pour l&apos;instant</h3>
+            <p className="text-sm text-gray-400 mb-6 max-w-xs">Ajoutez votre premier client pour commencer à gérer vos interventions.</p>
             <button onClick={() => setPanelOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
-              <Plus className="h-4 w-4" /> Add your first customer
+              <Plus className="h-4 w-4" /> Ajouter votre premier client
             </button>
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">
             <Search className="h-8 w-8 text-gray-300 mb-3" />
-            <p className="text-sm text-gray-500">No customers match &ldquo;<span className="font-medium">{search}</span>&rdquo;</p>
+            <p className="text-sm text-gray-500">Aucun client ne correspond à &ldquo;<span className="font-medium">{search}</span>&rdquo;</p>
           </div>
         ) : (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
@@ -213,7 +213,7 @@ export default function CustomersPage() {
               <table className="min-w-full divide-y divide-gray-100">
                 <thead>
                   <tr className="bg-gray-50">
-                    {['Customer', 'Contact', 'Address', 'Tags', 'LTV', 'Added', ''].map((col) => (
+                    {['Client', 'Contact', 'Adresse', 'Étiquettes', 'VCV', 'Ajouté', ''].map((col) => (
                       <th key={col} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{col}</th>
                     ))}
                   </tr>
@@ -256,7 +256,7 @@ export default function CustomersPage() {
                         {c.lifetime_value && c.lifetime_value > 0 ? fmt(c.lifetime_value) : <span className="text-gray-300">—</span>}
                       </td>
                       <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-400">
-                        {new Date(c.created_at).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {new Date(c.created_at).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </td>
                       <td className="px-5 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -272,7 +272,7 @@ export default function CustomersPage() {
                                 <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(null)} />
                                 <div className="absolute right-0 top-full mt-1 z-20 w-40 rounded-xl border border-gray-100 bg-white shadow-lg py-1 slide-up">
                                   <button onClick={() => deleteCustomer(c.id)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                                    <Trash2 className="h-4 w-4" /> Delete
+                                    <Trash2 className="h-4 w-4" /> Supprimer
                                   </button>
                                 </div>
                               </>
@@ -326,8 +326,8 @@ export default function CustomersPage() {
           <div className="fixed inset-y-0 right-0 z-40 w-full max-w-md bg-white shadow-2xl slide-over flex flex-col">
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">Add Customer</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Fill in the customer details below</p>
+                <h2 className="text-base font-semibold text-gray-900">Ajouter un client</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Remplissez les informations du client ci-dessous</p>
               </div>
               <button type="button" onClick={() => setPanelOpen(false)} className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
                 <X className="h-5 w-5" />
@@ -336,9 +336,9 @@ export default function CustomersPage() {
 
             <form onSubmit={addCustomer} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
               {[
-                { label: 'Full Name', value: name, set: setName, placeholder: 'John Smith', required: true, type: 'text' },
-                { label: 'Email Address', value: email, set: setEmail, placeholder: 'john@example.com', required: false, type: 'email', icon: <Mail className="h-4 w-4 text-gray-400" /> },
-                { label: 'Phone Number', value: phone, set: setPhone, placeholder: '+1 (555) 000-0000', required: false, type: 'tel', icon: <Phone className="h-4 w-4 text-gray-400" /> },
+                { label: 'Nom complet', value: name, set: setName, placeholder: 'Jean Tremblay', required: true, type: 'text' },
+                { label: 'Adresse email', value: email, set: setEmail, placeholder: 'jean@exemple.com', required: false, type: 'email', icon: <Mail className="h-4 w-4 text-gray-400" /> },
+                { label: 'Numéro de téléphone', value: phone, set: setPhone, placeholder: '+1 (514) 000-0000', required: false, type: 'tel', icon: <Phone className="h-4 w-4 text-gray-400" /> },
               ].map((f) => (
                 <div key={f.label}>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -359,7 +359,7 @@ export default function CustomersPage() {
               ))}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Adresse</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <textarea
@@ -373,17 +373,17 @@ export default function CustomersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Tags</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Étiquettes</label>
                 <div className="flex gap-2 mb-2">
                   <input
                     type="text"
-                    placeholder="e.g. VIP, Commercial"
+                    placeholder="ex. VIP, Commercial"
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
                     className="flex-1 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                   />
-                  <button type="button" onClick={addTag} className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Add</button>
+                  <button type="button" onClick={addTag} className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Ajouter</button>
                 </div>
                 {tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
@@ -400,7 +400,7 @@ export default function CustomersPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
                 <textarea
-                  placeholder="Internal notes about this customer..."
+                  placeholder="Notes internes sur ce client..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
@@ -418,10 +418,10 @@ export default function CustomersPage() {
 
             <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">
               <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                Cancel
+                Annuler
               </button>
               <button onClick={addCustomer} disabled={loading} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all">
-                {loading ? 'Adding...' : 'Add Customer'}
+                {loading ? 'Ajout en cours...' : 'Ajouter un client'}
               </button>
             </div>
           </div>

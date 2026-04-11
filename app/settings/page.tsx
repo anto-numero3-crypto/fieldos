@@ -123,11 +123,11 @@ export default function SettingsPage() {
   }
 
   const tabs: { key: Tab; label: string; icon: typeof Building2 }[] = [
-    { key: 'business',      label: 'Business',       icon: Building2 },
-    { key: 'booking',       label: 'Booking Portal', icon: Sparkles },
-    { key: 'notifications', label: 'Notifications',  icon: Bell },
-    { key: 'security',      label: 'Security',       icon: Shield },
-    { key: 'integrations',  label: 'Integrations',   icon: Globe },
+    { key: 'business',      label: 'Entreprise',      icon: Building2 },
+    { key: 'booking',       label: 'Portail de réservation', icon: Sparkles },
+    { key: 'notifications', label: 'Notifications',   icon: Bell },
+    { key: 'security',      label: 'Sécurité',        icon: Shield },
+    { key: 'integrations',  label: 'Intégrations',    icon: Globe },
   ]
 
   const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
@@ -168,10 +168,10 @@ export default function SettingsPage() {
 
   const SaveBar = () => (
     <div className="flex items-center justify-end gap-3 pt-2">
-      {saved && <div className="flex items-center gap-1.5 text-sm text-emerald-600"><CheckCircle className="h-4 w-4" /> Saved!</div>}
+      {saved && <div className="flex items-center gap-1.5 text-sm text-emerald-600"><CheckCircle className="h-4 w-4" /> Enregistré !</div>}
       {error && <div className="flex items-center gap-1.5 text-sm text-red-600"><AlertCircle className="h-4 w-4" />{error}</div>}
       <button onClick={saveSettings} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all">
-        <Save className="h-4 w-4" />{saving ? 'Saving...' : 'Save Changes'}
+        <Save className="h-4 w-4" />{saving ? 'Enregistrement...' : 'Enregistrer'}
       </button>
     </div>
   )
@@ -186,7 +186,7 @@ export default function SettingsPage() {
   ]
 
   return (
-    <AppLayout title="Settings">
+    <AppLayout title="Paramètres">
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
 
         {/* Tab nav */}
@@ -206,25 +206,25 @@ export default function SettingsPage() {
         {tab === 'business' && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Business Information</h2>
-              <p className="text-sm text-gray-400 mb-5">This appears on invoices, quotes, and customer communications.</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">Informations de l&apos;entreprise</h2>
+              <p className="text-sm text-gray-400 mb-5">Ces informations apparaissent sur vos factures, devis et communications clients.</p>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <InputRow label="Business Name" value={bizName} onChange={setBizName} placeholder="Rivera HVAC Services" />
+                  <InputRow label="Nom de l'entreprise" value={bizName} onChange={setBizName} placeholder="HVAC Tremblay inc." />
                 </div>
-                <InputRow label="Business Phone" value={bizPhone} onChange={setBizPhone} type="tel" placeholder="+1 (555) 000-0000" />
-                <InputRow label="Business Email" value={bizEmail} onChange={setBizEmail} type="email" placeholder="info@company.com" />
+                <InputRow label="Téléphone" value={bizPhone} onChange={setBizPhone} type="tel" placeholder="+1 (514) 000-0000" />
+                <InputRow label="Email professionnel" value={bizEmail} onChange={setBizEmail} type="email" placeholder="info@entreprise.com" />
                 <div className="sm:col-span-2">
-                  <InputRow label="Street Address" value={bizAddress} onChange={setBizAddress} placeholder="123 Main St" />
+                  <InputRow label="Adresse" value={bizAddress} onChange={setBizAddress} placeholder="123 rue Principale" />
                 </div>
-                <InputRow label="City" value={bizCity} onChange={setBizCity} placeholder="Toronto" />
-                <InputRow label="Province / State" value={bizState} onChange={setBizState} placeholder="ON" />
-                <InputRow label="Postal / ZIP Code" value={bizZip} onChange={setBizZip} placeholder="M5V 3A8" />
-                <InputRow label="Website" value={bizWebsite} onChange={setBizWebsite} type="url" placeholder="https://yourcompany.com" />
-                <InputRow label="Tax Number (GST/HST/VAT)" value={bizTaxNum} onChange={setBizTaxNum} placeholder="123456789 RT0001" />
+                <InputRow label="Ville" value={bizCity} onChange={setBizCity} placeholder="Montréal" />
+                <InputRow label="Province / État" value={bizState} onChange={setBizState} placeholder="QC" />
+                <InputRow label="Code postal" value={bizZip} onChange={setBizZip} placeholder="H1A 1A1" />
+                <InputRow label="Site web" value={bizWebsite} onChange={setBizWebsite} type="url" placeholder="https://votre-entreprise.com" />
+                <InputRow label="Numéro de taxe (TPS/TVQ/TVH)" value={bizTaxNum} onChange={setBizTaxNum} placeholder="123456789 RT0001" />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Currency</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Devise</label>
                   <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                     <option value="CAD">CAD — Canadian Dollar</option>
                     <option value="USD">USD — US Dollar</option>
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Timezone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Fuseau horaire</label>
                   <select value={timezone} onChange={(e) => setTimezone(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                     <option value="America/Toronto">Eastern (Toronto)</option>
                     <option value="America/Vancouver">Pacific (Vancouver)</option>
@@ -251,8 +251,8 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
               <div>
-                <p className="text-sm font-semibold text-gray-900">Account</p>
-                <p className="text-xs text-gray-400 mt-0.5">Logged in as {user?.email}</p>
+                <p className="text-sm font-semibold text-gray-900">Compte</p>
+                <p className="text-xs text-gray-400 mt-0.5">Connecté en tant que {user?.email}</p>
               </div>
             </div>
 
@@ -264,36 +264,36 @@ export default function SettingsPage() {
         {tab === 'booking' && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">AI Booking Agent</h2>
-              <p className="text-sm text-gray-400 mb-5">Customize the AI agent that greets customers on your booking portal.</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">Agent IA de réservation</h2>
+              <p className="text-sm text-gray-400 mb-5">Personnalisez l&apos;agent IA qui accueille vos clients sur votre portail de réservation.</p>
 
               <div className="space-y-4">
                 <InputRow
-                  label="Agent Name"
-                  sub="This is the name your AI agent introduces itself with"
+                  label="Nom de l'agent"
+                  sub="C'est le nom que votre agent IA utilise pour se présenter"
                   value={agentName}
                   onChange={setAgentName}
                   placeholder="Alex"
                 />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-0.5">Custom Greeting (optional)</label>
-                  <p className="text-xs text-gray-400 mb-1.5">Override the default greeting message. Leave blank to use the default.</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-0.5">Message d&apos;accueil personnalisé (optionnel)</label>
+                  <p className="text-xs text-gray-400 mb-1.5">Remplace le message par défaut. Laissez vide pour utiliser le message par défaut.</p>
                   <textarea
                     value={agentGreeting}
                     onChange={(e) => setAgentGreeting(e.target.value)}
                     rows={3}
-                    placeholder={`Hi! I'm ${agentName}, your booking assistant. How can I help you today?`}
+                    placeholder={`Bonjour ! Je suis ${agentName}, votre assistant de réservation. Comment puis-je vous aider ?`}
                     className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-0.5">Services Offered (comma-separated)</label>
-                  <p className="text-xs text-gray-400 mb-1.5">Tell your AI agent what services to offer and discuss</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-0.5">Services offerts (séparés par des virgules)</label>
+                  <p className="text-xs text-gray-400 mb-1.5">Indiquez à votre agent IA quels services proposer et discuter</p>
                   <input
                     type="text"
                     value={agentServices}
                     onChange={(e) => setAgentServices(e.target.value)}
-                    placeholder="HVAC repair, AC installation, heating maintenance, duct cleaning"
+                    placeholder="Réparation HVAC, installation CA, entretien chauffage, nettoyage conduits"
                     className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
@@ -304,9 +304,9 @@ export default function SettingsPage() {
             <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-5">
               <div className="flex items-center gap-2 mb-3">
                 <LinkIcon className="h-4 w-4 text-indigo-600" />
-                <p className="text-sm font-semibold text-indigo-900">Your Booking Portal Link</p>
+                <p className="text-sm font-semibold text-indigo-900">Lien de votre portail de réservation</p>
               </div>
-              <p className="text-xs text-indigo-600 mb-3">Share this link with customers so they can book through your AI agent.</p>
+              <p className="text-xs text-indigo-600 mb-3">Partagez ce lien avec vos clients pour qu&apos;ils puissent réserver via votre agent IA.</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1 rounded-xl bg-white border border-indigo-200 px-3 py-2 text-xs font-mono text-gray-700 truncate">
                   {typeof window !== 'undefined' ? `${window.location.origin}/book${orgId ? `?biz=${orgId}` : ''}` : '/book'}
@@ -316,7 +316,7 @@ export default function SettingsPage() {
                   className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors shrink-0"
                 >
                   {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                  {copied ? 'Copied!' : 'Copy'}
+                  {copied ? 'Copié !' : 'Copier'}
                 </button>
               </div>
             </div>
@@ -329,20 +329,20 @@ export default function SettingsPage() {
         {tab === 'notifications' && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Notification Preferences</h2>
-              <p className="text-sm text-gray-400 mb-5">Choose what events trigger in-app and email notifications.</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">Préférences de notifications</h2>
+              <p className="text-sm text-gray-400 mb-5">Choisissez quels événements déclenchent des notifications dans l&apos;app et par email.</p>
 
               <div className="rounded-xl bg-gray-50 px-5 py-4 mb-4">
-                <NotifRow label="Email Notifications" sub="Receive all notifications via email as well" checked={notifEmail} onChange={setNotifEmail} />
+                <NotifRow label="Notifications par email" sub="Recevoir toutes les notifications par email également" checked={notifEmail} onChange={setNotifEmail} />
               </div>
 
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Event Triggers</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Déclencheurs d&apos;événements</h3>
               <div className="rounded-xl border border-gray-100 px-5 divide-y divide-gray-50">
-                <NotifRow label="New job created" sub="When a new work order is added" checked={notifJobCreated} onChange={setNotifJobCreated} />
-                <NotifRow label="Job completed" sub="When a technician marks a job as complete" checked={notifJobComplete} onChange={setNotifJobComplete} />
-                <NotifRow label="Invoice paid" sub="When a customer pays an invoice" checked={notifInvoicePaid} onChange={setNotifInvoicePaid} />
-                <NotifRow label="Overdue invoice" sub="When an invoice passes its due date" checked={notifOverdueInvoice} onChange={setNotifOverdueInvoice} />
-                <NotifRow label="New customer added" sub="When a new customer is created" checked={notifNewCustomer} onChange={setNotifNewCustomer} />
+                <NotifRow label="Nouvelle intervention créée" sub="Quand un nouveau bon de travail est ajouté" checked={notifJobCreated} onChange={setNotifJobCreated} />
+                <NotifRow label="Intervention terminée" sub="Quand un technicien marque une intervention comme terminée" checked={notifJobComplete} onChange={setNotifJobComplete} />
+                <NotifRow label="Facture payée" sub="Quand un client paie une facture" checked={notifInvoicePaid} onChange={setNotifInvoicePaid} />
+                <NotifRow label="Facture en retard" sub="Quand une facture dépasse sa date d'échéance" checked={notifOverdueInvoice} onChange={setNotifOverdueInvoice} />
+                <NotifRow label="Nouveau client ajouté" sub="Quand un nouveau client est créé" checked={notifNewCustomer} onChange={setNotifNewCustomer} />
               </div>
             </div>
             <SaveBar />
@@ -353,13 +353,13 @@ export default function SettingsPage() {
         {tab === 'security' && (
           <div className="space-y-4">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Security</h2>
-              <p className="text-sm text-gray-400 mb-5">Protect your account with additional security measures.</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">Sécurité</h2>
+              <p className="text-sm text-gray-400 mb-5">Protégez votre compte avec des mesures de sécurité supplémentaires.</p>
               <div className="space-y-3">
                 {[
-                  { label: 'Two-Factor Authentication', desc: 'Add an extra layer of security to your account.', badge: 'Recommended', btn: 'Enable 2FA' },
-                  { label: 'Active Sessions', desc: 'View and revoke active login sessions.', badge: null, btn: 'Manage sessions' },
-                  { label: 'Audit Log', desc: 'Review all actions taken in your account.', badge: null, btn: 'View log' },
+                  { label: 'Authentification à deux facteurs', desc: 'Ajoutez une couche de sécurité supplémentaire à votre compte.', badge: 'Recommandé', btn: 'Activer 2FA' },
+                  { label: 'Sessions actives', desc: 'Voir et révoquer les sessions de connexion actives.', badge: null, btn: 'Gérer les sessions' },
+                  { label: 'Journal d\'audit', desc: 'Consulter toutes les actions effectuées sur votre compte.', badge: null, btn: 'Voir le journal' },
                 ].map((item) => (
                   <div key={item.label} className="flex items-start justify-between rounded-xl border border-gray-100 p-4">
                     <div>
@@ -376,9 +376,9 @@ export default function SettingsPage() {
             </div>
 
             <div className="rounded-2xl border border-red-100 bg-red-50 p-5">
-              <h3 className="text-sm font-semibold text-red-700 mb-1">Danger Zone</h3>
-              <p className="text-xs text-red-600 mb-4">These actions are permanent and cannot be undone.</p>
-              <button className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors">Delete Account</button>
+              <h3 className="text-sm font-semibold text-red-700 mb-1">Zone dangereuse</h3>
+              <p className="text-xs text-red-600 mb-4">Ces actions sont permanentes et irréversibles.</p>
+              <button className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors">Supprimer le compte</button>
             </div>
           </div>
         )}
@@ -387,8 +387,8 @@ export default function SettingsPage() {
         {tab === 'integrations' && (
           <div className="space-y-4">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Connected Services</h2>
-              <p className="text-sm text-gray-400 mb-5">Manage integrations with third-party tools.</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">Services connectés</h2>
+              <p className="text-sm text-gray-400 mb-5">Gérez les intégrations avec des outils tiers.</p>
               <div className="space-y-3">
                 {INTEGRATIONS.map((intg) => (
                   <div key={intg.name} className="flex items-center justify-between rounded-xl border border-gray-100 p-4">
@@ -401,7 +401,7 @@ export default function SettingsPage() {
                           <p className="text-sm font-semibold text-gray-900">{intg.name}</p>
                           {intg.connected && (
                             <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                              <CheckCircle className="h-3 w-3" /> Connected
+                              <CheckCircle className="h-3 w-3" /> Connecté
                             </span>
                           )}
                         </div>
@@ -409,7 +409,7 @@ export default function SettingsPage() {
                       </div>
                     </div>
                     {!intg.connected && (
-                      <button className="shrink-0 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors">Connect</button>
+                      <button className="shrink-0 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors">Connecter</button>
                     )}
                   </div>
                 ))}
@@ -420,8 +420,8 @@ export default function SettingsPage() {
               <p className="text-sm font-semibold text-indigo-700 mb-1 flex items-center gap-2">
                 <Wrench className="h-4 w-4" /> Webhooks & Automation
               </p>
-              <p className="text-xs text-indigo-600 mb-3">Connect Gestivio to 5,000+ apps via Zapier, or build custom automations with webhooks.</p>
-              <button className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">Configure Webhooks</button>
+              <p className="text-xs text-indigo-600 mb-3">Connectez Gestivio à plus de 5 000 applications via Zapier, ou créez des automatisations personnalisées avec des webhooks.</p>
+              <button className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">Configurer les webhooks</button>
             </div>
           </div>
         )}

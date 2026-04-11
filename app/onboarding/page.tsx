@@ -12,10 +12,10 @@ import {
 interface Step { id: number; title: string; description: string; icon: typeof Wrench }
 
 const STEPS: Step[] = [
-  { id: 1, title: 'Welcome to Gestivio', description: 'Tell us about your business', icon: Building2 },
-  { id: 2, title: 'Add Your First Customer', description: 'Add a customer to get started', icon: Users },
-  { id: 3, title: 'Create Your First Job', description: 'Schedule your first work order', icon: Briefcase },
-  { id: 4, title: "You're all set!", description: 'Gestivio is ready to use', icon: CheckCircle },
+  { id: 1, title: 'Bienvenue sur Gestivio', description: 'Parlez-nous de votre entreprise', icon: Building2 },
+  { id: 2, title: 'Ajoutez votre premier client', description: 'Ajoutez un client pour commencer', icon: Users },
+  { id: 3, title: 'Créez votre première intervention', description: 'Planifiez votre première intervention', icon: Briefcase },
+  { id: 4, title: 'Tout est prêt !', description: 'Gestivio est prêt à l\'utilisation', icon: CheckCircle },
 ]
 
 export default function OnboardingPage() {
@@ -88,13 +88,13 @@ export default function OnboardingPage() {
 
   const SERVICE_TYPES = [
     { value: 'hvac', label: 'HVAC', emoji: '❄️' },
-    { value: 'plumbing', label: 'Plumbing', emoji: '🔧' },
-    { value: 'electrical', label: 'Electrical', emoji: '⚡' },
-    { value: 'cleaning', label: 'Cleaning', emoji: '🧹' },
-    { value: 'landscaping', label: 'Landscaping', emoji: '🌿' },
-    { value: 'roofing', label: 'Roofing', emoji: '🏠' },
-    { value: 'pest_control', label: 'Pest Control', emoji: '🐛' },
-    { value: 'other', label: 'Other', emoji: '🛠️' },
+    { value: 'plumbing', label: 'Plomberie', emoji: '🔧' },
+    { value: 'electrical', label: 'Électricité', emoji: '⚡' },
+    { value: 'cleaning', label: 'Nettoyage', emoji: '🧹' },
+    { value: 'landscaping', label: 'Paysagement', emoji: '🌿' },
+    { value: 'roofing', label: 'Toiture', emoji: '🏠' },
+    { value: 'pest_control', label: 'Extermination', emoji: '🐛' },
+    { value: 'other', label: 'Autre', emoji: '🛠️' },
   ]
 
   return (
@@ -128,7 +128,7 @@ export default function OnboardingPage() {
             ))}
           </div>
           <div className="text-center">
-            <p className="text-xs text-gray-400">Step {step} of {STEPS.length}</p>
+            <p className="text-xs text-gray-400">Étape {step} sur {STEPS.length}</p>
           </div>
         </div>
 
@@ -147,15 +147,15 @@ export default function OnboardingPage() {
           {step === 1 && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Business Name <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nom de l'entreprise <span className="text-red-500">*</span></label>
                 <div className="relative"><Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="text" placeholder="Rivera HVAC Services" value={bizName} onChange={(e) => setBizName(e.target.value)} className="block w-full rounded-xl border border-gray-200 pl-9 pr-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" /></div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone Number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Numéro de téléphone</label>
                 <div className="relative"><Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="tel" placeholder="+1 (555) 000-0000" value={bizPhone} onChange={(e) => setBizPhone(e.target.value)} className="block w-full rounded-xl border border-gray-200 pl-9 pr-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" /></div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Service Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Type de service</label>
                 <div className="grid grid-cols-4 gap-2">
                   {SERVICE_TYPES.map((s) => (
                     <button key={s.value} type="button" onClick={() => setBizType(s.value)} className={['rounded-xl border-2 p-2.5 text-center transition-all', bizType === s.value ? 'border-indigo-500 bg-indigo-50' : 'border-gray-100 hover:border-gray-200'].join(' ')}>
@@ -171,10 +171,10 @@ export default function OnboardingPage() {
           {step === 2 && (
             <div className="space-y-4">
               <div className="rounded-xl bg-blue-50 border border-blue-100 p-3 text-xs text-blue-700">
-                <strong>Optional:</strong> You can skip this step and add customers later from the Customers page.
+                <strong>Optionnel :</strong> Vous pouvez passer cette étape et ajouter des clients plus tard depuis la page Clients.
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Customer Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nom du client</label>
                 <div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="text" placeholder="John Smith" value={custName} onChange={(e) => setCustName(e.target.value)} className="block w-full rounded-xl border border-gray-200 pl-9 pr-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" /></div>
               </div>
               <div>
@@ -183,11 +183,11 @@ export default function OnboardingPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Phone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Téléphone</label>
                   <input type="tel" placeholder="+1 (555) 000-0000" value={custPhone} onChange={(e) => setCustPhone(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">City</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Ville</label>
                   <input type="text" placeholder="Toronto" value={custAddress} onChange={(e) => setCustAddress(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                 </div>
               </div>
@@ -197,19 +197,19 @@ export default function OnboardingPage() {
           {step === 3 && (
             <div className="space-y-4">
               <div className="rounded-xl bg-blue-50 border border-blue-100 p-3 text-xs text-blue-700">
-                <strong>Optional:</strong> You can skip this step and create jobs later from the Jobs page.
+                <strong>Optionnel :</strong> Vous pouvez passer cette étape et créer des interventions plus tard depuis la page Interventions.
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Job Title</label>
-                <input type="text" placeholder="e.g. HVAC Annual Maintenance" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Titre de l'intervention</label>
+                <input type="text" placeholder="ex. Entretien annuel HVAC" value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Scheduled Date</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Date planifiée</label>
                 <div className="relative"><Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="date" value={jobDate} onChange={(e) => setJobDate(e.target.value)} className="block w-full rounded-xl border border-gray-200 pl-9 pr-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" /></div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
-                <textarea placeholder="Describe the work to be done..." value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} rows={3} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none" />
+                <textarea placeholder="Décrivez le travail à effectuer..." value={jobDesc} onChange={(e) => setJobDesc(e.target.value)} rows={3} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none" />
               </div>
             </div>
           )}
@@ -218,15 +218,15 @@ export default function OnboardingPage() {
             <div className="space-y-4">
               <div className="rounded-2xl bg-gradient-to-r from-indigo-50 to-violet-50 p-5 text-center">
                 <div className="text-4xl mb-3">🎉</div>
-                <p className="text-base font-bold text-gray-900 mb-1">Your Gestivio account is ready!</p>
-                <p className="text-sm text-gray-500">Everything is set up. Let&apos;s start managing your field service business.</p>
+                <p className="text-base font-bold text-gray-900 mb-1">Votre compte Gestivio est prêt !</p>
+                <p className="text-sm text-gray-500">Tout est configuré. Commençons à gérer votre activité.</p>
               </div>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 {[
-                  { icon: Users, label: 'Customers', desc: 'Manage your client list', color: 'bg-blue-50 text-blue-600' },
-                  { icon: Briefcase, label: 'Jobs', desc: 'Track work orders', color: 'bg-violet-50 text-violet-600' },
-                  { icon: FileText, label: 'Invoices', desc: 'Bill your customers', color: 'bg-emerald-50 text-emerald-600' },
-                  { icon: Sparkles, label: 'AI Assistant', desc: 'Ask anything', color: 'bg-amber-50 text-amber-600' },
+                  { icon: Users, label: 'Clients', desc: 'Gérez votre liste de clients', color: 'bg-blue-50 text-blue-600' },
+                  { icon: Briefcase, label: 'Interventions', desc: 'Suivez vos interventions', color: 'bg-violet-50 text-violet-600' },
+                  { icon: FileText, label: 'Factures', desc: 'Facturez vos clients', color: 'bg-emerald-50 text-emerald-600' },
+                  { icon: Sparkles, label: 'Assistant IA', desc: 'Posez n\'importe quelle question', color: 'bg-amber-50 text-amber-600' },
                 ].map((f) => (
                   <div key={f.label} className="flex items-center gap-2.5 rounded-xl bg-gray-50 p-3">
                     <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${f.color}`}><f.icon className="h-4 w-4" /></div>
@@ -244,7 +244,7 @@ export default function OnboardingPage() {
                 onClick={() => setStep(step - 1)}
                 className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                <ArrowLeft className="h-4 w-4" /> Back
+                <ArrowLeft className="h-4 w-4" /> Retour
               </button>
             )}
             <button
@@ -254,26 +254,26 @@ export default function OnboardingPage() {
                 step === 4 ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'
               } disabled:opacity-60 disabled:cursor-not-allowed`}
             >
-              {loading ? 'Saving...' : step === 4 ? 'Go to Dashboard' : step === 2 || step === 3 ? (
+              {loading ? 'Enregistrement...' : step === 4 ? 'Aller au tableau de bord' : step === 2 || step === 3 ? (
                 <>
-                  {step === 2 && !custName.trim() ? 'Skip' : 'Continue'}
+                  {step === 2 && !custName.trim() ? 'Passer' : 'Continuer'}
                   <ArrowRight className="h-4 w-4" />
                 </>
               ) : (
-                <>Continue <ArrowRight className="h-4 w-4" /></>
+                <>Continuer <ArrowRight className="h-4 w-4" /></>
               )}
             </button>
           </div>
 
           {(step === 2 || step === 3) && (
             <button onClick={() => setStep(step + 1)} className="w-full mt-2 text-center text-xs text-gray-400 hover:text-gray-600 transition-colors">
-              Skip this step →
+              Passer cette étape →
             </button>
           )}
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-4">
-          Need help? <span className="text-indigo-600 cursor-pointer hover:underline">Contact support</span>
+          Besoin d'aide ? <span className="text-indigo-600 cursor-pointer hover:underline">Contactez le support</span>
         </p>
       </div>
     </div>

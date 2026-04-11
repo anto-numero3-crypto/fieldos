@@ -24,10 +24,10 @@ const PAGE_CONTEXT: Record<string, string> = {
 }
 
 const QUICK_PROMPTS = [
-  'What\'s my revenue this month?',
-  'Any overdue invoices?',
-  'How many jobs today?',
-  'Draft a payment reminder',
+  'Quel est mon revenu ce mois-ci ?',
+  'Ai-je des factures en retard ?',
+  'Combien d\'interventions aujourd\'hui ?',
+  'Rédige un rappel de paiement',
 ]
 
 export default function FloatingAIChat() {
@@ -83,9 +83,9 @@ export default function FloatingAIChat() {
         }),
       })
       const data = await res.json()
-      setMessages([...history, { role: 'assistant', content: data.reply || 'Sorry, I could not process that.' }])
+      setMessages([...history, { role: 'assistant', content: data.reply || 'Désolé, je n\'ai pas pu traiter votre demande.' }])
     } catch {
-      setMessages([...history, { role: 'assistant', content: 'Connection error. Please try again.' }])
+      setMessages([...history, { role: 'assistant', content: 'Erreur de connexion. Veuillez réessayer.' }])
     }
     setLoading(false)
   }, [input, messages, loading, userId, pageContext])
@@ -154,8 +154,8 @@ export default function FloatingAIChat() {
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg mb-3">
                   <Sparkles className="h-7 w-7 text-white" />
                 </div>
-                <p className="text-sm font-semibold text-gray-900 mb-1">Ask me anything</p>
-                <p className="text-xs text-gray-500">I have full access to your business data and can help you manage customers, jobs, invoices, and more.</p>
+                <p className="text-sm font-semibold text-gray-900 mb-1">Posez-moi n'importe quelle question</p>
+                <p className="text-xs text-gray-500">J'ai accès à toutes vos données et peux vous aider à gérer vos clients, interventions, factures et plus encore.</p>
               </div>
             )}
 
@@ -215,7 +215,7 @@ export default function FloatingAIChat() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKey}
-                placeholder="Ask anything about your business…"
+                placeholder="Posez n'importe quelle question sur votre activité…"
                 rows={1}
                 className="flex-1 resize-none bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none max-h-24 leading-relaxed"
                 style={{ minHeight: '24px' }}

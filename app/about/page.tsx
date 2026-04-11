@@ -14,12 +14,6 @@ const values = [
   { icon: Globe, title: 'Bilingual by default', description: 'Canada deserves software that works in both official languages. Gestivio is built French-first, not French as an afterthought.' },
 ]
 
-const team = [
-  { name: 'Antoine Garant', role: 'Founder & CEO', initials: 'AG', color: 'bg-indigo-100 text-indigo-700' },
-  { name: 'Engineering Team', role: 'Product & Engineering', initials: 'ET', color: 'bg-violet-100 text-violet-700' },
-  { name: 'Design Team', role: 'UX & Design', initials: 'DT', color: 'bg-pink-100 text-pink-700' },
-]
-
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-white">
@@ -69,7 +63,7 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold text-gray-900 mb-8">How it started</h2>
           <div className="space-y-5 text-gray-600 leading-relaxed">
             <p>
-              In 2024, our founder Antoine was helping run a family HVAC business in Québec. The business was growing — but managing it was a nightmare. Invoices were hand-written, jobs were tracked in a notebook, and customer follow-ups happened only when someone remembered.
+              In 2024, the founder of Gestivio was helping run a family HVAC business in Québec. The business was growing — but managing it was a nightmare. Invoices were hand-written, jobs were tracked in a notebook, and customer follow-ups happened only when someone remembered.
             </p>
             <p>
               The software options available were either too complex, too expensive, or simply not built for Canadian businesses. Most were in English only. All required months of onboarding.
@@ -98,27 +92,6 @@ export default function AboutPage() {
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">{v.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{v.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Team */}
-      <section className="py-20">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">The team</h2>
-            <p className="mt-3 text-gray-500">A small, focused team based in Québec, Canada.</p>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-3">
-            {team.map((member) => (
-              <div key={member.name} className="rounded-2xl border border-gray-100 bg-white p-6 text-center shadow-sm">
-                <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold ${member.color}`}>
-                  {member.initials}
-                </div>
-                <h3 className="font-semibold text-gray-900">{member.name}</h3>
-                <p className="text-sm text-gray-400 mt-0.5">{member.role}</p>
               </div>
             ))}
           </div>

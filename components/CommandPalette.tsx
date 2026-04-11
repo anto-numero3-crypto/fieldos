@@ -20,18 +20,18 @@ interface PaletteItem {
 }
 
 const NAV_ITEMS: PaletteItem[] = [
-  { id: 'dashboard',  label: 'Dashboard',       icon: LayoutDashboard,  href: '/dashboard',  group: 'Pages', keywords: 'home overview kpi' },
-  { id: 'customers',  label: 'Customers',        icon: Users,            href: '/customers',  group: 'Pages', keywords: 'clients contacts' },
-  { id: 'jobs',       label: 'Jobs',             icon: Briefcase,        href: '/jobs',       group: 'Pages', keywords: 'work orders tasks' },
-  { id: 'quotes',     label: 'Quotes',           icon: FileSignature,    href: '/quotes',     group: 'Pages', keywords: 'estimates proposals' },
-  { id: 'invoices',   label: 'Invoices',         icon: FileText,         href: '/invoices',   group: 'Pages', keywords: 'billing payment' },
-  { id: 'schedule',   label: 'Schedule',         icon: Calendar,         href: '/schedule',   group: 'Pages', keywords: 'calendar appointments' },
-  { id: 'team',       label: 'Team',             icon: Users2,           href: '/team',       group: 'Pages', keywords: 'staff employees technicians' },
-  { id: 'reports',    label: 'Reports',          icon: BarChart3,        href: '/reports',    group: 'Pages', keywords: 'analytics revenue' },
-  { id: 'assistant',  label: 'AI Assistant',     icon: Sparkles,         href: '/assistant',  group: 'Pages', keywords: 'ai chat ask help' },
-  { id: 'book',       label: 'Booking Portal',   icon: Globe,            href: '/book',       group: 'Pages', keywords: 'public booking' },
-  { id: 'settings',   label: 'Settings',         icon: Settings,         href: '/settings',   group: 'Pages', keywords: 'profile configuration' },
-  { id: 'billing',    label: 'Billing',          icon: CreditCard,       href: '/billing',    group: 'Pages', keywords: 'subscription plan' },
+  { id: 'dashboard',  label: 'Tableau de bord',  icon: LayoutDashboard,  href: '/dashboard',  group: 'Pages', keywords: 'home overview kpi' },
+  { id: 'customers',  label: 'Clients',          icon: Users,            href: '/customers',  group: 'Pages', keywords: 'clients contacts' },
+  { id: 'jobs',       label: 'Interventions',    icon: Briefcase,        href: '/jobs',       group: 'Pages', keywords: 'interventions tâches' },
+  { id: 'quotes',     label: 'Devis',            icon: FileSignature,    href: '/quotes',     group: 'Pages', keywords: 'devis estimations' },
+  { id: 'invoices',   label: 'Factures',         icon: FileText,         href: '/invoices',   group: 'Pages', keywords: 'facturation paiement' },
+  { id: 'schedule',   label: 'Calendrier',       icon: Calendar,         href: '/schedule',   group: 'Pages', keywords: 'calendrier rendez-vous' },
+  { id: 'team',       label: 'Équipe',           icon: Users2,           href: '/team',       group: 'Pages', keywords: 'equipe techniciens employes' },
+  { id: 'reports',    label: 'Rapports',         icon: BarChart3,        href: '/reports',    group: 'Pages', keywords: 'analytique revenus' },
+  { id: 'assistant',  label: 'Assistant IA',     icon: Sparkles,         href: '/assistant',  group: 'Pages', keywords: 'ia chat aide' },
+  { id: 'book',       label: 'Portail de réservation', icon: Globe,      href: '/book',       group: 'Pages', keywords: 'reservation public' },
+  { id: 'settings',   label: 'Paramètres',       icon: Settings,         href: '/settings',   group: 'Pages', keywords: 'parametres configuration' },
+  { id: 'billing',    label: 'Facturation',      icon: CreditCard,       href: '/billing',    group: 'Pages', keywords: 'abonnement plan' },
 ]
 
 export default function CommandPalette() {
@@ -42,10 +42,10 @@ export default function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const CREATE_ITEMS: PaletteItem[] = [
-    { id: 'new-customer', label: 'New Customer',  description: 'Add a new client',        icon: Users,         href: '/customers', group: 'Create', keywords: 'add create' },
-    { id: 'new-job',      label: 'New Job',        description: 'Create a work order',     icon: Briefcase,     href: '/jobs',      group: 'Create', keywords: 'add create' },
-    { id: 'new-invoice',  label: 'New Invoice',    description: 'Create an invoice',       icon: FileText,      href: '/invoices',  group: 'Create', keywords: 'add create bill' },
-    { id: 'new-quote',    label: 'New Quote',      description: 'Create an estimate',      icon: FileSignature, href: '/quotes',    group: 'Create', keywords: 'add create estimate' },
+    { id: 'new-customer', label: 'Nouveau client',      description: 'Ajouter un nouveau client',    icon: Users,         href: '/customers', group: 'Créer', keywords: 'ajouter creer nouveau' },
+    { id: 'new-job',      label: 'Nouvelle intervention', description: 'Créer une intervention',     icon: Briefcase,     href: '/jobs',      group: 'Créer', keywords: 'ajouter creer nouveau' },
+    { id: 'new-invoice',  label: 'Nouvelle facture',    description: 'Créer une facture',            icon: FileText,      href: '/invoices',  group: 'Créer', keywords: 'ajouter creer nouveau' },
+    { id: 'new-quote',    label: 'Nouveau devis',       description: 'Créer un devis',               icon: FileSignature, href: '/quotes',    group: 'Créer', keywords: 'ajouter creer nouveau' },
   ]
 
   const allItems = [...CREATE_ITEMS, ...NAV_ITEMS]
@@ -119,7 +119,7 @@ export default function CommandPalette() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKey}
-            placeholder="Search pages, actions, commands…"
+            placeholder="Rechercher des pages, actions, commandes…"
             className="flex-1 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none bg-transparent"
           />
           <div className="flex items-center gap-1.5">
@@ -135,7 +135,7 @@ export default function CommandPalette() {
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <Search className="h-8 w-8 text-gray-200 mb-2" />
-              <p className="text-sm text-gray-400">No results for &ldquo;{query}&rdquo;</p>
+              <p className="text-sm text-gray-400">Aucun résultat pour &ldquo;{query}&rdquo;</p>
             </div>
           ) : (
             Object.entries(grouped).map(([group, items]) => (
@@ -179,10 +179,10 @@ export default function CommandPalette() {
         {/* Footer */}
         <div className="flex items-center justify-between px-4 py-2.5 border-t border-gray-100 bg-gray-50">
           <div className="flex items-center gap-3 text-[11px] text-gray-400">
-            <span className="flex items-center gap-1"><kbd className="rounded bg-white border border-gray-200 px-1 font-mono text-[10px]">↑↓</kbd> Navigate</span>
-            <span className="flex items-center gap-1"><kbd className="rounded bg-white border border-gray-200 px-1 font-mono text-[10px]">↵</kbd> Open</span>
+            <span className="flex items-center gap-1"><kbd className="rounded bg-white border border-gray-200 px-1 font-mono text-[10px]">↑↓</kbd> Naviguer</span>
+            <span className="flex items-center gap-1"><kbd className="rounded bg-white border border-gray-200 px-1 font-mono text-[10px]">↵</kbd> Ouvrir</span>
           </div>
-          <span className="text-[11px] text-gray-400">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
+          <span className="text-[11px] text-gray-400">{filtered.length} résultat{filtered.length !== 1 ? 's' : ''}</span>
         </div>
       </div>
     </div>

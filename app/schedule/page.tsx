@@ -24,8 +24,8 @@ const STATUS_DOT: Record<string, string> = {
   scheduled: 'bg-blue-500', in_progress: 'bg-amber-500', complete: 'bg-emerald-500', cancelled: 'bg-gray-400',
 }
 
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const DAYS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
 
 function startOfWeek(date: Date) {
   const d = new Date(date)
@@ -112,12 +112,12 @@ export default function SchedulePage() {
 
   const AddButton = (
     <Link href="/jobs" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all">
-      <Plus className="h-4 w-4" /> New Job
+      <Plus className="h-4 w-4" /> Nouvelle intervention
     </Link>
   )
 
   return (
-    <AppLayout title="Schedule" actions={AddButton}>
+    <AppLayout title="Calendrier" actions={AddButton}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         {/* Header controls */}
@@ -126,7 +126,7 @@ export default function SchedulePage() {
             <h2 className="text-lg font-bold text-gray-900">{monthLabel()}</h2>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={goToday} className="rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">Today</button>
+            <button onClick={goToday} className="rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">Aujourd&apos;hui</button>
             <div className="flex items-center rounded-xl border border-gray-200 bg-white shadow-sm">
               <button onClick={prevWeek} className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-l-xl transition-colors"><ChevronLeft className="h-4 w-4" /></button>
               <div className="w-px h-4 bg-gray-200" />
@@ -185,13 +185,13 @@ export default function SchedulePage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-900">Upcoming Jobs (next 30 days)</h3>
+              <h3 className="text-sm font-semibold text-gray-900">Interventions à venir (30 prochains jours)</h3>
             </div>
             {upcoming.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <Calendar className="h-8 w-8 text-gray-200 mb-2" />
-                <p className="text-sm text-gray-400">No upcoming jobs scheduled</p>
-                <Link href="/jobs" className="mt-2 text-xs font-medium text-indigo-600 hover:underline">Schedule a job →</Link>
+                <p className="text-sm text-gray-400">Aucune intervention planifiée</p>
+                <Link href="/jobs" className="mt-2 text-xs font-medium text-indigo-600 hover:underline">Planifier une intervention →</Link>
               </div>
             ) : (
               <ul className="divide-y divide-gray-50">
@@ -208,7 +208,7 @@ export default function SchedulePage() {
                             {job.scheduled_date && (
                               <span className="flex items-center gap-0.5">
                                 <Calendar className="h-2.5 w-2.5" />
-                                {new Date(job.scheduled_date).toLocaleDateString('en', { month: 'short', day: 'numeric' })}
+                                {new Date(job.scheduled_date).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric' })}
                               </span>
                             )}
                           </div>
@@ -226,13 +226,13 @@ export default function SchedulePage() {
 
           {/* Legend */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Status Legend</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Légende des statuts</h3>
             <div className="space-y-3">
               {[
-                { status: 'scheduled',   label: 'Scheduled',   desc: 'Upcoming work orders' },
-                { status: 'in_progress', label: 'In Progress', desc: 'Currently active jobs' },
-                { status: 'complete',    label: 'Complete',    desc: 'Finished successfully' },
-                { status: 'cancelled',   label: 'Cancelled',   desc: 'Cancelled or no-show' },
+                { status: 'scheduled',   label: 'Planifié',   desc: 'Bons de travail à venir' },
+                { status: 'in_progress', label: 'En cours',   desc: 'Interventions actives' },
+                { status: 'complete',    label: 'Terminé',    desc: 'Complétées avec succès' },
+                { status: 'cancelled',   label: 'Annulé',     desc: 'Annulées ou absences' },
               ].map((s) => (
                 <div key={s.status} className="flex items-center gap-3">
                   <div className={`h-8 w-8 shrink-0 rounded-lg border-l-2 ${STATUS_COLOR[s.status]}`} />
