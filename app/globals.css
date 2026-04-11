@@ -94,6 +94,10 @@ body {
   min-height: 0;
 }
 
+/* ─── Scrollbar none ────────────────────────── */
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* ─── Recharts overrides ────────────────────── */
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {

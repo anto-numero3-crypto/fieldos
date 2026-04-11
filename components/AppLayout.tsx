@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Menu, Bell, X, CheckCircle, AlertCircle, Info, AlertTriangle, Sun, Moon } from 'lucide-react'
+import { Menu, Bell, X, CheckCircle, AlertCircle, Info, AlertTriangle, Sun, Moon, Search } from 'lucide-react'
 import Sidebar from './Sidebar'
 import Link from 'next/link'
 import { supabase } from '@/app/supabase'
 import { useTheme } from './ThemeProvider'
+import FloatingAIChat from './FloatingAIChat'
+import CommandPalette from './CommandPalette'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -36,6 +38,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unread, setUnread]             = useState(0)
   const [userId, setUserId]             = useState<string | null>(null)
+  const [cmdOpen, setCmdOpen]           = useState(false)
   const { theme, toggleTheme }          = useTheme()
 
   useEffect(() => {
@@ -43,6 +46,22 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
       if (!data.user) return
       setUserId(data.user.id)
       fetchNotifications(data.user.id)
+
+      // Real-time notification updates
+      const channel = supabase
+        .channel('notif-badge')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${data.user.id}`,
+        }, (payload) => {
+          setNotifications((prev) => [payload.new as Notification, ...prev].slice(0, 20))
+          setUnread((n) => n + 1)
+        })
+        .subscribe()
+
+      return () => { supabase.removeChannel(channel) }
     })
   }, [])
 
@@ -68,6 +87,12 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
     setUnread(0)
   }
 
+  const markOneRead = async (id: string) => {
+    await supabase.from('notifications').update({ read: true }).eq('id', id)
+    setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n))
+    setUnread((n) => Math.max(0, n - 1))
+  }
+
   const timeAgo = (date: string) => {
     const secs = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
     if (secs < 60) return 'just now'
@@ -78,12 +103,13 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+      <CommandPalette />
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         {/* Top bar */}
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 sm:px-6 gap-3">
-          <div className="flex items-center gap-3 min-w-0">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 sm:px-6 gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
@@ -91,22 +117,35 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
             >
               <Menu className="h-5 w-5" />
             </button>
+
+            {/* Search / command palette trigger */}
+            <button
+              type="button"
+              onClick={() => setCmdOpen(true)}
+              className="hidden sm:flex items-center gap-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-1.5 text-sm text-gray-400 hover:border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors min-w-0 flex-1 max-w-64"
+              onKeyDown={(e) => { if (e.key === 'Enter') setCmdOpen(true) }}
+            >
+              <Search className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">Search or command…</span>
+              <kbd className="ml-auto shrink-0 hidden md:flex items-center gap-0.5 rounded bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-1.5 py-0.5 text-[10px] font-mono text-gray-400">⌘K</kbd>
+            </button>
+
             {title && (
-              <h1 className="text-lg font-semibold text-gray-900 sm:text-xl truncate">{title}</h1>
+              <h1 className="sm:hidden text-base font-semibold text-gray-900 dark:text-white truncate">{title}</h1>
             )}
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             {actions && <div className="flex items-center gap-2">{actions}</div>}
 
             {/* Dark mode toggle */}
             <button
               type="button"
               onClick={toggleTheme}
-              className="relative -m-1 p-2 rounded-xl text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 rounded-xl text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
             </button>
 
             {/* Notification bell */}
@@ -114,9 +153,9 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
               <button
                 type="button"
                 onClick={() => setNotifOpen(!notifOpen)}
-                className="relative -m-1 p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                className="relative p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
-                <Bell className="h-5 w-5" />
+                <Bell className="h-4.5 w-4.5" />
                 {unread > 0 && (
                   <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
@@ -128,10 +167,10 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
               {notifOpen && (
                 <>
                   <div className="fixed inset-0 z-20" onClick={() => setNotifOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 z-30 w-80 rounded-2xl border border-gray-100 bg-white shadow-xl slide-up overflow-hidden">
-                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                  <div className="absolute right-0 top-full mt-2 z-30 w-80 rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 shadow-xl overflow-hidden">
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
                       <div>
-                        <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
                         {unread > 0 && <p className="text-xs text-gray-400">{unread} unread</p>}
                       </div>
                       <div className="flex items-center gap-2">
@@ -146,27 +185,37 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
                       </div>
                     </div>
 
-                    <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+                    <div className="max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-800">
                       {notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-10 text-center px-4">
                           <Bell className="h-8 w-8 text-gray-200 mb-2" />
                           <p className="text-sm text-gray-400">No notifications yet</p>
+                          <p className="text-xs text-gray-300 mt-1">You&apos;ll see alerts here when things happen</p>
                         </div>
                       ) : notifications.map((n) => (
-                        <div
+                        <button
                           key={n.id}
-                          className={`flex gap-3 px-4 py-3 hover:bg-gray-50 transition-colors ${!n.read ? 'bg-indigo-50/40' : ''}`}
+                          onClick={() => { markOneRead(n.id); if (n.link) window.location.href = n.link }}
+                          className={`w-full flex gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 text-left transition-colors ${!n.read ? 'bg-indigo-50/40 dark:bg-indigo-950/30' : ''}`}
                         >
                           <div className="mt-0.5">{typeIcon[n.type] || typeIcon.info}</div>
                           <div className="min-w-0 flex-1">
-                            <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>{n.title}</p>
-                            {n.body && <p className="text-xs text-gray-500 mt-0.5 truncate">{n.body}</p>}
+                            <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{n.title}</p>
+                            {n.body && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>}
                             <p className="text-xs text-gray-400 mt-0.5">{timeAgo(n.created_at)}</p>
                           </div>
                           {!n.read && <span className="mt-1.5 h-2 w-2 rounded-full bg-indigo-500 shrink-0" />}
-                        </div>
+                        </button>
                       ))}
                     </div>
+
+                    {notifications.length > 0 && (
+                      <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+                        <Link href="/notifications" onClick={() => setNotifOpen(false)} className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
+                          View all notifications →
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -174,11 +223,22 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
           </div>
         </header>
 
+        {/* Page title bar (desktop) */}
+        {title && (
+          <div className="hidden sm:flex items-center justify-between px-6 py-3 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h1>
+            {actions && <div className="flex items-center gap-2">{actions}</div>}
+          </div>
+        )}
+
         {/* Page content */}
         <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950">
           {children}
         </main>
       </div>
+
+      {/* Floating AI Chat — available on every page */}
+      <FloatingAIChat />
     </div>
   )
 }

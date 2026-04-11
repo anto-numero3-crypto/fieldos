@@ -143,17 +143,24 @@ export default function JobDetailPage() {
     const { data: auth } = await supabase.auth.getUser()
     if (!auth.user) { setSaving2(false); return }
 
+    // Auto-generate invoice number
+    const invNum = `INV-${Date.now().toString().slice(-6)}`
+
     const { data } = await supabase.from('invoices').insert({
       user_id: auth.user.id,
       customer_id: job.customers?.id || null,
       job_id: job.id,
+      invoice_number: invNum,
       amount: 0,
       status: 'unpaid',
+      due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     }).select().single()
 
     if (data) {
       setInvoiceLinked({ id: data.id, amount: 0, status: 'unpaid' })
       await supabase.from('jobs').update({ invoice_generated: true }).eq('id', id)
+      // Redirect to invoice so user can add line items and amount
+      router.push(`/invoices/${data.id}`)
     }
     setSaving2(false)
   }
@@ -192,6 +199,48 @@ export default function JobDetailPage() {
           </Link>
           <span className="text-gray-300">/</span>
           <span className="text-sm font-medium text-gray-900 truncate">{job.title}</span>
+        </div>
+
+        {/* Status Pipeline */}
+        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm px-6 py-4 mb-4 overflow-x-auto">
+          <div className="flex items-center gap-0 min-w-max">
+            {[
+              { key: 'scheduled', label: 'Scheduled', dot: 'bg-blue-500' },
+              { key: 'in_progress', label: 'In Progress', dot: 'bg-amber-500' },
+              { key: 'complete', label: 'Complete', dot: 'bg-emerald-500' },
+              { key: 'invoiced', label: 'Invoiced', dot: 'bg-indigo-500' },
+            ].map((step, i) => {
+              const statuses = ['scheduled', 'in_progress', 'complete', 'invoiced']
+              const currentIdx = statuses.indexOf(job.status === 'cancelled' ? 'scheduled' : (invoiceLinked ? 'invoiced' : job.status))
+              const stepIdx = statuses.indexOf(step.key)
+              const isDone   = stepIdx < currentIdx
+              const isCurrent = stepIdx === currentIdx
+              const isCancelled = job.status === 'cancelled'
+              return (
+                <div key={step.key} className="flex items-center">
+                  {i > 0 && <div className={`h-0.5 w-8 sm:w-12 ${isDone ? 'bg-indigo-400' : 'bg-gray-200'}`} />}
+                  <button
+                    onClick={() => step.key !== 'invoiced' && changeStatus(step.key)}
+                    className={[
+                      'flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all',
+                      isCurrent && !isCancelled ? 'bg-indigo-50 text-indigo-700 ring-2 ring-indigo-200' :
+                      isDone && !isCancelled ? 'text-gray-500 hover:bg-gray-50' :
+                      'text-gray-300',
+                      step.key === 'invoiced' ? 'cursor-default' : 'cursor-pointer',
+                    ].join(' ')}
+                  >
+                    <span className={`h-2 w-2 rounded-full ${isDone || isCurrent ? step.dot : 'bg-gray-200'}`} />
+                    {step.label}
+                  </button>
+                </div>
+              )
+            })}
+            {job.status === 'cancelled' && (
+              <div className="ml-4 flex items-center gap-1.5 rounded-xl bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-400">
+                <span className="h-2 w-2 rounded-full bg-gray-300" /> Cancelled
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Header */}

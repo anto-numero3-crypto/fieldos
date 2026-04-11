@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { supabase } from '../supabase'
-import { Wrench, Calendar, User, Phone, Mail, ChevronRight, CheckCircle, Clock, ArrowLeft, Zap } from 'lucide-react'
+import { Wrench, Send, Phone, CheckCircle, Sparkles, ArrowRight } from 'lucide-react'
 
 interface Business {
   id: string
@@ -10,140 +10,199 @@ interface Business {
   phone?: string
   email?: string
   service_types?: string[]
+  ai_agent_name?: string
 }
 
-const SERVICE_TYPES = [
-  { id: 'hvac',          emoji: '❄️',  label: 'HVAC / AC Repair' },
-  { id: 'plumbing',      emoji: '🔧',  label: 'Plumbing' },
-  { id: 'electrical',    emoji: '⚡',  label: 'Electrical' },
-  { id: 'cleaning',      emoji: '🧹',  label: 'Cleaning' },
-  { id: 'landscaping',   emoji: '🌿',  label: 'Landscaping' },
-  { id: 'painting',      emoji: '🎨',  label: 'Painting' },
-  { id: 'roofing',       emoji: '🏠',  label: 'Roofing' },
-  { id: 'pest_control',  emoji: '🐛',  label: 'Pest Control' },
-  { id: 'appliances',    emoji: '🔌',  label: 'Appliance Repair' },
-  { id: 'locksmith',     emoji: '🔑',  label: 'Locksmith' },
-  { id: 'moving',        emoji: '📦',  label: 'Moving' },
-  { id: 'other',         emoji: '🛠️',  label: 'Other' },
-]
+interface Message {
+  role: 'assistant' | 'user'
+  content: string
+  ts: number
+}
 
-const TIME_SLOTS = [
-  '8:00 AM – 10:00 AM',
-  '10:00 AM – 12:00 PM',
-  '12:00 PM – 2:00 PM',
-  '2:00 PM – 4:00 PM',
-  '4:00 PM – 6:00 PM',
-]
-
-type Step = 'service' | 'datetime' | 'contact' | 'confirm' | 'success'
+interface BookingData {
+  serviceType?: string
+  scheduledDate?: string
+  scheduledTime?: string
+  customerName?: string
+  customerEmail?: string
+  customerPhone?: string
+  customerAddress?: string
+  confirmed?: boolean
+}
 
 export default function BookingPage() {
   const [business, setBusiness] = useState<Business | null>(null)
-  const [step, setStep]         = useState<Step>('service')
-  const [loading, setLoading]   = useState(true)
-  const [submitting, setSubmitting] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [input, setInput] = useState('')
+  const [thinking, setThinking] = useState(false)
+  const [bookingData, setBookingData] = useState<BookingData>({})
+  const [booked, setBooked] = useState(false)
+  const [sessionId] = useState(() => Math.random().toString(36).slice(2))
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  // Form state
-  const [serviceType, setServiceType] = useState('')
-  const [serviceNote, setServiceNote] = useState('')
-  const [selectedDate, setSelectedDate] = useState('')
-  const [selectedTime, setSelectedTime] = useState('')
-  const [name, setName]         = useState('')
-  const [email, setEmail]       = useState('')
-  const [phone, setPhone]       = useState('')
-  const [address, setAddress]   = useState('')
-
-  // Get business from URL param or default to first active business
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const bizId  = params.get('biz')
+    const bizId = params.get('biz')
 
     const fetchBusiness = async () => {
-      let query = supabase.from('organizations').select('id, name, phone, email, service_types')
+      let query = supabase.from('organizations').select('id, name, phone, email, service_types, ai_agent_name')
       if (bizId) query = query.eq('id', bizId)
       else query = query.limit(1)
 
-      const { data } = await query.single()
+      const { data } = await query.maybeSingle()
       setBusiness(data)
       setLoading(false)
+
+      // Initial greeting
+      if (data) {
+        const agentName = data.ai_agent_name || 'Alex'
+        const greeting = `Hi there! I'm ${agentName}, your booking assistant for **${data.name}**. 👋\n\nI'm here to help you schedule a service appointment. What can I help you with today?`
+        setMessages([{ role: 'assistant', content: greeting, ts: Date.now() }])
+      }
     }
 
     fetchBusiness()
   }, [])
 
-  // Get next 14 available dates (skip Sundays)
-  const availableDates = Array.from({ length: 21 }, (_, i) => {
-    const d = new Date()
-    d.setDate(d.getDate() + i + 1)
-    return d
-  }).filter(d => d.getDay() !== 0).slice(0, 14)
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, thinking])
 
-  const submitBooking = async () => {
-    setSubmitting(true)
+  const send = useCallback(async (text?: string) => {
+    const content = (text || input).trim()
+    if (!content || thinking || booked) return
+
+    setInput('')
+    const userMsg: Message = { role: 'user', content, ts: Date.now() }
+    setMessages((m) => [...m, userMsg])
+    setThinking(true)
+
     try {
-      // Find if customer already exists
+      const res = await fetch('/api/ai/booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: content,
+          sessionId,
+          businessId: business?.id,
+          businessName: business?.name,
+          agentName: business?.ai_agent_name || 'Alex',
+          bookingData,
+          history: messages.slice(-10).map((m) => ({ role: m.role, content: m.content })),
+        }),
+      })
+
+      const data = await res.json()
+
+      // Merge any collected booking data
+      if (data.bookingData) {
+        const updated = { ...bookingData, ...data.bookingData }
+        setBookingData(updated)
+
+        // If all data collected, create the booking
+        if (
+          updated.customerEmail &&
+          updated.customerName &&
+          updated.serviceType &&
+          updated.scheduledDate &&
+          !updated.confirmed
+        ) {
+          updated.confirmed = true
+          setBookingData(updated)
+          await createBooking(updated)
+        }
+      }
+
+      setMessages((m) => [...m, { role: 'assistant', content: data.reply, ts: Date.now() }])
+    } catch {
+      setMessages((m) => [...m, {
+        role: 'assistant',
+        content: "I'm having a little trouble right now. Please try again, or call us directly.",
+        ts: Date.now(),
+      }])
+    }
+
+    setThinking(false)
+  }, [input, thinking, booked, business, bookingData, messages, sessionId])
+
+  const createBooking = async (data: BookingData) => {
+    if (!business) return
+
+    try {
+      // Find or create customer
       const { data: existing } = await supabase
         .from('customers')
         .select('id')
-        .ilike('email', email)
+        .ilike('email', data.customerEmail!)
         .limit(1)
-        .single()
+        .maybeSingle()
 
       let customerId = existing?.id
 
-      // Create customer if not found
       if (!customerId) {
-        const { data: newCustomer } = await supabase
+        const { data: newC } = await supabase
           .from('customers')
-          .insert({ name, email, phone, service_address: address })
+          .insert({
+            name: data.customerName,
+            email: data.customerEmail,
+            phone: data.customerPhone,
+            address: data.customerAddress,
+          })
           .select('id')
           .single()
-        customerId = newCustomer?.id
+        customerId = newC?.id
       }
 
-      // Create the job
       if (customerId) {
         await supabase.from('jobs').insert({
-          title: `${SERVICE_TYPES.find(s => s.id === serviceType)?.label || serviceType} — ${name}`,
+          title: `${data.serviceType} — ${data.customerName}`,
           status: 'scheduled',
           customer_id: customerId,
-          scheduled_date: selectedDate,
-          service_address: address,
-          internal_notes: `Time slot: ${selectedTime}${serviceNote ? `\n\nCustomer note: ${serviceNote}` : ''}`,
+          scheduled_date: data.scheduledDate,
+          internal_notes: data.scheduledTime ? `Requested time: ${data.scheduledTime}` : undefined,
           priority: 'normal',
+          description: `Booked via AI booking portal. Customer: ${data.customerName}, ${data.customerEmail}`,
         })
 
-        // Send confirmation email
-        if (email && business) {
+        // Confirmation email
+        if (data.customerEmail) {
           await fetch('/api/email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               type: 'job_confirmation',
-              to: email,
-              customerName: name,
-              jobTitle: SERVICE_TYPES.find(s => s.id === serviceType)?.label,
-              scheduledDate: `${new Date(selectedDate).toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })} · ${selectedTime}`,
+              to: data.customerEmail,
+              customerName: data.customerName,
+              jobTitle: data.serviceType,
+              scheduledDate: data.scheduledDate && data.scheduledTime
+                ? `${new Date(data.scheduledDate + 'T12:00:00').toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })} · ${data.scheduledTime}`
+                : data.scheduledDate || 'To be confirmed',
               businessName: business.name,
             }),
           })
         }
       }
 
-      setStep('success')
+      setBooked(true)
     } catch (err) {
-      console.error('Booking error:', err)
+      console.error('Booking creation error:', err)
     }
-    setSubmitting(false)
   }
 
-  const minDate = new Date()
-  minDate.setDate(minDate.getDate() + 1)
-  const minDateStr = minDate.toISOString().split('T')[0]
+  const handleKey = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
+  }
+
+  const QUICK_REPLIES = [
+    'I need HVAC repair', 'Plumbing issue', 'Electrical work',
+    'General cleaning', 'What services do you offer?', 'What are your prices?',
+  ]
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-200 border-t-indigo-600" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-indigo-50">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" />
     </div>
   )
 
@@ -152,298 +211,188 @@ export default function BookingPage() {
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-100 mb-4">
         <Wrench className="h-8 w-8 text-indigo-600" />
       </div>
-      <h1 className="text-xl font-bold text-gray-900 mb-2">Business not found</h1>
+      <h1 className="text-xl font-bold text-gray-900 mb-2">Booking portal not found</h1>
       <p className="text-sm text-gray-500">This booking link may be invalid or expired.</p>
     </div>
   )
 
-  const stepOrder: Step[] = ['service', 'datetime', 'contact', 'confirm']
-  const stepIndex = stepOrder.indexOf(step)
+  const agentName = business.ai_agent_name || 'Alex'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50/30">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-indigo-50/30">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-gray-100 bg-white/90 backdrop-blur-md">
-        <div className="mx-auto max-w-2xl px-4 py-4 flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 shadow-sm">
-            <Wrench className="h-4.5 w-4.5 text-white" />
+      <header className="sticky top-0 z-10 border-b border-gray-100 bg-white/90 backdrop-blur-md shrink-0">
+        <div className="mx-auto max-w-2xl px-4 py-3.5 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-sm">
+            <Wrench className="h-5 w-5 text-white" />
           </div>
-          <div>
-            <p className="text-sm font-bold text-gray-900">{business.name}</p>
-            <p className="text-xs text-gray-400">Online booking</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-gray-900 truncate">{business.name}</p>
+            <div className="flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <p className="text-xs text-gray-400">AI booking — available 24/7</p>
+            </div>
           </div>
           {business.phone && (
-            <a href={`tel:${business.phone}`} className="ml-auto flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50">
+            <a
+              href={`tel:${business.phone}`}
+              className="shrink-0 flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+            >
               <Phone className="h-3.5 w-3.5" /> {business.phone}
             </a>
           )}
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-4 py-8">
+      {/* Messages area */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto max-w-2xl px-4 py-6 space-y-4">
 
-        {/* Progress bar */}
-        {step !== 'success' && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              {['Service', 'Date & Time', 'Your Info', 'Confirm'].map((label, i) => (
-                <div key={label} className="flex items-center gap-1.5">
-                  <div className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold transition-colors ${i < stepIndex ? 'bg-indigo-600 text-white' : i === stepIndex ? 'bg-indigo-100 text-indigo-700 ring-2 ring-indigo-300' : 'bg-gray-100 text-gray-400'}`}>
-                    {i < stepIndex ? <CheckCircle className="h-3.5 w-3.5" /> : i + 1}
-                  </div>
-                  <span className={`hidden sm:block text-xs font-medium ${i === stepIndex ? 'text-indigo-700' : 'text-gray-400'}`}>{label}</span>
+          {/* Agent intro card */}
+          {messages.length <= 1 && (
+            <div className="flex items-start gap-3 mb-6">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 shadow-sm">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <div className="bg-white rounded-2xl rounded-tl-sm border border-gray-100 shadow-sm px-4 py-3 max-w-[85%]">
+                <p className="text-xs font-semibold text-indigo-600 mb-0.5">{agentName} · AI Booking Assistant</p>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  {messages[0]?.content.replace(/\*\*(.*?)\*\*/g, '$1')}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {messages.slice(1).map((msg, i) => (
+            <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {msg.role === 'assistant' && (
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 mt-1">
+                  <Sparkles className="h-4 w-4 text-white" />
                 </div>
-              ))}
-            </div>
-            <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-indigo-600 transition-all duration-500"
-                style={{ width: `${((stepIndex) / (stepOrder.length - 1)) * 100}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Step: Service selection */}
-        {step === 'service' && (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">What do you need?</h2>
-            <p className="text-gray-500 mb-6">Select the service you&apos;re looking for.</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-              {SERVICE_TYPES.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => setServiceType(s.id)}
-                  className={`flex flex-col items-center gap-2 rounded-2xl border-2 p-4 text-sm font-medium transition-all ${serviceType === s.id ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'}`}
-                >
-                  <span className="text-2xl">{s.emoji}</span>
-                  <span className="text-center leading-tight">{s.label}</span>
-                </button>
-              ))}
-            </div>
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Any additional details? (optional)</label>
-              <textarea
-                value={serviceNote}
-                onChange={(e) => setServiceNote(e.target.value)}
-                rows={3}
-                placeholder="Describe the issue or what you need done..."
-                className="block w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
-              />
-            </div>
-            <button
-              onClick={() => setStep('datetime')}
-              disabled={!serviceType}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-all"
-            >
-              Next: Pick a date <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Step: Date & Time */}
-        {step === 'datetime' && (
-          <div>
-            <button onClick={() => setStep('service')} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 mb-4 transition-colors">
-              <ArrowLeft className="h-4 w-4" /> Back
-            </button>
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">When works for you?</h2>
-            <p className="text-gray-500 mb-6">Pick a date and arrival window.</p>
-
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Select a date</label>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {availableDates.map((d) => {
-                  const str = d.toISOString().split('T')[0]
-                  const isSelected = selectedDate === str
-                  return (
-                    <button
-                      key={str}
-                      onClick={() => setSelectedDate(str)}
-                      className={`flex flex-col items-center gap-0.5 rounded-xl border-2 p-3 text-sm transition-all ${isSelected ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'}`}
-                    >
-                      <span className="text-xs font-medium uppercase opacity-60">{d.toLocaleDateString('en', { weekday: 'short' })}</span>
-                      <span className="text-base font-bold">{d.getDate()}</span>
-                      <span className="text-xs opacity-60">{d.toLocaleDateString('en', { month: 'short' })}</span>
-                    </button>
-                  )
-                })}
+              )}
+              <div className={[
+                'max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed',
+                msg.role === 'user'
+                  ? 'bg-indigo-600 text-white rounded-tr-sm shadow-sm'
+                  : 'bg-white border border-gray-100 text-gray-800 shadow-sm rounded-tl-sm',
+              ].join(' ')}>
+                <p className="whitespace-pre-wrap">{msg.content.replace(/\*\*(.*?)\*\*/g, '$1')}</p>
               </div>
             </div>
+          ))}
 
-            {selectedDate && (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select an arrival window</label>
-                <div className="space-y-2">
-                  {TIME_SLOTS.map((slot) => (
-                    <button
-                      key={slot}
-                      onClick={() => setSelectedTime(slot)}
-                      className={`w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-sm font-medium transition-all ${selectedTime === slot ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'}`}
-                    >
-                      <Clock className="h-4 w-4 shrink-0" /> {slot}
-                    </button>
-                  ))}
+          {thinking && (
+            <div className="flex gap-3 justify-start">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 mt-1">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              <div className="bg-white border border-gray-100 shadow-sm rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="h-2 w-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="h-2 w-2 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
+          )}
+
+          {/* Booked confirmation */}
+          {booked && (
+            <div className="flex justify-center my-4">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-6 py-4 text-center max-w-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 mx-auto mb-3">
+                  <CheckCircle className="h-6 w-6 text-emerald-600" />
                 </div>
-              </div>
-            )}
-
-            <button
-              onClick={() => setStep('contact')}
-              disabled={!selectedDate || !selectedTime}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-all"
-            >
-              Next: Your info <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Step: Contact info */}
-        {step === 'contact' && (
-          <div>
-            <button onClick={() => setStep('datetime')} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 mb-4 transition-colors">
-              <ArrowLeft className="h-4 w-4" /> Back
-            </button>
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">Your information</h2>
-            <p className="text-gray-500 mb-6">We&apos;ll use this to confirm your booking.</p>
-
-            <div className="space-y-4 mb-6">
-              {[
-                { label: 'Full name', value: name, onChange: setName, placeholder: 'Jane Smith', icon: User, required: true, type: 'text' },
-                { label: 'Email address', value: email, onChange: setEmail, placeholder: 'jane@example.com', icon: Mail, required: true, type: 'email' },
-                { label: 'Phone number', value: phone, onChange: setPhone, placeholder: '(555) 000-0000', icon: Phone, required: false, type: 'tel' },
-              ].map((field) => (
-                <div key={field.label}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    {field.label} {field.required && <span className="text-red-500">*</span>}
-                  </label>
-                  <div className="relative">
-                    <field.icon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                      type={field.type}
-                      value={field.value}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      placeholder={field.placeholder}
-                      required={field.required}
-                      className="block w-full rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                    />
-                  </div>
-                </div>
-              ))}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Service address</label>
-                <textarea
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  rows={2}
-                  placeholder="123 Main St, City, State"
-                  className="block w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
-                />
-              </div>
-            </div>
-
-            <button
-              onClick={() => setStep('confirm')}
-              disabled={!name || !email}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-all"
-            >
-              Review booking <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Step: Confirm */}
-        {step === 'confirm' && (
-          <div>
-            <button onClick={() => setStep('contact')} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 mb-4 transition-colors">
-              <ArrowLeft className="h-4 w-4" /> Back
-            </button>
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">Confirm your booking</h2>
-            <p className="text-gray-500 mb-6">Review your details before submitting.</p>
-
-            <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden mb-6">
-              <div className="bg-indigo-600 px-6 py-4">
-                <p className="text-white font-semibold text-lg">{SERVICE_TYPES.find(s => s.id === serviceType)?.label}</p>
-                <p className="text-indigo-200 text-sm">{business.name}</p>
-              </div>
-              <div className="p-5 space-y-3">
-                {[
-                  { icon: Calendar, label: 'Date', value: `${new Date(selectedDate + 'T12:00:00').toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })} · ${selectedTime}` },
-                  { icon: User,     label: 'Name', value: name },
-                  { icon: Mail,     label: 'Email', value: email },
-                  ...(phone   ? [{ icon: Phone,    label: 'Phone',   value: phone   }] : []),
-                  ...(address ? [{ icon: Zap,      label: 'Address', value: address }] : []),
-                ].map((row) => (
-                  <div key={row.label} className="flex items-start gap-3">
-                    <row.icon className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-xs text-gray-400">{row.label}</p>
-                      <p className="text-sm font-medium text-gray-900">{row.value}</p>
-                    </div>
-                  </div>
-                ))}
-                {serviceNote && (
-                  <div className="pt-2 border-t border-gray-100">
-                    <p className="text-xs text-gray-400 mb-1">Notes</p>
-                    <p className="text-sm text-gray-600">{serviceNote}</p>
-                  </div>
+                <p className="text-sm font-semibold text-emerald-900">Booking confirmed!</p>
+                <p className="text-xs text-emerald-700 mt-1">
+                  A confirmation has been sent to {bookingData.customerEmail}.
+                </p>
+                {bookingData.scheduledDate && (
+                  <p className="text-xs text-emerald-600 mt-2 font-medium">
+                    📅 {new Date(bookingData.scheduledDate + 'T12:00:00').toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}
+                    {bookingData.scheduledTime && ` · ${bookingData.scheduledTime}`}
+                  </p>
                 )}
               </div>
             </div>
+          )}
 
-            <p className="text-xs text-gray-400 text-center mb-4">
-              By booking, you agree to receive a confirmation email at {email}.
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+
+      {/* Quick replies — shown when not booked */}
+      {!booked && messages.length <= 1 && (
+        <div className="mx-auto max-w-2xl w-full px-4 pb-2">
+          <p className="text-xs text-gray-400 mb-2 text-center">Quick start:</p>
+          <div className="flex flex-wrap gap-2 justify-center">
+            {QUICK_REPLIES.map((r) => (
+              <button
+                key={r}
+                onClick={() => send(r)}
+                className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-indigo-300 hover:text-indigo-700 hover:bg-indigo-50 transition-colors shadow-sm"
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Input area */}
+      {!booked ? (
+        <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-4 py-3 shrink-0">
+          <div className="mx-auto max-w-2xl">
+            <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-400/20 transition-all shadow-sm">
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKey}
+                placeholder="Type your message…"
+                className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                disabled={thinking}
+              />
+              <button
+                onClick={() => send()}
+                disabled={!input.trim() || thinking}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-center text-[10px] text-gray-400 mt-2">
+              Powered by <span className="font-semibold text-indigo-500">FieldOS AI</span> · Responses are instant
             </p>
-
-            <button
-              onClick={submitBooking}
-              disabled={submitting}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 shadow-sm transition-all"
+          </div>
+        </div>
+      ) : (
+        <div className="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-4 py-4 text-center shrink-0">
+          <p className="text-sm text-gray-600 mb-3">
+            Your appointment has been requested. {business.name} will confirm shortly.
+          </p>
+          {business.phone && (
+            <a
+              href={`tel:${business.phone}`}
+              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
             >
-              {submitting ? (
-                <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Booking…</>
-              ) : (
-                <><CheckCircle className="h-4 w-4" /> Confirm booking</>
-              )}
-            </button>
+              <Phone className="h-4 w-4" /> Call {business.name}
+            </a>
+          )}
+          <p className="text-xs text-gray-400 mt-3">
+            Powered by <a href="/" className="text-indigo-500 font-medium">FieldOS</a>
+          </p>
+        </div>
+      )}
+
+      {/* Trust footer */}
+      {!booked && (
+        <div className="text-center py-3">
+          <div className="flex items-center justify-center gap-4 text-[10px] text-gray-300">
+            <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Instant confirmation</span>
+            <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> No account needed</span>
+            <span className="flex items-center gap-1"><ArrowRight className="h-3 w-3" /> 2-min booking</span>
           </div>
-        )}
-
-        {/* Step: Success */}
-        {step === 'success' && (
-          <div className="text-center py-8">
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-100">
-              <CheckCircle className="h-10 w-10 text-emerald-600" />
-            </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">You&apos;re booked!</h2>
-            <p className="text-gray-500 mb-2">
-              {business.name} will see your request and confirm shortly.
-            </p>
-            {email && <p className="text-sm text-gray-400">A confirmation was sent to <strong>{email}</strong>.</p>}
-
-            <div className="mt-8 rounded-2xl border border-gray-100 bg-white shadow-sm p-5 text-left max-w-sm mx-auto">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Booking summary</p>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p><span className="font-medium">{SERVICE_TYPES.find(s => s.id === serviceType)?.label}</span></p>
-                <p className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5 text-gray-400" />
-                  {new Date(selectedDate + 'T12:00:00').toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}
-                </p>
-                <p className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-gray-400" />{selectedTime}</p>
-              </div>
-            </div>
-
-            {business.phone && (
-              <p className="mt-6 text-sm text-gray-400">
-                Questions? Call us at <a href={`tel:${business.phone}`} className="font-semibold text-indigo-600">{business.phone}</a>
-              </p>
-            )}
-          </div>
-        )}
-      </main>
-
-      <footer className="mt-12 border-t border-gray-100 py-6 text-center">
-        <p className="text-xs text-gray-400">Powered by <span className="font-semibold text-indigo-600">FieldOS</span></p>
-      </footer>
+        </div>
+      )}
     </div>
   )
 }
