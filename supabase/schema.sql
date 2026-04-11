@@ -206,50 +206,50 @@ ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can manage their own customers" ON customers;
 CREATE POLICY "Users can manage their own customers"
   ON customers FOR ALL
-  USING (auth.uid() = user_id);
+  USING (auth.uid()::text = user_id);
 
 -- Jobs RLS
 ALTER TABLE jobs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can manage their own jobs" ON jobs;
 CREATE POLICY "Users can manage their own jobs"
   ON jobs FOR ALL
-  USING (auth.uid() = user_id);
+  USING (auth.uid()::text = user_id);
 
 -- Invoices RLS
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can manage their own invoices" ON invoices;
 CREATE POLICY "Users can manage their own invoices"
   ON invoices FOR ALL
-  USING (auth.uid() = user_id);
+  USING (auth.uid()::text = user_id);
 
--- Quotes RLS
+-- Quotes RLS (user_id is UUID)
 ALTER TABLE quotes ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can manage their own quotes" ON quotes;
 CREATE POLICY "Users can manage their own quotes"
   ON quotes FOR ALL
   USING (auth.uid() = user_id);
 
--- Team members RLS
+-- Team members RLS (owner_user_id is UUID)
 ALTER TABLE team_members ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can manage their own team" ON team_members;
 CREATE POLICY "Users can manage their own team"
   ON team_members FOR ALL
   USING (auth.uid() = owner_user_id);
 
--- Notifications RLS
+-- Notifications RLS (user_id is UUID)
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users see their own notifications" ON notifications;
 CREATE POLICY "Users see their own notifications"
   ON notifications FOR ALL
   USING (auth.uid() = user_id);
 
--- Customer notes RLS
+-- Customer notes RLS (user_id in customers is TEXT)
 ALTER TABLE customer_notes ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can manage notes for their customers" ON customer_notes;
 CREATE POLICY "Users can manage notes for their customers"
   ON customer_notes FOR ALL
   USING (
-    auth.uid() IN (
+    auth.uid()::text IN (
       SELECT user_id FROM customers WHERE id = customer_notes.customer_id
     )
   );

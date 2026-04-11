@@ -1,14 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState, useCallback } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
 import { writeAuditLog } from '@/lib/audit'
 import {
   ArrowLeft, FileText, User, Briefcase, Calendar, DollarSign,
   CheckCircle, Clock, AlertCircle, Edit2, Save, X, Printer,
-  Send, Trash2, ExternalLink
+  Send, Trash2, ExternalLink, CreditCard
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -38,14 +38,16 @@ const STATUS_CFG: Record<string, { label: string; className: string; icon: React
 
 export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const router  = useRouter()
+  const router       = useRouter()
+  const searchParams = useSearchParams()
 
-  const [invoice, setInvoice]   = useState<Invoice | null>(null)
-  const [loading, setLoading]   = useState(true)
-  const [editing, setEditing]   = useState(false)
-  const [saving, setSaving]     = useState(false)
-  const [sending, setSending]   = useState(false)
-  const [message, setMessage]   = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+  const [invoice, setInvoice]     = useState<Invoice | null>(null)
+  const [loading, setLoading]     = useState(true)
+  const [editing, setEditing]     = useState(false)
+  const [saving, setSaving]       = useState(false)
+  const [sending, setSending]     = useState(false)
+  const [paying, setPaying]       = useState(false)
+  const [message, setMessage]     = useState<{ text: string; type: 'success' | 'error' } | null>(null)
 
   // Edit form state
   const [editStatus, setEditStatus]   = useState('unpaid')
@@ -57,6 +59,11 @@ export default function InvoiceDetailPage() {
     const init = async () => {
       const { data: auth } = await supabase.auth.getUser()
       if (!auth.user) { window.location.href = '/login'; return }
+      // Handle Stripe return: mark paid if ?paid=true
+      if (searchParams.get('paid') === 'true') {
+        await supabase.from('invoices').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', id)
+        router.replace(`/invoices/${id}`)
+      }
       fetchInvoice()
     }
     init()
@@ -150,6 +157,28 @@ export default function InvoiceDetailPage() {
     }
     setSending(false)
     setTimeout(() => setMessage(null), 4000)
+  }
+
+  const createPaymentLink = async () => {
+    setPaying(true)
+    try {
+      const res = await fetch('/api/stripe/invoice-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoiceId: id }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.open(data.url, '_blank')
+      } else {
+        setMessage({ text: data.error || 'Could not create payment link', type: 'error' })
+        setTimeout(() => setMessage(null), 4000)
+      }
+    } catch {
+      setMessage({ text: 'Failed to create payment link', type: 'error' })
+      setTimeout(() => setMessage(null), 4000)
+    }
+    setPaying(false)
   }
 
   const addLineItem = () => setLineItems([...lineItems, { description: '', qty: 1, unit_price: 0 }])
@@ -441,6 +470,16 @@ export default function InvoiceDetailPage() {
             {/* Actions */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5 space-y-2">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Actions</p>
+              {invoice.status !== 'paid' && (
+                <button
+                  onClick={createPaymentLink}
+                  disabled={paying}
+                  className="w-full flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors shadow-sm"
+                >
+                  {paying ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <CreditCard className="h-4 w-4" />}
+                  Pay Now via Stripe
+                </button>
+              )}
               <button
                 onClick={() => window.print()}
                 className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"

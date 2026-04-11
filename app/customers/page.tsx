@@ -107,13 +107,40 @@ export default function CustomersPage() {
     setMenuOpen(null)
   }
 
+  const exportCSV = () => {
+    const header = ['Name', 'Email', 'Phone', 'Address', 'Tags', 'Lifetime Value', 'Added']
+    const rows = customers.map((c) => [
+      c.name,
+      c.email || '',
+      c.phone || '',
+      c.address || '',
+      (c.tags || []).join('; '),
+      c.lifetime_value ? c.lifetime_value.toFixed(2) : '0',
+      new Date(c.created_at).toLocaleDateString(),
+    ])
+    const csv = [header, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href = url; a.download = 'customers.csv'; a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const AddButton = (
-    <button
-      onClick={() => { setPanelOpen(true); setMessage(null) }}
-      className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all"
-    >
-      <Plus className="h-4 w-4" /> Add Customer
-    </button>
+    <div className="flex items-center gap-2">
+      <button
+        onClick={exportCSV}
+        className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-all"
+      >
+        <Download className="h-4 w-4" /> Export CSV
+      </button>
+      <button
+        onClick={() => { setPanelOpen(true); setMessage(null) }}
+        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all"
+      >
+        <Plus className="h-4 w-4" /> Add Customer
+      </button>
+    </div>
   )
 
   if (pageLoading) return (

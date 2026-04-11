@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(env|md|json|js|ts|css\\)$\")",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(npm list:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node -e \"const s = require\\('stripe'\\); console.log\\(Object.keys\\(s\\).slice\\(0,3\\)\\)\")",
+      "Bash(node -e \"const s = require\\('stripe'\\); console.log\\(s.API_VERSION\\)\")",
+      "Bash(npx vercel:*)",
+      "Bash(ls .env.local)",
+      "Bash(ls .env)",
+      "Bash(vercel --prod --yes)",
+      "Bash(vercel link:*)",
+      "Bash(vercel env:*)",
+      "Skill(schedule)",
+      "Bash(vercel project:*)",
+      "Bash(node -e \"process.stdin.resume\\(\\);let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{ const j=JSON.parse\\(d\\); console.log\\(JSON.stringify\\(Object.keys\\(j\\)\\)\\); console.log\\(j.token ? 'has token' : 'no token key'\\); }\\)\")",
+      "Bash(node -e \"process.stdin.resume\\(\\);let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{ const j=JSON.parse\\(d\\); console.log\\(j.hook?.url || JSON.stringify\\(j\\)\\); }\\)\")",
+      "Bash(node -e \"const l = require\\('./node_modules/lucide-react'\\); const keys = Object.keys\\(l\\); ['Twitter','Linkedin','Github','MessageSquare','Building2','Clock','Play'].forEach\\(k => console.log\\(k, keys.includes\\(k\\)\\)\\)\")"
+    ]
+  }
+}
