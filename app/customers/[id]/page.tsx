@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/app/supabase'
 import AppLayout from '@/components/AppLayout'
+import { writeAuditLog } from '@/lib/audit'
 import {
   ArrowLeft, Mail, Phone, MapPin, Tag, Edit2, Trash2, Plus,
   Briefcase, FileText, DollarSign, Clock, CheckCircle, AlertCircle,
@@ -103,6 +104,7 @@ export default function CustomerDetailPage() {
     if (!error && customer) {
       setCustomer({ ...customer, name: eName, email: eEmail || null, phone: ePhone || null, address: eAddress || null, notes: eNotes || null })
       setEditMode(false)
+      if (userId) writeAuditLog({ userId, action: 'update', resourceType: 'customer', resourceId: id, details: { name: eName } })
     }
     setSaving(false)
   }
@@ -120,6 +122,7 @@ export default function CustomerDetailPage() {
 
   const deleteCustomer = async () => {
     if (!confirm('Delete this customer? All associated jobs and invoices will be unlinked.')) return
+    if (userId) writeAuditLog({ userId, action: 'delete', resourceType: 'customer', resourceId: id })
     await supabase.from('customers').delete().eq('id', id)
     router.push('/customers')
   }

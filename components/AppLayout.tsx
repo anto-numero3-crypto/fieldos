@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Menu, Bell, Search, X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react'
+import { Menu, Bell, X, CheckCircle, AlertCircle, Info, AlertTriangle, Sun, Moon } from 'lucide-react'
 import Sidebar from './Sidebar'
 import Link from 'next/link'
 import { supabase } from '@/app/supabase'
+import { useTheme } from './ThemeProvider'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -35,6 +36,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unread, setUnread]             = useState(0)
   const [userId, setUserId]             = useState<string | null>(null)
+  const { theme, toggleTheme }          = useTheme()
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -75,12 +77,12 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         {/* Top bar */}
-        <header className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6 gap-3">
+        <header className="flex h-16 shrink-0 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 sm:px-6 gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
@@ -96,6 +98,16 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
 
           <div className="flex items-center gap-2 shrink-0">
             {actions && <div className="flex items-center gap-2">{actions}</div>}
+
+            {/* Dark mode toggle */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="relative -m-1 p-2 rounded-xl text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </button>
 
             {/* Notification bell */}
             <div className="relative">
@@ -163,7 +175,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950">
           {children}
         </main>
       </div>

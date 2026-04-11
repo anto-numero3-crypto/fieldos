@@ -99,6 +99,16 @@ export default function Dashboard() {
       setRecentInvoices(allInvoices.slice(0, 5))
       setChartData(buildRevenueChart(allInvoices))
       setLoading(false)
+
+      // Real-time subscriptions — refresh data on any change
+      const channel = supabase
+        .channel('dashboard-realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs',     filter: `user_id=eq.${data.user.id}` }, () => init())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices', filter: `user_id=eq.${data.user.id}` }, () => init())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'customers',filter: `user_id=eq.${data.user.id}` }, () => init())
+        .subscribe()
+
+      return () => { supabase.removeChannel(channel) }
     }
     init()
   }, [])

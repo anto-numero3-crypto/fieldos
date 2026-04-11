@@ -41,9 +41,11 @@ const PLANS: Plan[] = [
 const fmt = (n: number) => `$${n}`
 
 export default function BillingPage() {
-  const [user, setUser]       = useState<{ id: string; email?: string } | null>(null)
-  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
-  const [currentPlan]         = useState('starter') // would come from org data
+  const [user, setUser]           = useState<{ id: string; email?: string } | null>(null)
+  const [billing, setBilling]     = useState<'monthly' | 'annual'>('monthly')
+  const [currentPlan]             = useState('starter')
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -52,13 +54,40 @@ export default function BillingPage() {
       setUser(data.user)
     }
     init()
+    // Check for Stripe redirect
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('success')) setSuccessMsg('Your subscription has been activated!')
+    if (params.get('canceled')) setSuccessMsg(null)
   }, [])
+
+  const startCheckout = async (planId: string) => {
+    if (!user) return
+    setCheckoutLoading(planId)
+    try {
+      const res  = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId, userId: user.id, billingCycle: billing }),
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else alert(data.error || 'Checkout failed. Make sure STRIPE_SECRET_KEY and price IDs are configured.')
+    } catch {
+      alert('Checkout failed. Please try again.')
+    }
+    setCheckoutLoading(null)
+  }
 
   const price = (plan: Plan) => billing === 'annual' ? plan.annualPrice : plan.price
 
   return (
     <AppLayout title="Billing">
       <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
+        {successMsg && (
+          <div className="mb-6 flex items-center gap-2 rounded-2xl bg-emerald-50 border border-emerald-100 px-4 py-3 text-sm text-emerald-700">
+            <CheckCircle className="h-4 w-4 shrink-0" /> {successMsg}
+          </div>
+        )}
 
         {/* Current plan banner */}
         <div className="rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50 to-violet-50 p-5 mb-8 flex items-center justify-between flex-wrap gap-4">
@@ -175,16 +204,20 @@ export default function BillingPage() {
                 </ul>
 
                 <button
-                  className={`w-full rounded-xl py-2.5 text-sm font-semibold transition-all ${
+                  onClick={() => !isCurrent && startCheckout(plan.id)}
+                  className={`w-full rounded-xl py-2.5 text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
                     isCurrent
                       ? 'border border-gray-200 bg-gray-50 text-gray-400 cursor-default'
                       : plan.badge
                       ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
                       : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
                   }`}
-                  disabled={isCurrent}
+                  disabled={isCurrent || checkoutLoading === plan.id}
                 >
-                  {isCurrent ? 'Current Plan' : `Upgrade to ${plan.name}`}
+                  {checkoutLoading === plan.id
+                    ? <><div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" /> Processing…</>
+                    : isCurrent ? 'Current Plan' : `Upgrade to ${plan.name}`
+                  }
                 </button>
               </div>
             )

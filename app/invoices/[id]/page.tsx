@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
+import { writeAuditLog } from '@/lib/audit'
 import {
   ArrowLeft, FileText, User, Briefcase, Calendar, DollarSign,
   CheckCircle, Clock, AlertCircle, Edit2, Save, X, Printer,
@@ -43,6 +44,7 @@ export default function InvoiceDetailPage() {
   const [loading, setLoading]   = useState(true)
   const [editing, setEditing]   = useState(false)
   const [saving, setSaving]     = useState(false)
+  const [sending, setSending]   = useState(false)
   const [message, setMessage]   = useState<{ text: string; type: 'success' | 'error' } | null>(null)
 
   // Edit form state
@@ -110,6 +112,8 @@ export default function InvoiceDetailPage() {
 
   const deleteInvoice = async () => {
     if (!confirm('Delete this invoice? This cannot be undone.')) return
+    const { data: auth } = await supabase.auth.getUser()
+    if (auth.user) writeAuditLog({ userId: auth.user.id, action: 'delete', resourceType: 'invoice', resourceId: id })
     await supabase.from('invoices').delete().eq('id', id)
     router.push('/invoices')
   }
@@ -117,6 +121,35 @@ export default function InvoiceDetailPage() {
   const markPaid = async () => {
     await supabase.from('invoices').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', id)
     fetchInvoice()
+  }
+
+  const sendInvoiceEmail = async (type: 'invoice' | 'payment_reminder') => {
+    if (!invoice?.customers?.email) return
+    setSending(true)
+    try {
+      const res = await fetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type,
+          to: invoice.customers.email,
+          customerName: invoice.customers.name,
+          invoiceNumber: invoice.invoice_number,
+          amount: `$${parseFloat(String(invoice.amount)).toFixed(2)}`,
+          dueDate: invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('en', { month: 'long', day: 'numeric', year: 'numeric' }) : undefined,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setMessage({ text: `Email sent to ${invoice.customers.email}`, type: 'success' })
+      } else {
+        setMessage({ text: data.error || 'Email failed to send', type: 'error' })
+      }
+    } catch {
+      setMessage({ text: 'Failed to send email', type: 'error' })
+    }
+    setSending(false)
+    setTimeout(() => setMessage(null), 4000)
   }
 
   const addLineItem = () => setLineItems([...lineItems, { description: '', qty: 1, unit_price: 0 }])
@@ -415,12 +448,25 @@ export default function InvoiceDetailPage() {
                 <Printer className="h-4 w-4 text-gray-400" /> Print / Download PDF
               </button>
               {invoice.customers?.email && (
-                <a
-                  href={`mailto:${invoice.customers.email}?subject=Invoice ${invoice.invoice_number || ''}&body=Please find your invoice attached.`}
-                  className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  <Send className="h-4 w-4 text-gray-400" /> Send via Email
-                </a>
+                <>
+                  <button
+                    onClick={() => sendInvoiceEmail('invoice')}
+                    disabled={sending}
+                    className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-colors"
+                  >
+                    {sending ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" /> : <Send className="h-4 w-4 text-gray-400" />}
+                    Send Invoice Email
+                  </button>
+                  {invoice.status === 'overdue' && (
+                    <button
+                      onClick={() => sendInvoiceEmail('payment_reminder')}
+                      disabled={sending}
+                      className="w-full flex items-center gap-2 rounded-xl border border-red-100 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60 transition-colors"
+                    >
+                      <Send className="h-4 w-4" /> Send Payment Reminder
+                    </button>
+                  )}
+                </>
               )}
               <button
                 onClick={deleteInvoice}

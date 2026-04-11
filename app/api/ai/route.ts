@@ -65,19 +65,19 @@ export async function POST(req: NextRequest) {
 ${(customers || []).slice(0, 10).map((c) => `- ${c.name}${c.email ? ` <${c.email}>` : ''}${c.phone ? ` · ${c.phone}` : ''}${(c.tags as string[]|null)?.length ? ` [${(c.tags as string[]).join(', ')}]` : ''}`).join('\n')}
 
 **Jobs (recent 15):**
-${allJobs.slice(0, 15).map((j) => `- [${j.status}] "${j.title}" — ${(j.customers as {name:string}|null)?.name || 'No customer'}${j.scheduled_date ? ` on ${j.scheduled_date}` : ''}${j.priority && j.priority !== 'normal' ? ` (${j.priority})` : ''}`).join('\n')}
+${allJobs.slice(0, 15).map((j) => `- [${j.status}] "${j.title}" — ${(j.customers as unknown as {name:string}|null)?.name || 'No customer'}${j.scheduled_date ? ` on ${j.scheduled_date}` : ''}${j.priority && j.priority !== 'normal' ? ` (${j.priority})` : ''}`).join('\n')}
 
 **Invoices (recent 15):**
-${allInvoices.slice(0, 15).map((i) => `- [${i.status}] $${parseFloat(String(i.amount)).toFixed(2)} — ${(i.customers as {name:string}|null)?.name || 'Unknown'}${i.due_date ? ` due ${i.due_date}` : ''}${i.invoice_number ? ` (${i.invoice_number})` : ''}`).join('\n')}
+${allInvoices.slice(0, 15).map((i) => `- [${i.status}] $${parseFloat(String(i.amount)).toFixed(2)} — ${(i.customers as unknown as {name:string}|null)?.name || 'Unknown'}${i.due_date ? ` due ${i.due_date}` : ''}${i.invoice_number ? ` (${i.invoice_number})` : ''}`).join('\n')}
 
 **Quotes:**
-${(quotes || []).map((q) => `- [${q.status}] "${q.title}" $${q.total.toFixed(2)} — ${(q.customers as {name:string}|null)?.name || 'Unknown'}`).join('\n') || '(none)'}
+${(quotes || []).map((q) => `- [${q.status}] "${q.title}" $${q.total.toFixed(2)} — ${(q.customers as unknown as {name:string}|null)?.name || 'Unknown'}`).join('\n') || '(none)'}
 
 **Monthly Revenue (last 6 months):**
 ${Object.entries(monthlyRevenue).slice(-6).map(([m, r]) => `- ${m}: $${r.toFixed(2)}`).join('\n') || '(no data)'}
 
 **Overdue invoices needing follow-up:**
-${overdueInvoices.slice(0, 5).map((i) => `- $${parseFloat(String(i.amount)).toFixed(2)} from ${(i.customers as {name:string}|null)?.name || 'Unknown'} (due ${i.due_date})`).join('\n') || '(none)'}
+${overdueInvoices.slice(0, 5).map((i) => `- $${parseFloat(String(i.amount)).toFixed(2)} from ${(i.customers as unknown as {name:string}|null)?.name || 'Unknown'} (due ${i.due_date})`).join('\n') || '(none)'}
 `.trim()
 
     const systemPrompt = `You are FieldOS AI — an expert business assistant for a field service management platform (think Jobber / ServiceTitan level intelligence).

@@ -115,3 +115,60 @@ select.custom-select {
   .no-print { display: none !important; }
   body { background: white; }
 }
+
+/* ─── Dark mode ─────────────────────────────── */
+.dark {
+  color-scheme: dark;
+}
+
+/* Cards & panels */
+.dark .bg-white       { background-color: #1e2330 !important; }
+.dark .bg-gray-50     { background-color: #171c27 !important; }
+.dark .bg-gray-100    { background-color: #252b3b !important; }
+
+/* Borders */
+.dark .border-gray-100  { border-color: #2d3448 !important; }
+.dark .border-gray-200  { border-color: #2d3448 !important; }
+.dark .divide-gray-100 > * + *  { border-color: #2d3448 !important; }
+.dark .divide-gray-50  > * + *  { border-color: #252b3b !important; }
+
+/* Text */
+.dark .text-gray-900  { color: #f1f5f9 !important; }
+.dark .text-gray-800  { color: #e2e8f0 !important; }
+.dark .text-gray-700  { color: #cbd5e1 !important; }
+.dark .text-gray-600  { color: #94a3b8 !important; }
+.dark .text-gray-500  { color: #64748b !important; }
+.dark .text-gray-400  { color: #475569 !important; }
+.dark .text-gray-300  { color: #334155 !important; }
+
+/* Table head */
+.dark .bg-gray-50 th  { background-color: #1e2330 !important; }
+.dark thead tr         { background-color: #1e2330 !important; }
+.dark tr:hover         { background-color: #252b3b !important; }
+
+/* Inputs & selects */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #1e2330 !important;
+  border-color: #2d3448 !important;
+  color: #f1f5f9 !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder { color: #475569 !important; }
+
+/* Sidebar specific */
+.dark .sidebar-bg {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+}
+
+/* Recharts dark */
+.dark .recharts-cartesian-grid-horizontal line,
+.dark .recharts-cartesian-grid-vertical line { stroke: #1f2937; }
+.dark .recharts-text { fill: #64748b !important; }
+
+/* Skeleton dark */
+.dark .skeleton {
+  background: linear-gradient(90deg, #1e2330 25%, #252b3b 50%, #1e2330 75%);
+}

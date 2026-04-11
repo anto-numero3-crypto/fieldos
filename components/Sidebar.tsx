@@ -8,7 +8,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 import {
   LayoutDashboard, Users, Briefcase, FileText, Sparkles, X, LogOut, Wrench,
   Calendar, FileSignature, BarChart3, Settings, CreditCard, Users2,
-  Bell, ChevronDown,
+  Bell, ChevronDown, Globe,
 } from 'lucide-react'
 
 interface SidebarProps { open: boolean; onClose: () => void }
@@ -41,6 +41,7 @@ const navSections = [
 
 const bottomItems = [
   { href: '/assistant', label: 'AI Assistant', icon: Sparkles },
+  { href: '/book',      label: 'Booking Portal', icon: Globe },
   { href: '/settings',  label: 'Settings',     icon: Settings },
   { href: '/billing',   label: 'Billing',      icon: CreditCard },
 ]
@@ -87,20 +88,20 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       {/* Panel */}
       <aside
         className={[
-          'fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-white border-r border-gray-100',
+          'fixed inset-y-0 left-0 z-30 flex w-64 flex-col bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800',
           'transition-transform duration-300 ease-in-out',
           'lg:static lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full',
         ].join(' ')}
       >
         {/* Logo */}
-        <div className="flex h-16 shrink-0 items-center justify-between px-5 border-b border-gray-100">
+        <div className="flex h-16 shrink-0 items-center justify-between px-5 border-b border-gray-100 dark:border-gray-800">
           <Link href="/dashboard" className="flex items-center gap-2.5 group" onClick={onClose}>
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 shadow-sm group-hover:bg-indigo-700 transition-colors">
               <Wrench className="h-4 w-4 text-white" strokeWidth={2.5} />
             </div>
             <div>
-              <span className="text-base font-bold text-gray-900 tracking-tight">FieldOS</span>
+              <span className="text-base font-bold text-gray-900 dark:text-white tracking-tight">FieldOS</span>
               <span className="ml-1.5 rounded-md bg-indigo-50 px-1.5 py-0.5 text-xs font-semibold text-indigo-600">PRO</span>
             </div>
           </Link>
@@ -131,8 +132,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                       className={[
                         'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150',
                         active
-                          ? 'bg-indigo-50 text-indigo-700'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                          ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300'
+                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
                       ].join(' ')}
                     >
                       <Icon
@@ -167,8 +168,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                     className={[
                       'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150',
                       active
-                        ? 'bg-indigo-50 text-indigo-700'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                        ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100',
                     ].join(' ')}
                   >
                     <Icon
@@ -212,7 +213,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         </div>
 
         {/* User */}
-        <div className="shrink-0 border-t border-gray-100 p-4">
+        <div className="shrink-0 border-t border-gray-100 dark:border-gray-800 p-4">
           {user && (
             <div className="mb-3 flex items-center gap-3 px-1">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 ring-2 ring-white shadow-sm">
@@ -221,7 +222,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 </span>
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-gray-900">{user.email}</p>
+                <p className="truncate text-xs font-semibold text-gray-900 dark:text-gray-100">{user.email}</p>
                 <div className="flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                   <p className="text-xs text-gray-400">Field Manager</p>
