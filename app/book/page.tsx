@@ -117,30 +117,18 @@ function BookingPageInner() {
   useEffect(() => {
     async function load() {
       const bizParam = searchParams.get('biz')
+      if (!bizParam) { setNotFound(true); setPageLoading(false); return }
 
-      let query = supabase.from('organizations')
-        .select('id, slug, name, phone, email, ai_agent_name, owner_user_id')
-      if (bizParam) {
-        // Accept both UUID and slug
-        const isUUID = /^[0-9a-f-]{36}$/i.test(bizParam)
-        query = isUUID ? query.eq('id', bizParam) : query.eq('slug', bizParam)
-      } else {
-        query = query.limit(1)
-      }
+      // Fetch via server endpoint (bypasses RLS on services)
+      const infoRes = await fetch(`/api/bookings/public-info?slug=${encodeURIComponent(bizParam)}`)
+      if (!infoRes.ok) { setNotFound(true); setPageLoading(false); return }
+      const info = await infoRes.json()
+      if (!info.org) { setNotFound(true); setPageLoading(false); return }
 
-      const { data: orgData } = await query.maybeSingle()
-      if (!orgData) { setNotFound(true); setPageLoading(false); return }
+      const orgData = info.org
       setOrg(orgData)
 
-      // Fetch services for this org's owner
-      const { data: svcData } = await supabase
-        .from('services')
-        .select('id, name, description, base_price, duration_minutes')
-        .eq('user_id', orgData.owner_user_id)
-        .eq('is_active', true)
-        .order('name')
-
-      const svcs = svcData || []
+      const svcs = info.services || []
       setServices(svcs)
       setPageLoading(false)
 
@@ -153,7 +141,7 @@ function BookingPageInner() {
         content: hasServices
           ? `Bonjour ! Je suis ${agentName}, votre assistant de réservation pour **${orgData.name}**. 😊\n\nQuel service souhaitez-vous réserver aujourd'hui ?`
           : `Bonjour ! Je suis ${agentName}, votre assistant pour **${orgData.name}**. Nous n'avons pas encore configuré notre catalogue de services en ligne. Veuillez nous contacter directement au ${orgData.phone || 'numéro affiché sur notre site'}.`,
-        buttons: hasServices ? svcs.map(s => ({
+        buttons: hasServices ? svcs.map((s: Service) => ({
           label: `${s.name}${s.base_price > 0 ? ` — CA$${s.base_price.toFixed(2)}` : ''}`,
           value: s.id,
           action: 'select_service',

@@ -25,7 +25,11 @@
       "Bash(powershell:*)",
       "Bash(grep -v \"^$\")",
       "Bash(npx --prefix \"/c/Users/Antoine Garant/Desktop/fieldos\" tsc --noEmit --project \"/c/Users/Antoine Garant/Desktop/fieldos/tsconfig.json\")",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(ls components/AppLayout*)",
+      "Bash(gh api:*)",
+      "Bash(curl -s \"https://api.github.com/repos/anto-numero3-crypto/fieldos/commits/7bae24c/status\")",
+      "Bash(grep -rn \"services\" supabase/*.sql)"
     ]
   }
 }

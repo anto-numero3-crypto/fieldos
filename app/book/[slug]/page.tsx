@@ -97,31 +97,26 @@ export default function PublicBookingPage() {
   // Load org + services + availability
   useEffect(() => {
     async function load() {
-      // Fetch org
-      const { data: orgData } = await supabase
-        .from('organizations')
-        .select('id, name, owner_user_id, slug, phone, email, logo_url')
-        .eq('slug', slug)
-        .single()
+      // Fetch org + services + settings via server endpoint (bypasses RLS)
+      const infoRes = await fetch(`/api/bookings/public-info?slug=${encodeURIComponent(slug)}`)
+      if (!infoRes.ok) { setNotFound(true); setPageLoading(false); return }
+      const info = await infoRes.json()
+      if (!info.org) { setNotFound(true); setPageLoading(false); return }
 
-      if (!orgData) { setNotFound(true); setPageLoading(false); return }
+      const orgData = info.org
       setOrg(orgData)
+      setServices(info.services || [])
+      if (info.settings) setAvSettings(info.settings)
 
+      // Availability schedule + overrides can still use the anon client
+      // (their RLS policies are permissive in add-booking-system.sql)
       const userId = String(orgData.owner_user_id)
-
-      // Fetch services + availability in parallel
-      const [svcRes, settingsRes, schedRes, overrideRes] = await Promise.all([
-        supabase.from('services').select('*').eq('user_id', orgData.owner_user_id).eq('is_active', true).order('name'),
-        supabase.from('availability_settings').select('*').eq('user_id', userId).maybeSingle(),
+      const [schedRes, overrideRes] = await Promise.all([
         supabase.from('availability_schedule').select('day_of_week, is_available').eq('user_id', userId),
         supabase.from('availability_overrides').select('date, is_available').eq('user_id', userId)
           .gte('date', today.toISOString().slice(0, 10)),
       ])
 
-      setServices(svcRes.data || [])
-      if (settingsRes.data) setAvSettings(settingsRes.data)
-
-      // Build available days set
       if (schedRes.data && schedRes.data.length > 0) {
         const available = new Set(
           schedRes.data.filter((d) => d.is_available).map((d) => d.day_of_week)
@@ -129,7 +124,6 @@ export default function PublicBookingPage() {
         setAvailableDays(available)
       }
 
-      // Build override map { 'YYYY-MM-DD': is_available }
       if (overrideRes.data) {
         const map: Record<string, boolean> = {}
         overrideRes.data.forEach((o) => { map[o.date] = o.is_available })
@@ -137,8 +131,8 @@ export default function PublicBookingPage() {
       }
 
       // If only 1 service, auto-select it
-      if (svcRes.data && svcRes.data.length === 1) {
-        setSelectedService(svcRes.data[0])
+      if (info.services && info.services.length === 1) {
+        setSelectedService(info.services[0])
         setStep('date')
       }
 
