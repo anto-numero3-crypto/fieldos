@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
+import { formatPrice } from '@/lib/pricing'
 import AppLayout from '@/components/AppLayout'
 import { toast } from 'sonner'
 import {
@@ -19,10 +20,19 @@ interface Service {
   description: string | null
   category: string | null
   base_price: number
+  price_max: number | null
+  pricing_type: 'fixed' | 'starting_from' | 'quote_required' | 'free' | 'hourly' | 'custom_range'
+  pricing_note: string | null
   unit: string | null
   duration_minutes: number
+  buffer_minutes: number | null
   is_active: boolean
 }
+
+const SERVICE_CATEGORIES = [
+  'Nettoyage', 'Plomberie', 'CVC / HVAC', 'Électricité',
+  'Aménagement paysager', 'Peinture', 'Rénovation', 'Autre',
+]
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -117,8 +127,13 @@ export default function SettingsPage() {
   const [services, setServices] = useState<Service[]>([])
   const [servicesLoading, setServicesLoading] = useState(false)
   const [newSvcName, setNewSvcName]     = useState('')
+  const [newSvcCategory, setNewSvcCategory] = useState('')
+  const [newSvcPricingType, setNewSvcPricingType] = useState<Service['pricing_type']>('fixed')
   const [newSvcPrice, setNewSvcPrice]   = useState('')
+  const [newSvcPriceMax, setNewSvcPriceMax] = useState('')
+  const [newSvcPricingNote, setNewSvcPricingNote] = useState('')
   const [newSvcDuration, setNewSvcDuration] = useState('60')
+  const [newSvcBuffer, setNewSvcBuffer] = useState('0')
   const [newSvcDesc, setNewSvcDesc]     = useState('')
   const [addingSvc, setAddingSvc]       = useState(false)
 
@@ -262,17 +277,25 @@ export default function SettingsPage() {
     if (!user) return
     const name = newSvcName.trim()
     if (!name) { toast.error('Nom du service requis'); return }
-    const price = parseFloat(newSvcPrice) || 0
+    const showPrice = newSvcPricingType !== 'quote_required' && newSvcPricingType !== 'free'
+    const price = showPrice ? (parseFloat(newSvcPrice) || 0) : 0
+    const priceMax = newSvcPricingType === 'custom_range' ? (parseFloat(newSvcPriceMax) || null) : null
     const duration = parseInt(newSvcDuration) || 60
+    const buffer = parseInt(newSvcBuffer) || 0
     setAddingSvc(true)
     const { data, error: svcErr } = await supabase
       .from('services')
       .insert({
         user_id: user.id,
         name,
+        category: newSvcCategory || null,
         description: newSvcDesc.trim() || null,
+        pricing_type: newSvcPricingType,
         base_price: price,
+        price_max: priceMax,
+        pricing_note: newSvcPricingNote.trim() || null,
         duration_minutes: duration,
+        buffer_minutes: buffer,
         is_active: true,
       })
       .select()
@@ -280,7 +303,9 @@ export default function SettingsPage() {
     setAddingSvc(false)
     if (svcErr) { toast.error(svcErr.message); return }
     setServices((prev) => [...prev, data as Service].sort((a, b) => a.name.localeCompare(b.name)))
-    setNewSvcName(''); setNewSvcPrice(''); setNewSvcDuration('60'); setNewSvcDesc('')
+    setNewSvcName(''); setNewSvcCategory(''); setNewSvcPricingType('fixed')
+    setNewSvcPrice(''); setNewSvcPriceMax(''); setNewSvcPricingNote('')
+    setNewSvcDuration('60'); setNewSvcBuffer('0'); setNewSvcDesc('')
     toast.success('Service ajouté')
   }
 
@@ -491,9 +516,13 @@ export default function SettingsPage() {
                           {!svc.is_active && <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">Inactif</span>}
                         </div>
                         {svc.description && <p className="text-xs text-gray-500 mt-0.5 truncate">{svc.description}</p>}
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                          <span className="inline-flex items-center gap-1"><DollarSign className="h-3 w-3" />{svc.base_price.toFixed(2)} {currency}</span>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 flex-wrap">
+                          <span className="inline-flex items-center gap-1 font-medium text-gray-700">
+                            <DollarSign className="h-3 w-3" />{formatPrice(svc, currency)}
+                          </span>
                           <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{svc.duration_minutes} min</span>
+                          {svc.category && <span className="rounded-full bg-indigo-50 text-indigo-700 px-2 py-0.5">{svc.category}</span>}
+                          {svc.pricing_note && <span className="italic text-gray-400 truncate">{svc.pricing_note}</span>}
                         </div>
                       </div>
                       <Toggle checked={svc.is_active} onChange={() => toggleServiceActive(svc)} />
@@ -523,30 +552,99 @@ export default function SettingsPage() {
                       className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </div>
+
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Prix ({currency})</label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={newSvcPrice}
-                      onChange={(e) => setNewSvcPrice(e.target.value)}
-                      placeholder="150.00"
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Catégorie</label>
+                    <select
+                      value={newSvcCategory}
+                      onChange={(e) => setNewSvcCategory(e.target.value)}
                       className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                    />
+                    >
+                      <option value="">— Choisir —</option>
+                      {SERVICE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
                   </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Type de prix</label>
+                    <select
+                      value={newSvcPricingType}
+                      onChange={(e) => setNewSvcPricingType(e.target.value as Service['pricing_type'])}
+                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    >
+                      <option value="fixed">Prix fixe</option>
+                      <option value="starting_from">À partir de…</option>
+                      <option value="hourly">Par heure</option>
+                      <option value="custom_range">Fourchette (min – max)</option>
+                      <option value="quote_required">Sur devis</option>
+                      <option value="free">Gratuit</option>
+                    </select>
+                  </div>
+
+                  {newSvcPricingType !== 'quote_required' && newSvcPricingType !== 'free' && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        {newSvcPricingType === 'starting_from' ? 'Prix minimum' :
+                         newSvcPricingType === 'hourly' ? 'Tarif horaire' :
+                         newSvcPricingType === 'custom_range' ? 'Prix minimum' :
+                         'Prix'} ({currency})
+                      </label>
+                      <input
+                        type="number" step="0.01" min="0"
+                        value={newSvcPrice}
+                        onChange={(e) => setNewSvcPrice(e.target.value)}
+                        placeholder="150.00"
+                        className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      />
+                    </div>
+                  )}
+
+                  {newSvcPricingType === 'custom_range' && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Prix maximum ({currency})</label>
+                      <input
+                        type="number" step="0.01" min="0"
+                        value={newSvcPriceMax}
+                        onChange={(e) => setNewSvcPriceMax(e.target.value)}
+                        placeholder="300.00"
+                        className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      />
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">Durée (minutes)</label>
                     <input
-                      type="number"
-                      min="5"
-                      step="5"
+                      type="number" min="5" step="5"
                       value={newSvcDuration}
                       onChange={(e) => setNewSvcDuration(e.target.value)}
                       placeholder="60"
                       className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Temps tampon après (min)</label>
+                    <input
+                      type="number" min="0" step="5"
+                      value={newSvcBuffer}
+                      onChange={(e) => setNewSvcBuffer(e.target.value)}
+                      placeholder="0"
+                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Note de prix (optionnel)</label>
+                    <input
+                      type="text"
+                      value={newSvcPricingNote}
+                      onChange={(e) => setNewSvcPricingNote(e.target.value)}
+                      placeholder="ex. Varie selon la taille et l'état du bateau"
+                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+
                   <div className="sm:col-span-2">
                     <label className="block text-xs font-medium text-gray-600 mb-1">Description (optionnel)</label>
                     <textarea

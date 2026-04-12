@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
   const [{ data: services }, { data: settings }] = await Promise.all([
     supabase
       .from('services')
-      .select('id, name, description, category, base_price, duration_minutes')
+      .select('id, name, description, category, base_price, price_max, pricing_type, pricing_note, duration_minutes, buffer_minutes')
       .eq('user_id', org.owner_user_id)
       .eq('is_active', true)
       .order('name'),

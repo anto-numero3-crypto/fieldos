@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '../supabase'
+import { formatPrice, requiresQuote, type PricingType } from '@/lib/pricing'
 import {
   Send, Phone, CheckCircle, Sparkles, Clock, DollarSign,
   Calendar, ChevronRight, User, Mail, MapPin, ArrowRight,
@@ -22,6 +23,9 @@ interface Service {
   name: string
   description: string | null
   base_price: number
+  price_max: number | null
+  pricing_type: PricingType
+  pricing_note: string | null
   duration_minutes: number
 }
 interface Message {
@@ -142,7 +146,7 @@ function BookingPageInner() {
           ? `Bonjour ! Je suis ${agentName}, votre assistant de réservation pour **${orgData.name}**. 😊\n\nQuel service souhaitez-vous réserver aujourd'hui ?`
           : `Bonjour ! Je suis ${agentName}, votre assistant pour **${orgData.name}**. Nous n'avons pas encore configuré notre catalogue de services en ligne. Veuillez nous contacter directement au ${orgData.phone || 'numéro affiché sur notre site'}.`,
         buttons: hasServices ? svcs.map((s: Service) => ({
-          label: `${s.name}${s.base_price > 0 ? ` — CA$${s.base_price.toFixed(2)}` : ''}`,
+          label: `${s.name} — ${formatPrice(s)}`,
           value: s.id,
           action: 'select_service',
         })) : [],
@@ -187,7 +191,9 @@ function BookingPageInner() {
     addMsg({ role: 'user', content: svc.name, ts: Date.now() })
     addMsg({
       role: 'assistant',
-      content: `Excellent choix ! **${svc.name}** (${svc.duration_minutes} min${svc.base_price > 0 ? `, CA$${svc.base_price.toFixed(2)}` : ''}). 📅\n\nQuelle date vous conviendrait ?`,
+      content: requiresQuote(svc)
+        ? `**${svc.name}** nécessite une évaluation pour un prix précis. 🔍\n\nJe peux vous réserver une visite d'évaluation gratuite${svc.pricing_note ? ` — ${svc.pricing_note}` : ''}. Quelle date vous conviendrait ?`
+        : `Excellent choix ! **${svc.name}** (${svc.duration_minutes} min, ${formatPrice(svc)}). 📅\n\nQuelle date vous conviendrait ?`,
       ts: Date.now(),
     })
   }, [org, services, bookingState])
@@ -329,7 +335,7 @@ function BookingPageInner() {
 
         addMsg({
           role: 'assistant',
-          content: `Voici le résumé de votre réservation :\n\n📅 **${svc?.name || finalState.serviceName}** le ${dateFormatted} à ${finalState.time ? fmtTime(finalState.time) : '—'}\n👤 ${finalState.name}\n📧 ${finalState.email}${finalState.phone ? `\n📞 ${finalState.phone}` : ''}${finalState.address ? `\n📍 ${finalState.address}` : ''}${svc?.base_price ? `\n💰 CA$${svc.base_price.toFixed(2)}` : ''}\n\nConfirmez-vous cette réservation ?`,
+          content: `Voici le résumé de votre réservation :\n\n📅 **${svc?.name || finalState.serviceName}** le ${dateFormatted} à ${finalState.time ? fmtTime(finalState.time) : '—'}\n👤 ${finalState.name}\n📧 ${finalState.email}${finalState.phone ? `\n📞 ${finalState.phone}` : ''}${finalState.address ? `\n📍 ${finalState.address}` : ''}${svc ? `\n💰 ${requiresQuote(svc) ? 'Devis après évaluation' : formatPrice(svc)}` : ''}\n\nConfirmez-vous cette réservation ?`,
           buttons: [
             { label: '✅ Oui, confirmer', value: 'confirm', action: 'confirm_booking' },
             { label: '✏️ Modifier', value: 'edit', action: 'edit_booking' },
@@ -375,7 +381,7 @@ function BookingPageInner() {
         role: 'assistant',
         content: 'Bien sûr ! Recommençons. Quel service souhaitez-vous réserver ?',
         buttons: services.map(s => ({
-          label: `${s.name}${s.base_price > 0 ? ` — CA$${s.base_price.toFixed(2)}` : ''}`,
+          label: `${s.name} — ${formatPrice(s)}`,
           value: s.id,
           action: 'select_service',
         })),

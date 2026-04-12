@@ -4,12 +4,16 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { supabase } from '../../supabase'
 import { ChevronLeft, ChevronRight, Clock, MapPin, Check, Calendar, AlertCircle } from 'lucide-react'
+import { formatPrice, requiresQuote, type PricingType } from '@/lib/pricing'
 
 interface Service {
   id: string
   name: string
   description: string | null
   base_price: number
+  price_max: number | null
+  pricing_type: PricingType
+  pricing_note: string | null
   duration_minutes: number
   category: string | null
 }
@@ -324,11 +328,20 @@ export default function PublicBookingPage() {
                         )}
                       </div>
                     </div>
-                    {svc.base_price > 0 && (
-                      <span className="text-lg font-bold text-gray-900 shrink-0">
-                        CA${svc.base_price.toFixed(2)}
-                      </span>
-                    )}
+                    <div className="shrink-0 text-right">
+                      {svc.pricing_type === 'quote_required' ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 px-2.5 py-1 text-xs font-semibold">
+                          <AlertCircle className="h-3 w-3" /> Sur devis
+                        </span>
+                      ) : svc.pricing_type === 'free' ? (
+                        <span className="rounded-full bg-emerald-50 text-emerald-700 px-2.5 py-1 text-xs font-semibold">Gratuit</span>
+                      ) : (
+                        <span className="text-base font-bold text-gray-900">{formatPrice(svc)}</span>
+                      )}
+                      {svc.pricing_note && (
+                        <p className="text-[11px] text-gray-400 mt-1 max-w-[160px]">{svc.pricing_note}</p>
+                      )}
+                    </div>
                   </div>
                 </button>
               ))
@@ -544,8 +557,10 @@ export default function PublicBookingPage() {
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Service</p>
                 <p className="font-semibold text-gray-900">{selectedService?.name}</p>
-                {selectedService && selectedService.base_price > 0 && (
-                  <p className="text-sm text-gray-500">CA${selectedService.base_price.toFixed(2)}</p>
+                {selectedService && (
+                  <p className="text-sm text-gray-500">
+                    {requiresQuote(selectedService) ? 'Devis fourni après évaluation' : formatPrice(selectedService)}
+                  </p>
                 )}
               </div>
               <div className="border-t border-gray-50 pt-3">
