@@ -15,7 +15,8 @@ type Tab = 'business' | 'booking' | 'notifications' | 'security' | 'integrations
 export default function SettingsPage() {
   const [tab, setTab]       = useState<Tab>('business')
   const [user, setUser]     = useState<{ id: string; email?: string } | null>(null)
-  const [orgId, setOrgId]   = useState<string | null>(null)
+  const [orgId, setOrgId]     = useState<string | null>(null)
+  const [orgSlug, setOrgSlug] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved]   = useState(false)
   const [error, setError]   = useState<string | null>(null)
@@ -81,6 +82,7 @@ export default function SettingsPage() {
 
       if (org) {
         setOrgId(org.id)
+        if (org.slug) setOrgSlug(org.slug)
         if (org.name)            setBizName(org.name)
         if (org.phone)           setBizPhone(org.phone)
         if (org.email)           setBizEmail(org.email)
@@ -146,24 +148,35 @@ export default function SettingsPage() {
     if (!user) return
     setConnectLoading(true)
     try {
-      // Create account if needed
+      // Step 1: Create or retrieve Stripe Connect account
       if (!connectStatus?.accountId) {
         const res = await fetch('/api/stripe/connect/create-account', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: user.id }),
         })
         const data = await res.json()
-        if (!data.accountId) { toast.error('Impossible de créer le compte.'); setConnectLoading(false); return }
+        if (!res.ok || !data.accountId) {
+          toast.error(data.error || 'Impossible de créer le compte Stripe.')
+          setConnectLoading(false)
+          return
+        }
       }
-      // Get onboarding link
+      // Step 2: Get onboarding link
       const res2 = await fetch('/api/stripe/connect/create-onboarding-link', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),
       })
       const data2 = await res2.json()
-      if (data2.url) window.location.href = data2.url
-    } catch {
-      toast.error('Erreur de connexion Stripe.')
+      if (!res2.ok || !data2.url) {
+        toast.error(data2.error || 'Impossible de générer le lien Stripe.')
+        setConnectLoading(false)
+        return
+      }
+      // Step 3: Redirect to Stripe onboarding
+      window.location.href = data2.url
+    } catch (err) {
+      console.error('Stripe connect error:', err)
+      toast.error('Erreur de connexion Stripe. Vérifiez la console.')
     }
     setConnectLoading(false)
   }
@@ -180,9 +193,13 @@ export default function SettingsPage() {
     setConnectLoading(false)
   }
 
+  const bookingLink = orgSlug
+    ? `https://gestivio.ca/book/${orgSlug}`
+    : orgId ? `${window.location.origin}/book?biz=${orgId}` : null
+
   const copyBookingLink = () => {
-    const link = `${window.location.origin}/book${orgId ? `?biz=${orgId}` : ''}`
-    navigator.clipboard.writeText(link)
+    if (!bookingLink) return
+    navigator.clipboard.writeText(bookingLink)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -375,7 +392,7 @@ export default function SettingsPage() {
               <p className="text-xs text-indigo-600 mb-3">Partagez ce lien avec vos clients pour qu&apos;ils puissent réserver via votre agent IA.</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1 rounded-xl bg-white border border-indigo-200 px-3 py-2 text-xs font-mono text-gray-700 truncate">
-                  {typeof window !== 'undefined' ? `${window.location.origin}/book${orgId ? `?biz=${orgId}` : ''}` : '/book'}
+                  {bookingLink || 'Sauvegardez le nom de votre entreprise pour générer votre lien'}
                 </div>
                 <button
                   onClick={copyBookingLink}
