@@ -13,18 +13,26 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-interface LineItem { description: string; qty: number; unit_price: number }
+interface LineItem { description: string; qty: number; unit?: string; unit_price: number; taxable?: boolean }
 
 interface Invoice {
   id: string
+  user_id: string
   token?: string
   invoice_number?: string
   amount: number
+  subtotal?: number
   status: string
   due_date: string | null
   created_at: string
   paid_at?: string | null
   tax_rate?: number
+  tax_amount?: number
+  tax_name?: string
+  tax2_rate?: number
+  tax2_amount?: number
+  tax2_name?: string
+  discount?: number
   line_items?: LineItem[] | null
   customer_id: string
   job_id?: string | null
@@ -34,6 +42,7 @@ interface Invoice {
 
 const STATUS_CFG: Record<string, { label: string; className: string; icon: React.ElementType }> = {
   unpaid:  { label: 'Non payé',  className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',   icon: Clock },
+  sent:    { label: 'Envoyée',   className: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',       icon: Send },
   paid:    { label: 'Payé',      className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', icon: CheckCircle },
   overdue: { label: 'En retard', className: 'bg-red-50 text-red-700 ring-1 ring-red-200',         icon: AlertCircle },
 }
@@ -43,12 +52,13 @@ export default function InvoiceDetailPage() {
   const router       = useRouter()
   const searchParams = useSearchParams()
 
-  const [invoice, setInvoice]     = useState<Invoice | null>(null)
-  const [loading, setLoading]     = useState(true)
-  const [editing, setEditing]     = useState(false)
-  const [saving, setSaving]       = useState(false)
-  const [sending, setSending]     = useState(false)
-  const [paying, setPaying]       = useState(false)
+  const [invoice, setInvoice]       = useState<Invoice | null>(null)
+  const [businessName, setBusinessName] = useState<string>('')
+  const [loading, setLoading]       = useState(true)
+  const [editing, setEditing]       = useState(false)
+  const [saving, setSaving]         = useState(false)
+  const [sending, setSending]       = useState(false)
+  const [paying, setPaying]         = useState(false)
 
   // Edit form state
   const [editStatus, setEditStatus]   = useState('unpaid')
@@ -84,6 +94,15 @@ export default function InvoiceDetailPage() {
       setEditDueDate(data.due_date || '')
       setEditTaxRate(String(data.tax_rate || 0))
       setLineItems(data.line_items || [])
+      // Fetch org name for email sender identity
+      if (data.user_id) {
+        const { data: org } = await supabase
+          .from('organizations')
+          .select('name')
+          .eq('owner_user_id', data.user_id)
+          .single()
+        if (org?.name) setBusinessName(org.name)
+      }
     }
     setLoading(false)
   }
@@ -130,10 +149,17 @@ export default function InvoiceDetailPage() {
     fetchInvoice()
   }
 
+  const fmtCAD = (n: number) => n.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 2 })
+
   const sendInvoiceEmail = async (type: 'invoice' | 'payment_reminder') => {
     if (!invoice?.customers?.email) return
     setSending(true)
     try {
+      const items = invoice.line_items || []
+      const subtotal = invoice.subtotal ?? items.reduce((s, li) => s + li.qty * li.unit_price, 0)
+      const taxAmt = invoice.tax_amount ?? subtotal * ((invoice.tax_rate || 0) / 100)
+      const tax2Amt = invoice.tax2_amount ?? subtotal * ((invoice.tax2_rate || 0) / 100)
+
       const res = await fetch('/api/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -142,14 +168,27 @@ export default function InvoiceDetailPage() {
           to: invoice.customers.email,
           customerName: invoice.customers.name,
           invoiceNumber: invoice.invoice_number,
-          amount: `$${parseFloat(String(invoice.amount)).toFixed(2)}`,
+          amount: fmtCAD(invoice.amount),
+          subtotal: items.length > 0 ? fmtCAD(subtotal) : undefined,
+          taxName: invoice.tax_name || 'TPS',
+          taxAmount: taxAmt > 0 ? fmtCAD(taxAmt) : undefined,
+          tax2Name: invoice.tax2_name || 'TVQ',
+          tax2Amount: tax2Amt > 0 ? fmtCAD(tax2Amt) : undefined,
+          discount: invoice.discount && invoice.discount > 0 ? fmtCAD(invoice.discount) : undefined,
           dueDate: invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('fr-CA', { month: 'long', day: 'numeric', year: 'numeric' }) : undefined,
           paymentLink: invoice.token ? `${window.location.origin}/invoice/${invoice.token}` : undefined,
+          lineItems: items.length > 0 ? items : undefined,
+          businessName: businessName || undefined,
         }),
       })
       const data = await res.json()
       if (data.success) {
         toast.success(`Email envoyé à ${invoice.customers.email}`)
+        // Mark invoice as sent if it was unpaid
+        if (type === 'invoice' && invoice.status === 'unpaid') {
+          await supabase.from('invoices').update({ status: 'sent' }).eq('id', id)
+          fetchInvoice()
+        }
       } else {
         toast.error(data.error || "Échec de l'envoi de l'email")
       }
@@ -179,15 +218,16 @@ export default function InvoiceDetailPage() {
     setPaying(false)
   }
 
-  const addLineItem = () => setLineItems([...lineItems, { description: '', qty: 1, unit_price: 0 }])
-  const updateLineItem = (i: number, field: keyof LineItem, value: string | number) => {
+  const addLineItem = () => setLineItems([...lineItems, { description: '', qty: 1, unit_price: 0, taxable: true }])
+  const updateLineItem = (i: number, field: keyof LineItem, value: string | number | boolean) => {
     const updated = [...lineItems]
-    updated[i] = { ...updated[i], [field]: field === 'description' ? value : parseFloat(String(value)) || 0 }
+    const strFields: (keyof LineItem)[] = ['description', 'unit']
+    updated[i] = { ...updated[i], [field]: strFields.includes(field) ? value : typeof value === 'boolean' ? value : parseFloat(String(value)) || 0 }
     setLineItems(updated)
   }
   const removeLineItem = (i: number) => setLineItems(lineItems.filter((_, idx) => idx !== i))
 
-  const fmt = (n: number) => `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const fmt = (n: number) => n.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 2 })
 
   if (loading) return (
     <AppLayout title="Facture">
