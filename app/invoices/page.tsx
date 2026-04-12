@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import MobileFAB from '@/components/MobileFAB'
 import { useLanguage } from '@/lib/LanguageContext'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -272,6 +273,7 @@ export default function InvoicesPage() {
           </div>
         </>
       )}
+      <MobileFAB href="/invoices/new" label="Nouvelle facture" />
     </AppLayout>
   )
 }

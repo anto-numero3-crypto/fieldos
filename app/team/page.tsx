@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import MobileFAB from '@/components/MobileFAB'
 import { toast } from 'sonner'
 import {
   Users2, Plus, X, Mail, Phone, Shield, Wrench,
@@ -141,7 +142,7 @@ export default function TeamPage() {
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           {[
             { label: 'Total membres', value: members.length, icon: Users2, bg: 'bg-indigo-50', color: 'text-indigo-600' },
             { label: 'Actifs',        value: activeCount,    icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
@@ -300,6 +301,7 @@ export default function TeamPage() {
           </div>
         </>
       )}
+      <MobileFAB onClick={openAdd} label="Ajouter un membre" />
     </AppLayout>
   )
 }

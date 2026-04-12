@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import MobileFAB from '@/components/MobileFAB'
 import { toast } from 'sonner'
 import {
   Users, Plus, Search, Mail, Phone, MapPin, X,
@@ -167,7 +168,7 @@ export default function CustomersPage() {
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           {[
             { label: 'Total clients', value: customers.length, icon: Users, bg: 'bg-blue-50', color: 'text-blue-600' },
             { label: 'Avec email', value: customers.filter((c) => c.email).length, icon: Mail, bg: 'bg-indigo-50', color: 'text-indigo-600' },
@@ -429,6 +430,7 @@ export default function CustomersPage() {
           </div>
         </>
       )}
+      <MobileFAB onClick={() => setPanelOpen(true)} label="Ajouter un client" />
     </AppLayout>
   )
 }

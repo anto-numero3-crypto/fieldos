@@ -135,8 +135,9 @@ export default function SchedulePage() {
           </div>
         </div>
 
-        {/* Week view */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden mb-6">
+        {/* Week view — horizontal scroll on narrow screens */}
+        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-x-auto mb-6">
+          <div className="min-w-[640px]">
           {/* Day headers */}
           <div className="grid grid-cols-7 border-b border-gray-100">
             {weekDays.map((d, i) => {
@@ -178,6 +179,7 @@ export default function SchedulePage() {
                 </div>
               )
             })}
+          </div>
           </div>
         </div>
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import MobileFAB from '@/components/MobileFAB'
 import { toast } from 'sonner'
 import {
   Briefcase, Plus, X, Calendar, User, CheckCircle,
@@ -353,6 +354,7 @@ export default function JobsPage() {
           </div>
         </>
       )}
+      <MobileFAB onClick={() => setPanelOpen(true)} label="Nouvelle intervention" />
     </AppLayout>
   )
 }

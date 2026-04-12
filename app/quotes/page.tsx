@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import MobileFAB from '@/components/MobileFAB'
 import { toast } from 'sonner'
 import {
   FileSignature, Plus, X, Search, User, Calendar, DollarSign,
@@ -340,6 +341,7 @@ export default function QuotesPage() {
           </div>
         </>
       )}
+      <MobileFAB onClick={() => setPanelOpen(true)} label="Nouveau devis" />
     </AppLayout>
   )
 }
