@@ -12,6 +12,60 @@ import {
 
 type Tab = 'business' | 'booking' | 'notifications' | 'security' | 'integrations' | 'billing'
 
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${checked ? 'bg-indigo-600' : 'bg-gray-200'}`}
+    >
+      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
+    </button>
+  )
+}
+
+function InputRow({ label, sub, value, onChange, type = 'text', placeholder = '' }: {
+  label: string; sub?: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-0.5">{label}</label>
+      {sub && <p className="text-xs text-gray-400 mb-1.5">{sub}</p>}
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+      />
+    </div>
+  )
+}
+
+function NotifRow({ label, sub, checked, onChange }: { label: string; sub?: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="flex items-start justify-between py-3 border-b border-gray-50 last:border-0">
+      <div>
+        <p className="text-sm font-medium text-gray-900">{label}</p>
+        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+      </div>
+      <Toggle checked={checked} onChange={onChange} />
+    </div>
+  )
+}
+
+function SaveBar({ saved, error, saving, onSave }: { saved: boolean; error: string | null; saving: boolean; onSave: () => void }) {
+  return (
+    <div className="flex items-center justify-end gap-3 pt-2">
+      {saved && <div className="flex items-center gap-1.5 text-sm text-emerald-600"><CheckCircle className="h-4 w-4" /> Enregistré !</div>}
+      {error && <div className="flex items-center gap-1.5 text-sm text-red-600"><AlertCircle className="h-4 w-4" />{error}</div>}
+      <button onClick={onSave} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all">
+        <Save className="h-4 w-4" />{saving ? 'Enregistrement...' : 'Enregistrer'}
+      </button>
+    </div>
+  )
+}
+
 export default function SettingsPage() {
   const [tab, setTab]       = useState<Tab>('business')
   const [user, setUser]     = useState<{ id: string; email?: string } | null>(null)
@@ -213,52 +267,6 @@ export default function SettingsPage() {
     { key: 'integrations',  label: 'Intégrations',    icon: Globe },
   ]
 
-  const Toggle = ({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) => (
-    <button
-      type="button"
-      onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${checked ? 'bg-indigo-600' : 'bg-gray-200'}`}
-    >
-      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
-    </button>
-  )
-
-  const InputRow = ({ label, sub, value, onChange, type = 'text', placeholder = '' }: {
-    label: string; sub?: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string
-  }) => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-0.5">{label}</label>
-      {sub && <p className="text-xs text-gray-400 mb-1.5">{sub}</p>}
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
-      />
-    </div>
-  )
-
-  const NotifRow = ({ label, sub, checked, onChange }: { label: string; sub?: string; checked: boolean; onChange: (v: boolean) => void }) => (
-    <div className="flex items-start justify-between py-3 border-b border-gray-50 last:border-0">
-      <div>
-        <p className="text-sm font-medium text-gray-900">{label}</p>
-        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
-      </div>
-      <Toggle checked={checked} onChange={onChange} />
-    </div>
-  )
-
-  const SaveBar = () => (
-    <div className="flex items-center justify-end gap-3 pt-2">
-      {saved && <div className="flex items-center gap-1.5 text-sm text-emerald-600"><CheckCircle className="h-4 w-4" /> Enregistré !</div>}
-      {error && <div className="flex items-center gap-1.5 text-sm text-red-600"><AlertCircle className="h-4 w-4" />{error}</div>}
-      <button onClick={saveSettings} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all">
-        <Save className="h-4 w-4" />{saving ? 'Enregistrement...' : 'Enregistrer'}
-      </button>
-    </div>
-  )
-
   const INTEGRATIONS = [
     { name: 'Stripe Payments', desc: 'Accept online payments from customers', icon: CreditCard, connected: true },
     { name: 'Resend Email', desc: 'Transactional email for invoices and reminders', icon: Bell, connected: true },
@@ -339,7 +347,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <SaveBar />
+            <SaveBar saved={saved} error={error} saving={saving} onSave={saveSettings} />
           </div>
         )}
 
@@ -404,7 +412,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <SaveBar />
+            <SaveBar saved={saved} error={error} saving={saving} onSave={saveSettings} />
           </div>
         )}
 
@@ -428,7 +436,7 @@ export default function SettingsPage() {
                 <NotifRow label="Nouveau client ajouté" sub="Quand un nouveau client est créé" checked={notifNewCustomer} onChange={setNotifNewCustomer} />
               </div>
             </div>
-            <SaveBar />
+            <SaveBar saved={saved} error={error} saving={saving} onSave={saveSettings} />
           </div>
         )}
 
