@@ -7,10 +7,22 @@ import { toast } from 'sonner'
 import {
   Building2, Bell, Shield, Globe, Save, CheckCircle, AlertCircle,
   Phone, CreditCard, Wrench, Sparkles, Link as LinkIcon, Copy, Check,
-  ExternalLink, Loader2, DollarSign,
+  ExternalLink, Loader2, DollarSign, Plus, Trash2, Clock,
 } from 'lucide-react'
 
-type Tab = 'business' | 'booking' | 'notifications' | 'security' | 'integrations' | 'billing'
+type Tab = 'business' | 'services' | 'booking' | 'notifications' | 'security' | 'integrations' | 'billing'
+
+interface Service {
+  id: string
+  user_id: string
+  name: string
+  description: string | null
+  category: string | null
+  base_price: number
+  unit: string | null
+  duration_minutes: number
+  is_active: boolean
+}
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -101,6 +113,15 @@ export default function SettingsPage() {
   const [agentGreeting, setAgentGreeting] = useState('')
   const [agentServices, setAgentServices] = useState('')
 
+  // Services
+  const [services, setServices] = useState<Service[]>([])
+  const [servicesLoading, setServicesLoading] = useState(false)
+  const [newSvcName, setNewSvcName]     = useState('')
+  const [newSvcPrice, setNewSvcPrice]   = useState('')
+  const [newSvcDuration, setNewSvcDuration] = useState('60')
+  const [newSvcDesc, setNewSvcDesc]     = useState('')
+  const [addingSvc, setAddingSvc]       = useState(false)
+
   // Notifications
   const [notifJobCreated, setNotifJobCreated]         = useState(true)
   const [notifJobComplete, setNotifJobComplete]       = useState(true)
@@ -124,12 +145,15 @@ export default function SettingsPage() {
         .single()
 
       loadConnectStatus(data.user.id)
+      loadServices(data.user.id)
 
-      // Handle Stripe Connect return URL params
+      // Handle Stripe Connect / tab return URL params
       const params = new URLSearchParams(window.location.search)
-      if (params.get('tab') === 'billing') setTab('billing')
+      const urlTab = params.get('tab')
+      if (urlTab === 'billing' || urlTab === 'services' || urlTab === 'booking' || urlTab === 'notifications' || urlTab === 'security' || urlTab === 'integrations') {
+        setTab(urlTab as Tab)
+      }
       if (params.get('connected') === 'true') {
-        setTab('billing')
         toast.success('Compte Stripe connecté !')
         loadConnectStatus(data.user.id)
       }
@@ -222,6 +246,65 @@ export default function SettingsPage() {
     setSaving(false)
   }
 
+  const loadServices = async (uid: string) => {
+    setServicesLoading(true)
+    const { data, error: svcErr } = await supabase
+      .from('services')
+      .select('*')
+      .eq('user_id', uid)
+      .order('name')
+    if (svcErr) toast.error(svcErr.message)
+    setServices((data || []) as Service[])
+    setServicesLoading(false)
+  }
+
+  const addService = async () => {
+    if (!user) return
+    const name = newSvcName.trim()
+    if (!name) { toast.error('Nom du service requis'); return }
+    const price = parseFloat(newSvcPrice) || 0
+    const duration = parseInt(newSvcDuration) || 60
+    setAddingSvc(true)
+    const { data, error: svcErr } = await supabase
+      .from('services')
+      .insert({
+        user_id: user.id,
+        name,
+        description: newSvcDesc.trim() || null,
+        base_price: price,
+        duration_minutes: duration,
+        is_active: true,
+      })
+      .select()
+      .single()
+    setAddingSvc(false)
+    if (svcErr) { toast.error(svcErr.message); return }
+    setServices((prev) => [...prev, data as Service].sort((a, b) => a.name.localeCompare(b.name)))
+    setNewSvcName(''); setNewSvcPrice(''); setNewSvcDuration('60'); setNewSvcDesc('')
+    toast.success('Service ajouté')
+  }
+
+  const toggleServiceActive = async (svc: Service) => {
+    const next = !svc.is_active
+    setServices((prev) => prev.map((s) => s.id === svc.id ? { ...s, is_active: next } : s))
+    const { error: svcErr } = await supabase
+      .from('services')
+      .update({ is_active: next })
+      .eq('id', svc.id)
+    if (svcErr) {
+      toast.error(svcErr.message)
+      setServices((prev) => prev.map((s) => s.id === svc.id ? { ...s, is_active: !next } : s))
+    }
+  }
+
+  const deleteService = async (svc: Service) => {
+    if (!confirm(`Supprimer "${svc.name}" ?`)) return
+    const { error: svcErr } = await supabase.from('services').delete().eq('id', svc.id)
+    if (svcErr) { toast.error(svcErr.message); return }
+    setServices((prev) => prev.filter((s) => s.id !== svc.id))
+    toast.success('Service supprimé')
+  }
+
   const loadConnectStatus = async (uid: string) => {
     const res = await fetch(`/api/stripe/connect/account-status?userId=${uid}`)
     const data = await res.json()
@@ -290,6 +373,7 @@ export default function SettingsPage() {
 
   const tabs: { key: Tab; label: string; icon: typeof Building2 }[] = [
     { key: 'business',      label: 'Entreprise',      icon: Building2 },
+    { key: 'services',      label: 'Services',        icon: Wrench },
     { key: 'billing',       label: 'Paiements',       icon: DollarSign },
     { key: 'booking',       label: 'Portail de réservation', icon: Sparkles },
     { key: 'notifications', label: 'Notifications',   icon: Bell },
@@ -378,6 +462,112 @@ export default function SettingsPage() {
             </div>
 
             <SaveBar saved={saved} error={error} saving={saving} onSave={saveSettings} />
+          </div>
+        )}
+
+        {/* Services */}
+        {tab === 'services' && (
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 mb-1">Vos services</h2>
+              <p className="text-sm text-gray-400 mb-5">Ajoutez les services que vos clients peuvent réserver en ligne. Ils apparaîtront sur votre portail de réservation.</p>
+
+              {/* Existing services */}
+              {servicesLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                </div>
+              ) : services.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 py-8 px-4 text-center text-sm text-gray-500">
+                  Aucun service pour le moment. Ajoutez-en un ci-dessous.
+                </div>
+              ) : (
+                <div className="space-y-2 mb-6">
+                  {services.map((svc) => (
+                    <div key={svc.id} className={`flex items-center gap-4 rounded-xl border p-4 transition-all ${svc.is_active ? 'border-gray-100 bg-white' : 'border-gray-100 bg-gray-50 opacity-70'}`}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-gray-900 truncate">{svc.name}</p>
+                          {!svc.is_active && <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">Inactif</span>}
+                        </div>
+                        {svc.description && <p className="text-xs text-gray-500 mt-0.5 truncate">{svc.description}</p>}
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                          <span className="inline-flex items-center gap-1"><DollarSign className="h-3 w-3" />{svc.base_price.toFixed(2)} {currency}</span>
+                          <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{svc.duration_minutes} min</span>
+                        </div>
+                      </div>
+                      <Toggle checked={svc.is_active} onChange={() => toggleServiceActive(svc)} />
+                      <button
+                        onClick={() => deleteService(svc)}
+                        className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                        aria-label="Supprimer"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add new service */}
+              <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+                <p className="text-sm font-semibold text-gray-900 mb-3">Ajouter un service</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Nom du service</label>
+                    <input
+                      type="text"
+                      value={newSvcName}
+                      onChange={(e) => setNewSvcName(e.target.value)}
+                      placeholder="ex. Nettoyage résidentiel standard"
+                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Prix ({currency})</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={newSvcPrice}
+                      onChange={(e) => setNewSvcPrice(e.target.value)}
+                      placeholder="150.00"
+                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Durée (minutes)</label>
+                    <input
+                      type="number"
+                      min="5"
+                      step="5"
+                      value={newSvcDuration}
+                      onChange={(e) => setNewSvcDuration(e.target.value)}
+                      placeholder="60"
+                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Description (optionnel)</label>
+                    <textarea
+                      rows={2}
+                      value={newSvcDesc}
+                      onChange={(e) => setNewSvcDesc(e.target.value)}
+                      placeholder="Ce que le service inclut…"
+                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm resize-none focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={addService}
+                  disabled={addingSvc || !newSvcName.trim()}
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all"
+                >
+                  {addingSvc ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                  Ajouter le service
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
