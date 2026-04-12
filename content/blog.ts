@@ -221,10 +221,10 @@ La TPS et la TVQ ne sont pas compliquées une fois qu'on a les bons outils et le
   {
     slug: 'field-service-software-quebec-2026',
     locale: 'en',
-    title: 'Best Field Service Management Software for Small Businesses in Quebec 2026',
-    description: 'Compare the top field service management software for Quebec contractors. French support, CAD pricing, QST/GST handling — full 2026 guide.',
+    title: 'Choosing Field Service Management Software in Quebec: 2026 Guide',
+    description: 'What to look for when picking field service management software as a Quebec contractor: French support, CAD pricing, QST/GST handling, AI, data residency.',
     category: 'Software',
-    excerpt: 'A practical comparison of field service management platforms for Quebec contractors, with a focus on French support, local compliance, and pricing.',
+    excerpt: 'A practical guide to evaluating field service management software as a Quebec contractor — French support, local compliance, pricing, and the features that actually matter.',
     coverImage: '/blog/fsm-software-quebec.png',
     publishedAt: '2026-03-01',
     readingMinutes: 7,
@@ -237,110 +237,46 @@ Most **field service software** on the market is built for US-based companies. T
 
 If you run a plumbing, HVAC, cleaning, or electrical business in Quebec, you need **field service software Quebec** actually designed for your reality: GST/QST handling, French-language support, CAD pricing, and Canadian data residency under PIPEDA.
 
-Here's a practical comparison of the leading options in 2026.
-
-## 1. Gestivio — built in Quebec, for Quebec
-
-**Best for**: Quebec contractors (1–50 employees) who want a platform that speaks French natively.
-
-**Strengths**:
-- Full bilingual interface (FR/EN)
-- Automatic GST + QST calculation on every invoice
-- Built-in AI assistant that handles customer inquiries
-- Online booking portal with your business slug
-- Canadian data residency
-- Transparent CAD pricing starting at $29/month
-
-**Weaknesses**:
-- Newer platform (fewer third-party integrations than the US leaders)
-- No mobile-only version yet (web-based, works perfectly on phone)
-
-## 2. Jobber
-
-**Best for**: Established contractors in Canada who want a mature feature set.
-
-**Strengths**:
-- Mature product with 10+ years of development
-- Good mobile apps
-- Large community
-
-**Weaknesses**:
-- Interface is English-first; French version is a translation, not bilingual
-- No AI features
-- Starts at $49 USD/month (~$65 CAD)
-- US-centric tax handling
-
-## 3. ServiceTitan
-
-**Best for**: Enterprise trades companies (50+ employees, $5M+ revenue).
-
-**Strengths**:
-- Extremely powerful for large operations
-- Deep integrations with suppliers
-
-**Weaknesses**:
-- Custom pricing (typically starts around $400/month per user)
-- Overkill for most Quebec contractors
-- No French support
-- US-only data centers
-
-## 4. Housecall Pro
-
-**Best for**: US-based residential services.
-
-**Strengths**:
-- Polished UX
-- Large user base
-
-**Weaknesses**:
-- No French
-- No QST
-- USD pricing
-- Data stored in the US
-
-## 5. Excel spreadsheets
-
-Still the most common "system" among small contractors. Works until it doesn't — usually around 50 active customers or when you hire your second technician.
+Here's a practical checklist for evaluating any field service platform as a Quebec contractor.
 
 ## Features that actually matter in Quebec
 
-When evaluating **field service software Quebec**, prioritize:
+When evaluating **field service software Quebec**, prioritize the following — and don't compromise on any of them if you want the software to actually fit your daily reality.
 
-### French language (native, not translated)
-Your technicians, customers, and emails should all feel native French. A translated interface with English error messages breaks down fast.
+### French language — native, not translated
+Your technicians, customers, and automated emails should all feel native French. A half-translated interface with English error messages breaks down as soon as something goes wrong. Look for a product built bilingual from day one, not a US tool with a French veneer.
 
-### GST + QST on one invoice
-Quebec's 9.975% QST applies to the subtotal (not on top of the 5% GST since 2013). Most US platforms can't handle this correctly.
+### GST + QST handled correctly on one invoice
+Quebec's 9.975% QST applies to the subtotal, not on top of the 5% GST (since 2013). A lot of software built outside Canada gets this wrong. Before signing up, create a test invoice and verify both taxes are computed and stored separately.
 
-### CAD pricing
-Avoid the USD → CAD markup and the exchange rate volatility.
+### CAD pricing, no hidden foreign exchange markup
+Avoid the USD → CAD markup on monthly subscriptions and the volatility of the exchange rate. Pay in dollars you earn.
 
 ### Canadian data residency
-Under PIPEDA and Quebec's Law 25, storing personal customer data in Canada simplifies your compliance posture significantly.
+Under PIPEDA and Quebec's Law 25, storing personal customer data in Canada meaningfully simplifies your compliance posture. Ask the vendor where the data physically sits; "North America" is not the same as "Canada".
 
-### AI that speaks French
-The next generation of **field service software Quebec** uses AI to handle customer inquiries, schedule bookings, and draft follow-up emails. The AI needs to work in French — not "french.exe" machine translation.
+### AI that works in French
+The next generation of field service tools uses AI to handle customer inquiries, suggest booking slots, draft follow-up emails, and flag dormant customers. That AI needs to actually work in French — not generic machine translation that produces stilted or wrong answers to your clients.
 
-## Pricing comparison (monthly, CAD, per user)
+### Online booking that customers will actually use
+A simple public URL (like gestivio.ca/book/votre-entreprise) that captures inquiries 24/7 is worth more than any number of integrations. Check how many clicks it takes for a customer to book a slot.
 
-| Platform | Starter | Growth |
-|---|---|---|
-| Gestivio | $29 | $59 |
-| Jobber | ~$65 | ~$120 |
-| ServiceTitan | Custom (~$400+) | Custom |
-| Housecall Pro | ~$55 | ~$110 |
+### Support in your language
+When something breaks, you want to talk to a human in French who understands the Quebec context — not a chat bot and not a support queue in a different time zone.
 
-## Decision framework
+## A quick decision framework
 
-**You're a 1–5 person shop in Quebec**: Gestivio is the best fit. French-first, affordable, no USD surprise.
+**1–5 person shop, Quebec-based, lots of French-speaking customers** — prioritize native bilingual interface, native QST handling, and CAD pricing. Cheaper is usually better at this stage; features you won't use are just noise.
 
-**You're a 10+ person operation with complex workflows**: Try both Gestivio and Jobber in parallel. Evaluate the AI features.
+**6–20 person operation across multiple cities** — start caring about team management, technician assignment, and real-time calendar sync. The AI-assistant features start paying for themselves by saving hours per week.
 
-**You're an enterprise with 50+ techs**: ServiceTitan is the industry standard but demands real investment.
+**Enterprise (50+ technicians, multiple branches)** — integrations, advanced reporting, and dedicated account management become the deciding factors. At this scale, switching costs are real, so do a paid pilot before committing.
 
-## Our take
+## The Gestivio angle
 
-The field has changed. What was once a niche of US-first tools is now a real competition, and Quebec contractors finally have a platform designed for them. If you're paying for software that makes you translate customer-facing emails or hand-calculate QST, you're losing hours every week.
+Gestivio was built specifically for the gaps above: bilingual FR/EN by default, automatic GST + QST on every invoice, pricing in CAD, data hosted in Canada, AI booking portal included. If you want to see how it fits your workflow, the [14-day free trial](/signup) requires no credit card.
+
+Whatever you pick — just don't settle for software that makes you translate your own error messages.
 
 [Try Gestivio free for 14 days](/signup) and see the difference local software makes.
 `,

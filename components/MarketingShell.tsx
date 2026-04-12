@@ -39,8 +39,8 @@ export default function MarketingShell({ children }: { children: ReactNode }) {
             <ul className="space-y-2 text-sm text-gray-600">
               <li><Link href="/logiciel-plombier" className="hover:text-gray-900">Plombiers</Link></li>
               <li><Link href="/logiciel-hvac" className="hover:text-gray-900">CVC / HVAC</Link></li>
-              <li><Link href="/vs/jobber" className="hover:text-gray-900">vs Jobber</Link></li>
               <li><Link href="/montreal" className="hover:text-gray-900">Montréal</Link></li>
+              <li><Link href="/blog" className="hover:text-gray-900">Blog</Link></li>
             </ul>
           </div>
           <div>

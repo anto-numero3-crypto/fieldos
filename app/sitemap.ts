@@ -22,7 +22,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/login`,               lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${SITE_URL}/signup`,              lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${SITE_URL}/montreal`,            lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${SITE_URL}/vs/jobber`,           lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
   ]
 
   for (const ind of INDUSTRIES) {

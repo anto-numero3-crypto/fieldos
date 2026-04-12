@@ -91,7 +91,7 @@ ${overdueInvoices.slice(0, 5).map((i) => `- $${parseFloat(String(i.amount)).toFi
     const isFloating = mode === 'floating'
     const pageCtx = pageContext ? `\n\n**Current page context:** ${pageContext}` : ''
 
-    const systemPrompt = `You are Gestivio AI — an expert business assistant for a field service management platform (Jobber / ServiceTitan level intelligence).
+    const systemPrompt = `You are Gestivio AI — an expert business assistant for a field service management platform, with enterprise-grade reasoning quality.
 
 ${businessContext}${pageCtx}
 
