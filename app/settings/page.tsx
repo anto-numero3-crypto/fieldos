@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import { formatPrice } from '@/lib/pricing'
+import AddressAutocomplete from '@/components/AddressAutocomplete'
 import AppLayout from '@/components/AppLayout'
 import { toast } from 'sonner'
 import {
@@ -446,7 +447,8 @@ export default function SettingsPage() {
                 <InputRow label="Téléphone" value={bizPhone} onChange={setBizPhone} type="tel" placeholder="+1 (514) 000-0000" />
                 <InputRow label="Email professionnel" value={bizEmail} onChange={setBizEmail} type="email" placeholder="info@entreprise.com" />
                 <div className="sm:col-span-2">
-                  <InputRow label="Adresse" value={bizAddress} onChange={setBizAddress} placeholder="123 rue Principale" />
+                  <label className="block text-sm font-medium text-gray-700 mb-0.5">Adresse</label>
+                  <AddressAutocomplete value={bizAddress} onChange={setBizAddress} />
                 </div>
                 <InputRow label="Ville" value={bizCity} onChange={setBizCity} placeholder="Montréal" />
                 <InputRow label="Province / État" value={bizState} onChange={setBizState} placeholder="QC" />
