@@ -78,6 +78,7 @@ export default function AvailabilityPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [copiedSnippet, setCopiedSnippet] = useState<'button' | 'widget' | null>(null)
 
   const [schedule, setSchedule] = useState<DaySchedule[]>(DEFAULT_SCHEDULE)
   const [settings, setSettings] = useState<AvailSettings>(DEFAULT_SETTINGS)
@@ -518,35 +519,95 @@ export default function AvailabilityPage() {
           <div className="px-6 py-5 space-y-4">
             {bookingUrl ? (
               <>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2.5 text-sm font-mono text-indigo-700 truncate">
-                    {bookingUrl}
+                {/* Prominent, clean URL card */}
+                <div className="rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-white p-4">
+                  <p className="text-xs font-medium text-gray-500 mb-1.5">Votre lien de réservation</p>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={bookingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 text-base font-semibold text-indigo-700 hover:text-indigo-800 truncate"
+                    >
+                      {bookingUrl}
+                    </a>
+                    <button
+                      onClick={copyLink}
+                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-all border ${copied ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      {copied ? 'Copié !' : 'Copier'}
+                    </button>
+                    <a
+                      href={bookingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
+                    >
+                      <ExternalLink className="h-4 w-4" /> Ouvrir
+                    </a>
                   </div>
-                  <button onClick={copyLink} className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all border ${copied ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    {copied ? 'Copié !' : 'Copier'}
-                  </button>
-                  <a href={bookingUrl} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all">
-                    <ExternalLink className="h-4 w-4" /> Ouvrir
-                  </a>
                 </div>
 
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Bouton à intégrer sur votre site</p>
-                  <div className="rounded-xl bg-gray-900 p-4 text-xs font-mono text-green-300 overflow-x-auto">
-                    {`<a href="${bookingUrl}" target="_blank" style="background:${settings.booking_page_color};color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-family:sans-serif;font-size:15px;font-weight:600;display:inline-block">
+                {/* Embed option 1 — button */}
+                {(() => {
+                  const buttonSnippet = `<a href="${bookingUrl}" target="_blank" style="background:${settings.booking_page_color};color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-family:sans-serif;font-size:15px;font-weight:600;display:inline-block">
   Réserver un rendez-vous
-</a>`}
-                  </div>
-                </div>
+</a>`
+                  const isCopied = copiedSnippet === 'button'
+                  return (
+                    <div>
+                      <div className="flex items-baseline justify-between mb-1">
+                        <p className="text-sm font-semibold text-gray-900">Bouton de réservation</p>
+                      </div>
+                      <p className="text-xs text-gray-500 mb-2">Ajoutez un bouton de réservation à votre site web.</p>
+                      <p className="text-[11px] font-medium text-gray-500 mb-1.5">Copiez-collez ce code dans votre site :</p>
+                      <div className="relative rounded-xl bg-gray-900 p-4 pr-14 text-xs font-mono text-green-300 overflow-x-auto whitespace-pre">
+                        {buttonSnippet}
+                        <button
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(buttonSnippet)
+                            setCopiedSnippet('button')
+                            setTimeout(() => setCopiedSnippet((s) => (s === 'button' ? null : s)), 2000)
+                          }}
+                          className={`absolute top-2 right-2 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-all ${isCopied ? 'bg-emerald-500 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 border border-gray-700'}`}
+                        >
+                          {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                          {isCopied ? 'Copié' : 'Copier'}
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })()}
 
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Widget iframe</p>
-                  <div className="rounded-xl bg-gray-900 p-4 text-xs font-mono text-green-300 overflow-x-auto">
-                    {`<iframe src="${bookingUrl}/widget" width="100%" height="700" frameborder="0" style="border-radius:12px;border:1px solid #e5e7eb"></iframe>`}
-                  </div>
-                </div>
+                {/* Embed option 2 — widget */}
+                {(() => {
+                  const widgetSnippet = `<iframe src="${bookingUrl}/widget" width="100%" height="700" frameborder="0" style="border-radius:12px;border:1px solid #e5e7eb"></iframe>`
+                  const isCopied = copiedSnippet === 'widget'
+                  return (
+                    <div>
+                      <div className="flex items-baseline justify-between mb-1">
+                        <p className="text-sm font-semibold text-gray-900">Calendrier intégré (widget)</p>
+                      </div>
+                      <p className="text-xs text-gray-500 mb-2">Intégrez le calendrier de réservation complet directement sur votre site web.</p>
+                      <p className="text-[11px] font-medium text-gray-500 mb-1.5">Copiez-collez ce code dans votre site :</p>
+                      <div className="relative rounded-xl bg-gray-900 p-4 pr-14 text-xs font-mono text-green-300 overflow-x-auto whitespace-pre">
+                        {widgetSnippet}
+                        <button
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(widgetSnippet)
+                            setCopiedSnippet('widget')
+                            setTimeout(() => setCopiedSnippet((s) => (s === 'widget' ? null : s)), 2000)
+                          }}
+                          className={`absolute top-2 right-2 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-all ${isCopied ? 'bg-emerald-500 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 border border-gray-700'}`}
+                        >
+                          {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                          {isCopied ? 'Copié' : 'Copier'}
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })()}
               </>
             ) : (
               <div className="flex items-center gap-2 rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-700">
