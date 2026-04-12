@@ -6,7 +6,7 @@ import AppLayout from '@/components/AppLayout'
 import { toast } from 'sonner'
 import {
   Clock, Calendar, Settings, Globe, Copy, Check, ExternalLink,
-  Trash2, Plus, Info, ChevronLeft, ChevronRight, CheckCircle2, Circle, AlertTriangle
+  Trash2, Plus, Info, ChevronLeft, ChevronRight
 } from 'lucide-react'
 
 const DAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
@@ -75,8 +75,6 @@ const DEFAULT_SETTINGS: AvailSettings = {
 export default function AvailabilityPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [orgSlug, setOrgSlug] = useState<string | null>(null)
-  const [orgName, setOrgName] = useState<string | null>(null)
-  const [servicesCount, setServicesCount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -116,17 +114,10 @@ export default function AvailabilityPage() {
       // Load org slug for booking URL
       const { data: org } = await supabase
         .from('organizations')
-        .select('slug, name')
+        .select('slug')
         .eq('owner_user_id', data.user.id)
         .single()
       setOrgSlug(org?.slug || null)
-      setOrgName(org?.name || null)
-      const { count } = await supabase
-        .from('services')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', data.user.id)
-        .eq('is_active', true)
-      setServicesCount(count || 0)
       await load(data.user.id)
     })
   }, [load])
@@ -218,50 +209,6 @@ export default function AvailabilityPage() {
             {saving ? 'Sauvegarde…' : 'Sauvegarder'}
           </button>
         </div>
-
-        {/* ── Setup Checklist ── */}
-        {(() => {
-          const hasBusiness = !!orgName && !!orgSlug
-          const hasServices = servicesCount > 0
-          const hasHours = schedule.some((d) => d.is_available)
-          const hasSettings = settings.minimum_notice_hours > 0 && settings.slot_duration_minutes > 0
-          const hasPage = !!settings.booking_page_title && !!settings.booking_page_color
-          const items = [
-            { done: hasBusiness, label: 'Nom et lien de votre entreprise', href: '/settings?tab=business' },
-            { done: hasServices, label: 'Vos services (nom, prix, durée)', href: '/settings?tab=services' },
-            { done: hasHours,    label: 'Horaires hebdomadaires', href: '#schedule' },
-            { done: hasSettings, label: 'Paramètres de réservation (délai, durée)', href: '#settings' },
-            { done: hasPage,     label: 'Page de réservation (titre, couleur)', href: '#page' },
-          ]
-          const allDone = items.every((i) => i.done)
-          if (allDone) return null
-          return (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="h-5 w-5 text-amber-600" />
-                <h2 className="text-base font-semibold text-gray-900">Finalisez votre portail de réservation</h2>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">
-                Ces étapes doivent être complétées pour que vos clients puissent réserver en ligne.
-              </p>
-              <ul className="space-y-2">
-                {items.map((it, i) => (
-                  <li key={i} className="flex items-center gap-3 text-sm">
-                    {it.done
-                      ? <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-                      : <Circle className="h-5 w-5 text-gray-300 shrink-0" />}
-                    <span className={it.done ? 'text-gray-500 line-through' : 'text-gray-900'}>{it.label}</span>
-                    {!it.done && it.href.startsWith('/') && (
-                      <a href={it.href} className="ml-auto text-xs font-semibold text-indigo-600 hover:text-indigo-700">
-                        Configurer →
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        })()}
 
         {/* ── Section 1: Weekly Schedule ── */}
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
