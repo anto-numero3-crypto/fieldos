@@ -1,7 +1,10 @@
 import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
 
-type EmailType = 'invoice' | 'payment_reminder' | 'quote' | 'job_confirmation' | 'custom'
+type EmailType =
+  | 'invoice' | 'payment_reminder' | 'quote' | 'job_confirmation' | 'custom'
+  | 'booking_pending' | 'booking_confirmed' | 'booking_declined'
+  | 'booking_reminder' | 'booking_cancelled' | 'booking_new_request' | 'booking_cancelled_owner'
 
 interface LineItemEmail {
   description: string
@@ -36,6 +39,23 @@ interface EmailPayload {
   body?: string
   // Sender identity
   businessName?: string
+  // Booking fields
+  serviceName?: string
+  bookingDate?: string
+  bookingTime?: string
+  servicePrice?: string
+  cancelLink?: string
+  confirmationMessage?: string
+  bookingToken?: string
+  declineReason?: string
+  // Owner notification fields
+  bookerName?: string
+  bookerEmail?: string
+  bookerPhone?: string
+  bookingNotes?: string
+  manageLink?: string
+  autoAccepted?: boolean
+  cancelReason?: string
 }
 
 function fmtAmt(n: number): string {
@@ -196,6 +216,165 @@ function buildEmailContent(payload: EmailPayload): { subject: string; html: stri
               <p style="color:#6b7280;font-size:13px">We'll be in touch to confirm the time. See you soon!</p>
             </div>
           </div>`,
+      }
+
+    case 'booking_pending': {
+      const bookingBlock = `<div style="background:white;border:1px solid #e5e7eb;border-radius:10px;padding:20px;margin-bottom:24px">
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Service</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.serviceName || '—'}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Date</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.bookingDate || '—'}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Heure</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.bookingTime || '—'}</td></tr>
+          ${payload.servicePrice ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Prix</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.servicePrice}</td></tr>` : ''}
+        </table>
+      </div>`
+      return {
+        subject: `Demande de réservation reçue — ${payload.serviceName || 'Rendez-vous'} chez ${biz}`,
+        html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#111827">
+          <div style="background:#f59e0b;padding:28px 36px;border-radius:12px 12px 0 0">
+            <h1 style="color:white;margin:0 0 4px;font-size:20px;font-weight:700">Demande de réservation reçue</h1>
+            <p style="color:#fef3c7;margin:0;font-size:14px">${biz}</p>
+          </div>
+          <div style="background:#f9fafb;padding:36px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+            <p style="margin:0 0 8px;font-size:16px">Bonjour ${payload.customerName},</p>
+            <p style="margin:0 0 24px;color:#6b7280;font-size:14px">Merci pour votre demande de réservation ! Votre demande est en cours d'examen et vous recevrez une confirmation sous peu.</p>
+            ${bookingBlock}
+            ${payload.cancelLink ? `<p style="color:#9ca3af;font-size:12px;margin-top:20px;border-top:1px solid #e5e7eb;padding-top:16px">Besoin d'annuler ? <a href="${payload.cancelLink}" style="color:#6b7280">Annuler ma demande</a></p>` : ''}
+          </div>
+        </div>`,
+      }
+    }
+
+    case 'booking_confirmed': {
+      const bookingBlock = `<div style="background:white;border:1px solid #e5e7eb;border-radius:10px;padding:20px;margin-bottom:24px">
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Service</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.serviceName || '—'}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Date</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.bookingDate || '—'}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Heure</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.bookingTime || '—'}</td></tr>
+          ${payload.servicePrice ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Prix</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.servicePrice}</td></tr>` : ''}
+        </table>
+      </div>`
+      return {
+        subject: `✓ Confirmé : ${payload.serviceName || 'Rendez-vous'} le ${payload.bookingDate || ''}`,
+        html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#111827">
+          <div style="background:#059669;padding:28px 36px;border-radius:12px 12px 0 0">
+            <h1 style="color:white;margin:0 0 4px;font-size:20px;font-weight:700">Rendez-vous confirmé !</h1>
+            <p style="color:#d1fae5;margin:0;font-size:14px">${biz}</p>
+          </div>
+          <div style="background:#f9fafb;padding:36px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+            <p style="margin:0 0 8px;font-size:16px">Bonjour ${payload.customerName},</p>
+            <p style="margin:0 0 24px;color:#6b7280;font-size:14px">Votre rendez-vous est confirmé. Nous avons hâte de vous voir !</p>
+            ${bookingBlock}
+            ${payload.confirmationMessage ? `<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:16px;margin-bottom:24px;font-size:14px;color:#065f46">${payload.confirmationMessage}</div>` : ''}
+            <div style="text-align:center;margin:24px 0">
+              <a href="https://calendar.google.com/calendar/r/eventedit?text=${encodeURIComponent((payload.serviceName || '') + ' chez ' + biz)}&dates=${payload.bookingDate?.replace(/-/g, '') || ''}/${payload.bookingDate?.replace(/-/g, '') || ''}" style="display:inline-block;background:#4f46e5;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;margin:4px">Ajouter à Google Calendar</a>
+            </div>
+            ${payload.cancelLink ? `<p style="color:#9ca3af;font-size:12px;margin-top:20px;border-top:1px solid #e5e7eb;padding-top:16px">Besoin d'annuler ou de reporter ? <a href="${payload.cancelLink}" style="color:#6b7280">Gérer mon rendez-vous</a></p>` : ''}
+          </div>
+        </div>`,
+      }
+    }
+
+    case 'booking_declined':
+      return {
+        subject: `Re: Votre demande de réservation chez ${biz}`,
+        html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#111827">
+          <div style="background:#6b7280;padding:28px 36px;border-radius:12px 12px 0 0">
+            <h1 style="color:white;margin:0 0 4px;font-size:20px;font-weight:700">Demande de réservation</h1>
+            <p style="color:#e5e7eb;margin:0;font-size:14px">${biz}</p>
+          </div>
+          <div style="background:#f9fafb;padding:36px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+            <p style="margin:0 0 8px;font-size:16px">Bonjour ${payload.customerName},</p>
+            <p style="margin:0 0 16px;color:#6b7280;font-size:14px">Nous regrettons de ne pas pouvoir accepter votre demande de réservation pour <strong>${payload.serviceName || 'votre service demandé'}</strong> le <strong>${payload.bookingDate || ''}</strong>.</p>
+            ${payload.declineReason ? `<div style="background:#f3f4f6;border-radius:8px;padding:16px;margin-bottom:20px;font-size:14px;color:#374151"><strong>Raison :</strong> ${payload.declineReason}</div>` : ''}
+            <p style="color:#6b7280;font-size:14px">N'hésitez pas à nous contacter pour trouver un autre moment qui vous convient.</p>
+          </div>
+        </div>`,
+      }
+
+    case 'booking_cancelled':
+      return {
+        subject: `Annulation de votre rendez-vous chez ${biz}`,
+        html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#111827">
+          <div style="background:#6b7280;padding:28px 36px;border-radius:12px 12px 0 0">
+            <h1 style="color:white;margin:0 0 4px;font-size:20px;font-weight:700">Rendez-vous annulé</h1>
+            <p style="color:#e5e7eb;margin:0;font-size:14px">${biz}</p>
+          </div>
+          <div style="background:#f9fafb;padding:36px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+            <p style="margin:0 0 8px;font-size:16px">Bonjour ${payload.customerName},</p>
+            <p style="margin:0 0 16px;color:#6b7280;font-size:14px">Votre rendez-vous pour <strong>${payload.serviceName || 'votre service'}</strong> prévu le <strong>${payload.bookingDate || ''} à ${payload.bookingTime || ''}</strong> a été annulé.</p>
+            <p style="color:#6b7280;font-size:14px">Pour réserver un nouveau rendez-vous, visitez notre page de réservation.</p>
+          </div>
+        </div>`,
+      }
+
+    case 'booking_reminder':
+      return {
+        subject: `Rappel : ${payload.serviceName || 'Rendez-vous'} demain à ${payload.bookingTime || ''}`,
+        html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#111827">
+          <div style="background:#4f46e5;padding:28px 36px;border-radius:12px 12px 0 0">
+            <h1 style="color:white;margin:0 0 4px;font-size:20px;font-weight:700">Rappel de rendez-vous</h1>
+            <p style="color:#c7d2fe;margin:0;font-size:14px">${biz}</p>
+          </div>
+          <div style="background:#f9fafb;padding:36px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+            <p style="margin:0 0 8px;font-size:16px">Bonjour ${payload.customerName},</p>
+            <p style="margin:0 0 24px;color:#6b7280;font-size:14px">Rappel : vous avez un rendez-vous demain !</p>
+            <div style="background:white;border:1px solid #e5e7eb;border-radius:10px;padding:20px;margin-bottom:24px">
+              <table style="width:100%;border-collapse:collapse">
+                <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Service</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.serviceName || '—'}</td></tr>
+                <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Date</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.bookingDate || '—'}</td></tr>
+                <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Heure</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.bookingTime || '—'}</td></tr>
+              </table>
+            </div>
+            ${payload.cancelLink ? `<p style="color:#9ca3af;font-size:12px">Besoin d'annuler ? <a href="${payload.cancelLink}" style="color:#6b7280">Annuler mon rendez-vous</a></p>` : ''}
+          </div>
+        </div>`,
+      }
+
+    case 'booking_new_request':
+      return {
+        subject: `🆕 Nouvelle réservation de ${payload.bookerName || payload.customerName} — ${payload.serviceName || ''}`,
+        html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#111827">
+          <div style="background:#4f46e5;padding:28px 36px;border-radius:12px 12px 0 0">
+            <h1 style="color:white;margin:0 0 4px;font-size:20px;font-weight:700">${payload.autoAccepted ? '✓ Nouvelle réservation confirmée' : '📋 Nouvelle demande de réservation'}</h1>
+            <p style="color:#c7d2fe;margin:0;font-size:14px">${biz}</p>
+          </div>
+          <div style="background:#f9fafb;padding:36px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+            <div style="background:white;border:1px solid #e5e7eb;border-radius:10px;padding:20px;margin-bottom:24px">
+              <table style="width:100%;border-collapse:collapse">
+                <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Client</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.bookerName || '—'}</td></tr>
+                <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Email</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.bookerEmail || '—'}</td></tr>
+                ${payload.bookerPhone ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Téléphone</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.bookerPhone}</td></tr>` : ''}
+                <tr><td style="padding:8px 0 2px;color:#6b7280;font-size:14px;border-top:1px solid #f3f4f6">Service</td><td style="padding:8px 0 2px;font-weight:600;text-align:right;font-size:14px;border-top:1px solid #f3f4f6">${payload.serviceName || '—'}</td></tr>
+                <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Date</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.bookingDate || '—'}</td></tr>
+                <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Heure</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.bookingTime || '—'}</td></tr>
+                ${payload.bookingNotes ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Notes</td><td style="padding:6px 0;font-size:14px;text-align:right">${payload.bookingNotes}</td></tr>` : ''}
+              </table>
+            </div>
+            ${payload.manageLink && !payload.autoAccepted ? `<div style="text-align:center"><a href="${payload.manageLink}" style="background:#4f46e5;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;display:inline-block">Gérer les réservations</a></div>` : ''}
+          </div>
+        </div>`,
+      }
+
+    case 'booking_cancelled_owner':
+      return {
+        subject: `Annulation : ${payload.bookerName || 'Client'} — ${payload.bookingDate || ''}`,
+        html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#111827">
+          <div style="background:#6b7280;padding:28px 36px;border-radius:12px 12px 0 0">
+            <h1 style="color:white;margin:0 0 4px;font-size:20px;font-weight:700">Réservation annulée</h1>
+            <p style="color:#e5e7eb;margin:0;font-size:14px">${biz}</p>
+          </div>
+          <div style="background:#f9fafb;padding:36px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+            <p style="margin:0 0 16px;font-size:15px"><strong>${payload.bookerName || 'Un client'}</strong> a annulé son rendez-vous.</p>
+            <div style="background:white;border:1px solid #e5e7eb;border-radius:10px;padding:20px;margin-bottom:16px">
+              <table style="width:100%;border-collapse:collapse">
+                <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Service</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.serviceName || '—'}</td></tr>
+                <tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Date annulée</td><td style="padding:6px 0;font-weight:600;text-align:right;font-size:14px">${payload.bookingDate || '—'} à ${payload.bookingTime || '—'}</td></tr>
+                ${payload.cancelReason ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:14px">Raison</td><td style="padding:6px 0;font-size:14px;text-align:right">${payload.cancelReason}</td></tr>` : ''}
+              </table>
+            </div>
+            <p style="color:#9ca3af;font-size:13px">Ce créneau est maintenant disponible.</p>
+          </div>
+        </div>`,
       }
 
     case 'custom':

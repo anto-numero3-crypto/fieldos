@@ -7,7 +7,7 @@ import { supabase } from '@/app/supabase'
 import {
   LayoutDashboard, Users, Briefcase, FileText, Sparkles, X, LogOut, Wrench,
   Calendar, FileSignature, BarChart3, Settings, CreditCard, Users2,
-  Bell, ChevronDown, Globe, Lightbulb, Megaphone,
+  Bell, ChevronDown, Globe, Lightbulb, Megaphone, BookOpen, Clock,
 } from 'lucide-react'
 
 interface SidebarProps { open: boolean; onClose: () => void }
@@ -16,10 +16,12 @@ const navSections = [
   {
     label: 'Opérations',
     items: [
-      { href: '/dashboard',  label: 'Tableau de bord', icon: LayoutDashboard },
-      { href: '/schedule',   label: 'Calendrier',      icon: Calendar },
-      { href: '/jobs',       label: 'Interventions',   icon: Briefcase },
-      { href: '/quotes',     label: 'Devis',           icon: FileSignature },
+      { href: '/dashboard',              label: 'Tableau de bord', icon: LayoutDashboard },
+      { href: '/schedule',               label: 'Calendrier',      icon: Calendar },
+      { href: '/schedule/bookings',      label: 'Réservations',    icon: BookOpen },
+      { href: '/schedule/availability',  label: 'Disponibilités',  icon: Clock },
+      { href: '/jobs',                   label: 'Interventions',   icon: Briefcase },
+      { href: '/quotes',                 label: 'Devis',           icon: FileSignature },
     ],
   },
   {
