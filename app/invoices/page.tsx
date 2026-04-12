@@ -5,7 +5,8 @@ import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import { useLanguage } from '@/lib/LanguageContext'
 import Link from 'next/link'
-import { FileText, Plus, X, DollarSign, Calendar, User, Briefcase, AlertCircle, CheckCircle, Clock, Hash, ExternalLink } from 'lucide-react'
+import { toast } from 'sonner'
+import { FileText, Plus, X, DollarSign, Calendar, User, Briefcase, Clock, Hash, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react'
 
 interface Invoice {
   id: string; amount: number; status: string; due_date: string | null
@@ -38,7 +39,6 @@ export default function InvoicesPage() {
   const [dueDate, setDueDate] = useState('')
   const [status, setStatus] = useState('unpaid')
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -66,15 +66,15 @@ export default function InvoicesPage() {
 
   const addInvoice = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!customerId || !amount) { setMessage({ text: l.errorRequired, type: 'error' }); return }
-    setLoading(true); setMessage(null)
+    if (!customerId || !amount) { toast.error(l.errorRequired); return }
+    setLoading(true)
     const { error } = await supabase.from('invoices').insert({ user_id: user!.id, customer_id: customerId, job_id: jobId || null, amount: parseFloat(amount), due_date: dueDate || null, status })
-    if (error) { setMessage({ text: error.message, type: 'error' }) }
+    if (error) { toast.error(error.message) }
     else {
-      setMessage({ text: l.successMsg, type: 'success' })
+      toast.success(l.successMsg)
       setCustomerId(''); setJobId(''); setAmount(''); setDueDate(''); setStatus('unpaid')
       await fetchInvoices(user!.id)
-      setTimeout(() => { setPanelOpen(false); setMessage(null) }, 1200)
+      setPanelOpen(false)
     }
     setLoading(false)
   }
@@ -95,7 +95,7 @@ export default function InvoicesPage() {
   ]
 
   const AddButton = (
-    <button onClick={() => { setPanelOpen(true); setMessage(null) }} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all duration-150">
+    <button onClick={() => setPanelOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all duration-150">
       <Plus className="h-4 w-4" />{l.newBtn}
     </button>
   )
@@ -262,12 +262,6 @@ export default function InvoicesPage() {
                   <option value="overdue">{l.selectOverdue}</option>
                 </select>
               </div>
-              {message && (
-                <div className={`flex items-start gap-2.5 rounded-xl p-3 text-sm ${message.type === 'error' ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
-                  {message.type === 'error' ? <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" /> : <CheckCircle className="h-4 w-4 shrink-0 mt-0.5" />}
-                  {message.text}
-                </div>
-              )}
             </form>
             <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">
               <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">{t.common.cancel}</button>

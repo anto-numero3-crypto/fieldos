@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
 import { writeAuditLog } from '@/lib/audit'
+import { toast } from 'sonner'
 import {
   ArrowLeft, FileText, User, Briefcase, Calendar, DollarSign,
   CheckCircle, Clock, AlertCircle, Edit2, Save, X, Printer,
@@ -47,7 +48,6 @@ export default function InvoiceDetailPage() {
   const [saving, setSaving]       = useState(false)
   const [sending, setSending]     = useState(false)
   const [paying, setPaying]       = useState(false)
-  const [message, setMessage]     = useState<{ text: string; type: 'success' | 'error' } | null>(null)
 
   // Edit form state
   const [editStatus, setEditStatus]   = useState('unpaid')
@@ -107,12 +107,11 @@ export default function InvoiceDetailPage() {
       .eq('id', id)
 
     if (error) {
-      setMessage({ text: error.message, type: 'error' })
+      toast.error(error.message)
     } else {
-      setMessage({ text: 'Facture mise à jour.', type: 'success' })
+      toast.success('Facture mise à jour.')
       setEditing(false)
       fetchInvoice()
-      setTimeout(() => setMessage(null), 3000)
     }
     setSaving(false)
   }
@@ -148,15 +147,14 @@ export default function InvoiceDetailPage() {
       })
       const data = await res.json()
       if (data.success) {
-        setMessage({ text: `Email envoyé à ${invoice.customers.email}`, type: 'success' })
+        toast.success(`Email envoyé à ${invoice.customers.email}`)
       } else {
-        setMessage({ text: data.error || 'Échec de l\'envoi de l\'email', type: 'error' })
+        toast.error(data.error || "Échec de l'envoi de l'email")
       }
     } catch {
-      setMessage({ text: 'Échec de l\'envoi de l\'email', type: 'error' })
+      toast.error("Échec de l'envoi de l'email")
     }
     setSending(false)
-    setTimeout(() => setMessage(null), 4000)
   }
 
   const createPaymentLink = async () => {
@@ -171,12 +169,10 @@ export default function InvoiceDetailPage() {
       if (data.url) {
         window.open(data.url, '_blank')
       } else {
-        setMessage({ text: data.error || 'Impossible de créer le lien de paiement', type: 'error' })
-        setTimeout(() => setMessage(null), 4000)
+        toast.error(data.error || 'Impossible de créer le lien de paiement')
       }
     } catch {
-      setMessage({ text: 'Impossible de créer le lien de paiement', type: 'error' })
-      setTimeout(() => setMessage(null), 4000)
+      toast.error('Impossible de créer le lien de paiement')
     }
     setPaying(false)
   }
@@ -233,12 +229,6 @@ export default function InvoiceDetailPage() {
           <span className="text-sm font-semibold text-gray-900">{invoice.invoice_number || invoice.id.slice(0, 8)}</span>
         </div>
 
-        {message && (
-          <div className={`mb-4 flex items-center gap-2 rounded-xl p-3 text-sm ${message.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
-            {message.type === 'error' ? <AlertCircle className="h-4 w-4 shrink-0" /> : <CheckCircle className="h-4 w-4 shrink-0" />}
-            {message.text}
-          </div>
-        )}
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main invoice panel */}

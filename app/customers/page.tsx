@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import { toast } from 'sonner'
 import {
   Users, Plus, Search, Mail, Phone, MapPin, X,
-  AlertCircle, CheckCircle, Tag, TrendingUp, ChevronRight,
-  MoreHorizontal, Trash2, Download,
+  Tag, TrendingUp, ChevronRight,
+  MoreHorizontal, Trash2, Download, Upload,
 } from 'lucide-react'
 
 interface Customer {
@@ -33,7 +34,6 @@ export default function CustomersPage() {
   const [panelOpen, setPanelOpen]   = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
   const [loading, setLoading]       = useState(false)
-  const [message, setMessage]       = useState<{ text: string; type: 'success' | 'error' } | null>(null)
   const [menuOpen, setMenuOpen]     = useState<string | null>(null)
 
   // Form
@@ -82,29 +82,31 @@ export default function CustomersPage() {
 
   const addCustomer = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) { setMessage({ text: 'Le nom est requis.', type: 'error' }); return }
-    setLoading(true); setMessage(null)
+    if (!name.trim()) { toast.error('Le nom est requis.'); return }
+    setLoading(true)
     const { error } = await supabase.from('customers').insert({
       user_id: user!.id, name: name.trim(),
       email: email.trim() || null, phone: phone.trim() || null,
       address: address.trim() || null, notes: notes.trim() || null,
       tags: tags.length > 0 ? tags : null,
     })
-    if (error) { setMessage({ text: error.message, type: 'error' }) }
+    if (error) { toast.error(error.message) }
     else {
-      setMessage({ text: 'Client ajouté !', type: 'success' })
+      toast.success('Client ajouté !')
       setName(''); setEmail(''); setPhone(''); setAddress(''); setNotes(''); setTags([])
       await fetch_(user!.id)
-      setTimeout(() => { setPanelOpen(false); setMessage(null) }, 1000)
+      setPanelOpen(false)
     }
     setLoading(false)
   }
 
   const deleteCustomer = async (id: string) => {
     if (!confirm('Supprimer ce client ? Cette action est irréversible.')) return
-    await supabase.from('customers').delete().eq('id', id)
+    const { error } = await supabase.from('customers').delete().eq('id', id)
+    if (error) { toast.error(error.message); return }
     setCustomers((prev) => prev.filter((c) => c.id !== id))
     setMenuOpen(null)
+    toast.success('Client supprimé.')
   }
 
   const exportCSV = () => {
@@ -134,8 +136,14 @@ export default function CustomersPage() {
       >
         <Download className="h-4 w-4" /> Exporter CSV
       </button>
+      <Link
+        href="/customers/import"
+        className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-all"
+      >
+        <Upload className="h-4 w-4" /> Importer CSV
+      </Link>
       <button
-        onClick={() => { setPanelOpen(true); setMessage(null) }}
+        onClick={() => setPanelOpen(true)}
         className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all"
       >
         <Plus className="h-4 w-4" /> Ajouter un client
@@ -408,12 +416,6 @@ export default function CustomersPage() {
                 />
               </div>
 
-              {message && (
-                <div className={`flex items-start gap-2.5 rounded-xl p-3 text-sm ${message.type === 'error' ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
-                  {message.type === 'error' ? <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" /> : <CheckCircle className="h-4 w-4 shrink-0 mt-0.5" />}
-                  {message.text}
-                </div>
-              )}
             </form>
 
             <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">

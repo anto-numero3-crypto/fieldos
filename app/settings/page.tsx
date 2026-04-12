@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import { toast } from 'sonner'
 import {
   Building2, Bell, Shield, Globe, Save, CheckCircle, AlertCircle,
   Phone, CreditCard, Wrench, Sparkles, Link as LinkIcon, Copy, Check,
@@ -107,8 +108,9 @@ export default function SettingsPage() {
       : await supabase.from('organizations').insert(payload)
 
     if (err) {
-      setError(err.message)
+      toast.error(err.message)
     } else {
+      toast.success('Paramètres sauvegardés !')
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     }

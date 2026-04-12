@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import { toast } from 'sonner'
 import {
   FileSignature, Plus, X, Search, User, Calendar, DollarSign,
-  AlertCircle, CheckCircle, Trash2, Send, ChevronRight, Tag,
+  Trash2, Send, ChevronRight, Tag, CheckCircle,
 } from 'lucide-react'
 
 interface LineItem { id: string; description: string; qty: number; unit_price: number }
@@ -36,7 +37,6 @@ export default function QuotesPage() {
   const [panelOpen, setPanelOpen] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
 
   // Form
   const [title, setTitle]         = useState('')
@@ -77,8 +77,8 @@ export default function QuotesPage() {
 
   const createQuote = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!title.trim()) { setMessage({ text: 'Le titre est requis.', type: 'error' }); return }
-    setLoading(true); setMessage(null)
+    if (!title.trim()) { toast.error('Le titre est requis.'); return }
+    setLoading(true)
     const { error } = await supabase.from('quotes').insert({
       user_id: user!.id,
       customer_id: customerId || null,
@@ -89,12 +89,12 @@ export default function QuotesPage() {
       valid_until: validUntil || null,
       notes: notes.trim() || null,
     })
-    if (error) { setMessage({ text: error.message, type: 'error' }) }
+    if (error) { toast.error(error.message) }
     else {
-      setMessage({ text: 'Devis créé !', type: 'success' })
+      toast.success('Devis créé !')
       setTitle(''); setCustId(''); setValidUntil(''); setTaxRate(0); setNotes(''); setLineItems([newItem()])
       await fetchQuotes(user!.id)
-      setTimeout(() => { setPanelOpen(false); setMessage(null) }, 1000)
+      setPanelOpen(false)
     }
     setLoading(false)
   }
@@ -120,7 +120,7 @@ export default function QuotesPage() {
   const counts = Object.fromEntries(Object.keys(STATUS_CFG).map((k) => [k, quotes.filter((q) => q.status === k).length]))
 
   const AddButton = (
-    <button onClick={() => { setPanelOpen(true); setMessage(null) }} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all">
+    <button onClick={() => setPanelOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all">
       <Plus className="h-4 w-4" /> Nouveau devis
     </button>
   )
@@ -329,12 +329,6 @@ export default function QuotesPage() {
                 <textarea placeholder="Conditions, notes ou informations supplémentaires..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               </div>
 
-              {message && (
-                <div className={`flex items-start gap-2.5 rounded-xl p-3 text-sm ${message.type === 'error' ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
-                  {message.type === 'error' ? <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" /> : <CheckCircle className="h-4 w-4 shrink-0 mt-0.5" />}
-                  {message.text}
-                </div>
-              )}
             </form>
 
             <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">

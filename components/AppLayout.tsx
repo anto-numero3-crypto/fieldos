@@ -6,9 +6,11 @@ import Sidebar from './Sidebar'
 import Link from 'next/link'
 import { supabase } from '@/app/supabase'
 import { useTheme } from './ThemeProvider'
+import { useLanguage } from '@/lib/LanguageContext'
 import FloatingAIChat from './FloatingAIChat'
 import CommandPalette from './CommandPalette'
 import MobileTabBar from './MobileTabBar'
+import KeyboardShortcuts from './KeyboardShortcuts'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -41,6 +43,12 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
   const [userId, setUserId]             = useState<string | null>(null)
   const [cmdOpen, setCmdOpen]           = useState(false)
   const { theme, toggleTheme }          = useTheme()
+  const { lang, setLang }               = useLanguage()
+
+  // Keep browser tab title in sync
+  useEffect(() => {
+    if (title) document.title = `${title} — Gestivio`
+  }, [title])
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -127,7 +135,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
               onKeyDown={(e) => { if (e.key === 'Enter') setCmdOpen(true) }}
             >
               <Search className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">Search or command…</span>
+              <span className="truncate">Rechercher ou commande…</span>
               <kbd className="ml-auto shrink-0 hidden md:flex items-center gap-0.5 rounded bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-1.5 py-0.5 text-[10px] font-mono text-gray-400">⌘K</kbd>
             </button>
 
@@ -137,7 +145,13 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
           </div>
 
           <div className="flex items-center gap-1 shrink-0">
-            {actions && <div className="flex items-center gap-2">{actions}</div>}
+            {actions && <div className="flex items-center gap-2 hidden sm:flex">{actions}</div>}
+
+            {/* Language switcher — visible on all screen sizes */}
+            <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-0.5">
+              <button onClick={() => setLang('en')} className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'en' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}>EN</button>
+              <button onClick={() => setLang('fr')} className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'fr' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}>FR</button>
+            </div>
 
             {/* Dark mode toggle */}
             <button
@@ -172,12 +186,12 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
                       <div>
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                        {unread > 0 && <p className="text-xs text-gray-400">{unread} unread</p>}
+                        {unread > 0 && <p className="text-xs text-gray-400">{unread} non lue{unread > 1 ? 's' : ''}</p>}
                       </div>
                       <div className="flex items-center gap-2">
                         {unread > 0 && (
                           <button onClick={markAllRead} className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
-                            Mark all read
+                            Tout marquer lu
                           </button>
                         )}
                         <button onClick={() => setNotifOpen(false)} className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">
@@ -190,8 +204,8 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
                       {notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-10 text-center px-4">
                           <Bell className="h-8 w-8 text-gray-200 mb-2" />
-                          <p className="text-sm text-gray-400">No notifications yet</p>
-                          <p className="text-xs text-gray-300 mt-1">You&apos;ll see alerts here when things happen</p>
+                          <p className="text-sm text-gray-400">Aucune notification</p>
+                          <p className="text-xs text-gray-300 mt-1">Les alertes apparaîtront ici</p>
                         </div>
                       ) : notifications.map((n) => (
                         <button
@@ -213,7 +227,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
                     {notifications.length > 0 && (
                       <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
                         <Link href="/notifications" onClick={() => setNotifOpen(false)} className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
-                          View all notifications →
+                          Voir toutes les notifications →
                         </Link>
                       </div>
                     )}
@@ -243,6 +257,9 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
 
       {/* Mobile bottom tab bar */}
       <MobileTabBar />
+
+      {/* Global keyboard shortcuts */}
+      <KeyboardShortcuts />
     </div>
   )
 }

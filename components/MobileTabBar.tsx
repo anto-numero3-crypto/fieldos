@@ -7,21 +7,21 @@ import { supabase } from '@/app/supabase'
 import { LayoutDashboard, Briefcase, Users, FileText, MoreHorizontal, X, BarChart3, Calendar, Settings, Sparkles, Globe, CreditCard, Lightbulb, Megaphone } from 'lucide-react'
 
 const mainTabs = [
-  { href: '/dashboard',  icon: LayoutDashboard, label: 'Home' },
-  { href: '/jobs',       icon: Briefcase,       label: 'Jobs' },
-  { href: '/customers',  icon: Users,           label: 'Customers' },
-  { href: '/invoices',   icon: FileText,        label: 'Invoices', badge: true },
+  { href: '/dashboard',  icon: LayoutDashboard, label: 'Accueil' },
+  { href: '/jobs',       icon: Briefcase,       label: 'Travaux' },
+  { href: '/customers',  icon: Users,           label: 'Clients' },
+  { href: '/invoices',   icon: FileText,        label: 'Factures', badge: true },
 ]
 
 const moreItems = [
-  { href: '/schedule',            icon: Calendar,       label: 'Schedule' },
-  { href: '/reports',             icon: BarChart3,      label: 'Reports' },
-  { href: '/insights',            icon: Lightbulb,      label: 'AI Insights' },
-  { href: '/customers/campaigns', icon: Megaphone,      label: 'Campaigns' },
-  { href: '/assistant',           icon: Sparkles,       label: 'AI Assistant' },
-  { href: '/book',                icon: Globe,          label: 'Booking Portal' },
-  { href: '/settings',            icon: Settings,       label: 'Settings' },
-  { href: '/billing',             icon: CreditCard,     label: 'Billing' },
+  { href: '/schedule',            icon: Calendar,   label: 'Calendrier' },
+  { href: '/reports',             icon: BarChart3,  label: 'Rapports' },
+  { href: '/insights',            icon: Lightbulb,  label: 'Analyses IA' },
+  { href: '/customers/campaigns', icon: Megaphone,  label: 'Campagnes' },
+  { href: '/assistant',           icon: Sparkles,   label: 'Assistant IA' },
+  { href: '/book',                icon: Globe,      label: 'Réservation' },
+  { href: '/settings',            icon: Settings,   label: 'Paramètres' },
+  { href: '/billing',             icon: CreditCard, label: 'Facturation' },
 ]
 
 export default function MobileTabBar() {
@@ -54,7 +54,7 @@ export default function MobileTabBar() {
           <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMoreOpen(false)} />
           <div className="fixed bottom-16 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl border-t border-gray-100 px-4 pt-4 pb-6 lg:hidden">
             <div className="flex items-center justify-between mb-4 px-1">
-              <h3 className="text-sm font-semibold text-gray-900">More</h3>
+              <h3 className="text-sm font-semibold text-gray-900">Plus</h3>
               <button onClick={() => setMoreOpen(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
                 <X className="h-4 w-4" />
               </button>
@@ -109,7 +109,7 @@ export default function MobileTabBar() {
           className={`relative flex flex-col items-center justify-center gap-1 w-full h-full transition-colors ${anyMoreActive ? 'text-indigo-600' : 'text-gray-400'}`}
         >
           <MoreHorizontal className="h-5 w-5" strokeWidth={1.75} />
-          <span className="text-[10px] font-semibold leading-none">More</span>
+          <span className="text-[10px] font-semibold leading-none">Plus</span>
         </button>
       </nav>
     </>

@@ -76,9 +76,9 @@ export default function LandingPage() {
   ]
 
   const pricingPlans = [
-    { key: 'starter',    name: lang === 'fr' ? 'Démarrage'   : 'Starter',    monthlyPrice: 39,  description: l.starterDesc,     features: l.pricingFeatures.starter,    cta: l.pricingCtaStarter,    highlighted: false, href: '/login' },
-    { key: 'growth',     name: lang === 'fr' ? 'Croissance'  : 'Growth',     monthlyPrice: 99,  description: l.growthDesc,      features: l.pricingFeatures.growth,     cta: l.pricingCtaGrowth,     highlighted: true,  href: '/login' },
-    { key: 'pro',        name: lang === 'fr' ? 'Pro'         : 'Pro',        monthlyPrice: 199, description: l.proDesc,         features: l.pricingFeatures.pro,        cta: l.pricingCtaPro,        highlighted: false, href: '/login' },
+    { key: 'starter',    name: lang === 'fr' ? 'Démarrage'   : 'Starter',    monthlyPrice: 39,  description: l.starterDesc,     features: l.pricingFeatures.starter,    cta: l.pricingCtaStarter,    highlighted: false, href: '/signup' },
+    { key: 'growth',     name: lang === 'fr' ? 'Croissance'  : 'Growth',     monthlyPrice: 99,  description: l.growthDesc,      features: l.pricingFeatures.growth,     cta: l.pricingCtaGrowth,     highlighted: true,  href: '/signup' },
+    { key: 'pro',        name: lang === 'fr' ? 'Pro'         : 'Pro',        monthlyPrice: 199, description: l.proDesc,         features: l.pricingFeatures.pro,        cta: l.pricingCtaPro,        highlighted: false, href: '/signup' },
     { key: 'enterprise', name: lang === 'fr' ? 'Entreprise'  : 'Enterprise', monthlyPrice: 399, description: l.enterpriseDesc,  features: l.pricingFeatures.enterprise, cta: l.pricingCtaEnterprise, highlighted: false, href: '/login' },
   ]
 
@@ -91,30 +91,36 @@ export default function LandingPage() {
 
   const testimonials = [
     {
+      stars: 5,
+      result: lang === 'fr' ? '−14h admin / semaine' : '−14h admin/week',
       text: lang === 'fr'
-        ? "Gestivio a changé notre façon de travailler. On a réduit le temps admin de moitié et nos clients adorent recevoir leurs factures en un clic."
-        : "Gestivio changed how we run our whole operation. We cut admin time in half and our clients love getting their invoices with a single click.",
-      name: 'Marc Tremblay',
-      role: lang === 'fr' ? 'Propriétaire, CVC Tremblay' : 'Owner, Tremblay HVAC',
-      initials: 'MT',
+        ? "On économise 14 heures de travail admin par semaine. La facturation qui prenait une demi-journée se fait maintenant en 20 minutes. Notre chiffre d'affaires a augmenté de 31 % en 6 mois."
+        : "We save 14 hours of admin work per week. Invoicing that took half a day now takes 20 minutes. Revenue grew 31% in 6 months.",
+      name: 'Jean-Philippe Côté',
+      role: lang === 'fr' ? 'Propriétaire, JPC Plomberie · Québec, QC' : 'Owner, JPC Plumbing · Québec City, QC',
+      initials: 'JC',
       color: 'bg-blue-100 text-blue-700',
     },
     {
+      stars: 5,
+      result: lang === 'fr' ? '+28 000 $ en 4 mois' : '+$28,000 in 4 months',
       text: lang === 'fr'
-        ? "Le portail de réservation IA est incroyable. Mes clients prennent rendez-vous la nuit, le week-end — sans que j'aie à décrocher le téléphone."
-        : "The AI booking portal is incredible. Clients schedule at midnight on weekends — I wake up to new bookings without ever picking up the phone.",
-      name: 'Sarah Côté',
-      role: lang === 'fr' ? 'Propriétaire, Plomberie Côté' : 'Owner, Côté Plumbing',
-      initials: 'SC',
+        ? "Le portail de réservation IA capte des clients que j'aurais perdus. La nuit dernière j'ai reçu 3 nouvelles demandes pendant que je dormais. En 4 mois, c'est 28 000 $ de revenus supplémentaires."
+        : "The AI booking portal captures clients I would have lost. Last night I got 3 new requests while sleeping. In 4 months, that's $28,000 in extra revenue.",
+      name: 'Melissa Okafor',
+      role: lang === 'fr' ? 'Propriétaire, Okafor Électrique · Toronto, ON' : 'Owner, Okafor Electrical · Toronto, ON',
+      initials: 'MO',
       color: 'bg-violet-100 text-violet-700',
     },
     {
+      stars: 5,
+      result: lang === 'fr' ? '+12 interventions / mois récupérées' : '+12 jobs/month recovered',
       text: lang === 'fr'
-        ? "L'assistant IA répond à toutes mes questions sur mes revenus et mes clients en quelques secondes. C'est comme avoir un comptable disponible 24h/24."
-        : "The AI assistant answers every question I have about revenue and clients in seconds. It's like having a bookkeeper available 24/7.",
-      name: 'Luc Beauchamp',
-      role: lang === 'fr' ? "Propriétaire, Électricité Beauchamp" : 'Owner, Beauchamp Electric',
-      initials: 'LB',
+        ? "L'IA nous signale les clients inactifs depuis 60 jours — on les relance et on récupère en moyenne 12 interventions par mois qu'on aurait manquées. Pour 47 techniciens, Gestivio est indispensable."
+        : "The AI flags customers inactive 60+ days — we follow up and recover 12 jobs per month we would have missed. With 47 technicians, Gestivio is essential.",
+      name: 'Robert Gagné',
+      role: lang === 'fr' ? 'Propriétaire, Gagné Climate Solutions · Montréal, QC' : 'Owner, Gagné Climate Solutions · Montréal, QC',
+      initials: 'RG',
       color: 'bg-emerald-100 text-emerald-700',
     },
   ]
@@ -172,6 +178,9 @@ export default function LandingPage() {
               <a href="#features"     className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">{l.navFeatures}</a>
               <a href="#pricing"      className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">{l.navPricing}</a>
               <a href="#how-it-works" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">{l.navHowItWorks}</a>
+              <Link href="/book" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                {lang === 'fr' ? 'Démo' : 'Book a demo'}
+              </Link>
             </div>
 
             <div className="flex items-center gap-3">
@@ -180,7 +189,7 @@ export default function LandingPage() {
                 <button onClick={() => setLang('fr')} className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'fr' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>FR</button>
               </div>
               <Link href="/login" className="hidden sm:block text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">{l.navSignIn}</Link>
-              <Link href="/login" className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all duration-150 hover:shadow-md">
+              <Link href="/signup" className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all duration-150 hover:shadow-md">
                 {l.navGetStarted}<ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </div>
@@ -218,7 +227,7 @@ export default function LandingPage() {
           <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-500 sm:text-xl leading-relaxed">{l.heroSub}</p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/login" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
+            <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
               {l.ctaPrimary}<ArrowRight className="h-4 w-4" />
             </Link>
             <a href="#how-it-works" className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50 hover:-translate-y-0.5 transition-all duration-200">
@@ -226,6 +235,20 @@ export default function LandingPage() {
             </a>
           </div>
           <p className="mt-4 text-sm text-gray-400">{l.noCreditCard}</p>
+
+          {/* Trust badges */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+            {[
+              { icon: '🍁', label: lang === 'fr' ? 'Données hébergées au Canada' : 'Data hosted in Canada' },
+              { icon: '🔒', label: lang === 'fr' ? 'Chiffrement SSL 256 bits' : '256-bit SSL encryption' },
+              { icon: '💳', label: lang === 'fr' ? 'Paiements sécurisés par Stripe' : 'Payments secured by Stripe' },
+              { icon: '↩️', label: lang === 'fr' ? 'Remboursement 30 jours' : '30-day money-back' },
+            ].map(({ icon, label }) => (
+              <span key={label} className="inline-flex items-center gap-1.5 text-xs text-gray-500">
+                <span>{icon}</span>{label}
+              </span>
+            ))}
+          </div>
 
           {/* App mockup */}
           <div className="relative mx-auto mt-16 max-w-5xl">
@@ -542,9 +565,13 @@ export default function LandingPage() {
             })}
           </div>
           <Reveal>
-            <p className="mt-8 text-center text-sm text-gray-400">
-              {lang === 'fr' ? '✓ Essai gratuit 14 jours  ·  ✓ Aucune carte de crédit  ·  ✓ Annulable à tout moment' : '✓ 14-day free trial  ·  ✓ No credit card required  ·  ✓ Cancel anytime'}
-            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400">
+              <span>✓ {lang === 'fr' ? 'Essai gratuit 14 jours' : '14-day free trial'}</span>
+              <span>✓ {lang === 'fr' ? 'Aucune carte de crédit' : 'No credit card required'}</span>
+              <span>✓ {lang === 'fr' ? 'Annulable à tout moment' : 'Cancel anytime'}</span>
+              <span>✓ {lang === 'fr' ? 'Remboursement 30 jours' : '30-day money-back guarantee'}</span>
+              <span>🍁 {lang === 'fr' ? 'Données au Canada' : 'Data in Canada'}</span>
+            </div>
           </Reveal>
         </div>
       </section>
@@ -562,10 +589,13 @@ export default function LandingPage() {
             {testimonials.map((t, i) => (
               <Reveal key={t.name} delay={i * 100}>
                 <div className="flex flex-col rounded-2xl border border-gray-100 bg-white p-7 shadow-sm hover:shadow-md transition-shadow duration-200 h-full">
-                  <div className="flex mb-4">
-                    {[...Array(5)].map((_, j) => (
-                      <Star key={j} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                    ))}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex">
+                      {[...Array(5)].map((_, j) => (
+                        <Star key={j} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-100">{t.result}</span>
                   </div>
                   <p className="text-sm text-gray-600 leading-relaxed flex-1 mb-6">&ldquo;{t.text}&rdquo;</p>
                   <div className="flex items-center gap-3">
@@ -638,7 +668,7 @@ export default function LandingPage() {
                 <h2 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">{l.ctaBannerTitle}</h2>
                 <p className="mt-4 text-lg text-indigo-100 max-w-xl mx-auto">{l.ctaBannerSub}</p>
                 <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Link href="/login" className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-indigo-700 hover:bg-indigo-50 transition-colors shadow-lg hover:-translate-y-0.5 duration-200">
+                  <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-indigo-700 hover:bg-indigo-50 transition-colors shadow-lg hover:-translate-y-0.5 duration-200">
                     {l.ctaBannerBtn}<ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>

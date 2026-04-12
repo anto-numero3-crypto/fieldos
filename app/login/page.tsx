@@ -1,37 +1,44 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 import { supabase } from '../supabase'
 import { useLanguage } from '@/lib/LanguageContext'
 import { Wrench, Mail, Lock, AlertCircle, CheckCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react'
 
-export default function LoginPage() {
+function LoginForm() {
   const { lang, setLang, t } = useLanguage()
   const l = t.login
+  const searchParams = useSearchParams()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isSignUp, setIsSignUp] = useState(false)
   const [message, setMessage] = useState('')
   const [isError, setIsError] = useState(false)
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+
+  useEffect(() => {
+    const err = searchParams.get('error')
+    if (err === 'confirmation_failed') {
+      setMessage(lang === 'fr' ? 'Échec de la confirmation. Veuillez réessayer.' : 'Confirmation failed. Please try again.')
+      setIsError(true)
+    } else if (err) {
+      setMessage(decodeURIComponent(err))
+      setIsError(true)
+    }
+  }, [searchParams, lang])
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault()
     setLoading(true)
     setMessage('')
 
-    if (isSignUp) {
-      const { error } = await supabase.auth.signUp({ email, password })
-      if (error) { setMessage(error.message); setIsError(true) }
-      else { setMessage(l.emailConfirmation); setIsError(false) }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) { setMessage(error.message); setIsError(true) }
-      else { window.location.href = '/dashboard' }
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) { setMessage(error.message); setIsError(true) }
+    else { window.location.href = '/dashboard' }
     setLoading(false)
   }
 
@@ -98,12 +105,8 @@ export default function LoginPage() {
           </div>
 
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {isSignUp ? l.createAccount : l.welcomeBack}
-            </h1>
-            <p className="mt-2 text-sm text-gray-500">
-              {isSignUp ? l.createAccountSub : l.welcomeBackSub}
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900">{l.welcomeBack}</h1>
+            <p className="mt-2 text-sm text-gray-500">{l.welcomeBackSub}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -116,7 +119,12 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">{l.passwordLabel}</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">{l.passwordLabel}</label>
+                <Link href="/forgot-password" className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors">
+                  {lang === 'fr' ? 'Mot de passe oublié ?' : 'Forgot password?'}
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input id="password" type={showPassword ? 'text' : 'password'} placeholder={l.passwordPlaceholder} value={password} onChange={(e) => setPassword(e.target.value)} required className="block w-full rounded-xl border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
@@ -134,15 +142,17 @@ export default function LoginPage() {
             )}
 
             <button type="submit" disabled={loading} className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150">
-              {loading ? t.common.pleaseWait : isSignUp ? l.createAccountBtn : l.signInBtn}
+              {loading ? t.common.pleaseWait : l.signInBtn}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <button type="button" onClick={() => { setIsSignUp(!isSignUp); setMessage('') }} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
-              {isSignUp ? l.alreadyHaveAccount : l.noAccount}{' '}
-              <span className="font-semibold text-indigo-600">{isSignUp ? l.signIn : l.signUpFree}</span>
-            </button>
+            <span className="text-sm text-gray-500">
+              {l.noAccount}{' '}
+              <Link href="/signup" className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
+                {l.signUpFree}
+              </Link>
+            </span>
           </div>
 
           <div className="mt-8">
@@ -154,5 +164,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   )
 }

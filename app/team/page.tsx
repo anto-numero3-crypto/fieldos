@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import { toast } from 'sonner'
 import {
   Users2, Plus, X, Mail, Phone, Shield, Wrench,
-  AlertCircle, CheckCircle, Trash2, MoreHorizontal, Edit2,
+  Trash2, MoreHorizontal, Edit2, CheckCircle,
   Star, MapPin,
 } from 'lucide-react'
 
@@ -32,7 +33,6 @@ export default function TeamPage() {
   const [panelOpen, setPanelOpen] = useState(false)
   const [pageLoading, setPageLoading] = useState(true)
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
   const [editMember, setEditMember] = useState<TeamMember | null>(null)
 
@@ -63,13 +63,13 @@ export default function TeamPage() {
 
   const resetForm = () => { setName(''); setEmail(''); setPhone(''); setRole('technician'); setHourlyRate(''); setSkills([]); setSkillInput(''); setEditMember(null) }
 
-  const openAdd = () => { resetForm(); setPanelOpen(true); setMessage(null) }
+  const openAdd = () => { resetForm(); setPanelOpen(true) }
 
   const openEdit = (m: TeamMember) => {
     setEditMember(m)
     setName(m.name); setEmail(m.email); setPhone(m.phone || ''); setRole(m.role)
     setHourlyRate(m.hourly_rate?.toString() || ''); setSkills(m.skills || [])
-    setPanelOpen(true); setMessage(null)
+    setPanelOpen(true)
   }
 
   const addSkill = () => {
@@ -80,8 +80,8 @@ export default function TeamPage() {
 
   const saveMember = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || !email.trim()) { setMessage({ text: 'Le nom et l\'email sont requis.', type: 'error' }); return }
-    setLoading(true); setMessage(null)
+    if (!name.trim() || !email.trim()) { toast.error("Le nom et l'email sont requis."); return }
+    setLoading(true)
 
     const payload = {
       owner_user_id: user!.id, name: name.trim(), email: email.trim(),
@@ -97,12 +97,12 @@ export default function TeamPage() {
       ;({ error } = await supabase.from('team_members').insert({ ...payload, is_active: true }))
     }
 
-    if (error) { setMessage({ text: error.message, type: 'error' }) }
+    if (error) { toast.error(error.message) }
     else {
-      setMessage({ text: editMember ? 'Membre mis à jour !' : 'Membre ajouté !', type: 'success' })
+      toast.success(editMember ? 'Membre mis à jour !' : 'Membre ajouté !')
       resetForm()
       await fetchMembers(user!.id)
-      setTimeout(() => { setPanelOpen(false); setMessage(null) }, 1000)
+      setPanelOpen(false)
     }
     setLoading(false)
   }
@@ -289,12 +289,6 @@ export default function TeamPage() {
                 )}
               </div>
 
-              {message && (
-                <div className={`flex items-start gap-2.5 rounded-xl p-3 text-sm ${message.type === 'error' ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
-                  {message.type === 'error' ? <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" /> : <CheckCircle className="h-4 w-4 shrink-0 mt-0.5" />}
-                  {message.text}
-                </div>
-              )}
             </form>
 
             <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">

@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/app/supabase'
-import { useLanguage } from '@/lib/LanguageContext'
 import {
   LayoutDashboard, Users, Briefcase, FileText, Sparkles, X, LogOut, Wrench,
   Calendar, FileSignature, BarChart3, Settings, CreditCard, Users2,
@@ -15,44 +14,43 @@ interface SidebarProps { open: boolean; onClose: () => void }
 
 const navSections = [
   {
-    label: 'Operations',
+    label: 'Opérations',
     items: [
-      { href: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
-      { href: '/schedule',   label: 'Schedule',   icon: Calendar },
-      { href: '/jobs',       label: 'Jobs',       icon: Briefcase },
-      { href: '/quotes',     label: 'Quotes',     icon: FileSignature },
+      { href: '/dashboard',  label: 'Tableau de bord', icon: LayoutDashboard },
+      { href: '/schedule',   label: 'Calendrier',      icon: Calendar },
+      { href: '/jobs',       label: 'Interventions',   icon: Briefcase },
+      { href: '/quotes',     label: 'Devis',           icon: FileSignature },
     ],
   },
   {
     label: 'Finance',
     items: [
-      { href: '/customers', label: 'Customers', icon: Users },
-      { href: '/invoices',  label: 'Invoices',  icon: FileText },
+      { href: '/customers', label: 'Clients',   icon: Users },
+      { href: '/invoices',  label: 'Factures',  icon: FileText },
     ],
   },
   {
-    label: 'Business',
+    label: 'Affaires',
     items: [
-      { href: '/team',     label: 'Team',     icon: Users2 },
-      { href: '/reports',  label: 'Reports',  icon: BarChart3 },
-      { href: '/insights', label: 'AI Insights', icon: Lightbulb },
+      { href: '/team',     label: 'Équipe',       icon: Users2 },
+      { href: '/reports',  label: 'Rapports',     icon: BarChart3 },
+      { href: '/insights', label: 'Analyses IA',  icon: Lightbulb },
     ],
   },
 ]
 
 const bottomItems = [
-  { href: '/assistant',          label: 'AI Assistant',   icon: Sparkles },
-  { href: '/customers/campaigns', label: 'Campaigns',     icon: Megaphone },
-  { href: '/book',               label: 'Booking Portal', icon: Globe },
-  { href: '/settings',           label: 'Settings',       icon: Settings },
-  { href: '/billing',            label: 'Billing',        icon: CreditCard },
+  { href: '/assistant',           label: 'Assistant IA',   icon: Sparkles },
+  { href: '/customers/campaigns', label: 'Campagnes',      icon: Megaphone },
+  { href: '/book',                label: 'Portail réserv.', icon: Globe },
+  { href: '/settings',            label: 'Paramètres',     icon: Settings },
+  { href: '/billing',             label: 'Facturation',    icon: CreditCard },
 ]
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname()
   const [user, setUser]   = useState<{ email?: string; id?: string } | null>(null)
   const [unread, setUnread] = useState(0)
-  const { lang, setLang } = useLanguage()
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -183,7 +181,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                     />
                     {label}
                     {href === '/assistant' && (
-                      <span className="ml-auto rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 px-1.5 py-0.5 text-xs font-bold text-white">AI</span>
+                      <span className="ml-auto rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 px-1.5 py-0.5 text-xs font-bold text-white">IA</span>
                     )}
                     {href !== '/assistant' && unread > 0 && href === '/notifications' && (
                       <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">{unread}</span>
@@ -195,24 +193,6 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             </div>
           </div>
         </nav>
-
-        {/* Language switcher */}
-        <div className="px-4 pb-3">
-          <div className="flex items-center gap-1 rounded-xl border border-gray-100 bg-gray-50 p-1">
-            {(['en', 'fr'] as const).map((l) => (
-              <button
-                key={l}
-                onClick={() => setLang(l)}
-                className={[
-                  'flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all duration-150',
-                  lang === l ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600',
-                ].join(' ')}
-              >
-                {l === 'en' ? '🇨🇦 EN' : '🇨🇦 FR'}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* User */}
         <div className="shrink-0 border-t border-gray-100 dark:border-gray-800 p-4">
@@ -227,7 +207,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 <p className="truncate text-xs font-semibold text-gray-900 dark:text-gray-100">{user.email}</p>
                 <div className="flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  <p className="text-xs text-gray-400">Field Manager</p>
+                  <p className="text-xs text-gray-400">Gestionnaire</p>
                 </div>
               </div>
               <ChevronDown className="h-3.5 w-3.5 text-gray-300 shrink-0" />
@@ -238,7 +218,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-150"
           >
             <LogOut className="h-4 w-4 shrink-0" />
-            Sign out
+            Se déconnecter
           </button>
         </div>
       </aside>

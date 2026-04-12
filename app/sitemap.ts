@@ -17,6 +17,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/accessibility`, lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${base}/cookies`,  lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${base}/book`,     lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${base}/login`,    lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${base}/login`,            lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${base}/signup`,           lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${base}/forgot-password`,  lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
   ]
 }
