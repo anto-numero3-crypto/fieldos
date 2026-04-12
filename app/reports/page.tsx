@@ -144,6 +144,57 @@ export default function ReportsPage() {
     return Object.entries(buckets).map(([bucket, amount]) => ({ bucket, amount }))
   }
 
+  const exportCSV = () => {
+    const rows: string[][] = []
+    rows.push(['=== RAPPORT GESTIVIO ==='])
+    rows.push([`Période: ${period === '30d' ? '30 derniers jours' : period === '90d' ? '90 derniers jours' : period === '1y' ? 'Dernière année' : 'Depuis le début'}`])
+    rows.push([`Généré le: ${new Date().toLocaleDateString('fr-CA')}`])
+    rows.push([])
+
+    // Revenue summary
+    rows.push(['=== RÉSUMÉ DES REVENUS ==='])
+    rows.push(['Métrique', 'Valeur'])
+    rows.push(['Revenus totaux', fmt(filteredInvoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0))])
+    rows.push(['Encaissé', fmt(filteredInvoices.filter((i) => i.status === 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0))])
+    rows.push(['Impayés', fmt(filteredInvoices.filter((i) => i.status !== 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0))])
+    rows.push(['Nb interventions', String(filteredJobs.length)])
+    rows.push(['Nb nouveaux clients', String(filteredCustomers.length)])
+    rows.push([])
+
+    // Invoices detail
+    rows.push(['=== FACTURES ==='])
+    rows.push(['Client', 'Montant', 'Statut', 'Date'])
+    filteredInvoices.forEach((inv) => {
+      rows.push([
+        inv.customers?.name || 'Inconnu',
+        fmt(parseFloat(String(inv.amount))),
+        inv.status,
+        new Date(inv.created_at).toLocaleDateString('fr-CA'),
+      ])
+    })
+    rows.push([])
+
+    // Jobs detail
+    rows.push(['=== INTERVENTIONS ==='])
+    rows.push(['Client', 'Statut', 'Date'])
+    filteredJobs.forEach((j) => {
+      rows.push([
+        j.customers?.name || 'Inconnu',
+        j.status,
+        new Date(j.created_at).toLocaleDateString('fr-CA'),
+      ])
+    })
+
+    const csv = rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n')
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `rapport-gestivio-${period}-${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const totalRevenue  = filteredInvoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0)
   const collectedRev  = filteredInvoices.filter((i) => i.status === 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
   const outstandingRev = totalRevenue - collectedRev
@@ -186,8 +237,11 @@ export default function ReportsPage() {
               </button>
             ))}
           </div>
-          <button className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
-            <Download className="h-4 w-4" /> Exporter
+          <button
+            onClick={exportCSV}
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+          >
+            <Download className="h-4 w-4" /> Exporter CSV
           </button>
         </div>
 

@@ -2,8 +2,6 @@ import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 
-// All clients initialized lazily inside handler
-
 export async function POST(req: NextRequest) {
   if (!process.env.STRIPE_SECRET_KEY) {
     return NextResponse.json({ error: 'Stripe not configured' }, { status: 503 })
@@ -27,10 +25,14 @@ export async function POST(req: NextRequest) {
 
   try {
     switch (event.type) {
+
+      // ── Subscription / plan checkout ──────────────────────────────
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
-        const { userId, planId } = session.metadata || {}
+        const { userId, planId, invoiceId } = session.metadata || {}
+
         if (userId && planId) {
+          // Business subscribing to a Gestivio plan
           await supabase.from('organizations').upsert({
             owner_user_id: userId,
             plan: planId,
@@ -42,9 +44,41 @@ export async function POST(req: NextRequest) {
           await supabase.from('notifications').insert({
             user_id: userId,
             type: 'success',
-            title: 'Subscription activated',
-            body: `Your ${planId} plan is now active.`,
+            title: 'Abonnement activé',
+            body: `Votre plan ${planId} est maintenant actif.`,
           })
+        } else if (invoiceId) {
+          // Client paying a business invoice
+          const amountPaid = (session.amount_total || 0) / 100
+          await supabase
+            .from('invoices')
+            .update({ status: 'paid', paid_at: new Date().toISOString(), payment_method: 'stripe' })
+            .eq('id', invoiceId)
+
+          await supabase.from('payments').insert({
+            invoice_id:               invoiceId,
+            amount:                   amountPaid,
+            payment_method:           'stripe',
+            stripe_payment_intent_id: session.payment_intent as string,
+            paid_at:                  new Date().toISOString(),
+          })
+
+          // Notify business owner
+          const { data: inv } = await supabase
+            .from('invoices')
+            .select('user_id, invoice_number, customers(name)')
+            .eq('id', invoiceId)
+            .single()
+          if (inv?.user_id) {
+            const custName = (inv.customers as unknown as { name: string } | null)?.name || 'Client'
+            await supabase.from('notifications').insert({
+              user_id: inv.user_id,
+              type:    'success',
+              title:   `Paiement reçu — ${inv.invoice_number || invoiceId.slice(0, 8)}`,
+              body:    `${custName} a payé $${amountPaid.toFixed(2)}.`,
+              link:    `/invoices/${invoiceId}`,
+            })
+          }
         }
         break
       }
@@ -72,9 +106,9 @@ export async function POST(req: NextRequest) {
             .eq('owner_user_id', userId)
           await supabase.from('notifications').insert({
             user_id: userId,
-            type: 'warning',
-            title: 'Subscription cancelled',
-            body: 'Your subscription has ended. Upgrade to restore access.',
+            type:    'warning',
+            title:   'Abonnement annulé',
+            body:    'Votre abonnement a pris fin. Mettez à niveau pour restaurer l\'accès.',
           })
         }
         break
@@ -91,11 +125,39 @@ export async function POST(req: NextRequest) {
         if (org) {
           await supabase.from('notifications').insert({
             user_id: org.owner_user_id,
-            type: 'error',
-            title: 'Payment failed',
-            body: 'Your subscription payment failed. Please update your payment method.',
+            type:    'error',
+            title:   'Paiement échoué',
+            body:    'Le paiement de votre abonnement a échoué. Veuillez mettre à jour votre mode de paiement.',
           })
         }
+        break
+      }
+
+      // ── Stripe Connect account lifecycle ──────────────────────────
+      case 'account.updated': {
+        const account = event.data.object as Stripe.Account
+        await supabase
+          .from('organizations')
+          .update({
+            stripe_connect_charges_enabled:     account.charges_enabled,
+            stripe_connect_payouts_enabled:     account.payouts_enabled,
+            stripe_connect_onboarding_complete: account.details_submitted,
+          })
+          .eq('stripe_connect_account_id', account.id)
+        break
+      }
+
+      case 'account.application.deauthorized': {
+        const application = event.data.object as Stripe.Application
+        await supabase
+          .from('organizations')
+          .update({
+            stripe_connect_account_id:          null,
+            stripe_connect_charges_enabled:     false,
+            stripe_connect_payouts_enabled:     false,
+            stripe_connect_onboarding_complete: false,
+          })
+          .eq('stripe_connect_account_id', application.id)
         break
       }
     }

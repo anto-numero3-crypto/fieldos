@@ -95,9 +95,9 @@ export default function InvoicesPage() {
   ]
 
   const AddButton = (
-    <button onClick={() => setPanelOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all duration-150">
+    <Link href="/invoices/new" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all duration-150">
       <Plus className="h-4 w-4" />{l.newBtn}
-    </button>
+    </Link>
   )
 
   if (pageLoading) return (
@@ -149,7 +149,7 @@ export default function InvoicesPage() {
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50"><FileText className="h-7 w-7 text-emerald-500" /></div>
             <h3 className="text-base font-semibold text-gray-900 mb-1">{l.noInvoices}</h3>
             <p className="text-sm text-gray-400 mb-6 max-w-xs">{l.noInvoicesSub}</p>
-            <button onClick={() => setPanelOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"><Plus className="h-4 w-4" />{l.createFirstBtn}</button>
+            <Link href="/invoices/new" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"><Plus className="h-4 w-4" />{l.createFirstBtn}</Link>
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">

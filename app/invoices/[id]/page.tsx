@@ -9,7 +9,7 @@ import { toast } from 'sonner'
 import {
   ArrowLeft, FileText, User, Briefcase, Calendar, DollarSign,
   CheckCircle, Clock, AlertCircle, Edit2, Save, X, Printer,
-  Send, Trash2, ExternalLink, CreditCard
+  Send, Trash2, ExternalLink, CreditCard, Copy, Link2
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -17,6 +17,7 @@ interface LineItem { description: string; qty: number; unit_price: number }
 
 interface Invoice {
   id: string
+  token?: string
   invoice_number?: string
   amount: number
   status: string
@@ -74,7 +75,7 @@ export default function InvoiceDetailPage() {
     setLoading(true)
     const { data } = await supabase
       .from('invoices')
-      .select('*, customers(id, name, email, phone), jobs(id, title)')
+      .select('*, token, customers(id, name, email, phone), jobs(id, title)')
       .eq('id', id)
       .single()
     if (data) {
@@ -143,6 +144,7 @@ export default function InvoiceDetailPage() {
           invoiceNumber: invoice.invoice_number,
           amount: `$${parseFloat(String(invoice.amount)).toFixed(2)}`,
           dueDate: invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('fr-CA', { month: 'long', day: 'numeric', year: 'numeric' }) : undefined,
+          paymentLink: invoice.token ? `${window.location.origin}/invoice/${invoice.token}` : undefined,
         }),
       })
       const data = await res.json()
@@ -460,6 +462,31 @@ export default function InvoiceDetailPage() {
             {/* Actions */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5 space-y-2">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Actions</p>
+
+              {/* Public invoice link */}
+              {invoice.token && (
+                <button
+                  onClick={() => {
+                    const url = `${window.location.origin}/invoice/${invoice.token}`
+                    navigator.clipboard.writeText(url)
+                    toast.success('Lien copié !')
+                  }}
+                  className="w-full flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                >
+                  <Link2 className="h-4 w-4" /> Copier le lien client
+                </button>
+              )}
+              {invoice.token && (
+                <a
+                  href={`/invoice/${invoice.token}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4 text-gray-400" /> Voir la facture client
+                </a>
+              )}
+
               {invoice.status !== 'paid' && (
                 <button
                   onClick={createPaymentLink}

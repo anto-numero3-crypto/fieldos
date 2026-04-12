@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    const { invoiceId } = await req.json()
+    const { invoiceId, returnPath } = await req.json()
     if (!invoiceId) return NextResponse.json({ error: 'Missing invoiceId' }, { status: 400 })
 
     const { data: invoice } = await supabase
@@ -43,8 +43,8 @@ export async function POST(req: NextRequest) {
         quantity: 1,
       }],
       customer_email: customer?.email || undefined,
-      success_url: `${origin}/invoices/${invoiceId}?paid=true`,
-      cancel_url:  `${origin}/invoices/${invoiceId}`,
+      success_url: `${origin}${returnPath || `/invoices/${invoiceId}`}?paid=true`,
+      cancel_url:  `${origin}${returnPath || `/invoices/${invoiceId}`}`,
       metadata: { invoiceId },
     })
 

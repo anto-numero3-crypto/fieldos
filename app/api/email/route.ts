@@ -12,6 +12,7 @@ interface EmailPayload {
   amount?: string
   dueDate?: string
   quoteTitle?: string
+  paymentLink?: string
   // Job fields
   jobTitle?: string
   scheduledDate?: string
@@ -44,7 +45,8 @@ function buildEmailContent(payload: EmailPayload): { subject: string; html: stri
                   ${payload.dueDate ? `<tr><td style="padding:6px 0;color:#6b7280">Due Date</td><td style="padding:6px 0;font-weight:600;text-align:right">${payload.dueDate}</td></tr>` : ''}
                 </table>
               </div>
-              <p style="color:#6b7280;font-size:13px;margin:0">If you have questions, reply to this email.</p>
+              ${payload.paymentLink ? `<div style="text-align:center;margin:24px 0"><a href="${payload.paymentLink}" style="background:#4f46e5;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block">Payer maintenant ${payload.amount || ''}</a><p style="color:#9ca3af;font-size:12px;margin-top:12px">Paiement sécurisé · Visa · Mastercard · Amex · Interac</p></div>` : ''}
+              <p style="color:#6b7280;font-size:13px;margin:0">Pour toute question, répondez à cet email.</p>
             </div>
           </div>`,
       }
@@ -67,7 +69,8 @@ function buildEmailContent(payload: EmailPayload): { subject: string; html: stri
                   ${payload.dueDate ? `<tr><td style="padding:6px 0;color:#6b7280">Was Due</td><td style="padding:6px 0;font-weight:600;text-align:right">${payload.dueDate}</td></tr>` : ''}
                 </table>
               </div>
-              <p style="color:#6b7280;font-size:13px;margin:0">Please contact us to arrange payment. Thank you.</p>
+              ${payload.paymentLink ? `<div style="text-align:center;margin:24px 0"><a href="${payload.paymentLink}" style="background:#dc2626;color:white;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block">Payer maintenant ${payload.amount || ''}</a></div>` : ''}
+              <p style="color:#6b7280;font-size:13px;margin:0">Veuillez nous contacter pour régler ce paiement. Merci.</p>
             </div>
           </div>`,
       }

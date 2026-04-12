@@ -7,9 +7,10 @@ import { toast } from 'sonner'
 import {
   Building2, Bell, Shield, Globe, Save, CheckCircle, AlertCircle,
   Phone, CreditCard, Wrench, Sparkles, Link as LinkIcon, Copy, Check,
+  ExternalLink, Loader2, DollarSign,
 } from 'lucide-react'
 
-type Tab = 'business' | 'booking' | 'notifications' | 'security' | 'integrations'
+type Tab = 'business' | 'booking' | 'notifications' | 'security' | 'integrations' | 'billing'
 
 export default function SettingsPage() {
   const [tab, setTab]       = useState<Tab>('business')
@@ -19,6 +20,13 @@ export default function SettingsPage() {
   const [saved, setSaved]   = useState(false)
   const [error, setError]   = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+
+  // Stripe Connect
+  const [connectStatus, setConnectStatus] = useState<{
+    connected: boolean; accountId?: string; chargesEnabled?: boolean
+    payoutsEnabled?: boolean; onboardingComplete?: boolean; email?: string; displayName?: string
+  } | null>(null)
+  const [connectLoading, setConnectLoading] = useState(false)
 
   // Business profile
   const [bizName, setBizName]       = useState('')
@@ -59,6 +67,17 @@ export default function SettingsPage() {
         .select('*')
         .eq('owner_user_id', data.user.id)
         .single()
+
+      loadConnectStatus(data.user.id)
+
+      // Handle Stripe Connect return URL params
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('tab') === 'billing') setTab('billing')
+      if (params.get('connected') === 'true') {
+        setTab('billing')
+        toast.success('Compte Stripe connecté !')
+        loadConnectStatus(data.user.id)
+      }
 
       if (org) {
         setOrgId(org.id)
@@ -117,6 +136,50 @@ export default function SettingsPage() {
     setSaving(false)
   }
 
+  const loadConnectStatus = async (uid: string) => {
+    const res = await fetch(`/api/stripe/connect/account-status?userId=${uid}`)
+    const data = await res.json()
+    setConnectStatus(data)
+  }
+
+  const handleConnectStripe = async () => {
+    if (!user) return
+    setConnectLoading(true)
+    try {
+      // Create account if needed
+      if (!connectStatus?.accountId) {
+        const res = await fetch('/api/stripe/connect/create-account', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id }),
+        })
+        const data = await res.json()
+        if (!data.accountId) { toast.error('Impossible de créer le compte.'); setConnectLoading(false); return }
+      }
+      // Get onboarding link
+      const res2 = await fetch('/api/stripe/connect/create-onboarding-link', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      })
+      const data2 = await res2.json()
+      if (data2.url) window.location.href = data2.url
+    } catch {
+      toast.error('Erreur de connexion Stripe.')
+    }
+    setConnectLoading(false)
+  }
+
+  const handleStripeDashboard = async () => {
+    if (!user) return
+    setConnectLoading(true)
+    const res = await fetch('/api/stripe/connect/dashboard-link', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id }),
+    })
+    const data = await res.json()
+    if (data.url) window.open(data.url, '_blank')
+    setConnectLoading(false)
+  }
+
   const copyBookingLink = () => {
     const link = `${window.location.origin}/book${orgId ? `?biz=${orgId}` : ''}`
     navigator.clipboard.writeText(link)
@@ -126,6 +189,7 @@ export default function SettingsPage() {
 
   const tabs: { key: Tab; label: string; icon: typeof Building2 }[] = [
     { key: 'business',      label: 'Entreprise',      icon: Building2 },
+    { key: 'billing',       label: 'Paiements',       icon: DollarSign },
     { key: 'booking',       label: 'Portail de réservation', icon: Sparkles },
     { key: 'notifications', label: 'Notifications',   icon: Bell },
     { key: 'security',      label: 'Sécurité',        icon: Shield },
@@ -381,6 +445,130 @@ export default function SettingsPage() {
               <h3 className="text-sm font-semibold text-red-700 mb-1">Zone dangereuse</h3>
               <p className="text-xs text-red-600 mb-4">Ces actions sont permanentes et irréversibles.</p>
               <button className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors">Supprimer le compte</button>
+            </div>
+          </div>
+        )}
+
+        {/* Billing / Payments */}
+        {tab === 'billing' && (
+          <div className="space-y-6">
+            {/* Stripe Connect section */}
+            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100">
+                <h2 className="text-base font-semibold text-gray-900">Accepter les paiements en ligne</h2>
+                <p className="text-sm text-gray-400 mt-0.5">Connectez votre compte Stripe pour que vos clients puissent payer vos factures en ligne.</p>
+              </div>
+
+              <div className="p-6">
+                {connectStatus === null ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                  </div>
+                ) : connectStatus.onboardingComplete ? (
+                  // ── State C: Fully active ──────────────────────────────────
+                  <div className="space-y-5">
+                    <div className="flex items-start gap-4 rounded-2xl bg-emerald-50 border border-emerald-100 p-5">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                        <CheckCircle className="h-6 w-6 text-emerald-600" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-bold text-emerald-900">Paiements actifs</p>
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">✓ Actif</span>
+                        </div>
+                        <p className="text-sm text-emerald-700">
+                          {connectStatus.displayName || connectStatus.email || 'Votre compte Stripe'} est connecté.
+                          Vos clients peuvent maintenant payer vos factures en ligne.
+                        </p>
+                        <div className="flex items-center gap-4 mt-3 text-xs">
+                          <span className={`flex items-center gap-1 ${connectStatus.chargesEnabled ? 'text-emerald-600' : 'text-amber-600'}`}>
+                            {connectStatus.chargesEnabled ? <CheckCircle className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5" />}
+                            Paiements {connectStatus.chargesEnabled ? 'activés' : 'en attente'}
+                          </span>
+                          <span className={`flex items-center gap-1 ${connectStatus.payoutsEnabled ? 'text-emerald-600' : 'text-amber-600'}`}>
+                            {connectStatus.payoutsEnabled ? <CheckCircle className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5" />}
+                            Virements {connectStatus.payoutsEnabled ? 'activés' : 'en attente'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handleStripeDashboard}
+                        disabled={connectLoading}
+                        className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all shadow-sm disabled:opacity-60"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        Ouvrir le tableau de bord Stripe
+                      </button>
+                    </div>
+                  </div>
+                ) : connectStatus.connected ? (
+                  // ── State B: Connected but onboarding incomplete ───────────
+                  <div className="rounded-2xl bg-amber-50 border border-amber-100 p-5 space-y-4">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-amber-900">Configuration incomplète</p>
+                        <p className="text-sm text-amber-700 mt-0.5">
+                          Votre compte Stripe est créé mais vous devez compléter la configuration pour commencer à accepter des paiements.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleConnectStripe}
+                      disabled={connectLoading}
+                      className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-60 transition-all shadow-sm"
+                    >
+                      {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
+                      Compléter la configuration
+                    </button>
+                  </div>
+                ) : (
+                  // ── State A: Not connected ─────────────────────────────────
+                  <div className="space-y-6">
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      <div>
+                        <h3 className="text-base font-bold text-gray-900 mb-2">Payez-vous plus vite</h3>
+                        <p className="text-sm text-gray-500 mb-4">
+                          Connectez Stripe pour que vos clients paient directement depuis leurs factures — par carte ou virement.
+                        </p>
+                        <ul className="space-y-2 text-sm text-gray-600">
+                          {[
+                            'Les clients paient en ligne — fini les relances',
+                            'Les fonds sont déposés directement dans votre compte',
+                            'Visa, Mastercard, Amex, Interac acceptés',
+                            'Reçus automatiques envoyés aux clients',
+                            'Notifications de paiement en temps réel',
+                          ].map((b) => (
+                            <li key={b} className="flex items-start gap-2">
+                              <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                              {b}
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="mt-4 text-xs text-gray-400">Frais de traitement : 2,9 % + 30 ¢ par transaction (tarifs Stripe standard)</p>
+                      </div>
+                      <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 p-8 text-center">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 mb-4 shadow-lg shadow-indigo-200">
+                          <CreditCard className="h-8 w-8 text-white" />
+                        </div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">Prend moins de 5 minutes</p>
+                        <button
+                          onClick={handleConnectStripe}
+                          disabled={connectLoading}
+                          className="mt-3 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-md shadow-indigo-200"
+                        >
+                          {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                          Connecter Stripe
+                        </button>
+                        <p className="mt-3 text-xs text-gray-400">Propulsé par Stripe · Paiements sécurisés</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
