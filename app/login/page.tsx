@@ -61,27 +61,25 @@ function LoginForm() {
         </div>
 
         <div>
-          <blockquote className="text-2xl font-medium leading-relaxed text-white/90 mb-6">
-            {t.landing.testimonial}
-          </blockquote>
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold">J</div>
-            <div>
-              <p className="font-semibold">{t.landing.testimonialAuthor}</p>
-              <p className="text-sm text-indigo-200">{t.landing.testimonialRole}</p>
-            </div>
-          </div>
+          <h2 className="text-2xl font-semibold leading-relaxed text-white/95 mb-3">
+            {lang === 'fr' ? "La plateforme pour les entrepreneurs en services." : 'The platform for service professionals.'}
+          </h2>
+          <p className="text-white/80 leading-relaxed">
+            {lang === 'fr'
+              ? 'Facturation, rendez-vous, gestion clientèle. Bilingue FR/EN. Données au Canada. Essai gratuit de 14 jours.'
+              : 'Invoicing, scheduling, customer management. Fully bilingual. Data in Canada. 14-day free trial.'}
+          </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 gap-4">
           {[
-            { value: '2 500+', label: t.landing.statsCompanies },
-            { value: '180 000+', label: t.landing.statsJobs },
-            { value: '42 M$+', label: t.landing.statsRevenue },
-          ].map((stat) => (
-            <div key={stat.label}>
-              <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-sm text-indigo-200">{stat.label}</p>
+            { label: lang === 'fr' ? 'Fait au Québec 🍁' : 'Made in Quebec 🍁' },
+            { label: lang === 'fr' ? 'Données au Canada' : 'Data in Canada' },
+            { label: lang === 'fr' ? 'Support en français' : 'French support' },
+            { label: lang === 'fr' ? 'TPS + TVQ inclus' : 'GST + QST built in' },
+          ].map((s) => (
+            <div key={s.label} className="rounded-xl bg-white/10 border border-white/15 px-3 py-2 text-sm">
+              {s.label}
             </div>
           ))}
         </div>

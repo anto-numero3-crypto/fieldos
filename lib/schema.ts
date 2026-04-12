@@ -28,8 +28,6 @@ export function softwareApplicationSchema(opts: {
   description: string
   applicationCategory?: string
   price?: string
-  ratingValue?: number
-  ratingCount?: number
 } = { description: '' }) {
   return {
     '@context': 'https://schema.org',
@@ -43,15 +41,6 @@ export function softwareApplicationSchema(opts: {
       price: opts.price || '0',
       priceCurrency: 'CAD',
     },
-    ...(opts.ratingValue && opts.ratingCount
-      ? {
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: opts.ratingValue,
-            reviewCount: opts.ratingCount,
-          },
-        }
-      : {}),
   }
 }
 
@@ -134,8 +123,6 @@ export function productSchema(opts: {
   description: string
   brand?: string
   price?: string
-  ratingValue?: number
-  ratingCount?: number
 }) {
   return {
     '@context': 'https://schema.org',
@@ -149,15 +136,6 @@ export function productSchema(opts: {
       priceCurrency: 'CAD',
       availability: 'https://schema.org/InStock',
     },
-    ...(opts.ratingValue && opts.ratingCount
-      ? {
-          aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: opts.ratingValue,
-            reviewCount: opts.ratingCount,
-          },
-        }
-      : {}),
   }
 }
 

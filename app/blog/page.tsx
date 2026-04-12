@@ -9,7 +9,7 @@ import NewsletterSignup from '@/components/NewsletterSignup'
 
 export const metadata: Metadata = buildMetadata({
   title: 'Blog Gestivio — Conseils pour entrepreneurs québécois',
-  description: 'Guides et conseils pratiques pour les entrepreneurs en services terrain au Québec: facturation, gestion, TPS/TVQ, outils numériques.',
+  description: 'Guides et conseils pratiques pour les entrepreneurs en services au Canada: facturation, gestion, TPS/TVQ, outils numériques.',
   path: '/blog',
   locale: 'fr',
 })

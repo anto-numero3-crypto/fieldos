@@ -32,7 +32,7 @@ export default function Page() {
     <>
       <JsonLd data={[
         breadcrumbSchema([{ name: 'Accueil', url: '/' }, { name: 'Comparaisons', url: '/vs' }, { name: 'Jobber', url: '/vs/jobber' }]),
-        productSchema({ name: 'Gestivio', description: 'Logiciel de gestion pour entrepreneurs en services terrain — alternative québécoise à Jobber.', price: '29' }),
+        productSchema({ name: 'Gestivio', description: 'Logiciel de gestion pour les entrepreneurs en services — alternative canadienne bilingue à Jobber.', price: '29' }),
       ]} />
 
       <MarketingShell>
@@ -40,7 +40,7 @@ export default function Page() {
           <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">Comparaison</p>
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-4">Gestivio vs Jobber</h1>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl">
-            Jobber est une excellente plateforme mature, mais elle n&apos;a pas été conçue pour la réalité québécoise. Voici pourquoi plus de 200 entrepreneurs du Québec choisissent Gestivio.
+            Jobber est une plateforme mature, mais elle n&apos;a pas été conçue pour la réalité québécoise. Voici les différences concrètes entre Gestivio et Jobber pour un entrepreneur basé au Québec.
           </p>
 
           <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden shadow-sm">

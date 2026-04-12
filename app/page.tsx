@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/lib/LanguageContext'
 import {
   Wrench, Users, Briefcase, FileText, Sparkles, CheckCircle,
-  ArrowRight, BarChart3, Shield, Zap, Star, Check,
+  ArrowRight, BarChart3, Shield, Zap, Check,
   ChevronRight, ChevronDown, CreditCard, Calendar, Play,
   MessageSquare, Building2,
 } from 'lucide-react'
@@ -82,48 +82,6 @@ export default function LandingPage() {
     { key: 'enterprise', name: lang === 'fr' ? 'Entreprise'  : 'Enterprise', monthlyPrice: 399, description: l.enterpriseDesc,  features: l.pricingFeatures.enterprise, cta: l.pricingCtaEnterprise, highlighted: false, href: '/login' },
   ]
 
-  const stats = [
-    { value: '500+',     label: l.statsCompanies },
-    { value: '180 000+', label: l.statsJobs },
-    { value: '42 M$+',   label: l.statsRevenue },
-    { value: '4.9 / 5',  label: l.statsRating },
-  ]
-
-  const testimonials = [
-    {
-      stars: 5,
-      result: lang === 'fr' ? '−14h admin / semaine' : '−14h admin/week',
-      text: lang === 'fr'
-        ? "On économise 14 heures de travail admin par semaine. La facturation qui prenait une demi-journée se fait maintenant en 20 minutes. Notre chiffre d'affaires a augmenté de 31 % en 6 mois."
-        : "We save 14 hours of admin work per week. Invoicing that took half a day now takes 20 minutes. Revenue grew 31% in 6 months.",
-      name: 'Jean-Philippe Côté',
-      role: lang === 'fr' ? 'Propriétaire, JPC Plomberie · Québec, QC' : 'Owner, JPC Plumbing · Québec City, QC',
-      initials: 'JC',
-      color: 'bg-blue-100 text-blue-700',
-    },
-    {
-      stars: 5,
-      result: lang === 'fr' ? '+28 000 $ en 4 mois' : '+$28,000 in 4 months',
-      text: lang === 'fr'
-        ? "Le portail de réservation IA capte des clients que j'aurais perdus. La nuit dernière j'ai reçu 3 nouvelles demandes pendant que je dormais. En 4 mois, c'est 28 000 $ de revenus supplémentaires."
-        : "The AI booking portal captures clients I would have lost. Last night I got 3 new requests while sleeping. In 4 months, that's $28,000 in extra revenue.",
-      name: 'Melissa Okafor',
-      role: lang === 'fr' ? 'Propriétaire, Okafor Électrique · Toronto, ON' : 'Owner, Okafor Electrical · Toronto, ON',
-      initials: 'MO',
-      color: 'bg-violet-100 text-violet-700',
-    },
-    {
-      stars: 5,
-      result: lang === 'fr' ? '+12 interventions / mois récupérées' : '+12 jobs/month recovered',
-      text: lang === 'fr'
-        ? "L'IA nous signale les clients inactifs depuis 60 jours — on les relance et on récupère en moyenne 12 interventions par mois qu'on aurait manquées. Pour 47 techniciens, Gestivio est indispensable."
-        : "The AI flags customers inactive 60+ days — we follow up and recover 12 jobs per month we would have missed. With 47 technicians, Gestivio is essential.",
-      name: 'Robert Gagné',
-      role: lang === 'fr' ? 'Propriétaire, Gagné Climate Solutions · Montréal, QC' : 'Owner, Gagné Climate Solutions · Montréal, QC',
-      initials: 'RG',
-      color: 'bg-emerald-100 text-emerald-700',
-    },
-  ]
 
   const faqs = [
     {
@@ -207,16 +165,6 @@ export default function LandingPage() {
         </div>
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          {/* Social proof badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 mb-6">
-            <div className="flex -space-x-1">
-              {['bg-blue-400','bg-emerald-400','bg-violet-400','bg-amber-400'].map((c,i) => (
-                <div key={i} className={`h-5 w-5 rounded-full border-2 border-white ${c}`} />
-              ))}
-            </div>
-            <span className="text-xs font-semibold text-indigo-700">{l.socialProof}</span>
-          </div>
-
           <h1 className="mx-auto max-w-4xl text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl leading-[1.08]">
             {l.heroTitle1}{' '}
             <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
@@ -239,10 +187,10 @@ export default function LandingPage() {
           {/* Trust badges */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
             {[
-              { icon: '🍁', label: lang === 'fr' ? 'Données hébergées au Canada' : 'Data hosted in Canada' },
-              { icon: '🔒', label: lang === 'fr' ? 'Chiffrement SSL 256 bits' : '256-bit SSL encryption' },
-              { icon: '💳', label: lang === 'fr' ? 'Paiements sécurisés par Stripe' : 'Payments secured by Stripe' },
-              { icon: '↩️', label: lang === 'fr' ? 'Remboursement 30 jours' : '30-day money-back' },
+              { icon: '🍁', label: lang === 'fr' ? 'Fait au Québec'            : 'Made in Quebec' },
+              { icon: '🔒', label: lang === 'fr' ? 'Données au Canada'         : 'Data in Canada' },
+              { icon: '🤖', label: lang === 'fr' ? "Propulsé par l'IA"         : 'AI-powered' },
+              { icon: '🇫🇷', label: lang === 'fr' ? 'Bilingue FR/EN'            : 'Fully bilingual FR/EN' },
             ].map(({ icon, label }) => (
               <span key={label} className="inline-flex items-center gap-1.5 text-xs text-gray-500">
                 <span>{icon}</span>{label}
@@ -333,20 +281,6 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Stats bar ── */}
-      <section className="border-y border-gray-100 bg-gray-50 py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            {stats.map((s) => (
-              <div key={s.label} className="text-center">
-                <p className="text-3xl font-bold text-gray-900 sm:text-4xl">{s.value}</p>
-                <p className="mt-1 text-sm text-gray-500">{s.label}</p>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -531,7 +465,7 @@ export default function LandingPage() {
                     {plan.highlighted && (
                       <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-amber-900">
-                          <Star className="h-3 w-3 fill-amber-900" />{l.mostPopular}
+                          <Sparkles className="h-3 w-3" />{l.mostPopular}
                         </span>
                       </div>
                     )}
@@ -573,42 +507,6 @@ export default function LandingPage() {
               <span>🍁 {lang === 'fr' ? 'Données au Canada' : 'Data in Canada'}</span>
             </div>
           </Reveal>
-        </div>
-      </section>
-
-      {/* ── Testimonials ── */}
-      <section className="py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Reveal>
-            <div className="text-center mb-16">
-              <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">{l.testimonialsLabel}</p>
-              <h2 className="text-4xl font-bold text-gray-900 sm:text-5xl">{l.testimonialsTitle}</h2>
-            </div>
-          </Reveal>
-          <div className="grid gap-6 md:grid-cols-3">
-            {testimonials.map((t, i) => (
-              <Reveal key={t.name} delay={i * 100}>
-                <div className="flex flex-col rounded-2xl border border-gray-100 bg-white p-7 shadow-sm hover:shadow-md transition-shadow duration-200 h-full">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex">
-                      {[...Array(5)].map((_, j) => (
-                        <Star key={j} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-100">{t.result}</span>
-                  </div>
-                  <p className="text-sm text-gray-600 leading-relaxed flex-1 mb-6">&ldquo;{t.text}&rdquo;</p>
-                  <div className="flex items-center gap-3">
-                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold ${t.color}`}>{t.initials}</div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{t.name}</p>
-                      <p className="text-xs text-gray-400">{t.role}</p>
-                    </div>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -693,7 +591,7 @@ export default function LandingPage() {
               </div>
               <p className="text-sm text-gray-500 leading-relaxed mb-5">
                 {lang === 'fr'
-                  ? 'La façon plus intelligente de gérer votre entreprise de services terrain.'
+                  ? "La façon plus intelligente de gérer votre entreprise de services."
                   : 'The smarter way to run your field service business.'}
               </p>
               <div className="flex items-center gap-2 mb-4">

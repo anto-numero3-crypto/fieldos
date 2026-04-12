@@ -8,7 +8,6 @@ export interface IndustryPage {
   hero: { kicker: string; headline: string; sub: string }
   painPoints: string[]
   features: Array<{ title: string; description: string }>
-  testimonial: { quote: string; author: string; business: string; city: string }
   faqs: Array<{ question: string; answer: string }>
   relatedSlugs?: string[]
   meta: { title: string; description: string; keywords: string[]; targetKeyword: string }
@@ -38,12 +37,6 @@ export const INDUSTRIES: IndustryPage[] = [
       { title: "Réservation en ligne 24/7", description: 'Vos clients réservent un créneau sur votre portail Gestivio. Les urgences vous appellent; les rendez-vous planifiés se réservent tout seuls.' },
       { title: "IA qui répond à votre place", description: 'Un assistant IA bilingue filtre les questions fréquentes: prix approximatif, zones desservies, disponibilités — vous ne répondez qu\'aux vrais prospects.' },
     ],
-    testimonial: {
-      quote: "J'ai réduit mon temps administratif de 8 heures par semaine. Mes techniciens facturent sur place, les clients paient par Stripe avant même qu'on parte. Vraiment jeu changeant.",
-      author: 'Marc Tremblay',
-      business: 'Plomberie Tremblay inc.',
-      city: 'Laval',
-    },
     faqs: [
       { question: 'Gestivio gère-t-il la TPS et la TVQ automatiquement ?', answer: 'Oui. Entrez votre numéro de TPS et de TVQ une seule fois dans les paramètres. Les taxes sont ensuite calculées et appliquées automatiquement sur chaque facture, conformément aux règles de Revenu Québec.' },
       { question: 'Combien coûte Gestivio pour une petite entreprise de plomberie ?', answer: "Le plan de base est à 29 $ CAD par mois pour un utilisateur. Chaque technicien supplémentaire est à 15 $. Pas de frais cachés, en dollars canadiens, facturable annuellement pour 2 mois gratuits." },
@@ -83,12 +76,6 @@ export const INDUSTRIES: IndustryPage[] = [
       { title: "Rappels automatiques aux clients", description: "Gestivio envoie automatiquement aux clients des rappels pour l'entretien annuel — 30 jours avant la date prévue, avec un lien de réservation direct." },
       { title: "Facturation après chaque visite", description: 'Visite d\'entretien terminée ? Une facture est créée automatiquement avec les tarifs prévus au contrat, prête à être envoyée ou payée sur place.' },
     ],
-    testimonial: {
-      quote: "Gérer 200 contrats d'entretien annuel sur un chiffrier Excel, c'était un cauchemar. Avec Gestivio, tout est automatisé. J'ai récupéré 15 heures par semaine et je n'oublie plus jamais une visite.",
-      author: 'Sylvie Lachance',
-      business: 'Climatisation Lachance',
-      city: 'Québec',
-    },
     faqs: [
       { question: 'Peut-on gérer plusieurs unités CVC pour un même client ?', answer: 'Oui. Chaque client peut avoir plusieurs sites, et chaque site peut avoir plusieurs équipements (chaudière, thermopompe, climatiseur, etc.) avec leur propre historique de service.' },
       { question: 'Comment fonctionnent les contrats d\'entretien récurrents ?', answer: 'Vous définissez une fois la fréquence (mensuelle, trimestrielle, semestrielle, annuelle), le tarif, et les services inclus. Gestivio génère ensuite automatiquement les rendez-vous et les factures.' },

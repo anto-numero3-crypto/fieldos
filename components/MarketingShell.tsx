@@ -32,7 +32,7 @@ export default function MarketingShell({ children }: { children: ReactNode }) {
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600"><Wrench className="h-4 w-4 text-white" strokeWidth={2.5} /></div>
               <span className="text-base font-bold text-gray-900">Gestivio</span>
             </Link>
-            <p className="text-sm text-gray-500">Le logiciel de gestion pour entrepreneurs en services terrain. Fait au Québec 🍁.</p>
+            <p className="text-sm text-gray-500">La plateforme pour les entrepreneurs en services. Fait au Québec 🍁.</p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Plateforme</p>

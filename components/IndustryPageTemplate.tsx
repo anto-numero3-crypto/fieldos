@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { CheckCircle, ArrowRight, Sparkles, Quote } from 'lucide-react'
+import { CheckCircle, ArrowRight, Sparkles } from 'lucide-react'
 import { IndustryPage } from '@/content/industries'
 import MarketingShell from './MarketingShell'
 import NewsletterSignup from './NewsletterSignup'
@@ -61,14 +61,6 @@ export default function IndustryPageTemplate({ page }: { page: IndustryPage }) {
             ))}
           </div>
         </div>
-      </section>
-
-      {/* Testimonial */}
-      <section className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <Quote className="h-8 w-8 text-indigo-300 mx-auto mb-4" />
-        <p className="text-lg sm:text-xl text-gray-700 italic leading-relaxed mb-5">"{page.testimonial.quote}"</p>
-        <p className="text-sm font-semibold text-gray-900">{page.testimonial.author}</p>
-        <p className="text-xs text-gray-500">{page.testimonial.business} · {page.testimonial.city}</p>
       </section>
 
       {/* FAQ */}

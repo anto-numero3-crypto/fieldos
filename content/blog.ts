@@ -26,7 +26,7 @@ export const POSTS: BlogPost[] = [
     slug: 'facturer-plus-rapidement-entrepreneur-quebec',
     locale: 'fr',
     title: 'Comment facturer plus rapidement en tant qu\'entrepreneur au Québec',
-    description: 'Réduisez votre temps de facturation de 75%. Guide pratique pour entrepreneurs québécois: automatisation, TPS/TVQ, modèles et outils.',
+    description: 'Réduisez votre temps de facturation. Guide pratique pour entrepreneurs québécois: automatisation, TPS/TVQ, modèles et outils.',
     category: 'Facturation',
     excerpt: 'Facturer rapidement, c\'est être payé rapidement. Voici comment les entrepreneurs québécois peuvent réduire leur temps de facturation de plusieurs heures par semaine.',
     coverImage: '/blog/facturation-rapide.png',
@@ -39,7 +39,7 @@ export const POSTS: BlogPost[] = [
 
 La plupart des entrepreneurs québécois passent **4 à 6 heures par semaine** à préparer, envoyer et relancer des factures. C'est presque une journée complète perdue — du temps qui devrait servir à vendre, exécuter des contrats ou simplement profiter de votre fin de semaine.
 
-Pire encore: plus vous tardez à envoyer une facture, plus vous tardez à être payé. Les études montrent qu'une facture envoyée le jour même du service est payée en moyenne **15 jours plus vite** qu'une facture envoyée une semaine plus tard.
+Pire encore: plus vous tardez à envoyer une facture, plus vous tardez à être payé. Une facture envoyée le jour même du service est généralement payée beaucoup plus rapidement qu'une facture envoyée plusieurs jours plus tard.
 
 Si vous faites de la **facturation entrepreneur Quebec**, voici comment reprendre votre temps.
 
@@ -99,13 +99,13 @@ Ré-entrer chaque facture dans QuickBooks le soir, c'est du double travail. Bran
 - Les taxes collectées
 - Les clients
 
-## Résultats concrets
+## Ce que vous pouvez attendre
 
-Nos clients québécois rapportent en moyenne:
-- **75% de réduction** du temps passé à facturer
-- **Paiement 15 jours plus rapide** en moyenne
-- **0 erreur de TPS/TVQ** grâce au calcul automatique
-- **30% de moins** de factures en retard
+En appliquant les pratiques ci-dessus, la plupart des entrepreneurs constatent:
+- Beaucoup moins de temps passé à préparer et envoyer des factures
+- Des paiements reçus plus rapidement
+- Zéro erreur de TPS/TVQ grâce au calcul automatique
+- Moins de factures en retard grâce aux rappels automatisés
 
 ## Commencez dès aujourd'hui
 

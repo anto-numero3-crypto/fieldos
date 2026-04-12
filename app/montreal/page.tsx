@@ -8,16 +8,16 @@ import { localBusinessSchema, breadcrumbSchema, faqSchema } from '@/lib/schema'
 import NewsletterSignup from '@/components/NewsletterSignup'
 
 export const metadata: Metadata = buildMetadata({
-  title: 'Logiciel de gestion service terrain à Montréal | Gestivio',
-  description: "Utilisé par plus de 200 entrepreneurs à Montréal. Facturation, rendez-vous, gestion clientèle. Conçu pour les PME montréalaises. Essai gratuit 14 jours.",
+  title: 'Logiciel de gestion pour entrepreneurs à Montréal | Gestivio',
+  description: "Gestivio pour les entrepreneurs en services à Montréal. Facturation TPS/TVQ, rendez-vous, gestion clientèle. Bilingue FR/EN. Essai gratuit 14 jours.",
   path: '/montreal',
   locale: 'fr',
-  keywords: ['logiciel gestion Montréal', 'entrepreneur Montréal', 'service terrain Montréal', 'facturation Montréal'],
+  keywords: ['logiciel gestion Montréal', 'entrepreneur Montréal', 'facturation Montréal'],
 })
 
 const FAQS = [
-  { question: 'Gestivio est-il adapté aux entrepreneurs de Montréal ?', answer: "Oui. Gestivio a été conçu spécifiquement pour les entrepreneurs québécois, avec support complet de la TPS/TVQ, interface en français, et données hébergées au Canada. Plus de 200 PME montréalaises l'utilisent." },
-  { question: 'Puis-je recevoir du support en français à Montréal ?', answer: "Oui. Notre équipe de support est basée au Québec et parle français. Lundi au vendredi, 8h à 18h, par courriel et chat." },
+  { question: 'Gestivio est-il adapté aux entrepreneurs de Montréal ?', answer: "Oui. Gestivio prend en charge la TPS/TVQ, l'interface est en français, et toutes les données sont hébergées au Canada — trois éléments importants pour les PME montréalaises." },
+  { question: 'Puis-je recevoir du support en français à Montréal ?', answer: "Oui. Notre support est offert en français par courriel et clavardage." },
   { question: 'Y a-t-il une version spécifique à Montréal ?', answer: "Non, mais Gestivio inclut automatiquement le fuseau horaire America/Toronto, le format de date canadien, et le dollar canadien." },
 ]
 
@@ -30,7 +30,7 @@ export default function MontrealPage() {
           city: 'Montréal',
           region: 'QC',
           country: 'CA',
-          description: 'Logiciel de gestion pour entrepreneurs en services terrain basés à Montréal.',
+          description: 'Logiciel de gestion pour les entrepreneurs en services à Montréal.',
         }),
         breadcrumbSchema([{ name: 'Accueil', url: '/' }, { name: 'Montréal', url: '/montreal' }]),
         faqSchema(FAQS),
@@ -46,7 +46,7 @@ export default function MontrealPage() {
               Gestivio pour les entrepreneurs de Montréal
             </h1>
             <p className="text-lg text-gray-600 max-w-2xl mb-8">
-              Plus de 200 entrepreneurs montréalais utilisent Gestivio pour gérer leurs clients, factures et rendez-vous. Interface en français, support local, données au Canada.
+              Le logiciel de gestion pour les entrepreneurs en services à Montréal: facturation TPS/TVQ automatique, rendez-vous en ligne, gestion clientèle. Interface bilingue FR/EN, données au Canada.
             </p>
             <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700">
               Essai gratuit 14 jours <ArrowRight className="h-4 w-4" />
@@ -56,17 +56,17 @@ export default function MontrealPage() {
 
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-3">Conçu pour la réalité montréalaise</h2>
-          <p className="text-gray-500 mb-8 max-w-2xl">Montréal, c'est plus de 50 000 entreprises de services: plombiers, électriciens, entrepreneurs en rénovation, entreprises de nettoyage. Chacune doit jongler avec la TPS, la TVQ, la langue française, et la réalité terrain du grand Montréal.</p>
+          <p className="text-gray-500 mb-8 max-w-3xl">Montréal compte des dizaines de milliers d&apos;entrepreneurs en services: plombiers, électriciens, entrepreneurs en rénovation, entreprises de nettoyage. Chacun doit jongler avec la TPS, la TVQ, la langue française, et la réalité terrain du grand Montréal. Gestivio gère tout ça par défaut.</p>
 
           <div className="grid gap-6 sm:grid-cols-3">
             {[
-              { stat: '200+', label: 'PME montréalaises sur Gestivio' },
-              { stat: '15 h', label: 'économisées par semaine en moyenne' },
-              { stat: '100%', label: 'des données hébergées au Canada' },
+              { title: 'TPS + TVQ automatiques',  desc: 'Taxes québécoises appliquées correctement sur chaque facture.' },
+              { title: 'Bilingue FR/EN',           desc: 'Interface et courriels automatiques en français ou anglais.' },
+              { title: 'Données au Canada',        desc: "Hébergement conforme à la Loi 25 du Québec et à la LPRPDE." },
             ].map((s, i) => (
-              <div key={i} className="rounded-2xl border border-gray-100 bg-white p-6 text-center">
-                <p className="text-3xl font-bold text-indigo-600">{s.stat}</p>
-                <p className="text-sm text-gray-500 mt-1">{s.label}</p>
+              <div key={i} className="rounded-2xl border border-gray-100 bg-white p-6">
+                <p className="text-base font-bold text-gray-900 mb-1">{s.title}</p>
+                <p className="text-sm text-gray-500">{s.desc}</p>
               </div>
             ))}
           </div>
