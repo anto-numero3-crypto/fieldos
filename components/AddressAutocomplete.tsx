@@ -1,12 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { MapPin, X } from 'lucide-react'
+import { MapPin, X, Edit3 } from 'lucide-react'
 
 interface Suggestion {
-  display_name: string
-  lat?: string
-  lon?: string
+  label: string
+  source?: 'photon' | 'nominatim' | 'manual'
 }
 
 interface Props {
@@ -17,8 +16,9 @@ interface Props {
   id?: string
 }
 
-// Address autocomplete using OpenStreetMap Nominatim (no API key required,
-// Canada-restricted). Falls back to a plain input if the network call fails.
+// Address autocomplete: queries our /api/geocode proxy (Photon + Nominatim).
+// Always allows freeform ("Use as typed") so addresses outside the dataset
+// still work.
 export default function AddressAutocomplete({
   value,
   onChange,
@@ -32,8 +32,8 @@ export default function AddressAutocomplete({
   const [loading, setLoading] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
-  // Close on outside click
   useEffect(() => {
     function onDown(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -46,48 +46,67 @@ export default function AddressAutocomplete({
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (!value || value.trim().length < 3) {
+    if (abortRef.current) abortRef.current.abort()
+
+    const q = value.trim()
+    if (q.length < 2) {
       setSuggestions([])
       return
     }
+
     debounceRef.current = setTimeout(async () => {
       setLoading(true)
+      const controller = new AbortController()
+      abortRef.current = controller
       try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=ca&addressdetails=1&limit=5&q=${encodeURIComponent(value)}`
-        const res = await fetch(url, { headers: { 'Accept-Language': 'fr-CA,fr;q=0.9,en;q=0.8' } })
+        const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}&country=ca`, { signal: controller.signal })
         if (!res.ok) throw new Error('geocode failed')
-        const data = (await res.json()) as Suggestion[]
-        setSuggestions(data)
-        setOpen(data.length > 0)
+        const data = await res.json() as { suggestions: Suggestion[] }
+        setSuggestions(data.suggestions || [])
+        setOpen(true)
         setHighlight(-1)
-      } catch {
-        setSuggestions([])
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          setSuggestions([])
+          setOpen(true) // still open so the "use as typed" row shows
+        }
       } finally {
         setLoading(false)
       }
-    }, 400)
+    }, 350)
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
   }, [value])
 
-  const select = (s: Suggestion) => {
-    onChange(s.display_name)
+  const select = (label: string) => {
+    onChange(label)
     setOpen(false)
     setSuggestions([])
   }
 
+  // Compose final list: API suggestions + a "use as typed" fallback row
+  const manualOption: Suggestion | null =
+    value.trim().length >= 2 &&
+    !suggestions.some((s) => s.label.toLowerCase() === value.trim().toLowerCase())
+      ? { label: value.trim(), source: 'manual' }
+      : null
+  const items: Suggestion[] = [
+    ...suggestions,
+    ...(manualOption ? [manualOption] : []),
+  ]
+
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!open || suggestions.length === 0) return
+    if (!open || items.length === 0) return
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setHighlight((h) => Math.min(h + 1, suggestions.length - 1))
+      setHighlight((h) => Math.min(h + 1, items.length - 1))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setHighlight((h) => Math.max(h - 1, 0))
     } else if (e.key === 'Enter' && highlight >= 0) {
       e.preventDefault()
-      select(suggestions[highlight])
+      select(items[highlight].label)
     } else if (e.key === 'Escape') {
       setOpen(false)
     }
@@ -102,7 +121,7 @@ export default function AddressAutocomplete({
           type="text"
           value={value}
           onChange={(e) => { onChange(e.target.value); setOpen(true) }}
-          onFocus={() => { if (suggestions.length > 0) setOpen(true) }}
+          onFocus={() => { if (value.trim().length >= 2) setOpen(true) }}
           onKeyDown={onKeyDown}
           placeholder={placeholder}
           autoComplete="off"
@@ -120,22 +139,33 @@ export default function AddressAutocomplete({
         )}
       </div>
 
-      {open && (suggestions.length > 0 || loading) && (
-        <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg max-h-72 overflow-y-auto">
-          {loading && (
+      {open && (items.length > 0 || loading) && (
+        <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg max-h-80 overflow-y-auto">
+          {loading && items.length === 0 && (
             <div className="px-3 py-2 text-xs text-gray-400">Recherche…</div>
           )}
-          {suggestions.map((s, i) => (
+          {items.map((s, i) => (
             <button
-              key={`${s.display_name}-${i}`}
+              key={`${s.label}-${i}`}
               type="button"
-              onClick={() => select(s)}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => select(s.label)}
               onMouseEnter={() => setHighlight(i)}
-              className={`block w-full text-left px-3 py-2 text-sm transition-colors ${highlight === i ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'}`}
+              className={`block w-full text-left px-3 py-2 text-sm transition-colors ${highlight === i ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700 hover:bg-gray-50'} ${s.source === 'manual' ? 'border-t border-gray-100' : ''}`}
             >
               <span className="flex items-start gap-2">
-                <MapPin className="h-3.5 w-3.5 mt-0.5 text-gray-400 shrink-0" />
-                <span className="truncate">{s.display_name}</span>
+                {s.source === 'manual' ? (
+                  <Edit3 className="h-3.5 w-3.5 mt-0.5 text-gray-400 shrink-0" />
+                ) : (
+                  <MapPin className="h-3.5 w-3.5 mt-0.5 text-gray-400 shrink-0" />
+                )}
+                <span className="truncate">
+                  {s.source === 'manual' ? (
+                    <>Utiliser cette adresse : <span className="font-medium text-gray-900">{s.label}</span></>
+                  ) : (
+                    s.label
+                  )}
+                </span>
               </span>
             </button>
           ))}
