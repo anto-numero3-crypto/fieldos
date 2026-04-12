@@ -20,7 +20,9 @@
       "Bash(node -e \"process.stdin.resume\\(\\);let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{ const j=JSON.parse\\(d\\); console.log\\(j.hook?.url || JSON.stringify\\(j\\)\\); }\\)\")",
       "Bash(node -e \"const l = require\\('./node_modules/lucide-react'\\); const keys = Object.keys\\(l\\); ['Twitter','Linkedin','Github','MessageSquare','Building2','Clock','Play'].forEach\\(k => console.log\\(k, keys.includes\\(k\\)\\)\\)\")",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({**d.get\\('dependencies',{}\\), **d.get\\('devDependencies',{}\\)}, indent=2\\)\\)\")",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(npx.cmd tsc:*)",
+      "Bash(powershell:*)"
     ]
   }
 }
