@@ -243,7 +243,7 @@ export default function LandingPage() {
                       <div className="h-2.5 w-20 rounded-full bg-gray-300" />
                       <div className="ml-auto h-6 w-20 rounded-lg bg-indigo-100" />
                     </div>
-                    {['HVAC Repair — Johnson', 'Plumbing Fix — Rivera', 'Electrical — Bouchard'].map((row) => (
+                    {['job-row-1', 'job-row-2', 'job-row-3'].map((row) => (
                       <div key={row} className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0">
                         <div className="h-7 w-7 rounded-full bg-gray-100 shrink-0" />
                         <div className="flex-1">

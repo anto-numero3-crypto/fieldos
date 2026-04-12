@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { Wrench, Target, Heart, Zap, Users, Globe, ArrowRight, CheckCircle } from 'lucide-react'
+import { Wrench, Target, Heart, Zap, Globe, ArrowRight } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'About Us — Gestivio',
@@ -60,19 +60,16 @@ export default function AboutPage() {
       {/* Story */}
       <section className="py-20">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">How it started</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Why we built Gestivio</h2>
           <div className="space-y-5 text-gray-600 leading-relaxed">
             <p>
-              In 2024, the founder of Gestivio was helping run a family HVAC business in Québec. The business was growing — but managing it was a nightmare. Invoices were hand-written, jobs were tracked in a notebook, and customer follow-ups happened only when someone remembered.
+              Service professionals — plumbers, electricians, HVAC techs, cleaners, landscapers — spend hours every week on paperwork, chasing invoices, and juggling schedules. Most existing software is either built for a different market, only available in English, or far too expensive for a small operation.
             </p>
             <p>
-              The software options available were either too complex, too expensive, or simply not built for Canadian businesses. Most were in English only. All required months of onboarding.
+              Gestivio was built to close that gap. A modern platform designed for service professionals across Canada, bilingual from day one, with Canadian tax handling and data residency built in — not bolted on.
             </p>
             <p>
-              So we built Gestivio. A platform that works the way field service businesses actually operate — fast, mobile, bilingual, and powered by AI to handle the things that eat up your day.
-            </p>
-            <p>
-              Today, Gestivio serves hundreds of businesses across Canada, helping them manage thousands of jobs, send professional invoices, and grow their revenue — all from one simple platform.
+              Our goal is simple: give every service business, no matter the size, the kind of tools that let them look professional, get paid faster, and spend less time on admin and more time on the job.
             </p>
           </div>
         </div>
@@ -92,30 +89,6 @@ export default function AboutPage() {
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">{v.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{v.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Milestones */}
-      <section className="py-20 bg-gray-50">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Our journey</h2>
-          <div className="space-y-6">
-            {[
-              { year: '2024', event: 'Gestivio founded in Québec, Canada' },
-              { year: '2024', event: 'First 50 customers onboarded across 3 provinces' },
-              { year: '2025', event: 'AI assistant launched — first Canadian FSM with native AI' },
-              { year: '2025', event: 'Full French/English bilingual support launched' },
-              { year: '2025', event: '500+ businesses, $42M+ in revenue managed on platform' },
-            ].map((m, i) => (
-              <div key={i} className="flex items-start gap-4">
-                <span className="shrink-0 rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold text-indigo-700">{m.year}</span>
-                <div className="flex items-center gap-2 pt-1">
-                  <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
-                  <p className="text-sm text-gray-700">{m.event}</p>
-                </div>
               </div>
             ))}
           </div>

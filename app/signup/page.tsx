@@ -147,10 +147,11 @@ export default function SignupPage() {
     ? ['Vos identifiants', 'Votre entreprise', 'Dernière étape']
     : ['Your credentials', 'Your business', 'Last step']
 
-  const leftStats = [
-    { value: '2 500+', label: fr ? 'Entreprises utilisatrices' : 'Companies using Gestivio' },
-    { value: '180 000+', label: fr ? 'Interventions complétées' : 'Jobs completed' },
-    { value: '42 M$+', label: fr ? 'Revenus traités' : 'Revenue processed' },
+  const leftBadges = [
+    { label: fr ? 'Fait au Québec 🍁' : 'Made in Quebec 🍁' },
+    { label: fr ? 'Données au Canada' : 'Data in Canada' },
+    { label: fr ? 'Bilingue FR/EN' : 'Fully bilingual' },
+    { label: fr ? 'TPS + TVQ inclus' : 'GST + QST built in' },
   ]
 
   return (
@@ -200,11 +201,10 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-6">
-          {leftStats.map((stat) => (
-            <div key={stat.label}>
-              <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-sm text-indigo-200">{stat.label}</p>
+        <div className="grid grid-cols-2 gap-3">
+          {leftBadges.map((b) => (
+            <div key={b.label} className="rounded-xl bg-white/10 border border-white/15 px-3 py-2 text-sm">
+              {b.label}
             </div>
           ))}
         </div>
