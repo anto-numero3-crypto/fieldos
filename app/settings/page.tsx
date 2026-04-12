@@ -156,11 +156,38 @@ export default function SettingsPage() {
     init()
   }, [])
 
+  const slugify = (s: string) =>
+    s.toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60)
+
   const saveSettings = async () => {
     if (!user) return
     setSaving(true); setError(null); setSaved(false)
 
-    const payload = {
+    // Generate slug from business name if not already set
+    let nextSlug = orgSlug
+    if (!nextSlug && bizName) {
+      const base = slugify(bizName) || 'entreprise'
+      // Ensure uniqueness
+      let candidate = base
+      let n = 2
+      while (true) {
+        const { data: clash } = await supabase
+          .from('organizations')
+          .select('id')
+          .eq('slug', candidate)
+          .maybeSingle()
+        if (!clash || clash.id === orgId) break
+        candidate = `${base}-${n++}`
+        if (n > 50) break
+      }
+      nextSlug = candidate
+    }
+
+    const payload: Record<string, unknown> = {
       owner_user_id: user.id,
       name: bizName,
       phone: bizPhone,
@@ -177,14 +204,17 @@ export default function SettingsPage() {
       ai_agent_greeting: agentGreeting,
       service_types: agentServices ? agentServices.split(',').map((s) => s.trim()).filter(Boolean) : [],
     }
+    if (nextSlug) payload.slug = nextSlug
 
-    const { error: err } = orgId
-      ? await supabase.from('organizations').update(payload).eq('id', orgId)
-      : await supabase.from('organizations').insert(payload)
+    const { data: saved, error: err } = orgId
+      ? await supabase.from('organizations').update(payload).eq('id', orgId).select('id, slug').single()
+      : await supabase.from('organizations').insert(payload).select('id, slug').single()
 
     if (err) {
       toast.error(err.message)
     } else {
+      if (saved?.id) setOrgId(saved.id)
+      if (saved?.slug) setOrgSlug(saved.slug)
       toast.success('Paramètres sauvegardés !')
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
