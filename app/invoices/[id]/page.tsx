@@ -278,17 +278,17 @@ export default function InvoiceDetailPage() {
 
             {/* Invoice header card */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 shrink-0">
                     <FileText className="h-5 w-5 text-indigo-600" />
                   </div>
-                  <div>
-                    <p className="text-lg font-bold text-gray-900">{invoice.invoice_number || `INV-${invoice.id.slice(0,8).toUpperCase()}`}</p>
+                  <div className="min-w-0">
+                    <p className="text-lg font-bold text-gray-900 truncate">{invoice.invoice_number || `INV-${invoice.id.slice(0,8).toUpperCase()}`}</p>
                     <p className="text-xs text-gray-400">Créé le {new Date(invoice.created_at).toLocaleDateString('fr-CA', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {!editing && invoice.status !== 'paid' && (
                     <button
                       onClick={markPaid}
@@ -367,28 +367,30 @@ export default function InvoiceDetailPage() {
                       <p className="text-xs text-gray-400 text-center py-4">Aucune ligne. Ajoutez-en une ou enregistrez simplement le montant de la facture.</p>
                     )}
                     {lineItems.map((li, i) => (
-                      <div key={i} className="grid grid-cols-12 gap-2 items-center">
+                      <div key={i} className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:items-center rounded-xl bg-gray-50 sm:bg-transparent p-2 sm:p-0">
                         <input
                           value={li.description}
                           onChange={(e) => updateLineItem(i, 'description', e.target.value)}
                           placeholder="Description"
-                          className="col-span-6 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none"
+                          className="sm:col-span-6 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-base sm:text-sm text-gray-900 focus:border-indigo-500 focus:outline-none"
                         />
-                        <input
-                          type="number" min="1" value={li.qty}
-                          onChange={(e) => updateLineItem(i, 'qty', e.target.value)}
-                          className="col-span-2 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none text-center"
-                          placeholder="Qty"
-                        />
-                        <input
-                          type="number" min="0" step="0.01" value={li.unit_price}
-                          onChange={(e) => updateLineItem(i, 'unit_price', e.target.value)}
-                          className="col-span-3 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none"
-                          placeholder="Price"
-                        />
-                        <button onClick={() => removeLineItem(i)} className="col-span-1 flex justify-center text-gray-300 hover:text-red-500 transition-colors">
-                          <X className="h-4 w-4" />
-                        </button>
+                        <div className="grid grid-cols-[1fr_1fr_auto] gap-2 sm:contents">
+                          <input
+                            type="number" inputMode="numeric" min="1" value={li.qty}
+                            onChange={(e) => updateLineItem(i, 'qty', e.target.value)}
+                            className="sm:col-span-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-base sm:text-sm text-gray-900 focus:border-indigo-500 focus:outline-none text-center"
+                            placeholder="Qté"
+                          />
+                          <input
+                            type="number" inputMode="decimal" min="0" step="0.01" value={li.unit_price}
+                            onChange={(e) => updateLineItem(i, 'unit_price', e.target.value)}
+                            className="sm:col-span-3 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-base sm:text-sm text-gray-900 focus:border-indigo-500 focus:outline-none"
+                            placeholder="Prix"
+                          />
+                          <button onClick={() => removeLineItem(i)} aria-label="Retirer" className="sm:col-span-1 flex items-center justify-center rounded-lg px-2 text-gray-400 hover:text-red-500 transition-colors">
+                            <X className="h-5 w-5" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                     <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
