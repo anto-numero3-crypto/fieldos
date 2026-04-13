@@ -1002,6 +1002,29 @@ CREATE INDEX IF NOT EXISTS idx_booking_requests_customer_id
 
 
 -- ─────────────────────────────────────────────────────────────────
+-- availability-and-invoice-fixes.sql
+-- ─────────────────────────────────────────────────────────────────
+-- Ensure the upsert on availability_schedule has a matching unique key
+ALTER TABLE availability_schedule
+  DROP CONSTRAINT IF EXISTS availability_schedule_user_id_day_of_week_key;
+ALTER TABLE availability_schedule
+  ADD CONSTRAINT availability_schedule_user_id_day_of_week_key
+  UNIQUE (user_id, day_of_week);
+
+-- Invoice owner-read policy — explicit text cast so RLS works whether
+-- user_id is stored as UUID or TEXT.
+DROP POLICY IF EXISTS "invoices_owner_select" ON invoices;
+CREATE POLICY "invoices_owner_select"
+  ON invoices FOR SELECT
+  USING ((user_id)::text = (auth.uid())::text);
+
+DROP POLICY IF EXISTS "invoices_owner_all" ON invoices;
+CREATE POLICY "invoices_owner_all"
+  ON invoices FOR ALL
+  USING ((user_id)::text = (auth.uid())::text);
+
+
+-- ─────────────────────────────────────────────────────────────────
 -- add-job-booking-link.sql
 -- ─────────────────────────────────────────────────────────────────
 ALTER TABLE jobs

@@ -114,22 +114,30 @@ function PublicInvoiceContent() {
     load()
   }, [token])
 
+  const [payError, setPayError] = useState<string | null>(null)
   const handlePay = async () => {
     if (!invoice) return
     setPaying(true)
+    setPayError(null)
     try {
       const res = await fetch('/api/stripe/invoice-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ invoiceId: invoice.id, returnPath: `/invoice/${token}` }),
+        body: JSON.stringify({
+          invoiceId: invoice.id,
+          token: invoice.token,
+          returnPath: `/invoice/${token}`,
+        }),
       })
       const data = await res.json()
       if (data.url) {
         window.location.href = data.url
       } else {
+        setPayError(data.error || 'Paiement indisponible pour le moment.')
         setPaying(false)
       }
     } catch {
+      setPayError('Erreur réseau. Veuillez réessayer.')
       setPaying(false)
     }
   }
@@ -359,6 +367,9 @@ function PublicInvoiceContent() {
                   <CreditCard className="h-5 w-5" />
                   {paying ? 'Redirection en cours…' : `Payer ${fmt(total)}`}
                 </button>
+                {payError && (
+                  <p className="text-sm text-red-600 text-center">{payError}</p>
+                )}
                 <div className="flex items-center justify-center gap-3 text-xs text-gray-400 flex-wrap">
                   <span className="flex items-center gap-1">
                     <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current text-gray-400"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>

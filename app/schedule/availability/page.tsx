@@ -162,10 +162,24 @@ function AvailabilityPageInner() {
       const res = await fetch('/api/availability', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, settings, schedule }),
+        body: JSON.stringify({
+          userId,
+          settings,
+          schedule: schedule.map((s) => ({
+            day_of_week: s.day_of_week,
+            is_available: s.is_available,
+            start_time: s.start_time,
+            end_time: s.end_time,
+          })),
+        }),
       })
-      if (res.ok) toast.success(t.success.saved)
-      else toast.error(t.errors.saveError)
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.success) {
+        toast.success(t.success.saved)
+      } else {
+        const firstErr = data?.debug && Object.values(data.debug)[0]
+        toast.error(String(firstErr || data?.error || t.errors.saveError))
+      }
     } catch {
       toast.error(t.errors.saveError)
     }

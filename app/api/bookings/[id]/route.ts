@@ -130,7 +130,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         .insert({
           user_id: booking.user_id,
           customer_id: customerId,
-          title: `${booking.service_name} — ${booking.customer_name}`,
+          title: booking.service_name,
           description: booking.notes || null,
           status: 'scheduled',
           scheduled_date: booking.requested_date,

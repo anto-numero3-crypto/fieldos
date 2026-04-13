@@ -4,10 +4,11 @@ import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export function adminClient(): SupabaseClient {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.warn('[supabase-server] SUPABASE_SERVICE_ROLE_KEY missing — falling back to anon key. Server writes will be subject to RLS.')
+  }
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, key)
 }
 
 export async function serverClient(): Promise<SupabaseClient> {

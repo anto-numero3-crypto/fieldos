@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
       .insert({
         user_id: userId,
         customer_id: customerId,
-        title: `${serviceName} — ${customerName}`,
+        title: serviceName,
         description: notes || null,
         status: 'scheduled',
         scheduled_date: date,
