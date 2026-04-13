@@ -8,6 +8,7 @@ import AppLayout from '@/components/AppLayout'
 import { SkeletonText, SkeletonCard } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import { useLanguage } from '@/lib/LanguageContext'
+import { fmtMoney, fmtDate as fmtDateLib } from '@/lib/format'
 import {
   ArrowLeft, User, Calendar, Clock, Flag, Edit2, Save, CheckSquare,
   Square, Plus, Trash2, FileText, DollarSign, AlertCircle, CheckCircle,
@@ -38,15 +39,15 @@ const PRIORITY_CFG: Record<string, { label: string; cls: string }> = {
   urgent: { label: 'Urgent',           cls: 'text-red-600' },
 }
 
-const fmtDate = (d: string) => new Date(d).toLocaleDateString('fr-CA', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-const fmt     = (n: number) => `$${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router  = useRouter()
   const confirm = useConfirm()
-  const { t }   = useLanguage()
+  const { lang, t }   = useLanguage()
   const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
+  const fmtDate = (d: string) => fmtDateLib(d, lang)
+  const fmt = (n: number) => fmtMoney(n, lang)
 
   const [job, setJob]         = useState<Job | null>(null)
   const [loading, setLoading] = useState(true)
@@ -518,7 +519,7 @@ export default function JobDetailPage() {
                 {job.scheduled_date && (
                   <div className="flex justify-between">
                     <dt className="text-gray-500">Date</dt>
-                    <dd className="font-medium text-gray-900 text-xs">{new Date(job.scheduled_date).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' })}</dd>
+                    <dd className="font-medium text-gray-900 text-xs">{fmtDate(job.scheduled_date)}</dd>
                   </div>
                 )}
                 {job.start_time && (
@@ -529,7 +530,7 @@ export default function JobDetailPage() {
                 )}
                 <div className="flex justify-between">
                   <dt className="text-gray-500">Créé</dt>
-                  <dd className="font-medium text-gray-900 text-xs">{new Date(job.created_at).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' })}</dd>
+                  <dd className="font-medium text-gray-900 text-xs">{fmtDate(job.created_at)}</dd>
                 </div>
               </dl>
             </div>
