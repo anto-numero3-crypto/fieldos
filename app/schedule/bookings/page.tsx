@@ -108,13 +108,13 @@ export default function BookingsPage() {
           cancel:  'Réservation annulée.',
           complete: 'Marqué comme terminé.',
         }
-        toast.success(labels[action] || 'Mis à jour')
+        toast.success(labels[action] || t.success.updated)
         load(userId, statusFilter)
       } else {
-        toast.error(data.error || 'Erreur')
+        toast.error(data.error || t.errors.unknown)
       }
     } catch {
-      toast.error('Erreur réseau')
+      toast.error(t.errors.networkError)
     }
     setActioning(null)
     setDecliningId(null)
