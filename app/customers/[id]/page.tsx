@@ -113,15 +113,18 @@ export default function CustomerDetailPage() {
       if (!auth.user) { router.push('/login'); return }
       setUserId(auth.user.id)
 
-      const [{ data: c }, { data: j }, { data: inv }, { data: q }, { data: bk }] = await Promise.all([
-        supabase.from('customers').select('*').eq('id', id).eq('user_id', auth.user.id).single(),
+      const customerRes = await fetch(`/api/customers/${id}`, { cache: 'no-store' })
+      const customerJson = await customerRes.json()
+      const c = customerJson.customer
+      if (!c) { router.push('/customers'); return }
+
+      const [{ data: j }, { data: inv }, { data: q }, { data: bk }] = await Promise.all([
         supabase.from('jobs').select('id, title, status, scheduled_date, created_at').eq('customer_id', id).eq('user_id', auth.user.id).order('created_at', { ascending: false }),
         supabase.from('invoices').select('id, amount, status, due_date, invoice_number, created_at').eq('customer_id', id).eq('user_id', auth.user.id).order('created_at', { ascending: false }),
         supabase.from('quotes').select('id, title, status, total, valid_until, created_at, quote_number').eq('customer_id', id).eq('user_id', auth.user.id).order('created_at', { ascending: false }),
         supabase.from('booking_requests').select('id, service_name, status, requested_date, requested_time, source, created_at').eq('customer_id', id).eq('user_id', auth.user.id).order('created_at', { ascending: false }),
       ])
 
-      if (!c) { router.push('/customers'); return }
       setCustomer(c)
       setJobs(j || [])
       setInvoices(inv || [])

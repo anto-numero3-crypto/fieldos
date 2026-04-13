@@ -76,13 +76,9 @@ export default function JobDetailPage() {
       const { data: auth } = await supabase.auth.getUser()
       if (!auth.user) { router.push('/login'); return }
 
-      const { data: j } = await supabase
-        .from('jobs')
-        .select('*, customers(id, name, email, phone)')
-        .eq('id', id)
-        .eq('user_id', auth.user.id)
-        .single()
-
+      const jobRes = await fetch(`/api/jobs/${id}`, { cache: 'no-store' })
+      const jobJson = await jobRes.json()
+      const j = jobJson.job
       if (!j) { router.push('/jobs'); return }
       setJob(j as unknown as Job)
 

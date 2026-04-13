@@ -90,26 +90,27 @@ export default function InvoiceDetailPage() {
 
   const fetchInvoice = async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('invoices')
-      .select('*, token, customers(id, name, email, phone), jobs(id, title)')
-      .eq('id', id)
-      .single()
-    if (data) {
-      setInvoice(data)
-      setEditStatus(data.status)
-      setEditDueDate(data.due_date || '')
-      setEditTaxRate(String(data.tax_rate || 0))
-      setLineItems(data.line_items || [])
-      // Fetch org name for email sender identity
-      if (data.user_id) {
-        const { data: org } = await supabase
-          .from('organizations')
-          .select('name')
-          .eq('owner_user_id', data.user_id)
-          .single()
-        if (org?.name) setBusinessName(org.name)
+    try {
+      const res = await fetch(`/api/invoices/${id}`, { cache: 'no-store' })
+      const json = await res.json()
+      const data = json.invoice
+      if (data) {
+        setInvoice(data)
+        setEditStatus(data.status)
+        setEditDueDate(data.due_date || '')
+        setEditTaxRate(String(data.tax_rate || 0))
+        setLineItems(data.line_items || [])
+        if (data.user_id) {
+          const { data: org } = await supabase
+            .from('organizations')
+            .select('name')
+            .eq('owner_user_id', data.user_id)
+            .single()
+          if (org?.name) setBusinessName(org.name)
+        }
       }
+    } catch (e) {
+      console.error('[invoice detail] fetch failed:', e)
     }
     setLoading(false)
   }
