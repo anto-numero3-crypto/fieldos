@@ -109,11 +109,15 @@ export default function CustomersPage() {
   const paged = useMemo(() => filtered.slice(range.from, range.to), [filtered, range.from, range.to])
   useEffect(() => { resetPage() }, [search, resetPage])
 
-  const fetch_ = async (uid: string) => {
-    const { data } = await supabase
-      .from('customers').select('*')
-      .eq('user_id', uid).order('created_at', { ascending: false })
-    setCustomers(data || [])
+  const fetch_ = async (_uid: string) => {
+    try {
+      const res = await fetch('/api/customers', { cache: 'no-store' })
+      const data = await res.json()
+      setCustomers(data.customers || [])
+    } catch (e) {
+      console.error('[customers] fetch failed:', e)
+      setCustomers([])
+    }
   }
 
   const addTag = () => {

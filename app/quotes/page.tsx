@@ -113,9 +113,10 @@ export default function QuotesPage() {
     init()
   }, [])
 
-  const fetchQuotes = async (uid: string) => {
-    const { data } = await supabase.from('quotes').select('id, title, status, total, valid_until, created_at, quote_number, customer_id, notes, customers(name, email)').eq('user_id', uid).order('created_at', { ascending: false })
-    setQuotes((data || []) as unknown as Quote[])
+  const fetchQuotes = async (_uid: string) => {
+    const res = await fetch('/api/quotes', { cache: 'no-store' })
+    const data = await res.json()
+    setQuotes((data.quotes || []) as unknown as Quote[])
   }
   const fetchCustomers = async (uid: string) => {
     const { data } = await supabase.from('customers').select('id, name').eq('user_id', uid).order('name')

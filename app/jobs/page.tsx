@@ -92,9 +92,15 @@ export default function JobsPage() {
     init()
   }, [])
 
-  const fetchJobs = async (uid: string) => {
-    const { data } = await supabase.from('jobs').select('id, title, description, status, priority, scheduled_date, created_at, customers(name)').eq('user_id', uid).order('created_at', { ascending: false })
-    setJobs((data || []) as unknown as Job[])
+  const fetchJobs = async (_uid: string) => {
+    try {
+      const res = await fetch('/api/jobs', { cache: 'no-store' })
+      const data = await res.json()
+      setJobs((data.jobs || []) as unknown as Job[])
+    } catch (e) {
+      console.error('[jobs] fetch failed:', e)
+      setJobs([])
+    }
   }
   const fetchCustomers = async (uid: string) => {
     const { data } = await supabase.from('customers').select('id, name').eq('user_id', uid).order('name')
