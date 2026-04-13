@@ -4,8 +4,8 @@
 UPDATE organizations
 SET slug = lower(
   regexp_replace(
-    regexp_replace(name, '[^a-zA-Z0-9\s-]', '', 'g'),
-    '\s+', '-', 'g'
+    regexp_replace(name, '[^a-zA-Z0-9[:space:]-]', '', 'g'),
+    '[[:space:]]+', '-', 'g'
   )
 )
 WHERE slug IS NULL AND name IS NOT NULL AND name <> '';
