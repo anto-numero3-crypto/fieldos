@@ -39,31 +39,28 @@ export async function POST(req: NextRequest) {
     // Resolve the business's Stripe Connect account (optional)
     const { data: org } = await supabase
       .from('organizations')
-      .select('stripe_connect_account_id, stripe_connect_charges_enabled, name, phone, email')
+      .select('stripe_connect_account_id, stripe_connect_charges_enabled, name')
       .eq('owner_user_id', invoice.user_id)
       .maybeSingle()
 
     const connectAccount = org?.stripe_connect_account_id || null
     const chargesEnabled = !!org?.stripe_connect_charges_enabled
-
-    if (connectAccount && !chargesEnabled) {
-      return NextResponse.json({
-        error: `Le compte de paiement de ${org?.name || 'l\'entreprise'} n'est pas encore activé. Contactez l'entreprise pour payer directement.`,
-      }, { status: 400 })
-    }
+    const useConnect = connectAccount && chargesEnabled
+    const businessName = org?.name || undefined
 
     const safeReturn = typeof returnPath === 'string' && returnPath.startsWith('/') ? returnPath : `/invoice/${token}`
 
     const params: Stripe.Checkout.SessionCreateParams = {
       mode: 'payment',
       payment_method_types: ['card'],
+      locale: 'fr-CA',
       line_items: [{
         price_data: {
           currency: 'cad',
           unit_amount: amountCents,
           product_data: {
             name: invoice.invoice_number ? `Facture ${invoice.invoice_number}` : 'Paiement de facture',
-            description: customer?.name ? `Paiement de ${customer.name}` : undefined,
+            description: businessName || (customer?.name ? `Paiement de ${customer.name}` : undefined),
           },
         },
         quantity: 1,
@@ -71,11 +68,15 @@ export async function POST(req: NextRequest) {
       customer_email: customer?.email || undefined,
       success_url: `${origin}${safeReturn}?paid=true`,
       cancel_url:  `${origin}${safeReturn}`,
-      metadata: { invoiceId, invoice_token: token },
+      metadata: {
+        invoiceId,
+        invoice_token: token,
+        payment_mode: useConnect ? 'connect' : 'platform',
+      },
     }
 
-    const session = connectAccount
-      ? await stripe.checkout.sessions.create(params, { stripeAccount: connectAccount })
+    const session = useConnect
+      ? await stripe.checkout.sessions.create(params, { stripeAccount: connectAccount! })
       : await stripe.checkout.sessions.create(params)
 
     return NextResponse.json({ url: session.url })

@@ -1011,17 +1011,28 @@ ALTER TABLE availability_schedule
   ADD CONSTRAINT availability_schedule_user_id_day_of_week_key
   UNIQUE (user_id, day_of_week);
 
--- Invoice owner-read policy — explicit text cast so RLS works whether
--- user_id is stored as UUID or TEXT.
-DROP POLICY IF EXISTS "invoices_owner_select" ON invoices;
-CREATE POLICY "invoices_owner_select"
-  ON invoices FOR SELECT
-  USING ((user_id)::text = (auth.uid())::text);
+-- Availability schedule RLS (owner manages own rows)
+DROP POLICY IF EXISTS "owners_manage_schedule" ON availability_schedule;
+CREATE POLICY "owners_manage_schedule"
+  ON availability_schedule FOR ALL
+  USING ((user_id)::text = (auth.uid())::text)
+  WITH CHECK ((user_id)::text = (auth.uid())::text);
 
+-- Invoice policies — drop all old variants, recreate with text cast.
+-- Permissive OR handles any shape (uuid/text) user_id was written as.
+DROP POLICY IF EXISTS "invoices_owner_select" ON invoices;
 DROP POLICY IF EXISTS "invoices_owner_all" ON invoices;
+DROP POLICY IF EXISTS "invoices_public_read_by_token" ON invoices;
+
 CREATE POLICY "invoices_owner_all"
   ON invoices FOR ALL
-  USING ((user_id)::text = (auth.uid())::text);
+  USING ((user_id)::text = (auth.uid())::text)
+  WITH CHECK ((user_id)::text = (auth.uid())::text);
+
+-- Public token-based read remains open so /invoice/[token] page works
+CREATE POLICY "invoices_public_read_by_token"
+  ON invoices FOR SELECT
+  USING (true);
 
 
 -- ─────────────────────────────────────────────────────────────────
