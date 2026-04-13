@@ -11,6 +11,8 @@ import { validateEmail, validatePhone } from '@/lib/validators'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import AppLayout from '@/components/AppLayout'
 import { toast } from 'sonner'
+import { useLanguage } from '@/lib/LanguageContext'
+import { fmtDate } from '@/lib/format'
 import {
   Building2, Bell, Shield, Globe, Save, CheckCircle, AlertCircle,
   Phone, CreditCard, Wrench, Sparkles, Link as LinkIcon, Copy, Check,
@@ -97,6 +99,7 @@ function SaveBar({ saved, error, saving, onSave }: { saved: boolean; error: stri
 export default function SettingsPage() {
   const plan = usePlan()
   const confirm = useConfirm()
+  const { lang, t } = useLanguage()
   const [tab, setTab]       = useState<Tab>('business')
   const [user, setUser]     = useState<{ id: string; email?: string } | null>(null)
   const [orgId, setOrgId]     = useState<string | null>(null)
@@ -126,14 +129,14 @@ export default function SettingsPage() {
       })
       const data = await res.json()
       if (!res.ok || !data.url) {
-        toast.error(data.error || 'Impossible de créer la session de paiement.')
+        toast.error(data.error || t.errors.unknown)
         setCheckoutLoading(null)
         return
       }
       window.location.href = data.url
     } catch (err) {
       console.error('Plan change error:', err)
-      toast.error('Erreur lors du changement de forfait.')
+      toast.error(t.errors.unknown)
       setCheckoutLoading(null)
     }
   }
@@ -202,11 +205,11 @@ export default function SettingsPage() {
         setTab(urlTab as Tab)
       }
       if (params.get('connected') === 'true') {
-        toast.success('Compte Stripe connecté !')
+        toast.success(t.success.saved)
         loadConnectStatus(data.user.id)
       }
       if (params.get('success') === 'true' && params.get('session_id')) {
-        toast.success('Paiement confirmé ! Votre forfait est en cours d\'activation.')
+        toast.success(t.success.saved)
         plan.refresh()
       }
       if (params.get('canceled') === 'true') {
@@ -300,7 +303,7 @@ export default function SettingsPage() {
     } else {
       if (saved?.id) setOrgId(saved.id)
       if (saved?.slug) setOrgSlug(saved.slug)
-      toast.success('Paramètres sauvegardés !')
+      toast.success(t.success.saved)
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     }
@@ -322,7 +325,7 @@ export default function SettingsPage() {
   const addService = async () => {
     if (!user) return
     const name = newSvcName.trim()
-    if (!name) { toast.error('Nom du service requis'); return }
+    if (!name) { toast.error(t.errors.required); return }
     const showPrice = newSvcPricingType !== 'quote_required' && newSvcPricingType !== 'free'
     const price = showPrice ? (parseFloat(newSvcPrice) || 0) : 0
     const priceMax = newSvcPricingType === 'custom_range' ? (parseFloat(newSvcPriceMax) || null) : null
@@ -352,7 +355,7 @@ export default function SettingsPage() {
     setNewSvcName(''); setNewSvcCategory(''); setNewSvcPricingType('fixed')
     setNewSvcPrice(''); setNewSvcPriceMax(''); setNewSvcPricingNote('')
     setNewSvcDuration('60'); setNewSvcBuffer('0'); setNewSvcDesc('')
-    toast.success('Service ajouté')
+    toast.success(t.success.created)
   }
 
   const toggleServiceActive = async (svc: Service) => {
@@ -378,7 +381,7 @@ export default function SettingsPage() {
     const { error: svcErr } = await supabase.from('services').delete().eq('id', svc.id)
     if (svcErr) { toast.error(svcErr.message); return }
     setServices((prev) => prev.filter((s) => s.id !== svc.id))
-    toast.success('Service supprimé')
+    toast.success(t.success.deleted)
   }
 
   const loadConnectStatus = async (uid: string) => {
@@ -399,7 +402,7 @@ export default function SettingsPage() {
         })
         const data = await res.json()
         if (!res.ok || !data.accountId) {
-          toast.error(data.error || 'Impossible de créer le compte Stripe.')
+          toast.error(data.error || t.errors.unknown)
           setConnectLoading(false)
           return
         }
@@ -411,7 +414,7 @@ export default function SettingsPage() {
       })
       const data2 = await res2.json()
       if (!res2.ok || !data2.url) {
-        toast.error(data2.error || 'Impossible de générer le lien Stripe.')
+        toast.error(data2.error || t.errors.unknown)
         setConnectLoading(false)
         return
       }
@@ -419,7 +422,7 @@ export default function SettingsPage() {
       window.location.href = data2.url
     } catch (err) {
       console.error('Stripe connect error:', err)
-      toast.error('Erreur de connexion Stripe. Vérifiez la console.')
+      toast.error(t.errors.unknown)
     }
     setConnectLoading(false)
   }
@@ -867,11 +870,11 @@ export default function SettingsPage() {
                   </div>
                   <p className="text-2xl font-bold text-gray-900 mt-2">{PLAN_PRICING[plan.plan].label} — ${PLAN_PRICING[plan.plan].monthly}/mois</p>
                   {plan.nextBillingAt && plan.status === 'active' && !plan.promoCodeId && (
-                    <p className="text-xs text-gray-400 mt-1">Prochaine facture le {new Date(plan.nextBillingAt).toLocaleDateString('fr-CA')}</p>
+                    <p className="text-xs text-gray-400 mt-1">{fmtDate(plan.nextBillingAt, lang)}</p>
                   )}
                   {plan.promoCodeId && plan.promoExpiresAt && (
                     <p className="text-xs font-medium text-emerald-700 mt-1">
-                      🎁 Code promo actif · {plan.promoDaysLeft} jour{plan.promoDaysLeft > 1 ? 's' : ''} restant{plan.promoDaysLeft > 1 ? 's' : ''} — expire le {new Date(plan.promoExpiresAt).toLocaleDateString('fr-CA')}
+                      🎁 Code promo actif · {plan.promoDaysLeft} jour{plan.promoDaysLeft > 1 ? 's' : ''} restant{plan.promoDaysLeft > 1 ? 's' : ''} — {fmtDate(plan.promoExpiresAt, lang)}
                     </p>
                   )}
                 </div>
