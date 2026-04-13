@@ -9,28 +9,38 @@ import FieldError from '@/components/FieldError'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonText, SkeletonListRow } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
+import ConvertQuoteModal from '@/components/ConvertQuoteModal'
 import { ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   FileSignature, Plus, X, Search, User, Calendar, DollarSign,
-  Trash2, Send, ChevronRight, Tag, CheckCircle,
+  Trash2, Send, ChevronRight, Tag, CheckCircle, Briefcase,
 } from 'lucide-react'
 
 interface LineItem { id: string; description: string; qty: number; unit_price: number }
 interface Quote {
   id: string; title: string; status: string; total: number; valid_until: string | null
   created_at: string; quote_number: string | null
-  customers: { name: string } | null
+  customer_id?: string | null
+  notes?: string | null
+  customers: { name: string; email?: string | null } | null
 }
 interface Customer { id: string; name: string }
 
 const STATUS_CFG: Record<string, { label: string; cls: string }> = {
-  draft:    { label: 'Brouillon', cls: 'bg-gray-50 text-gray-600 ring-1 ring-gray-100' },
-  sent:     { label: 'Envoyé',    cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
-  approved: { label: 'Approuvé', cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
-  rejected: { label: 'Refusé',   cls: 'bg-red-50 text-red-700 ring-1 ring-red-100' },
-  expired:  { label: 'Expiré',   cls: 'bg-amber-50 text-amber-600 ring-1 ring-amber-100' },
+  draft:     { label: 'Brouillon', cls: 'bg-gray-50 text-gray-600 ring-1 ring-gray-100' },
+  sent:      { label: 'Envoyé',    cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
+  viewed:    { label: 'Vu',        cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
+  approved:  { label: 'Accepté',   cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
+  accepted:  { label: 'Accepté',   cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
+  converted: { label: 'Converti',  cls: 'bg-violet-50 text-violet-700 ring-1 ring-violet-100' },
+  rejected:  { label: 'Refusé',    cls: 'bg-red-50 text-red-700 ring-1 ring-red-100' },
+  expired:   { label: 'Expiré',    cls: 'bg-amber-50 text-amber-600 ring-1 ring-amber-100' },
 }
+
+// Statuses where conversion + acceptance buttons are visible
+const CONVERTIBLE = new Set(['sent', 'viewed', 'approved', 'accepted'])
+const ACCEPTABLE  = new Set(['sent', 'viewed'])
 
 const fmt = (n: number) => `$${n.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 const newItem = (): LineItem => ({ id: Date.now().toString(), description: '', qty: 1, unit_price: 0 })
@@ -50,6 +60,37 @@ export default function QuotesPage() {
   const [customerId, setCustId]   = useState('')
   const [touched, setTouched]     = useState<Record<string, boolean>>({})
   const confirm = useConfirm()
+  const [convertingQuote, setConvertingQuote] = useState<Quote | null>(null)
+  const [acceptingId, setAcceptingId] = useState<string | null>(null)
+
+  const acceptQuote = async (q: Quote) => {
+    setAcceptingId(q.id)
+    try {
+      await supabase.from('quotes').update({ status: 'approved' }).eq('id', q.id)
+      setQuotes((prev) => prev.map((p) => p.id === q.id ? { ...p, status: 'approved' } : p))
+      // Fire-and-forget acceptance email
+      if (q.customers?.email) {
+        try {
+          await fetch('/api/email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'quote',
+              to: q.customers.email,
+              customerName: q.customers.name,
+              quoteTitle: q.title,
+              amount: `$${q.total.toFixed(2)}`,
+              subject: `Devis accepté — ${q.title || q.quote_number || ''}`,
+              body: `Votre devis a été accepté. Nous vous contacterons sous peu pour planifier les travaux.`,
+            }),
+          })
+        } catch { /* ignore */ }
+      }
+      toast.success('Devis accepté')
+    } finally {
+      setAcceptingId(null)
+    }
+  }
   const [validUntil, setValidUntil] = useState('')
   const [taxRate, setTaxRate]     = useState(0)
   const [notes, setNotes]         = useState('')
@@ -67,7 +108,7 @@ export default function QuotesPage() {
   }, [])
 
   const fetchQuotes = async (uid: string) => {
-    const { data } = await supabase.from('quotes').select('id, title, status, total, valid_until, created_at, quote_number, customers(name)').eq('user_id', uid).order('created_at', { ascending: false })
+    const { data } = await supabase.from('quotes').select('id, title, status, total, valid_until, created_at, quote_number, customer_id, notes, customers(name, email)').eq('user_id', uid).order('created_at', { ascending: false })
     setQuotes((data || []) as unknown as Quote[])
   }
   const fetchCustomers = async (uid: string) => {
@@ -226,15 +267,29 @@ export default function QuotesPage() {
                           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{scfg?.label || q.status}</span>
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center gap-1">
                             {q.status === 'draft' && (
-                              <button onClick={() => updateStatus(q.id, 'sent')} className="rounded-lg p-1.5 text-blue-500 hover:bg-blue-50 transition-colors" title="Mark as Sent">
+                              <button onClick={() => updateStatus(q.id, 'sent')} className="rounded-lg p-1.5 text-blue-500 hover:bg-blue-50 transition-colors" title="Marquer comme envoyé">
                                 <Send className="h-4 w-4" />
                               </button>
                             )}
-                            {q.status === 'sent' && (
-                              <button onClick={() => updateStatus(q.id, 'approved')} className="rounded-lg p-1.5 text-emerald-500 hover:bg-emerald-50 transition-colors" title="Mark as Approved">
-                                <CheckCircle className="h-4 w-4" />
+                            {ACCEPTABLE.has(q.status) && (
+                              <button
+                                onClick={() => acceptQuote(q)}
+                                disabled={acceptingId === q.id}
+                                className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 px-2 py-1.5 text-xs font-semibold text-emerald-700 disabled:opacity-60"
+                                title="Accepter le devis"
+                              >
+                                <CheckCircle className="h-3.5 w-3.5" /> Accepter
+                              </button>
+                            )}
+                            {CONVERTIBLE.has(q.status) && (
+                              <button
+                                onClick={() => setConvertingQuote(q)}
+                                className="inline-flex items-center gap-1 rounded-lg bg-violet-50 hover:bg-violet-100 px-2 py-1.5 text-xs font-semibold text-violet-700"
+                                title="Convertir en emploi"
+                              >
+                                <Briefcase className="h-3.5 w-3.5" /> Convertir
                               </button>
                             )}
                             <button onClick={() => deleteQuote(q.id)} className="rounded-lg p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors">
@@ -372,6 +427,11 @@ export default function QuotesPage() {
         </>
       )}
       <MobileFAB onClick={() => setPanelOpen(true)} label="Nouveau devis" />
+      <ConvertQuoteModal
+        open={!!convertingQuote}
+        quote={convertingQuote}
+        onClose={() => setConvertingQuote(null)}
+      />
     </AppLayout>
   )
 }

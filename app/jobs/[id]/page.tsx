@@ -20,6 +20,7 @@ interface Job {
   end_time: string | null; service_address: string | null; internal_notes: string | null
   checklist: ChecklistItem[] | null; created_at: string
   source: string | null
+  quote_id?: string | null
   customers: { id: string; name: string; email: string | null; phone: string | null } | null
 }
 
@@ -274,6 +275,14 @@ export default function JobDetailPage() {
                   {job.source === 'booking' && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 text-indigo-700 px-2.5 py-0.5 text-xs font-semibold">
                       <Calendar className="h-3 w-3" /> Réservé en ligne
+                    </span>
+                  )}
+                  {job.source === 'quote' && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 text-violet-700 px-2.5 py-0.5 text-xs font-semibold">
+                      <FileText className="h-3 w-3" /> Créé depuis un devis
+                      {job.quote_id && (
+                        <Link href={`/quotes`} className="ml-1 underline">voir</Link>
+                      )}
                     </span>
                   )}
                 </div>
