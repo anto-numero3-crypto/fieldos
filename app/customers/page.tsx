@@ -84,12 +84,12 @@ export default function CustomersPage() {
 
   const copyBookingLink = () => {
     if (!orgSlug) {
-      toast.error('Configurez d\'abord votre lien de réservation dans Disponibilités.')
+      toast.error(t.errors.notFound)
       return
     }
     const url = `https://gestivio.ca/book/${orgSlug}`
     navigator.clipboard.writeText(url)
-    toast.success('Lien de réservation copié !')
+    toast.success(t.success.copied)
   }
 
   useEffect(() => {
@@ -119,7 +119,7 @@ export default function CustomersPage() {
   const addCustomer = async (e: React.FormEvent) => {
     e.preventDefault()
     setTouched({ name: true, email: true, phone: true })
-    if (formInvalid) { toast.error('Vérifiez les champs en surbrillance.'); return }
+    if (formInvalid) { toast.error(t.errors.required); return }
     setLoading(true)
     const { error } = await supabase.from('customers').insert({
       user_id: user!.id, name: name.trim(),
@@ -129,7 +129,7 @@ export default function CustomersPage() {
     })
     if (error) { toast.error(error.message) }
     else {
-      toast.success('Client ajouté !')
+      toast.success(t.success.created)
       setName(''); setEmail(''); setPhone(''); setAddress(''); setNotes(''); setTags([])
       await fetch_(user!.id)
       await plan.refresh()
@@ -157,7 +157,7 @@ export default function CustomersPage() {
     if (error) { toast.error(error.message); return }
     setCustomers((prev) => prev.filter((c) => c.id !== id))
     setMenuOpen(null)
-    toast.success('Client supprimé.')
+    toast.success(t.success.deleted)
   }
 
   const exportCSV = () => {
@@ -326,7 +326,7 @@ export default function CustomersPage() {
                         {c.lifetime_value && c.lifetime_value > 0 ? fmtMoney(c.lifetime_value, lang) : <span className="text-gray-300">—</span>}
                       </td>
                       <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-400">
-                        {new Date(c.created_at).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {fmtDate(c.created_at, lang)}
                       </td>
                       <td className="px-5 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
