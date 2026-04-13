@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Menu, Bell, X, CheckCircle, AlertCircle, Info, AlertTriangle, Sun, Moon, Search } from 'lucide-react'
+import { Menu, Bell, X, CheckCircle, AlertCircle, Info, AlertTriangle, Sun, Moon, Search, Calendar, DollarSign, UserPlus, Briefcase, XCircle, Clock } from 'lucide-react'
+import { toast } from 'sonner'
 import Sidebar from './Sidebar'
 import Link from 'next/link'
 import { supabase } from '@/app/supabase'
@@ -29,11 +30,25 @@ interface Notification {
   created_at: string
 }
 
-const typeIcon: Record<string, React.ReactNode> = {
-  success: <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />,
-  error:   <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />,
-  warning: <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />,
-  info:    <Info className="h-4 w-4 text-blue-500 shrink-0" />,
+// Type-specific icon mapping. Falls back to generic by severity if the type
+// isn't recognized. Each cell renders an icon in a colored circle.
+const TYPE_ICON: Record<string, { Icon: React.ComponentType<{ className?: string }>; bg: string; fg: string }> = {
+  booking_request:   { Icon: Calendar,    bg: 'bg-amber-50',   fg: 'text-amber-600' },
+  booking_confirmed: { Icon: CheckCircle, bg: 'bg-emerald-50', fg: 'text-emerald-600' },
+  invoice_paid:      { Icon: DollarSign,  bg: 'bg-emerald-50', fg: 'text-emerald-600' },
+  invoice_overdue:   { Icon: AlertCircle, bg: 'bg-red-50',     fg: 'text-red-600' },
+  new_customer:      { Icon: UserPlus,    bg: 'bg-blue-50',    fg: 'text-blue-600' },
+  job_completed:     { Icon: Briefcase,   bg: 'bg-emerald-50', fg: 'text-emerald-600' },
+  payment_failed:    { Icon: XCircle,     bg: 'bg-red-50',     fg: 'text-red-600' },
+  trial_ending:      { Icon: Clock,       bg: 'bg-orange-50',  fg: 'text-orange-600' },
+  // Generic fallbacks (legacy)
+  success:           { Icon: CheckCircle, bg: 'bg-emerald-50', fg: 'text-emerald-600' },
+  error:             { Icon: AlertCircle, bg: 'bg-red-50',     fg: 'text-red-600' },
+  warning:           { Icon: AlertTriangle, bg: 'bg-amber-50', fg: 'text-amber-600' },
+  info:              { Icon: Info,        bg: 'bg-blue-50',    fg: 'text-blue-600' },
+}
+function notifIcon(type: string) {
+  return TYPE_ICON[type] || TYPE_ICON.info
 }
 
 export default function AppLayout({ children, title, actions }: AppLayoutProps) {
@@ -66,8 +81,16 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
           table: 'notifications',
           filter: `user_id=eq.${data.user.id}`,
         }, (payload) => {
-          setNotifications((prev) => [payload.new as Notification, ...prev].slice(0, 20))
-          setUnread((n) => n + 1)
+          const n = payload.new as Notification
+          setNotifications((prev) => [n, ...prev].slice(0, 20))
+          setUnread((u) => u + 1)
+          // Brief preview toast — clicking it navigates to the linked page.
+          if (n.title) {
+            toast(n.title, {
+              description: n.body,
+              action: n.link ? { label: 'Voir', onClick: () => { window.location.href = n.link! } } : undefined,
+            })
+          }
         })
         .subscribe()
 
@@ -105,10 +128,10 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
 
   const timeAgo = (date: string) => {
     const secs = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
-    if (secs < 60) return 'just now'
-    if (secs < 3600) return `${Math.floor(secs / 60)}m ago`
-    if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`
-    return `${Math.floor(secs / 86400)}d ago`
+    if (secs < 60) return "à l'instant"
+    if (secs < 3600) return `il y a ${Math.floor(secs / 60)} min`
+    if (secs < 86400) return `il y a ${Math.floor(secs / 3600)} h`
+    return `il y a ${Math.floor(secs / 86400)} j`
   }
 
   return (
@@ -169,13 +192,13 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
               <button
                 type="button"
                 onClick={() => setNotifOpen(!notifOpen)}
+                aria-label="Notifications"
                 className="relative p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 <Bell className="h-4.5 w-4.5" />
                 {unread > 0 && (
-                  <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                  <span className="absolute -top-0.5 -right-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white ring-2 ring-white dark:ring-gray-900 tabular-nums">
+                    {unread > 99 ? '99+' : unread}
                   </span>
                 )}
               </button>
@@ -183,7 +206,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
               {notifOpen && (
                 <>
                   <div className="fixed inset-0 z-20" onClick={() => setNotifOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 z-30 w-80 rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 shadow-xl overflow-hidden">
+                  <div className="absolute right-0 top-full mt-2 z-30 w-[380px] max-w-[calc(100vw-1rem)] rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 shadow-xl overflow-hidden">
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
                       <div>
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
@@ -192,46 +215,51 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
                       <div className="flex items-center gap-2">
                         {unread > 0 && (
                           <button onClick={markAllRead} className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
-                            Tout marquer lu
+                            Tout marquer comme lu
                           </button>
                         )}
-                        <button onClick={() => setNotifOpen(false)} className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                        <button onClick={() => setNotifOpen(false)} aria-label="Fermer" className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">
                           <X className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
 
-                    <div className="max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-800">
+                    <div className="max-h-[480px] overflow-y-auto divide-y divide-gray-50 dark:divide-gray-800">
                       {notifications.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-10 text-center px-4">
-                          <Bell className="h-8 w-8 text-gray-200 mb-2" />
-                          <p className="text-sm text-gray-400">Aucune notification</p>
-                          <p className="text-xs text-gray-300 mt-1">Les alertes apparaîtront ici</p>
-                        </div>
-                      ) : notifications.map((n) => (
-                        <button
-                          key={n.id}
-                          onClick={() => { markOneRead(n.id); if (n.link) window.location.href = n.link }}
-                          className={`w-full flex gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 text-left transition-colors ${!n.read ? 'bg-indigo-50/40 dark:bg-indigo-950/30' : ''}`}
-                        >
-                          <div className="mt-0.5">{typeIcon[n.type] || typeIcon.info}</div>
-                          <div className="min-w-0 flex-1">
-                            <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{n.title}</p>
-                            {n.body && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>}
-                            <p className="text-xs text-gray-400 mt-0.5">{timeAgo(n.created_at)}</p>
+                        <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+                          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50">
+                            <Bell className="h-6 w-6 text-indigo-300" />
                           </div>
-                          {!n.read && <span className="mt-1.5 h-2 w-2 rounded-full bg-indigo-500 shrink-0" />}
-                        </button>
-                      ))}
+                          <p className="text-sm font-medium text-gray-700">Aucune notification</p>
+                          <p className="text-xs text-gray-400 mt-1">Les alertes apparaîtront ici</p>
+                        </div>
+                      ) : notifications.map((n) => {
+                        const cfg = notifIcon(n.type)
+                        return (
+                          <button
+                            key={n.id}
+                            onClick={() => { markOneRead(n.id); if (n.link) window.location.href = n.link }}
+                            className={`w-full flex gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 text-left transition-colors ${!n.read ? 'bg-indigo-50/40 dark:bg-indigo-950/30' : ''}`}
+                          >
+                            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${cfg.bg}`}>
+                              <cfg.Icon className={`h-4 w-4 ${cfg.fg}`} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{n.title}</p>
+                              {n.body && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>}
+                              <p className="text-xs text-gray-400 mt-1">{timeAgo(n.created_at)}</p>
+                            </div>
+                            {!n.read && <span className="mt-1.5 h-2 w-2 rounded-full bg-indigo-500 shrink-0" />}
+                          </button>
+                        )
+                      })}
                     </div>
 
-                    {notifications.length > 0 && (
-                      <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
-                        <Link href="/notifications" onClick={() => setNotifOpen(false)} className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
-                          Voir toutes les notifications →
-                        </Link>
-                      </div>
-                    )}
+                    <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 text-center">
+                      <Link href="/notifications" onClick={() => setNotifOpen(false)} className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
+                        Voir toutes les notifications →
+                      </Link>
+                    </div>
                   </div>
                 </>
               )}
