@@ -22,6 +22,16 @@ interface Customer {
 interface Job { id: string; title: string; status: string; scheduled_date: string | null; created_at: string }
 interface Invoice { id: string; amount: number; status: string; due_date: string | null; invoice_number: string | null; created_at: string }
 interface Note { id: string; content: string; created_at: string }
+interface Quote {
+  id: string; title: string | null; status: string | null
+  total: number | null; valid_until: string | null; created_at: string
+  quote_number?: string | null
+}
+interface Booking {
+  id: string; service_name: string | null; status: string
+  requested_date: string | null; requested_time: string | null
+  source: string | null; created_at: string
+}
 
 const STATUS = {
   scheduled:   { label: 'Planifié',   cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
@@ -35,9 +45,29 @@ const STATUS = {
 
 const TAB_LABELS: Record<string, string> = {
   overview: 'Aperçu',
-  jobs: 'Interventions',
+  jobs: 'Emplois',
   invoices: 'Factures',
+  quotes: 'Devis',
+  bookings: 'Réservations',
   notes: 'Notes',
+}
+
+const BOOKING_STATUS: Record<string, { label: string; cls: string }> = {
+  pending:    { label: 'En attente',  cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100' },
+  confirmed:  { label: 'Confirmée',   cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
+  declined:   { label: 'Refusée',     cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100' },
+  cancelled:  { label: 'Annulée',     cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100' },
+  completed:  { label: 'Terminée',    cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
+  no_show:    { label: 'Absence',     cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100' },
+  custom_request: { label: 'Demande', cls: 'bg-violet-50 text-violet-700 ring-1 ring-violet-100' },
+}
+
+const QUOTE_STATUS: Record<string, { label: string; cls: string }> = {
+  draft:    { label: 'Brouillon', cls: 'bg-gray-50 text-gray-600 ring-1 ring-gray-100' },
+  sent:     { label: 'Envoyé',    cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
+  accepted: { label: 'Accepté',   cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
+  declined: { label: 'Refusé',    cls: 'bg-red-50 text-red-700 ring-1 ring-red-100' },
+  expired:  { label: 'Expiré',    cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100' },
 }
 type StatusKey = keyof typeof STATUS
 
@@ -55,8 +85,10 @@ export default function CustomerDetailPage() {
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [jobs, setJobs]         = useState<Job[]>([])
   const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [quotes, setQuotes]     = useState<Quote[]>([])
+  const [bookings, setBookings] = useState<Booking[]>([])
   const [notes, setNotes]       = useState<Note[]>([])
-  const [tab, setTab]           = useState<'overview' | 'jobs' | 'invoices' | 'notes'>('overview')
+  const [tab, setTab]           = useState<'overview' | 'jobs' | 'invoices' | 'quotes' | 'bookings' | 'notes'>('overview')
   const [loading, setLoading]   = useState(true)
   const [userId, setUserId]     = useState<string | null>(null)
   const [editMode, setEditMode] = useState(false)
@@ -77,16 +109,20 @@ export default function CustomerDetailPage() {
       if (!auth.user) { router.push('/login'); return }
       setUserId(auth.user.id)
 
-      const [{ data: c }, { data: j }, { data: inv }] = await Promise.all([
+      const [{ data: c }, { data: j }, { data: inv }, { data: q }, { data: bk }] = await Promise.all([
         supabase.from('customers').select('*').eq('id', id).eq('user_id', auth.user.id).single(),
         supabase.from('jobs').select('id, title, status, scheduled_date, created_at').eq('customer_id', id).eq('user_id', auth.user.id).order('created_at', { ascending: false }),
         supabase.from('invoices').select('id, amount, status, due_date, invoice_number, created_at').eq('customer_id', id).eq('user_id', auth.user.id).order('created_at', { ascending: false }),
+        supabase.from('quotes').select('id, title, status, total, valid_until, created_at, quote_number').eq('customer_id', id).eq('user_id', auth.user.id).order('created_at', { ascending: false }),
+        supabase.from('booking_requests').select('id, service_name, status, requested_date, requested_time, source, created_at').eq('customer_id', id).eq('user_id', auth.user.id).order('created_at', { ascending: false }),
       ])
 
       if (!c) { router.push('/customers'); return }
       setCustomer(c)
       setJobs(j || [])
       setInvoices(inv || [])
+      setQuotes((q || []) as Quote[])
+      setBookings((bk || []) as Booking[])
 
       // Try to fetch notes (may not exist yet)
       const { data: n } = await supabase
@@ -159,6 +195,9 @@ export default function CustomerDetailPage() {
 
   const totalInvoiced = invoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0)
   const totalPaid     = invoices.filter((i) => i.status === 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+  const unpaidStatuses = new Set(['unpaid', 'sent', 'overdue', 'viewed'])
+  const totalUnpaid   = invoices.filter((i) => unpaidStatuses.has(i.status)).reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+  const unpaidCount   = invoices.filter((i) => unpaidStatuses.has(i.status)).length
   const completedJobs = jobs.filter((j) => j.status === 'complete').length
 
   return (
@@ -238,7 +277,7 @@ export default function CustomerDetailPage() {
               { label: 'Interventions', value: jobs.length, sub: `${completedJobs} terminée(s)`, icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
               { label: 'Facturé', value: fmt(totalInvoiced), sub: `${invoices.length} facture(s)`, icon: FileText, color: 'text-indigo-600', bg: 'bg-indigo-50' },
               { label: 'Payé', value: fmt(totalPaid), sub: `${invoices.filter((i) => i.status === 'paid').length} payée(s)`, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-              { label: 'Impayés', value: fmt(totalInvoiced - totalPaid), sub: `${invoices.filter((i) => i.status !== 'paid').length} en attente`, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+              { label: 'Solde impayé', value: fmt(totalUnpaid), sub: `${unpaidCount} en attente`, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
             ].map((k) => (
               <div key={k.label} className={`rounded-xl p-3 ${k.bg}`}>
                 <k.icon className={`h-5 w-5 ${k.color} mb-1`} />
@@ -248,22 +287,44 @@ export default function CustomerDetailPage() {
               </div>
             ))}
           </div>
+
+          {/* Quick actions */}
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link href={`/jobs?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+              <Briefcase className="h-3.5 w-3.5 text-violet-500" /> Nouvel emploi
+            </Link>
+            <Link href={`/invoices/new?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+              <DollarSign className="h-3.5 w-3.5 text-emerald-500" /> Nouvelle facture
+            </Link>
+            <Link href={`/quotes?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+              <FileText className="h-3.5 w-3.5 text-indigo-500" /> Nouveau devis
+            </Link>
+            {customer.email && (
+              <a href={`mailto:${customer.email}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+                <Mail className="h-3.5 w-3.5 text-blue-500" /> Envoyer un message
+              </a>
+            )}
+          </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 mb-4 bg-gray-100 rounded-xl p-1 w-fit">
-          {(['overview', 'jobs', 'invoices', 'notes'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={['rounded-lg px-4 py-1.5 text-sm font-semibold transition-all', tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'].join(' ')}
-            >
-              {TAB_LABELS[t] || t}
-              {t === 'jobs'     && jobs.length > 0     && <span className="ml-1.5 rounded-full bg-gray-200 px-1.5 py-0.5 text-xs">{jobs.length}</span>}
-              {t === 'invoices' && invoices.length > 0 && <span className="ml-1.5 rounded-full bg-gray-200 px-1.5 py-0.5 text-xs">{invoices.length}</span>}
-              {t === 'notes'    && notes.length > 0    && <span className="ml-1.5 rounded-full bg-gray-200 px-1.5 py-0.5 text-xs">{notes.length}</span>}
-            </button>
-          ))}
+        <div className="flex items-center gap-1 mb-4 bg-gray-100 rounded-xl p-1 w-fit max-w-full overflow-x-auto">
+          {(['overview', 'jobs', 'invoices', 'quotes', 'bookings', 'notes'] as const).map((t) => {
+            const counts: Record<string, number> = {
+              jobs: jobs.length, invoices: invoices.length, quotes: quotes.length,
+              bookings: bookings.length, notes: notes.length,
+            }
+            return (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={['rounded-lg px-4 py-1.5 text-sm font-semibold transition-all whitespace-nowrap', tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'].join(' ')}
+              >
+                {TAB_LABELS[t] || t}
+                {counts[t] > 0 && <span className="ml-1.5 rounded-full bg-gray-200 px-1.5 py-0.5 text-xs">{counts[t]}</span>}
+              </button>
+            )
+          })}
         </div>
 
         {/* Tab content */}
@@ -291,33 +352,35 @@ export default function CustomerDetailPage() {
         {tab === 'jobs' && (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">Interventions ({jobs.length})</h2>
-              <Link href="/jobs" className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
-                <Plus className="h-3.5 w-3.5" /> Nouvelle intervention
+              <h2 className="text-sm font-semibold text-gray-900">Emplois ({jobs.length})</h2>
+              <Link href={`/jobs?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
+                <Plus className="h-3.5 w-3.5" /> Nouvel emploi
               </Link>
             </div>
             {jobs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Briefcase className="h-8 w-8 text-gray-300 mb-2" />
-                <p className="text-sm text-gray-400">Aucune intervention pour ce client</p>
+                <p className="text-sm text-gray-400">Aucun emploi pour ce client</p>
               </div>
             ) : (
               <ul className="divide-y divide-gray-50">
                 {jobs.map((j) => {
                   const s = STATUS[j.status as StatusKey]
                   return (
-                    <li key={j.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-50">
-                        <Briefcase className="h-4 w-4 text-violet-500" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{j.title}</p>
-                        <p className="text-xs text-gray-400 flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {j.scheduled_date ? fmtDate(j.scheduled_date) : fmtDate(j.created_at)}
-                        </p>
-                      </div>
-                      <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s?.cls || ''}`}>{s?.label || j.status}</span>
+                    <li key={j.id}>
+                      <Link href={`/jobs/${j.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-50">
+                          <Briefcase className="h-4 w-4 text-violet-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{j.title}</p>
+                          <p className="text-xs text-gray-400 flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {j.scheduled_date ? fmtDate(j.scheduled_date) : fmtDate(j.created_at)}
+                          </p>
+                        </div>
+                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s?.cls || ''}`}>{s?.label || j.status}</span>
+                      </Link>
                     </li>
                   )
                 })}
@@ -329,8 +392,15 @@ export default function CustomerDetailPage() {
         {tab === 'invoices' && (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">Factures ({invoices.length})</h2>
-              <Link href="/invoices" className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
+              <div>
+                <h2 className="text-sm font-semibold text-gray-900">Factures ({invoices.length})</h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Facturé : <span className="font-medium text-gray-700">{fmt(totalInvoiced)}</span> ·
+                  Payé : <span className="font-medium text-emerald-700">{fmt(totalPaid)}</span> ·
+                  Impayé : <span className="font-medium text-amber-700">{fmt(totalUnpaid)}</span>
+                </p>
+              </div>
+              <Link href={`/invoices/new?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
                 <Plus className="h-3.5 w-3.5" /> Nouvelle facture
               </Link>
             </div>
@@ -344,17 +414,99 @@ export default function CustomerDetailPage() {
                 {invoices.map((inv) => {
                   const s = STATUS[inv.status as StatusKey]
                   return (
-                    <li key={inv.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50">
-                        <DollarSign className="h-4 w-4 text-emerald-500" />
+                    <li key={inv.id}>
+                      <Link href={`/invoices/${inv.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50">
+                          <DollarSign className="h-4 w-4 text-emerald-500" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900">{fmt(parseFloat(String(inv.amount)))}</p>
+                          <p className="text-xs text-gray-400">
+                            {inv.invoice_number || 'Facture'} · {inv.due_date ? `Éch. ${fmtDate(inv.due_date)}` : fmtDate(inv.created_at)}
+                          </p>
+                        </div>
+                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s?.cls || ''}`}>{s?.label || inv.status}</span>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {tab === 'quotes' && (
+          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h2 className="text-sm font-semibold text-gray-900">Devis ({quotes.length})</h2>
+              <Link href={`/quotes?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
+                <Plus className="h-3.5 w-3.5" /> Nouveau devis
+              </Link>
+            </div>
+            {quotes.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <FileText className="h-8 w-8 text-gray-300 mb-2" />
+                <p className="text-sm text-gray-400">Aucun devis pour ce client</p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-gray-50">
+                {quotes.map((q) => {
+                  const s = q.status ? QUOTE_STATUS[q.status] : null
+                  return (
+                    <li key={q.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50">
+                        <FileText className="h-4 w-4 text-indigo-500" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900">{fmt(parseFloat(String(inv.amount)))}</p>
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {q.title || q.quote_number || 'Devis'}{q.total != null ? ` · ${fmt(parseFloat(String(q.total)))}` : ''}
+                        </p>
                         <p className="text-xs text-gray-400">
-                          {inv.invoice_number || 'Facture'} · {inv.due_date ? `Éch. ${fmtDate(inv.due_date)}` : fmtDate(inv.created_at)}
+                          {q.quote_number ? `${q.quote_number} · ` : ''}
+                          {q.valid_until ? `Valide jusqu'au ${fmtDate(q.valid_until)}` : `Créé le ${fmtDate(q.created_at)}`}
                         </p>
                       </div>
-                      <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s?.cls || ''}`}>{s?.label || inv.status}</span>
+                      {s && (
+                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s.cls}`}>{s.label}</span>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+        )}
+
+        {tab === 'bookings' && (
+          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h2 className="text-sm font-semibold text-gray-900">Réservations ({bookings.length})</h2>
+            </div>
+            {bookings.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Calendar className="h-8 w-8 text-gray-300 mb-2" />
+                <p className="text-sm text-gray-400">Aucune réservation pour ce client</p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-gray-50">
+                {bookings.map((b) => {
+                  const s = BOOKING_STATUS[b.status]
+                  return (
+                    <li key={b.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50">
+                        <Calendar className="h-4 w-4 text-indigo-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{b.service_name || 'Réservation'}</p>
+                        <p className="text-xs text-gray-400">
+                          {b.requested_date ? fmtDate(b.requested_date) : fmtDate(b.created_at)}
+                          {b.requested_time ? ` à ${b.requested_time.slice(0, 5)}` : ''}
+                          {b.source ? ` · ${b.source}` : ''}
+                        </p>
+                      </div>
+                      {s && (
+                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s.cls}`}>{s.label}</span>
+                      )}
                     </li>
                   )
                 })}
