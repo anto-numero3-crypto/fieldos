@@ -10,6 +10,8 @@ import {
   Users, DollarSign, Briefcase, Zap, ArrowRight, RefreshCw,
   ChevronRight, Star, Clock, Target, Activity,
 } from 'lucide-react'
+import { useLanguage } from '@/lib/LanguageContext'
+import { fmtMoney } from '@/lib/format'
 
 interface Recommendation {
   id: string
@@ -63,7 +65,6 @@ interface Customer {
   created_at: string
 }
 
-const fmt = (n: number) => `$${n.toLocaleString('en', { minimumFractionDigits: 0 })}`
 
 const impactColors: Record<string, string> = {
   High:   'bg-red-50 text-red-700 ring-red-100',
@@ -72,6 +73,8 @@ const impactColors: Record<string, string> = {
 }
 
 export default function InsightsPage() {
+  const { lang } = useLanguage()
+  const fmt = (n: number) => fmtMoney(n, lang)
   const [loading, setLoading]               = useState(true)
   const [generating, setGenerating]         = useState(false)
   const [summary, setSummary]               = useState<WeeklySummary | null>(null)
