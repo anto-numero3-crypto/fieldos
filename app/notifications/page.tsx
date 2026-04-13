@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState'
 import { SkeletonListRow } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
+import { useLanguage } from '@/lib/LanguageContext'
 import {
   Bell, Calendar, CheckCircle, DollarSign, AlertCircle, UserPlus,
   Briefcase, XCircle, Clock, Info, AlertTriangle, ChevronLeft, ChevronRight,
@@ -66,6 +67,7 @@ export default function NotificationsPage() {
   const [filterRead, setFilterRead] = useState<'all' | 'unread' | 'read'>('all')
   const [page, setPage]       = useState(0)
   const confirm = useConfirm()
+  const { t } = useLanguage()
 
   const load = useCallback(async (uid: string) => {
     setLoading(true)
@@ -102,7 +104,7 @@ export default function NotificationsPage() {
     if (!userId) return
     await supabase.from('notifications').update({ read: true }).eq('user_id', userId).eq('read', false)
     setItems((prev) => prev.map((n) => ({ ...n, read: true })))
-    toast.success('Toutes les notifications marquées comme lues')
+    toast.success(t.success.updated)
   }
 
   const markOne = async (n: Notification) => {
@@ -129,7 +131,7 @@ export default function NotificationsPage() {
       .lt('created_at', cutoff)
     if (error) { toast.error(error.message); return }
     setItems((prev) => prev.filter((n) => n.created_at >= cutoff))
-    toast.success('Anciennes notifications supprimées')
+    toast.success(t.success.deleted)
   }
 
   const unreadCount = items.filter((n) => !n.read).length
