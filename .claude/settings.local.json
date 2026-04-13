@@ -33,7 +33,8 @@
       "Bash(grep -l \"skeleton\" app/*/page.tsx app/*/*/page.tsx)",
       "Bash(grep -rn \"paid_at\" supabase/*.sql)",
       "Bash(grep -rn \"converted_to_job_id\\\\|quote_id\" supabase/*.sql)",
-      "Bash(grep -rn \"invoice_items\\\\|line_items\" supabase/*.sql)"
+      "Bash(grep -rn \"invoice_items\\\\|line_items\" supabase/*.sql)",
+      "Bash(grep -nE \"^    [a-z]+: \\\\{$\" lib/i18n.ts)"
     ]
   }
 }
