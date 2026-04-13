@@ -13,6 +13,8 @@ import EmptyState from '@/components/EmptyState'
 import { SkeletonText, SkeletonListRow } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
+import { useLanguage } from '@/lib/LanguageContext'
+import { fmtMoney, fmtDate } from '@/lib/format'
 import {
   Users, Plus, Search, Mail, Phone, MapPin, X,
   Tag, TrendingUp, ChevronRight,
@@ -32,7 +34,7 @@ const AVATAR_COLORS = [
 ]
 const initials  = (n: string) => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 const getColor  = (n: string) => AVATAR_COLORS[n.charCodeAt(0) % AVATAR_COLORS.length]
-const fmt       = (n: number) => `$${n.toLocaleString('en', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+// fmt is now fmtMoney from @/lib/format with lang from useLanguage
 
 export default function CustomersPage() {
   const [customers, setCustomers]   = useState<Customer[]>([])
@@ -44,6 +46,7 @@ export default function CustomersPage() {
   const [loading, setLoading]       = useState(false)
   const [menuOpen, setMenuOpen]     = useState<string | null>(null)
   const plan = usePlan()
+  const { lang, t } = useLanguage()
 
   // Form
   const [name, setName]       = useState('')
@@ -229,7 +232,7 @@ export default function CustomersPage() {
           {[
             { label: 'Total clients', value: customers.length, icon: Users, bg: 'bg-blue-50', color: 'text-blue-600' },
             { label: 'Avec email', value: customers.filter((c) => c.email).length, icon: Mail, bg: 'bg-indigo-50', color: 'text-indigo-600' },
-            { label: 'Valeur cumulée totale', value: fmt(totalLTV), icon: TrendingUp, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+            { label: 'Valeur cumulée totale', value: fmtMoney(totalLTV, lang), icon: TrendingUp, bg: 'bg-emerald-50', color: 'text-emerald-600' },
           ].map((s) => (
             <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${s.bg} mb-2`}>
@@ -320,7 +323,7 @@ export default function CustomersPage() {
                         </div>
                       </td>
                       <td className="px-5 py-4 whitespace-nowrap text-sm font-semibold text-emerald-700">
-                        {c.lifetime_value && c.lifetime_value > 0 ? fmt(c.lifetime_value) : <span className="text-gray-300">—</span>}
+                        {c.lifetime_value && c.lifetime_value > 0 ? fmtMoney(c.lifetime_value, lang) : <span className="text-gray-300">—</span>}
                       </td>
                       <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-400">
                         {new Date(c.created_at).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -361,7 +364,7 @@ export default function CustomersPage() {
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold ${getColor(c.name)}`}>{initials(c.name)}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900">{c.name}</p>
-                      {c.lifetime_value && c.lifetime_value > 0 && <p className="text-xs text-emerald-600 font-medium">LTV: {fmt(c.lifetime_value)}</p>}
+                      {c.lifetime_value && c.lifetime_value > 0 && <p className="text-xs text-emerald-600 font-medium">LTV: {fmtMoney(c.lifetime_value, lang)}</p>}
                     </div>
                     <ChevronRight className="h-4 w-4 text-gray-300" />
                   </div>

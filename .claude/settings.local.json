@@ -34,7 +34,8 @@
       "Bash(grep -rn \"paid_at\" supabase/*.sql)",
       "Bash(grep -rn \"converted_to_job_id\\\\|quote_id\" supabase/*.sql)",
       "Bash(grep -rn \"invoice_items\\\\|line_items\" supabase/*.sql)",
-      "Bash(grep -nE \"^    [a-z]+: \\\\{$\" lib/i18n.ts)"
+      "Bash(grep -nE \"^    [a-z]+: \\\\{$\" lib/i18n.ts)",
+      "Bash(grep -oE \"'[A-ZÀ-ÿ][a-zà-ÿ ']{3,40}'\" app/customers/page.tsx)"
     ]
   }
 }
