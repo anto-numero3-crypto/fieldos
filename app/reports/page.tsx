@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import UpgradePrompt from '@/components/UpgradePrompt'
+import { usePlan } from '@/lib/hooks/usePlan'
 import {
   BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
@@ -36,7 +38,27 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
   return null
 }
 
-export default function ReportsPage() {
+function ReportsGate({ children }: { children: React.ReactNode }) {
+  const plan = usePlan()
+  if (plan.loading) return <>{children}</>
+  if (!plan.isFeatureAvailable('hasAnalytics')) {
+    return (
+      <AppLayout title="Rapports">
+        <div className="p-6 sm:p-10">
+          <UpgradePrompt
+            variant="overlay"
+            feature="Rapports et analyses"
+            requiredPlan="pro"
+            description="Suivez vos revenus, vos interventions et vos clients les plus fidèles avec des tableaux de bord complets — disponibles dès le forfait Pro."
+          />
+        </div>
+      </AppLayout>
+    )
+  }
+  return <>{children}</>
+}
+
+function ReportsPageInner() {
   const [period, setPeriod]     = useState<Period>('90d')
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [jobs, setJobs]         = useState<Job[]>([])
@@ -414,5 +436,13 @@ export default function ReportsPage() {
 
       </div>
     </AppLayout>
+  )
+}
+
+export default function ReportsPage() {
+  return (
+    <ReportsGate>
+      <ReportsPageInner />
+    </ReportsGate>
   )
 }

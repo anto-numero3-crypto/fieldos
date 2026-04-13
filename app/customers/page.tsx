@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
+import UpgradePrompt from '@/components/UpgradePrompt'
+import { usePlan } from '@/lib/hooks/usePlan'
 import { toast } from 'sonner'
 import {
   Users, Plus, Search, Mail, Phone, MapPin, X,
@@ -36,6 +38,7 @@ export default function CustomersPage() {
   const [pageLoading, setPageLoading] = useState(true)
   const [loading, setLoading]       = useState(false)
   const [menuOpen, setMenuOpen]     = useState<string | null>(null)
+  const plan = usePlan()
 
   // Form
   const [name, setName]       = useState('')
@@ -96,9 +99,18 @@ export default function CustomersPage() {
       toast.success('Client ajouté !')
       setName(''); setEmail(''); setPhone(''); setAddress(''); setNotes(''); setTags([])
       await fetch_(user!.id)
+      await plan.refresh()
       setPanelOpen(false)
     }
     setLoading(false)
+  }
+
+  const openAddCustomer = () => {
+    if (plan.isAtCustomerLimit) {
+      toast.error(`Limite de ${plan.limits.maxCustomers} clients atteinte sur le forfait Starter. Passez à Pro pour un nombre illimité.`)
+      return
+    }
+    setPanelOpen(true)
   }
 
   const deleteCustomer = async (id: string) => {
@@ -144,7 +156,7 @@ export default function CustomersPage() {
         <Upload className="h-4 w-4" /> Importer CSV
       </Link>
       <button
-        onClick={() => setPanelOpen(true)}
+        onClick={openAddCustomer}
         className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all"
       >
         <Plus className="h-4 w-4" /> Ajouter un client
@@ -168,6 +180,16 @@ export default function CustomersPage() {
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         {/* Stats row */}
+        {plan.plan === 'starter' && (
+          <div className="mb-4 rounded-xl border border-gray-100 bg-white px-4 py-3 flex items-center gap-3 text-sm">
+            <span className="font-semibold text-gray-900">{plan.customerCount}/{plan.limits.maxCustomers} clients</span>
+            <span className="text-gray-400">·</span>
+            <span className="text-gray-500 flex-1 min-w-0 truncate">Forfait Starter</span>
+            {plan.isAtCustomerLimit && (
+              <UpgradePrompt variant="inline" feature="Clients illimités" requiredPlan="pro" />
+            )}
+          </div>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           {[
             { label: 'Total clients', value: customers.length, icon: Users, bg: 'bg-blue-50', color: 'text-blue-600' },
@@ -206,7 +228,7 @@ export default function CustomersPage() {
             </div>
             <h3 className="text-base font-semibold text-gray-900 mb-1">Aucun client pour l&apos;instant</h3>
             <p className="text-sm text-gray-400 mb-6 max-w-xs">Ajoutez votre premier client pour commencer à gérer vos interventions.</p>
-            <button onClick={() => setPanelOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
+            <button onClick={openAddCustomer} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
               <Plus className="h-4 w-4" /> Ajouter votre premier client
             </button>
           </div>
@@ -430,7 +452,7 @@ export default function CustomersPage() {
           </div>
         </>
       )}
-      <MobileFAB onClick={() => setPanelOpen(true)} label="Ajouter un client" />
+      <MobileFAB onClick={openAddCustomer} label="Ajouter un client" />
     </AppLayout>
   )
 }

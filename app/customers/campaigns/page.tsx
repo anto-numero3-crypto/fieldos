@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
+import UpgradePrompt from '@/components/UpgradePrompt'
+import { usePlan } from '@/lib/hooks/usePlan'
 import {
   Send, Users, Mail, Clock, ChevronDown, Sparkles, CheckCircle,
   AlertCircle, Loader2, Plus, X, Calendar, Tag, MessageSquare,
@@ -62,7 +64,7 @@ const AUDIENCE_LABELS: Record<AudienceType, string> = {
 
 const fmt = (d: string) => new Date(d).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
 
-export default function CampaignsPage() {
+function CampaignsPageInner() {
   const [tab, setTab]             = useState<'create' | 'history'>('create')
   const [loading, setLoading]     = useState(true)
   const [sending, setSending]     = useState(false)
@@ -484,4 +486,23 @@ Subject line first, then body. Keep it warm, professional, and concise.`
       </div>
     </AppLayout>
   )
+}
+
+export default function CampaignsPage() {
+  const plan = usePlan()
+  if (!plan.loading && !plan.isFeatureAvailable('hasCampaigns')) {
+    return (
+      <AppLayout title="Campagnes">
+        <div className="p-6 sm:p-10">
+          <UpgradePrompt
+            variant="overlay"
+            feature="Campagnes de réengagement"
+            requiredPlan="pro"
+            description="Relancez automatiquement vos clients inactifs par courriel — avec le forfait Pro."
+          />
+        </div>
+      </AppLayout>
+    )
+  }
+  return <CampaignsPageInner />
 }

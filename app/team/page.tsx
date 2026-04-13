@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
+import UpgradePrompt from '@/components/UpgradePrompt'
+import { usePlan } from '@/lib/hooks/usePlan'
 import { toast } from 'sonner'
 import {
   Users2, Plus, X, Mail, Phone, Shield, Wrench,
@@ -35,6 +37,7 @@ export default function TeamPage() {
   const [pageLoading, setPageLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
+  const plan = usePlan()
   const [editMember, setEditMember] = useState<TeamMember | null>(null)
 
   // Form
@@ -134,6 +137,21 @@ export default function TeamPage() {
       </div>
     </AppLayout>
   )
+
+  if (!plan.loading && !plan.isFeatureAvailable('hasTeamManagement')) {
+    return (
+      <AppLayout title="Équipe">
+        <div className="p-6 sm:p-10">
+          <UpgradePrompt
+            variant="overlay"
+            feature="Gestion d'équipe"
+            requiredPlan="pro"
+            description="Invitez jusqu'à 5 techniciens, assignez-leur des interventions et suivez leurs performances en temps réel avec le forfait Pro."
+          />
+        </div>
+      </AppLayout>
+    )
+  }
 
   const activeCount = members.filter((m) => m.is_active).length
 

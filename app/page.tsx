@@ -76,10 +76,9 @@ export default function LandingPage() {
   ]
 
   const pricingPlans = [
-    { key: 'starter',    name: lang === 'fr' ? 'Démarrage'   : 'Starter',    monthlyPrice: 39,  description: l.starterDesc,     features: l.pricingFeatures.starter,    cta: l.pricingCtaStarter,    highlighted: false, href: '/signup' },
-    { key: 'growth',     name: lang === 'fr' ? 'Croissance'  : 'Growth',     monthlyPrice: 99,  description: l.growthDesc,      features: l.pricingFeatures.growth,     cta: l.pricingCtaGrowth,     highlighted: true,  href: '/signup' },
-    { key: 'pro',        name: lang === 'fr' ? 'Pro'         : 'Pro',        monthlyPrice: 199, description: l.proDesc,         features: l.pricingFeatures.pro,        cta: l.pricingCtaPro,        highlighted: false, href: '/signup' },
-    { key: 'enterprise', name: lang === 'fr' ? 'Entreprise'  : 'Enterprise', monthlyPrice: 399, description: l.enterpriseDesc,  features: l.pricingFeatures.enterprise, cta: l.pricingCtaEnterprise, highlighted: false, href: '/login' },
+    { key: 'starter',  name: 'Starter',  monthlyPrice: 49,  description: l.starterDesc,  features: l.pricingFeatures.starter,  cta: l.pricingCtaStarter,  highlighted: false, href: '/signup' },
+    { key: 'pro',      name: 'Pro',      monthlyPrice: 99,  description: l.proDesc,      features: l.pricingFeatures.pro,      cta: l.pricingCtaPro,      highlighted: true,  href: '/signup' },
+    { key: 'business', name: 'Business', monthlyPrice: 179, description: l.businessDesc, features: l.pricingFeatures.business, cta: l.pricingCtaBusiness, highlighted: false, href: '/signup' },
   ]
 
 
@@ -456,7 +455,7 @@ export default function LandingPage() {
             </div>
           </Reveal>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
             {pricingPlans.map((plan, i) => {
               const price = billing === 'annual' ? Math.round(plan.monthlyPrice * 0.8) : plan.monthlyPrice
               return (

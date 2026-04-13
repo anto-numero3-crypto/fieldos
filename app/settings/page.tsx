@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import { formatPrice } from '@/lib/pricing'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
+import { usePlan } from '@/lib/hooks/usePlan'
+import { PLAN_PRICING } from '@/lib/plan-limits'
 import AppLayout from '@/components/AppLayout'
 import { toast } from 'sonner'
 import {
@@ -90,6 +92,7 @@ function SaveBar({ saved, error, saving, onSave }: { saved: boolean; error: stri
 }
 
 export default function SettingsPage() {
+  const plan = usePlan()
   const [tab, setTab]       = useState<Tab>('business')
   const [user, setUser]     = useState<{ id: string; email?: string } | null>(null)
   const [orgId, setOrgId]     = useState<string | null>(null)
@@ -797,6 +800,79 @@ export default function SettingsPage() {
         {/* Billing / Payments */}
         {tab === 'billing' && (
           <div className="space-y-6">
+            {/* Current plan card */}
+            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-3 flex-wrap">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-semibold text-gray-900">Votre forfait</h2>
+                    <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${
+                      plan.status === 'trial' ? 'bg-indigo-50 text-indigo-700' :
+                      plan.status === 'active' ? 'bg-emerald-50 text-emerald-700' :
+                      plan.status === 'past_due' ? 'bg-amber-50 text-amber-700' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {plan.status === 'trial' ? `Essai · ${plan.trialDaysLeft} j restants` :
+                       plan.status === 'active' ? 'Actif' :
+                       plan.status === 'past_due' ? 'Paiement en retard' :
+                       plan.status === 'cancelled' ? 'Annulé' : 'Expiré'}
+                    </span>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">{PLAN_PRICING[plan.plan].label} — ${PLAN_PRICING[plan.plan].monthly}/mois</p>
+                  {plan.nextBillingAt && plan.status === 'active' && (
+                    <p className="text-xs text-gray-400 mt-1">Prochaine facture le {new Date(plan.nextBillingAt).toLocaleDateString('fr-CA')}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Usage */}
+              <div className="px-6 py-5 grid gap-4 sm:grid-cols-3 border-b border-gray-100">
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Clients</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {plan.customerCount} / {plan.limits.maxCustomers === Infinity ? '∞' : plan.limits.maxCustomers}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Utilisateurs</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {plan.teamMemberCount} / {plan.limits.maxUsers}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Messages IA ce mois</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {plan.aiMessagesThisMonth} / {plan.limits.maxAIMessages === Infinity ? '∞' : plan.limits.maxAIMessages}
+                  </p>
+                </div>
+              </div>
+
+              {/* Plan switcher */}
+              <div className="p-6 grid gap-4 md:grid-cols-3">
+                {(['starter', 'pro', 'business'] as const).map((p) => {
+                  const info = PLAN_PRICING[p]
+                  const isCurrent = plan.plan === p
+                  return (
+                    <div key={p} className={`rounded-xl border p-4 ${isCurrent ? 'border-indigo-300 bg-indigo-50/40' : 'border-gray-200 bg-white'}`}>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">{info.label}</p>
+                      <p className="text-xl font-bold text-gray-900 mt-1">${info.monthly}<span className="text-xs font-normal text-gray-400">/mois</span></p>
+                      <p className="text-xs text-gray-500 mt-1 mb-3">{info.tagline}</p>
+                      {isCurrent ? (
+                        <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white">Forfait actuel</span>
+                      ) : (
+                        <button
+                          onClick={() => toast.info(`Pour changer vers ${info.label}, contactez-nous à support@gestivio.ca. Intégration Stripe en cours.`)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                        >
+                          {p === 'starter' ? 'Rétrograder' : 'Changer de forfait'}
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
             {/* Stripe Connect section */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-100">

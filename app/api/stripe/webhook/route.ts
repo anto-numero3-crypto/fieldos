@@ -33,19 +33,18 @@ export async function POST(req: NextRequest) {
 
         if (userId && planId) {
           // Business subscribing to a Gestivio plan
-          await supabase.from('organizations').upsert({
-            owner_user_id: userId,
+          await supabase.from('organizations').update({
             plan: planId,
+            plan_status: 'active',
+            plan_started_at: new Date().toISOString(),
             stripe_subscription_id: session.subscription as string,
             stripe_customer_id: session.customer as string,
-            trial_ends_at: null,
-            billing_status: 'active',
-          })
+          }).eq('owner_user_id', userId)
           await supabase.from('notifications').insert({
             user_id: userId,
             type: 'success',
             title: 'Abonnement activé',
-            body: `Votre plan ${planId} est maintenant actif.`,
+            body: `Votre forfait ${planId} est maintenant actif.`,
           })
         } else if (invoiceId) {
           // Client paying a business invoice
@@ -87,11 +86,25 @@ export async function POST(req: NextRequest) {
         const sub = event.data.object as Stripe.Subscription
         const userId = sub.metadata?.userId
         if (userId) {
-          const status = sub.status === 'active' ? 'active' : sub.status === 'past_due' ? 'past_due' : 'inactive'
-          await supabase
-            .from('organizations')
-            .update({ billing_status: status, stripe_subscription_id: sub.id })
-            .eq('owner_user_id', userId)
+          const status = sub.status === 'active' ? 'active' : sub.status === 'past_due' ? 'past_due' : sub.status === 'canceled' ? 'cancelled' : 'active'
+          // Map Stripe price back to Gestivio plan via the price's product metadata
+          const priceId = sub.items.data[0]?.price.id
+          let planUpdate: Record<string, unknown> = { plan_status: status, stripe_subscription_id: sub.id }
+          if (priceId) {
+            try {
+              const price = await stripe.prices.retrieve(priceId, { expand: ['product'] })
+              const product = price.product as Stripe.Product
+              const planId = product.metadata?.gestivio_plan
+              if (planId === 'starter' || planId === 'pro' || planId === 'business') {
+                planUpdate.plan = planId
+              }
+            } catch { /* keep existing plan */ }
+          }
+          const periodEnd = (sub as unknown as { current_period_end?: number }).current_period_end
+          if (periodEnd) {
+            planUpdate.next_billing_at = new Date(periodEnd * 1000).toISOString()
+          }
+          await supabase.from('organizations').update(planUpdate).eq('owner_user_id', userId)
         }
         break
       }
@@ -102,13 +115,13 @@ export async function POST(req: NextRequest) {
         if (userId) {
           await supabase
             .from('organizations')
-            .update({ plan: 'starter', billing_status: 'inactive' })
+            .update({ plan: 'starter', plan_status: 'cancelled', stripe_subscription_id: null })
             .eq('owner_user_id', userId)
           await supabase.from('notifications').insert({
             user_id: userId,
             type:    'warning',
             title:   'Abonnement annulé',
-            body:    'Votre abonnement a pris fin. Mettez à niveau pour restaurer l\'accès.',
+            body:    "Votre abonnement a pris fin. Passez à Pro pour restaurer l'accès complet.",
           })
         }
         break
@@ -123,6 +136,7 @@ export async function POST(req: NextRequest) {
           .eq('stripe_customer_id', customerId)
           .single()
         if (org) {
+          await supabase.from('organizations').update({ plan_status: 'past_due' }).eq('owner_user_id', org.owner_user_id)
           await supabase.from('notifications').insert({
             user_id: org.owner_user_id,
             type:    'error',

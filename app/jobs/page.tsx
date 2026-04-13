@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
+import { usePlan } from '@/lib/hooks/usePlan'
 import { toast } from 'sonner'
 import {
   Briefcase, Plus, X, Calendar, User, CheckCircle,
@@ -38,6 +39,19 @@ export default function JobsPage() {
   const [activeFilter, setActiveFilter] = useState('all')
   const [search, setSearch]   = useState('')
   const [panelOpen, setPanelOpen] = useState(false)
+  const plan = usePlan()
+
+  const openAddJob = () => {
+    if (plan.plan === 'starter' && plan.limits.maxJobsPerMonth !== Infinity) {
+      // Lightweight client-side check based on jobs already visible.
+      // Server enforcement lives in the API where the insert happens.
+      if (jobs.length >= plan.limits.maxJobsPerMonth) {
+        toast.error(`Limite de ${plan.limits.maxJobsPerMonth} interventions par mois atteinte sur Starter. Passez à Pro pour un nombre illimité.`)
+        return
+      }
+    }
+    setPanelOpen(true)
+  }
   const [pageLoading, setPageLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
@@ -116,7 +130,7 @@ export default function JobsPage() {
   const countByStatus = (s: string) => jobs.filter((j) => j.status === s).length
 
   const AddButton = (
-    <button onClick={() => setPanelOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all">
+    <button onClick={openAddJob} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all">
       <Plus className="h-4 w-4" /> Nouvelle intervention
     </button>
   )
@@ -180,7 +194,7 @@ export default function JobsPage() {
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50"><Briefcase className="h-7 w-7 text-violet-500" /></div>
             <h3 className="text-base font-semibold text-gray-900 mb-1">Aucune intervention</h3>
             <p className="text-sm text-gray-400 mb-6 max-w-xs">Créez votre première intervention pour commencer le suivi terrain.</p>
-            <button onClick={() => setPanelOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
+            <button onClick={openAddJob} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
               <Plus className="h-4 w-4" /> Créer une intervention
             </button>
           </div>
@@ -354,7 +368,7 @@ export default function JobsPage() {
           </div>
         </>
       )}
-      <MobileFAB onClick={() => setPanelOpen(true)} label="Nouvelle intervention" />
+      <MobileFAB onClick={openAddJob} label="Nouvelle intervention" />
     </AppLayout>
   )
 }

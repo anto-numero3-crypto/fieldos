@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
+import UpgradePrompt from '@/components/UpgradePrompt'
+import { usePlan } from '@/lib/hooks/usePlan'
 import { toast } from 'sonner'
 import {
   Clock, Calendar, Settings, Globe, Copy, Check, ExternalLink,
@@ -72,7 +74,7 @@ const DEFAULT_SETTINGS: AvailSettings = {
   cancellation_policy: '',
 }
 
-export default function AvailabilityPage() {
+function AvailabilityPageInner() {
   const [userId, setUserId] = useState<string | null>(null)
   const [orgSlug, setOrgSlug] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -621,4 +623,23 @@ export default function AvailabilityPage() {
       </div>
     </AppLayout>
   )
+}
+
+export default function AvailabilityPage() {
+  const plan = usePlan()
+  if (!plan.loading && !plan.isFeatureAvailable('hasBookingPortal')) {
+    return (
+      <AppLayout title="Disponibilités">
+        <div className="p-6 sm:p-10">
+          <UpgradePrompt
+            variant="overlay"
+            feature="Portail de réservation en ligne"
+            requiredPlan="pro"
+            description="Laissez vos clients réserver en ligne 24/7 via votre propre lien de réservation — disponible dès le forfait Pro."
+          />
+        </div>
+      </AppLayout>
+    )
+  }
+  return <AvailabilityPageInner />
 }

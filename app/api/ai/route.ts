@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   const supabase  = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
   try {
@@ -18,6 +18,37 @@ export async function POST(req: NextRequest) {
 
     if (!message || !userId) {
       return NextResponse.json({ error: 'Missing message or userId' }, { status: 400 })
+    }
+
+    // Plan enforcement — Starter is capped at 20 AI messages per calendar month.
+    const { data: orgPlan } = await supabase
+      .from('organizations')
+      .select('id, plan, plan_status, ai_messages_this_month, ai_messages_reset_at')
+      .eq('owner_user_id', userId)
+      .single()
+
+    const STARTER_LIMIT = 20
+    let currentCount = orgPlan?.ai_messages_this_month || 0
+    const resetAt = orgPlan?.ai_messages_reset_at ? new Date(orgPlan.ai_messages_reset_at) : null
+    const nowTs = new Date()
+    // Monthly rollover
+    if (!resetAt || nowTs.getTime() - resetAt.getTime() > 30 * 24 * 60 * 60 * 1000) {
+      currentCount = 0
+      if (orgPlan?.id) {
+        await supabase.from('organizations').update({ ai_messages_this_month: 0, ai_messages_reset_at: nowTs.toISOString() }).eq('id', orgPlan.id)
+      }
+    }
+
+    if (orgPlan?.plan === 'starter' && currentCount >= STARTER_LIMIT) {
+      return NextResponse.json({
+        reply: `Vous avez atteint la limite de ${STARTER_LIMIT} messages IA ce mois-ci sur le forfait Starter. Passez au forfait Pro pour un accès illimité à l'assistant IA.`,
+        limitReached: true,
+      }, { status: 402 })
+    }
+
+    // Increment counter (best-effort, fire-and-forget after we generate the response would be ideal — doing it here for simplicity)
+    if (orgPlan?.id) {
+      await supabase.from('organizations').update({ ai_messages_this_month: currentCount + 1 }).eq('id', orgPlan.id)
     }
 
     // Fetch business data for context
