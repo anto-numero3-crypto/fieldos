@@ -8,6 +8,7 @@ import GoogleAnalytics from "@/components/GoogleAnalytics";
 import JsonLd from "@/components/JsonLd";
 import { organizationSchema } from "@/lib/schema";
 import { ConfirmProvider } from "@/components/ui/confirm-dialog";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -66,7 +67,7 @@ export default function RootLayout({
         <ThemeProvider>
           <LanguageProvider>
             <ConfirmProvider>
-              {children}
+              <ErrorBoundary>{children}</ErrorBoundary>
               <Toaster position="top-right" richColors closeButton duration={4000} />
             </ConfirmProvider>
           </LanguageProvider>
