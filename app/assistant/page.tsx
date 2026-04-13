@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import { Sparkles, Send, RotateCcw, Copy, Check, Zap } from 'lucide-react'
+import { useLanguage } from '@/lib/LanguageContext'
 
 interface Message { role: 'user' | 'assistant'; content: string }
 
@@ -53,9 +54,10 @@ function MessageContent({ content }: { content: string }) {
 }
 
 export default function AssistantPage() {
+  const { t } = useLanguage()
   const [user, setUser]     = useState<{ id: string; email?: string } | null>(null)
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: "Bonjour ! Je suis votre assistant IA Gestivio, propulsé par Claude.\n\nJ'ai accès en temps réel à toutes vos données — clients, interventions, factures, devis et analyses de revenus.\n\nPosez-moi n'importe quelle question ou demandez-moi de rédiger quelque chose !" },
+    { role: 'assistant', content: t.assistant.welcomeMsg },
   ])
   const [input, setInput]   = useState('')
   const [loading, setLoading] = useState(false)
@@ -135,7 +137,7 @@ export default function AssistantPage() {
                   <Zap className="h-3.5 w-3.5" /> Questions suggérées
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {SUGGESTED_PROMPTS.map((prompt) => (
+                  {t.assistant.prompts.map((prompt) => (
                     <button
                       key={prompt}
                       onClick={() => sendMessage(prompt)}
