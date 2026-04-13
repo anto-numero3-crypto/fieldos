@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -41,16 +42,51 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Check if this is a first login (no customer data yet → onboarding)
+    // First login: make sure the user has an organizations row with an
+    // active Pro trial before we send them into the app.
     if (data.user) {
-      const { count } = await supabase
+      const admin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+
+      const { data: existingOrg } = await admin
+        .from('organizations')
+        .select('id, name')
+        .eq('owner_user_id', data.user.id)
+        .maybeSingle()
+
+      if (!existingOrg) {
+        const bizName =
+          (data.user.user_metadata?.business_name as string | undefined) ||
+          (data.user.user_metadata?.full_name as string | undefined) ||
+          'Mon entreprise'
+        const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+        await admin.from('organizations').insert({
+          owner_user_id: data.user.id,
+          name: bizName,
+          email: data.user.email,
+          plan: 'pro',
+          plan_status: 'trial',
+          trial_ends_at: trialEndsAt,
+          plan_started_at: new Date().toISOString(),
+        })
+      }
+
+      // Send to /onboarding if they haven't finished setup yet:
+      // no org yet (edge case) OR no customers imported OR default placeholder name.
+      const needsOnboarding =
+        !existingOrg ||
+        !existingOrg.name ||
+        existingOrg.name === 'Mon entreprise'
+      const { count: customerCount } = await admin
         .from('customers')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', data.user.id)
 
-      const isNewUser = (count ?? 0) === 0
-
-      const redirectTo = isNewUser ? `${origin}/onboarding` : `${origin}${next}`
+      const redirectTo = (needsOnboarding || (customerCount ?? 0) === 0)
+        ? `${origin}/onboarding`
+        : `${origin}${next}`
       return NextResponse.redirect(redirectTo)
     }
   }
