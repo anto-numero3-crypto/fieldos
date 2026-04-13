@@ -44,7 +44,8 @@
       "Bash(git push:*)",
       "Bash(vercel deploy:*)",
       "Bash(wc:*)",
-      "Bash(ls lib/supabase*)"
+      "Bash(ls lib/supabase*)",
+      "Bash(ls:*)"
     ]
   }
 }
