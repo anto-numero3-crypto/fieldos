@@ -80,6 +80,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const timeFormatted = `${hh % 12 || 12}:${String(mm).padStart(2, '0')} ${hh < 12 ? 'AM' : 'PM'}`
 
   let update: Record<string, unknown> = {}
+  let debug: Record<string, unknown> = {}
 
   if (action === 'confirm') {
     update = { status: 'confirmed', confirmed_at: new Date().toISOString(), confirmed_by: user!.id }
@@ -87,12 +88,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     // STEP 1: Find or create customer (by email, scoped to owner)
     let customerId: string | null = booking.customer_id || null
     if (!customerId && booking.customer_email) {
-      const { data: existing } = await supabase
+      const { data: existing, error: findErr } = await supabase
         .from('customers')
         .select('id')
         .eq('user_id', booking.user_id)
         .eq('email', booking.customer_email)
         .maybeSingle()
+      if (findErr) {
+        console.error('[booking confirm] customer find failed:', findErr)
+        debug = { ...debug, customerFindError: findErr.message }
+      }
       if (existing) {
         customerId = existing.id
       } else {
@@ -108,12 +113,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           })
           .select('id')
           .single()
-        if (custErr) console.error('[booking confirm] customer create failed:', custErr)
+        if (custErr) {
+          console.error('[booking confirm] customer create failed:', custErr)
+          debug = { ...debug, customerCreateError: custErr.message, customerCreateDetails: custErr.details }
+        }
         customerId = created?.id || null
       }
     }
 
     // STEP 2: Create job (always, if we have a customer)
+    let jobAssignee: string | null = body.assignedTo || null
     if (!booking.converted_to_job_id && customerId) {
       const endTime = booking.requested_end_time || booking.requested_time
       const { data: job, error: jobErr } = await supabase
@@ -130,11 +139,40 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           service_address: booking.customer_address || null,
           source: 'booking',
           booking_id: booking.id,
+          assigned_to: jobAssignee,
         })
         .select('id')
         .single()
-      if (jobErr) console.error('[booking confirm] job create failed:', jobErr)
-      if (job) update.converted_to_job_id = job.id
+      if (jobErr) {
+        console.error('[booking confirm] job create failed:', jobErr)
+        debug = { ...debug, jobCreateError: jobErr.message, jobCreateDetails: jobErr.details }
+      }
+      if (job) {
+        update.converted_to_job_id = job.id
+        // Email assigned team member
+        if (jobAssignee) {
+          const { data: member } = await supabase
+            .from('team_members')
+            .select('name, email')
+            .eq('id', jobAssignee)
+            .single()
+          if (member?.email) {
+            await sendEmail({
+              type: 'job_assigned',
+              to: member.email,
+              memberName: member.name,
+              serviceName: booking.service_name,
+              customerName: booking.customer_name,
+              customerPhone: booking.customer_phone || undefined,
+              address: booking.customer_address || undefined,
+              bookingDate: dateFormatted,
+              bookingTime: timeFormatted,
+              notes: booking.notes || undefined,
+              jobLink: `https://gestivio.ca/jobs/${job.id}`,
+            })
+          }
+        }
+      }
     }
 
     // STEP 3: booking update (customer_id + converted_to_job_id)
@@ -214,6 +252,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .update({ ...update, updated_at: new Date().toISOString() })
     .eq('id', booking.id)
 
-  if (error) return NextResponse.json({ error: 'Update failed' }, { status: 500 })
-  return NextResponse.json({ success: true })
+  if (error) return NextResponse.json({ error: 'Update failed', debug }, { status: 500 })
+  return NextResponse.json({ success: true, debug })
 }

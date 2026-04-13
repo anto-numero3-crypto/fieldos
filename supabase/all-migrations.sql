@@ -1008,7 +1008,13 @@ ALTER TABLE jobs
   ADD COLUMN IF NOT EXISTS booking_id UUID REFERENCES booking_requests(id) ON DELETE SET NULL;
 ALTER TABLE jobs
   ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'manual';
+ALTER TABLE jobs
+  ADD COLUMN IF NOT EXISTS invoice_id UUID REFERENCES invoices(id) ON DELETE SET NULL;
+ALTER TABLE invoices
+  ADD COLUMN IF NOT EXISTS job_id UUID REFERENCES jobs(id) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_jobs_booking_id ON jobs (booking_id);
+CREATE INDEX IF NOT EXISTS idx_jobs_invoice_id ON jobs (invoice_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_job_id ON invoices (job_id);
 
 
 -- ─────────────────────────────────────────────────────────────────

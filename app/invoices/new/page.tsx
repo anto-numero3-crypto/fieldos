@@ -112,13 +112,23 @@ export default function NewInvoicePage() {
     }
     if (preJobId && jbs?.some((j) => j.id === preJobId)) {
       setJobId(preJobId)
-      // If the job has a customer, pre-select it too
+      // Pull job data to pre-fill title + line item
       const { data: job } = await supabase
         .from('jobs')
-        .select('customer_id')
+        .select('customer_id, title, description')
         .eq('id', preJobId)
         .maybeSingle()
       if (job?.customer_id) setCustomerId(job.customer_id)
+      if (job?.title) {
+        setLines([{
+          id: uid(),
+          description: job.title,
+          qty: 1,
+          unit: 'forfait',
+          unit_price: 0,
+          taxable: true,
+        }])
+      }
     }
 
     // Generate invoice number

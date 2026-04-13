@@ -8,6 +8,7 @@ import AppLayout from '@/components/AppLayout'
 import { SkeletonText, SkeletonCard } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import { useLanguage } from '@/lib/LanguageContext'
+import { toast } from 'sonner'
 import { fmtMoney, fmtDate as fmtDateLib } from '@/lib/format'
 import {
   ArrowLeft, User, Calendar, Clock, Flag, Edit2, Save, CheckSquare,
@@ -23,8 +24,10 @@ interface Job {
   checklist: ChecklistItem[] | null; created_at: string
   source: string | null
   quote_id?: string | null
+  assigned_to: string | null
   customers: { id: string; name: string; email: string | null; phone: string | null } | null
 }
+interface TeamMember { id: string; name: string; email: string; is_active: boolean }
 
 const STATUS_CFG: Record<string, { label: string; cls: string; dotCls: string }> = {
   scheduled:   { label: 'Planifié',   cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100',     dotCls: 'bg-blue-500' },
@@ -56,7 +59,7 @@ export default function JobDetailPage() {
   const [newCheckItem, setNewCheckItem] = useState('')
   const [statusDropdown, setStatusDropdown] = useState(false)
   const [invoiceLinked, setInvoiceLinked] = useState<{ id: string; amount: number; status: string } | null>(null)
-  const [saving2, setSaving2] = useState(false)
+  const [team, setTeam] = useState<TeamMember[]>([])
 
   // Edit fields
   const [eTitle, setETitle]   = useState('')
@@ -92,10 +95,49 @@ export default function JobDetailPage() {
       const { data: inv } = await supabase.from('invoices').select('id, amount, status').eq('job_id', id).single()
       if (inv) setInvoiceLinked(inv)
 
+      // Load team for assignment
+      const { data: tm } = await supabase.from('team_members')
+        .select('id, name, email, is_active')
+        .eq('owner_user_id', auth.user.id)
+        .eq('is_active', true)
+        .order('name')
+      setTeam(tm || [])
+
       setLoading(false)
     }
     init()
   }, [id, router])
+
+  const assignMember = async (memberId: string) => {
+    if (!job) return
+    const value = memberId || null
+    const { error } = await supabase.from('jobs').update({ assigned_to: value }).eq('id', id)
+    if (error) { toast.error(error.message); return }
+    setJob({ ...job, assigned_to: value })
+    toast.success(t.success.updated)
+    if (value) {
+      const m = team.find((x) => x.id === value)
+      if (m?.email) {
+        await fetch('/api/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'job_assigned',
+            to: m.email,
+            memberName: m.name,
+            serviceName: job.title,
+            customerName: job.customers?.name || '',
+            customerPhone: job.customers?.phone || undefined,
+            address: job.service_address || undefined,
+            bookingDate: job.scheduled_date || '',
+            bookingTime: job.start_time || '',
+            notes: job.description || undefined,
+            jobLink: `${window.location.origin}/jobs/${job.id}`,
+          }),
+        })
+      }
+    }
+  }
 
   const saveEdit = async () => {
     if (!eTitle.trim() || !job) return
@@ -146,32 +188,10 @@ export default function JobDetailPage() {
     setJob({ ...job, checklist: updated })
   }
 
-  const generateInvoice = async () => {
+  const generateInvoice = () => {
     if (!job) return
-    setSaving2(true)
-    const { data: auth } = await supabase.auth.getUser()
-    if (!auth.user) { setSaving2(false); return }
-
-    // Auto-generate invoice number
-    const invNum = `INV-${Date.now().toString().slice(-6)}`
-
-    const { data } = await supabase.from('invoices').insert({
-      user_id: auth.user.id,
-      customer_id: job.customers?.id || null,
-      job_id: job.id,
-      invoice_number: invNum,
-      amount: 0,
-      status: 'unpaid',
-      due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    }).select().single()
-
-    if (data) {
-      setInvoiceLinked({ id: data.id, amount: 0, status: 'unpaid' })
-      await supabase.from('jobs').update({ invoice_generated: true }).eq('id', id)
-      // Redirect to invoice so user can add line items and amount
-      router.push(`/invoices/${data.id}`)
-    }
-    setSaving2(false)
+    const customerId = job.customers?.id || ''
+    router.push(`/invoices/new?jobId=${encodeURIComponent(String(id))}&customerId=${encodeURIComponent(customerId)}`)
   }
 
   const deleteJob = async () => {
@@ -487,7 +507,7 @@ export default function JobDetailPage() {
                       {invoiceLinked.status}
                     </span>
                   </div>
-                  <Link href="/invoices" className="text-xs text-indigo-600 hover:underline">Voir la facture →</Link>
+                  <Link href={`/invoices/${invoiceLinked.id}`} className="text-xs text-indigo-600 hover:underline">Voir la facture →</Link>
                 </div>
               ) : (
                 <div className="text-center py-4">
@@ -495,14 +515,32 @@ export default function JobDetailPage() {
                   <p className="text-xs text-gray-400 mb-3">Aucune facture générée</p>
                   <button
                     onClick={generateInvoice}
-                    disabled={saving2}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors"
                   >
-                    <Plus className="h-3.5 w-3.5" />{saving2 ? 'Génération...' : 'Générer une facture'}
+                    <Plus className="h-3.5 w-3.5" />Créer une facture
                   </button>
                 </div>
               )}
             </div>
+
+            {/* Team assignment */}
+            {team.length > 0 && (
+              <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+                <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <User className="h-4 w-4 text-indigo-500" /> Assigné à
+                </h2>
+                <select
+                  value={job.assigned_to || ''}
+                  onChange={(e) => assignMember(e.target.value)}
+                  className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                >
+                  <option value="">Non assigné</option>
+                  {team.map((m) => (
+                    <option key={m.id} value={m.id}>{m.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Job details */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">

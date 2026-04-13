@@ -78,6 +78,11 @@ export default function BookingsPage() {
   const [decliningId, setDecliningId] = useState<string | null>(null)
   const [declineReason, setDeclineReason] = useState('')
 
+  // Accept + assign modal
+  const [team, setTeam] = useState<{ id: string; name: string }[]>([])
+  const [acceptingBooking, setAcceptingBooking] = useState<Booking | null>(null)
+  const [assignTo, setAssignTo] = useState<string>('')
+
   const load = useCallback(async (uid: string, status = 'all') => {
     const res = await fetch(`/api/bookings?userId=${uid}&status=${status}`)
     const data = await res.json()
@@ -86,21 +91,43 @@ export default function BookingsPage() {
   }, [])
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { window.location.href = '/login'; return }
       setUserId(data.user.id)
       load(data.user.id)
+      const { data: tm } = await supabase
+        .from('team_members')
+        .select('id, name')
+        .eq('owner_user_id', data.user.id)
+        .eq('is_active', true)
+        .order('name')
+      setTeam(tm || [])
     })
   }, [load])
 
-  const doAction = async (id: string, action: string, reason?: string) => {
+  const openAccept = (b: Booking) => {
+    if (team.length === 0) {
+      doAction(b.id, 'confirm')
+    } else {
+      setAcceptingBooking(b)
+      setAssignTo('')
+    }
+  }
+  const submitAccept = async () => {
+    if (!acceptingBooking) return
+    const b = acceptingBooking
+    setAcceptingBooking(null)
+    await doAction(b.id, 'confirm', undefined, assignTo || null)
+  }
+
+  const doAction = async (id: string, action: string, reason?: string, assignedTo?: string | null) => {
     if (!userId) return
     setActioning(id)
     try {
       const res = await fetch(`/api/bookings/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, reason, userId }),
+        body: JSON.stringify({ action, reason, userId, assignedTo: assignedTo || null }),
       })
       const data = await res.json()
       if (data.success) {
@@ -224,7 +251,7 @@ export default function BookingsPage() {
                 </div>
                 <div className="mt-4 flex gap-2">
                   <button
-                    onClick={() => doAction(b.id, 'confirm')}
+                    onClick={() => openAccept(b)}
                     disabled={actioning === b.id}
                     className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 transition-all shadow-sm"
                   >
@@ -336,7 +363,7 @@ export default function BookingsPage() {
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       {b.status === 'pending' && (
                         <>
-                          <button onClick={() => doAction(b.id, 'confirm')} title="Accepter"
+                          <button onClick={() => openAccept(b)} title="Accepter"
                             className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50 transition-colors">
                             <Check className="h-4 w-4" />
                           </button>
@@ -375,6 +402,40 @@ export default function BookingsPage() {
           )}
           <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} />
         </div>
+
+        {/* Accept + assign modal */}
+        {acceptingBooking && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setAcceptingBooking(null)}>
+            <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">Accepter et assigner</h3>
+              <p className="text-xs text-gray-500 mb-4">
+                {acceptingBooking.customer_name} · {acceptingBooking.service_name}<br />
+                {fmtDate(acceptingBooking.requested_date)} à {fmtTime(acceptingBooking.requested_time)}
+              </p>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">Assigner à</label>
+              <select
+                value={assignTo}
+                onChange={(e) => setAssignTo(e.target.value)}
+                className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-4"
+              >
+                <option value="">Non assigné</option>
+                {team.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+              <div className="flex gap-2">
+                <button onClick={submitAccept}
+                  className="flex-1 rounded-xl bg-emerald-600 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors">
+                  Confirmer la réservation
+                </button>
+                <button onClick={() => setAcceptingBooking(null)}
+                  className="flex-1 rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Decline modal overlay (for table row actions) */}
         {decliningId && !pending.find((b) => b.id === decliningId) && (
