@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
 import { toast } from 'sonner'
+import { validateAmount } from '@/lib/validators'
+import FieldError from '@/components/FieldError'
 import {
   Plus, Trash2, GripVertical, Save, Send, Eye, ArrowLeft,
   User, Calendar, Hash, FileText, ChevronDown,
@@ -144,6 +146,13 @@ export default function NewInvoicePage() {
     : 0
   const total = subtotal + tax1Amt + tax2Amt - discAmt
 
+  // Validation
+  const [showErrors, setShowErrors] = useState(false)
+  const errCustomer  = !customerId ? 'Sélectionnez un client' : ''
+  const linesValid   = lines.every((l) => l.description.trim() && !validateAmount(l.unit_price) && Number(l.qty) > 0)
+  const errLines     = !linesValid ? 'Chaque ligne doit avoir une description, une quantité et un prix valide' : ''
+  const formInvalid  = !!errCustomer || !linesValid
+
   const fmt = (n: number) => `$${n.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
   const addLine  = () => setLines([...lines, newLine()])
@@ -176,6 +185,8 @@ export default function NewInvoicePage() {
 
   const saveDraft = async () => {
     if (!user) return
+    setShowErrors(true)
+    if (formInvalid) { toast.error('Vérifiez les champs en surbrillance.'); return }
     setSaving(true)
     const { data, error } = await supabase.from('invoices').insert(buildPayload()).select('id').single()
     if (error) { toast.error(error.message); setSaving(false); return }
@@ -184,7 +195,8 @@ export default function NewInvoicePage() {
   }
 
   const saveAndSend = async () => {
-    if (!customerId) { toast.error('Sélectionnez un client avant d\'envoyer.'); return }
+    setShowErrors(true)
+    if (formInvalid) { toast.error('Vérifiez les champs en surbrillance.'); return }
     setSending(true)
     const { data, error } = await supabase.from('invoices').insert(buildPayload()).select('id, token').single()
     if (error) { toast.error(error.message); setSending(false); return }
@@ -290,13 +302,14 @@ export default function NewInvoicePage() {
                 <select
                   value={customerId}
                   onChange={(e) => setCustomerId(e.target.value)}
-                  className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className={`block w-full rounded-xl border ${showErrors && errCustomer ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'} bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2`}
                 >
                   <option value="">Sélectionner un client…</option>
                   {customers.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
+                <FieldError message={showErrors ? errCustomer : ''} />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5">Intervention liée (optionnel)</label>
@@ -324,10 +337,15 @@ export default function NewInvoicePage() {
 
           {/* Line items */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                <FileText className="h-4 w-4 text-gray-400" /> Lignes de facturation
-              </h2>
+            <div className="px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-gray-400" /> Lignes de facturation
+                </h2>
+              </div>
+              {showErrors && errLines && (
+                <p className="mt-2 text-xs text-red-600">{errLines}</p>
+              )}
             </div>
 
             {/* Column headers */}
@@ -597,16 +615,16 @@ export default function NewInvoicePage() {
             <div className="flex items-center gap-2 flex-1 sm:flex-initial justify-end">
               <button
                 onClick={saveDraft}
-                disabled={saving}
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-all shadow-sm"
+                disabled={saving || formInvalid}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-sm"
               >
                 <Save className="h-4 w-4" />
                 {saving ? 'Enregistrement…' : 'Brouillon'}
               </button>
               <button
                 onClick={saveAndSend}
-                disabled={sending || !customerId}
-                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-sm"
+                disabled={sending || formInvalid}
+                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-sm"
               >
                 <Send className="h-4 w-4" />
                 {sending ? 'Envoi…' : 'Enregistrer et envoyer'}

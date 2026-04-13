@@ -6,6 +6,8 @@ import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
 import UpgradePrompt from '@/components/UpgradePrompt'
 import { usePlan } from '@/lib/hooks/usePlan'
+import { validateRequired, validateEmail, validatePhone } from '@/lib/validators'
+import FieldError from '@/components/FieldError'
 import { toast } from 'sonner'
 import {
   Users2, Plus, X, Mail, Phone, Shield, Wrench,
@@ -45,6 +47,12 @@ export default function TeamPage() {
   const [email, setEmail]   = useState('')
   const [phone, setPhone]   = useState('')
   const [role, setRole]     = useState('technician')
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
+
+  const errName  = touched.name  ? validateRequired(name) : ''
+  const errEmail = touched.email ? validateEmail(email) : ''
+  const errPhone = touched.phone ? validatePhone(phone, false) : ''
+  const formInvalid = !!validateRequired(name) || !!validateEmail(email) || !!validatePhone(phone, false)
   const [hourlyRate, setHourlyRate] = useState('')
   const [skillInput, setSkillInput] = useState('')
   const [skills, setSkills] = useState<string[]>([])
@@ -84,7 +92,8 @@ export default function TeamPage() {
 
   const saveMember = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || !email.trim()) { toast.error("Le nom et l'email sont requis."); return }
+    setTouched({ name: true, email: true, phone: true })
+    if (formInvalid) { toast.error('Vérifiez les champs en surbrillance.'); return }
     setLoading(true)
 
     const payload = {
@@ -265,17 +274,33 @@ export default function TeamPage() {
             <form onSubmit={saveMember} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Nom complet <span className="text-red-500">*</span></label>
-                <input type="text" placeholder="Jean Tremblay" value={name} onChange={(e) => setName(e.target.value)} required className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                <input type="text" placeholder="Prénom Nom" value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+                  required
+                  className={`block w-full rounded-xl border ${errName ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'} px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all`} />
+                <FieldError message={errName} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email <span className="text-red-500">*</span></label>
-
-                <div className="relative"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="email" placeholder="alex@company.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="block w-full rounded-xl border border-gray-200 pl-9 pr-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" /></div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Courriel <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input type="email" placeholder="alex@company.com" value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                    required
+                    className={`block w-full rounded-xl border ${errEmail ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'} pl-9 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all`} />
+                </div>
+                <FieldError message={errEmail} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Téléphone</label>
-                  <input type="tel" placeholder="+1 (514) 000-0000" value={phone} onChange={(e) => setPhone(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                  <input type="tel" placeholder="+1 (514) 000-0000" value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
+                    className={`block w-full rounded-xl border ${errPhone ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'} px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all`} />
+                  <FieldError message={errPhone} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Taux horaire</label>
@@ -312,7 +337,7 @@ export default function TeamPage() {
 
             <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">
               <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Annuler</button>
-              <button onClick={saveMember} disabled={loading} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all">
+              <button onClick={saveMember} disabled={loading || formInvalid} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
                 {loading ? 'Enregistrement...' : editMember ? 'Enregistrer' : 'Ajouter'}
               </button>
             </div>

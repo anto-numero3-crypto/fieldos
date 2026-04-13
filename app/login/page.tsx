@@ -7,6 +7,8 @@ import { Suspense } from 'react'
 import { supabase } from '../supabase'
 import { useLanguage } from '@/lib/LanguageContext'
 import { Wrench, Mail, Lock, AlertCircle, CheckCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react'
+import { validateEmail, validatePassword } from '@/lib/validators'
+import FieldError from '@/components/FieldError'
 
 function LoginForm() {
   const { lang, setLang, t } = useLanguage()
@@ -19,6 +21,11 @@ function LoginForm() {
   const [isError, setIsError] = useState(false)
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({})
+
+  const errEmail = touched.email ? validateEmail(email) : ''
+  const errPwd   = touched.password ? validatePassword(password) : ''
+  const formInvalid = !!validateEmail(email) || !!validatePassword(password)
 
   useEffect(() => {
     const err = searchParams.get('error')
@@ -33,6 +40,8 @@ function LoginForm() {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault()
+    setTouched({ email: true, password: true })
+    if (formInvalid) return
     setLoading(true)
     setMessage('')
 
@@ -112,8 +121,9 @@ function LoginForm() {
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">{l.emailLabel}</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input id="email" type="email" placeholder={l.emailPlaceholder} value={email} onChange={(e) => setEmail(e.target.value)} required className="block w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                <input id="email" type="email" placeholder={l.emailPlaceholder} value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => setTouched((t) => ({ ...t, email: true }))} required className={`block w-full rounded-xl border ${errEmail ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'} bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all`} />
               </div>
+              <FieldError message={errEmail} />
             </div>
 
             <div>
@@ -125,11 +135,12 @@ function LoginForm() {
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input id="password" type={showPassword ? 'text' : 'password'} placeholder={l.passwordPlaceholder} value={password} onChange={(e) => setPassword(e.target.value)} required className="block w-full rounded-xl border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                <input id="password" type={showPassword ? 'text' : 'password'} placeholder={l.passwordPlaceholder} value={password} onChange={(e) => setPassword(e.target.value)} onBlur={() => setTouched((t) => ({ ...t, password: true }))} required className={`block w-full rounded-xl border ${errPwd ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'} bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all`} />
                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              <FieldError message={errPwd} />
             </div>
 
             {message && (
@@ -139,7 +150,7 @@ function LoginForm() {
               </div>
             )}
 
-            <button type="submit" disabled={loading} className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150">
+            <button type="submit" disabled={loading || formInvalid} className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150">
               {loading ? t.common.pleaseWait : l.signInBtn}
             </button>
           </form>

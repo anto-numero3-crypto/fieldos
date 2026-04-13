@@ -7,6 +7,8 @@ import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
 import UpgradePrompt from '@/components/UpgradePrompt'
 import { usePlan } from '@/lib/hooks/usePlan'
+import { validateRequired, validateEmail, validatePhone } from '@/lib/validators'
+import FieldError from '@/components/FieldError'
 import { toast } from 'sonner'
 import {
   Users, Plus, Search, Mail, Phone, MapPin, X,
@@ -48,6 +50,12 @@ export default function CustomersPage() {
   const [notes, setNotes]     = useState('')
   const [tagInput, setTagInput] = useState('')
   const [tags, setTags]       = useState<string[]>([])
+  const [touched, setTouched] = useState<Record<string, boolean>>({})
+
+  const errName  = touched.name  ? validateRequired(name) : ''
+  const errEmail = touched.email ? validateEmail(email, false) : ''
+  const errPhone = touched.phone ? validatePhone(phone, false) : ''
+  const formInvalid = !!validateRequired(name) || !!validateEmail(email, false) || !!validatePhone(phone, false)
 
   useEffect(() => {
     const init = async () => {
@@ -86,7 +94,8 @@ export default function CustomersPage() {
 
   const addCustomer = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) { toast.error('Le nom est requis.'); return }
+    setTouched({ name: true, email: true, phone: true })
+    if (formInvalid) { toast.error('Vérifiez les champs en surbrillance.'); return }
     setLoading(true)
     const { error } = await supabase.from('customers').insert({
       user_id: user!.id, name: name.trim(),
@@ -366,28 +375,39 @@ export default function CustomersPage() {
             </div>
 
             <form onSubmit={addCustomer} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-              {[
-                { label: 'Nom complet', value: name, set: setName, placeholder: 'Jean Tremblay', required: true, type: 'text' },
-                { label: 'Adresse email', value: email, set: setEmail, placeholder: 'jean@exemple.com', required: false, type: 'email', icon: <Mail className="h-4 w-4 text-gray-400" /> },
-                { label: 'Numéro de téléphone', value: phone, set: setPhone, placeholder: '+1 (514) 000-0000', required: false, type: 'tel', icon: <Phone className="h-4 w-4 text-gray-400" /> },
-              ].map((f) => (
-                <div key={f.label}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    {f.label} {f.required && <span className="text-red-500">*</span>}
-                  </label>
-                  <div className="relative">
-                    {f.icon && <div className="absolute left-3 top-1/2 -translate-y-1/2">{f.icon}</div>}
-                    <input
-                      type={f.type}
-                      placeholder={f.placeholder}
-                      value={f.value}
-                      onChange={(e) => f.set(e.target.value)}
-                      required={f.required}
-                      className={`block w-full rounded-xl border border-gray-200 bg-white ${f.icon ? 'pl-9' : 'px-3.5'} pr-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all`}
-                    />
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nom complet <span className="text-red-500">*</span></label>
+                <input type="text" placeholder="Jean Tremblay" value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+                  required
+                  className={`block w-full rounded-xl border ${errName ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'} bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all`} />
+                <FieldError message={errName} />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Adresse courriel</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input type="email" placeholder="jean@exemple.com" value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                    className={`block w-full rounded-xl border ${errEmail ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'} bg-white pl-9 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all`} />
                 </div>
-              ))}
+                <FieldError message={errEmail} />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Numéro de téléphone</label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input type="tel" placeholder="+1 (514) 000-0000" value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
+                    className={`block w-full rounded-xl border ${errPhone ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'} bg-white pl-9 pr-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all`} />
+                </div>
+                <FieldError message={errPhone} />
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Adresse</label>
@@ -445,7 +465,7 @@ export default function CustomersPage() {
               <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
                 Annuler
               </button>
-              <button onClick={addCustomer} disabled={loading} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all">
+              <button onClick={addCustomer} disabled={loading || formInvalid} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
                 {loading ? 'Ajout en cours...' : 'Ajouter un client'}
               </button>
             </div>

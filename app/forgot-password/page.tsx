@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { supabase } from '../supabase'
 import { useLanguage } from '@/lib/LanguageContext'
 import { Wrench, Mail, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react'
+import { validateEmail } from '@/lib/validators'
+import FieldError from '@/components/FieldError'
 
 export default function ForgotPasswordPage() {
   const { lang, setLang } = useLanguage()
@@ -14,9 +16,14 @@ export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [touched, setTouched] = useState(false)
+  const errEmail = touched ? validateEmail(email) : ''
+  const formInvalid = !!validateEmail(email)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setTouched(true)
+    if (formInvalid) return
     setError('')
     setLoading(true)
     const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
@@ -126,10 +133,12 @@ export default function ForgotPasswordPage() {
                       placeholder={fr ? 'vous@entreprise.com' : 'you@company.com'}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      onBlur={() => setTouched(true)}
                       required
-                      className="block w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      className={`block w-full rounded-xl border ${errEmail ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'} bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all`}
                     />
                   </div>
+                  <FieldError message={errEmail} />
                 </div>
 
                 {error && (
@@ -141,7 +150,7 @@ export default function ForgotPasswordPage() {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || formInvalid}
                   className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150"
                 >
                   {loading

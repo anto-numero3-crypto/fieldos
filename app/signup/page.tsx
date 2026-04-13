@@ -94,8 +94,9 @@ export default function SignupPage() {
   const sources = fr ? SOURCES_FR : SOURCES_EN
 
   function validateStep1() {
-    if (!email) return fr ? 'Courriel requis.' : 'Email is required.'
-    if (password.length < 8) return fr ? 'Mot de passe trop court (min. 8 caractères).' : 'Password too short (min. 8 characters).'
+    if (!email) return fr ? 'Adresse courriel requise.' : 'Email is required.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return fr ? 'Adresse courriel invalide.' : 'Invalid email address.'
+    if (password.length < 8) return fr ? 'Minimum 8 caractères.' : 'Minimum 8 characters.'
     if (password !== confirm) return fr ? 'Les mots de passe ne correspondent pas.' : 'Passwords do not match.'
     if (!agreed) return fr ? 'Vous devez accepter les conditions.' : 'You must accept the terms.'
     return ''
@@ -103,6 +104,10 @@ export default function SignupPage() {
 
   function validateStep2() {
     if (!business.trim()) return fr ? 'Nom d\'entreprise requis.' : 'Business name is required.'
+    if (phone) {
+      const digits = phone.replace(/\D/g, '')
+      if (digits.length < 10 || digits.length > 15) return fr ? 'Numéro de téléphone invalide.' : 'Invalid phone number.'
+    }
     return ''
   }
 

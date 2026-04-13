@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { supabase } from '../supabase'
 import { useLanguage } from '@/lib/LanguageContext'
 import { Wrench, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
+import { validatePassword, validatePasswordMatch } from '@/lib/validators'
+import FieldError from '@/components/FieldError'
 
 function getStrength(pw: string): { score: number; label: string; color: string } {
   let score = 0
@@ -32,20 +34,18 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [touched, setTouched] = useState<{ password?: boolean; confirm?: boolean }>({})
 
   const strength = getStrength(password)
+  const errPwd     = touched.password ? validatePassword(password) : ''
+  const errConfirm = touched.confirm  ? validatePasswordMatch(password, confirm) : ''
+  const formInvalid = !!validatePassword(password) || !!validatePasswordMatch(password, confirm)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setTouched({ password: true, confirm: true })
     setError('')
-    if (password.length < 8) {
-      setError(fr ? 'Mot de passe trop court (min. 8 caractères).' : 'Password too short (min. 8 characters).')
-      return
-    }
-    if (password !== confirm) {
-      setError(fr ? 'Les mots de passe ne correspondent pas.' : 'Passwords do not match.')
-      return
-    }
+    if (formInvalid) return
     setLoading(true)
     const { error: err } = await supabase.auth.updateUser({ password })
     setLoading(false)
@@ -137,8 +137,9 @@ export default function ResetPasswordPage() {
                       placeholder={fr ? 'Min. 8 caractères' : 'Min. 8 characters'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      onBlur={() => setTouched((t) => ({ ...t, password: true }))}
                       required
-                      className="block w-full rounded-xl border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      className={`block w-full rounded-xl border ${errPwd ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'} bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all`}
                     />
                     <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
                       {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -154,6 +155,7 @@ export default function ResetPasswordPage() {
                       <p className="text-xs text-gray-500">{strength.label}</p>
                     </div>
                   )}
+                  <FieldError message={errPwd} />
                 </div>
 
                 <div>
@@ -167,16 +169,15 @@ export default function ResetPasswordPage() {
                       placeholder={fr ? 'Répétez votre mot de passe' : 'Repeat your password'}
                       value={confirm}
                       onChange={(e) => setConfirm(e.target.value)}
+                      onBlur={() => setTouched((t) => ({ ...t, confirm: true }))}
                       required
-                      className={['block w-full rounded-xl border bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all', confirm && confirm !== password ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'].join(' ')}
+                      className={['block w-full rounded-xl border bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all', errConfirm ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'].join(' ')}
                     />
                     <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
                       {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
-                  {confirm && password !== confirm && (
-                    <p className="mt-1 text-xs text-red-600">{fr ? 'Les mots de passe ne correspondent pas.' : 'Passwords do not match.'}</p>
-                  )}
+                  <FieldError message={errConfirm} />
                 </div>
 
                 {error && (
@@ -188,7 +189,7 @@ export default function ResetPasswordPage() {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || formInvalid}
                   className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150"
                 >
                   {loading

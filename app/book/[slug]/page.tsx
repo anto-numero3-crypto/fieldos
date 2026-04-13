@@ -216,9 +216,14 @@ export default function PublicBookingPage() {
 
   const validateInfo = () => {
     const errs: Record<string, string> = {}
-    if (!firstName.trim()) errs.firstName = 'Prénom requis'
-    if (!lastName.trim()) errs.lastName = 'Nom requis'
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = 'Email invalide'
+    if (!firstName.trim()) errs.firstName = 'Ce champ est obligatoire'
+    if (!lastName.trim()) errs.lastName = 'Ce champ est obligatoire'
+    if (!email.trim()) errs.email = 'Ce champ est obligatoire'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) errs.email = 'Adresse courriel invalide'
+    if (phone.trim()) {
+      const digits = phone.replace(/\D/g, '')
+      if (digits.length < 10 || digits.length > 15) errs.phone = 'Numéro de téléphone invalide'
+    }
     setErrors(errs)
     return Object.keys(errs).length === 0
   }

@@ -7,6 +7,7 @@ import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { usePlan } from '@/lib/hooks/usePlan'
 import { PLAN_PRICING } from '@/lib/plan-limits'
 import PromoCodeInput from '@/components/PromoCodeInput'
+import { validateEmail, validatePhone } from '@/lib/validators'
 import AppLayout from '@/components/AppLayout'
 import { toast } from 'sonner'
 import {
@@ -241,6 +242,12 @@ export default function SettingsPage() {
 
   const saveSettings = async () => {
     if (!user) return
+    const emailErr = validateEmail(bizEmail, false)
+    const phoneErr = validatePhone(bizPhone, false)
+    if (emailErr || phoneErr) {
+      toast.error(emailErr || phoneErr)
+      return
+    }
     setSaving(true); setError(null); setSaved(false)
 
     // Generate slug from business name if not already set

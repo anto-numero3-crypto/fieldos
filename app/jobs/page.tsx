@@ -6,6 +6,8 @@ import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
 import { usePlan } from '@/lib/hooks/usePlan'
+import { validateRequired } from '@/lib/validators'
+import FieldError from '@/components/FieldError'
 import { toast } from 'sonner'
 import {
   Briefcase, Plus, X, Calendar, User, CheckCircle,
@@ -64,6 +66,10 @@ export default function JobsPage() {
   const [priority, setPriority] = useState('normal')
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime]   = useState('')
+  const [touched, setTouched]   = useState<Record<string, boolean>>({})
+
+  const errTitle = touched.title ? validateRequired(title) : ''
+  const formInvalid = !!validateRequired(title)
 
   useEffect(() => {
     const init = async () => {
@@ -87,7 +93,8 @@ export default function JobsPage() {
 
   const addJob = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!title.trim()) { toast.error('Le titre est requis.'); return }
+    setTouched({ title: true })
+    if (formInvalid) return
     setLoading(true)
     const { error } = await supabase.from('jobs').insert({
       user_id: user!.id, customer_id: customerId || null,
@@ -307,7 +314,12 @@ export default function JobsPage() {
             <form onSubmit={addJob} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Titre <span className="text-red-500">*</span></label>
-                <input type="text" placeholder="ex. Entretien climatisation" value={title} onChange={(e) => setTitle(e.target.value)} required className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                <input type="text" placeholder="ex. Entretien climatisation" value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  onBlur={() => setTouched((t) => ({ ...t, title: true }))}
+                  required
+                  className={`block w-full rounded-xl border ${errTitle ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'} bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all`} />
+                <FieldError message={errTitle} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
@@ -361,7 +373,7 @@ export default function JobsPage() {
 
             <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">
               <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Annuler</button>
-              <button onClick={addJob} disabled={loading} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all">
+              <button onClick={addJob} disabled={loading || formInvalid} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
                 {loading ? 'Création…' : 'Créer'}
               </button>
             </div>
