@@ -13,6 +13,8 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
 import { TrendingUp, DollarSign, Briefcase, Users, ArrowUpRight, ArrowDownRight, Download } from 'lucide-react'
+import { useLanguage } from '@/lib/LanguageContext'
+import { fmtDate } from '@/lib/format'
 
 interface LineItem { description: string; qty: number; unit_price: number }
 interface Invoice {
@@ -72,6 +74,7 @@ function ReportsGate({ children }: { children: React.ReactNode }) {
 }
 
 function ReportsPageInner() {
+  const { lang } = useLanguage()
   const [period, setPeriod]     = useState<Period>('90d')
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [jobs, setJobs]         = useState<Job[]>([])
@@ -266,7 +269,7 @@ function ReportsPageInner() {
     const periodLabel = period === '7d' ? '7 jours' : period === '30d' ? '30 jours' : period === '90d' ? '90 jours' : period === 'ytd' ? 'Cette année' : 'Tout'
     rows.push(['=== RAPPORT GESTIVIO ==='])
     rows.push([`Période: ${periodLabel}`])
-    rows.push([`Généré le: ${new Date().toLocaleDateString('fr-CA')}`])
+    rows.push([`${fmtDate(new Date().toISOString().slice(0,10), lang)}`])
     rows.push([])
 
     // Revenue summary
@@ -290,7 +293,7 @@ function ReportsPageInner() {
         inv.customers?.name || 'Inconnu',
         fmt(parseFloat(String(inv.amount))),
         inv.status,
-        new Date(inv.created_at).toLocaleDateString('fr-CA'),
+        fmtDate(inv.created_at, lang),
       ])
     })
     rows.push([])
@@ -302,7 +305,7 @@ function ReportsPageInner() {
       rows.push([
         j.customers?.name || 'Inconnu',
         j.status,
-        new Date(j.created_at).toLocaleDateString('fr-CA'),
+        fmtDate(j.created_at, lang),
       ])
     })
 
