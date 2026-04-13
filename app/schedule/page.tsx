@@ -5,6 +5,7 @@ import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import EmptyState from '@/components/EmptyState'
 import Link from 'next/link'
+import { toast } from 'sonner'
 import {
   ChevronLeft, ChevronRight, Plus, Calendar, User, Clock, Briefcase,
 } from 'lucide-react'
@@ -12,7 +13,24 @@ import {
 interface Job {
   id: string; title: string; status: string; scheduled_date: string | null
   start_time: string | null; end_time: string | null; priority: string | null
+  source?: string | null
   customers: { name: string } | null
+}
+
+// Naive HH:MM overlap test. duration in minutes.
+function overlaps(aStart: string, aDuration: number, bStart: string, bDuration: number): boolean {
+  const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
+  const aS = toMin(aStart), aE = aS + aDuration
+  const bS = toMin(bStart), bE = bS + bDuration
+  return aS < bE && bS < aE
+}
+function durationOf(j: Job): number {
+  if (j.start_time && j.end_time) {
+    const [h1, m1] = j.start_time.split(':').map(Number)
+    const [h2, m2] = j.end_time.split(':').map(Number)
+    return Math.max(15, (h2 * 60 + m2) - (h1 * 60 + m1))
+  }
+  return 60
 }
 
 const STATUS_COLOR: Record<string, string> = {
@@ -46,6 +64,70 @@ export default function SchedulePage() {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()))
   const [jobs, setJobs]           = useState<Job[]>([])
   const [loading, setLoading]     = useState(true)
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [dropTarget, setDropTarget] = useState<string | null>(null) // ISO date
+
+  const handleDrop = async (newDate: string) => {
+    setDropTarget(null)
+    const id = draggingId
+    setDraggingId(null)
+    if (!id) return
+    const job = jobs.find((j) => j.id === id)
+    if (!job) return
+    if (job.scheduled_date === newDate) return // no-op
+
+    // Past-date guard
+    const todayISO = new Date().toISOString().slice(0, 10)
+    if (newDate < todayISO) {
+      toast.error("Ce créneau n'est pas disponible (date passée)")
+      return
+    }
+
+    // Conflict check: same date + overlapping start_time × duration
+    if (job.start_time) {
+      const dur = durationOf(job)
+      const conflict = jobs.find((other) =>
+        other.id !== job.id &&
+        other.scheduled_date === newDate &&
+        other.status !== 'cancelled' &&
+        other.start_time &&
+        overlaps(job.start_time!, dur, other.start_time, durationOf(other))
+      )
+      if (conflict) {
+        toast.error("Ce créneau n'est pas disponible (conflit avec une autre intervention)")
+        return
+      }
+    }
+
+    // Optimistic update
+    const prev = job.scheduled_date
+    setJobs((js) => js.map((j) => j.id === id ? { ...j, scheduled_date: newDate } : j))
+
+    const { data: auth } = await supabase.auth.getUser()
+    if (!auth.user) return
+    const { error } = await supabase
+      .from('jobs')
+      .update({ scheduled_date: newDate })
+      .eq('id', id)
+      .eq('user_id', auth.user.id)
+
+    if (error) {
+      // Roll back
+      setJobs((js) => js.map((j) => j.id === id ? { ...j, scheduled_date: prev } : j))
+      toast.error('Erreur lors de la mise à jour')
+      return
+    }
+
+    // If the job came from a booking, also bump the booking's requested_date
+    if (job.source === 'booking') {
+      await supabase
+        .from('booking_requests')
+        .update({ requested_date: newDate })
+        .eq('converted_to_job_id', job.id)
+    }
+
+    toast.success('Emploi reprogrammé')
+  }
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
@@ -59,7 +141,7 @@ export default function SchedulePage() {
 
       const { data: j } = await supabase
         .from('jobs')
-        .select('id, title, status, scheduled_date, start_time, end_time, priority, customers(name)')
+        .select('id, title, status, scheduled_date, start_time, end_time, priority, source, customers(name)')
         .eq('user_id', data.user.id)
         .gte('scheduled_date', from)
         .lt('scheduled_date', to)
@@ -158,8 +240,31 @@ export default function SchedulePage() {
             {weekDays.map((d, i) => {
               const dayJobs = jobsForDay(d)
               const isToday = toISO(d) === today
+              const dateISO = toISO(d)
+              const isPast = dateISO < today
+              const isDropTarget = dropTarget === dateISO
+              const dragging = !!draggingId
+              const baseBg = isDropTarget
+                ? (isPast ? 'bg-red-50 ring-2 ring-red-300' : 'bg-emerald-50 ring-2 ring-emerald-300')
+                : (isToday ? 'bg-indigo-50/40' : '')
               return (
-                <div key={i} className={`border-r border-gray-50 last:border-0 p-2 space-y-1.5 ${isToday ? 'bg-indigo-50/40' : ''}`}>
+                <div
+                  key={i}
+                  className={`border-r border-gray-50 last:border-0 p-2 space-y-1.5 transition-colors ${baseBg} ${dragging ? 'min-h-[120px]' : ''}`}
+                  onDragOver={(e) => {
+                    if (!draggingId) return
+                    e.preventDefault()
+                    e.dataTransfer.dropEffect = isPast ? 'none' : 'move'
+                    if (dropTarget !== dateISO) setDropTarget(dateISO)
+                  }}
+                  onDragLeave={(e) => {
+                    // Only clear if we're leaving the cell (not entering a child)
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                      if (dropTarget === dateISO) setDropTarget(null)
+                    }
+                  }}
+                  onDrop={(e) => { e.preventDefault(); handleDrop(dateISO) }}
+                >
                   {loading ? (
                     <div className="space-y-1">{[...Array(2)].map((_, j) => <div key={j} className="h-8 skeleton rounded-lg" />)}</div>
                   ) : dayJobs.length === 0 ? (
@@ -170,7 +275,15 @@ export default function SchedulePage() {
                     <Link
                       key={job.id}
                       href={`/jobs/${job.id}`}
-                      className={`block rounded-lg border-l-2 px-2 py-1.5 text-xs transition-all hover:shadow-sm ${STATUS_COLOR[job.status] || 'bg-gray-50 border-gray-200 text-gray-600'}`}
+                      draggable
+                      onDragStart={(e) => {
+                        setDraggingId(job.id)
+                        e.dataTransfer.effectAllowed = 'move'
+                        e.dataTransfer.setData('text/plain', job.id)
+                      }}
+                      onDragEnd={() => { setDraggingId(null); setDropTarget(null) }}
+                      title="Glisser-déposer pour reprogrammer"
+                      className={`block rounded-lg border-l-2 px-2 py-1.5 text-xs transition-all hover:shadow-sm cursor-grab active:cursor-grabbing ${draggingId === job.id ? 'opacity-50' : ''} ${STATUS_COLOR[job.status] || 'bg-gray-50 border-gray-200 text-gray-600'}`}
                     >
                       <p className="font-semibold truncate">{job.title}</p>
                       {job.customers && <p className="text-xs opacity-70 truncate">{job.customers.name}</p>}
