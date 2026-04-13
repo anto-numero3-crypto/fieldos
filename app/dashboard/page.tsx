@@ -316,7 +316,7 @@ export default function Dashboard() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-1">
-              {new Date().toLocaleDateString('fr-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              {fmtDate(new Date().toISOString().slice(0,10), lang)}
             </p>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">{greeting}, {name} 👋</h1>
             <p className="mt-1 text-sm text-gray-500">
@@ -608,7 +608,7 @@ export default function Dashboard() {
                         <p className="truncate text-sm font-medium text-gray-900">{job.title}</p>
                         <p className="text-xs text-gray-400">
                           {job.customers?.name || 'Sans client'}
-                          {job.scheduled_date ? ` · ${new Date(job.scheduled_date + 'T12:00:00').toLocaleDateString('fr-CA', { month: 'short', day: 'numeric' })}` : ''}
+                          {job.scheduled_date ? ` · ${fmtDate(job.scheduled_date, lang)}` : ''}
                         </p>
                       </div>
                       <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[job.status]?.className || ''}`}>
@@ -650,12 +650,12 @@ export default function Dashboard() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-baseline gap-2">
-                          <p className="text-sm font-bold text-gray-900">${parseFloat(String(inv.amount)).toLocaleString('en', { minimumFractionDigits: 2 })}</p>
+                          <p className="text-sm font-bold text-gray-900">{fmt2(parseFloat(String(inv.amount)))}</p>
                           {inv.invoice_number && <span className="text-xs text-gray-400">{inv.invoice_number}</span>}
                         </div>
                         <p className="text-xs text-gray-400">
                           {inv.customers?.name || 'Sans client'}
-                          {inv.due_date ? ` · Échéance ${new Date(inv.due_date + 'T12:00:00').toLocaleDateString('fr-CA', { month: 'short', day: 'numeric' })}` : ''}
+                          {inv.due_date ? ` · ${fmtDate(inv.due_date, lang)}` : ''}
                         </p>
                       </div>
                       <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[inv.status]?.className || ''}`}>
