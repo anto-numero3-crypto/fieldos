@@ -101,15 +101,33 @@ function AvailabilityPageInner() {
     const res = await fetch(`/api/availability?userId=${uid}`)
     const data = await res.json()
 
+    // Postgres TIME columns serialize as HH:MM:SS — our <option> values are HH:MM,
+    // so we must trim the seconds or the <select> falls back to the first option.
+    const trimTime = (s: unknown) => (typeof s === 'string' ? s.slice(0, 5) : s)
+
     if (data.schedule?.length > 0) {
       const filled = DEFAULT_SCHEDULE.map((def) => {
         const found = data.schedule.find((s: DaySchedule) => s.day_of_week === def.day_of_week)
-        return found ? { ...def, ...found } : def
+        if (!found) return def
+        return {
+          ...def,
+          ...found,
+          start_time: trimTime(found.start_time) as string,
+          end_time: trimTime(found.end_time) as string,
+        }
       })
       setSchedule(filled)
     }
     if (data.settings) setSettings({ ...DEFAULT_SETTINGS, ...data.settings })
-    if (data.overrides) setOverrides(data.overrides)
+    if (data.overrides) {
+      setOverrides(
+        data.overrides.map((o: Override) => ({
+          ...o,
+          start_time: trimTime(o.start_time) as string | undefined,
+          end_time: trimTime(o.end_time) as string | undefined,
+        }))
+      )
+    }
     setLoading(false)
   }, [])
 
@@ -265,40 +283,42 @@ function AvailabilityPageInner() {
           </div>
           <div className="divide-y divide-gray-50">
             {schedule.map((day) => (
-              <div key={day.day_of_week} className="flex items-center gap-4 px-6 py-3.5">
-                <div className="w-32 shrink-0">
-                  <label className="flex items-center gap-2.5 cursor-pointer">
-                    <button
-                      onClick={() => setDay(day.day_of_week, 'is_available', !day.is_available)}
-                      className={`relative h-5 w-9 rounded-full transition-colors ${day.is_available ? 'bg-indigo-600' : 'bg-gray-200'}`}
-                    >
-                      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${day.is_available ? 'translate-x-4' : 'translate-x-0.5'}`} />
-                    </button>
-                    <span className={`text-sm font-medium ${day.is_available ? 'text-gray-900' : 'text-gray-400'}`}>
-                      {DAYS[day.day_of_week]}
-                    </span>
-                  </label>
-                </div>
+              <div
+                key={day.day_of_week}
+                className="grid items-center gap-3 px-5 py-3.5"
+                style={{ gridTemplateColumns: '44px 110px 1fr auto 1fr' }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setDay(day.day_of_week, 'is_available', !day.is_available)}
+                  className={`relative h-5 w-9 rounded-full transition-colors ${day.is_available ? 'bg-indigo-600' : 'bg-gray-200'}`}
+                  aria-label={`Activer ${DAYS[day.day_of_week]}`}
+                >
+                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${day.is_available ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                </button>
+                <span className={`text-sm font-medium truncate ${day.is_available ? 'text-gray-900' : 'text-gray-400'}`}>
+                  {DAYS[day.day_of_week]}
+                </span>
                 {day.is_available ? (
-                  <div className="flex items-center gap-2">
+                  <>
                     <select
                       value={day.start_time}
                       onChange={(e) => setDay(day.day_of_week, 'start_time', e.target.value)}
-                      className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="min-w-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     >
                       {TIME_OPTIONS.map((t) => <option key={t} value={t}>{fmtTime(t)}</option>)}
                     </select>
-                    <span className="text-gray-400 text-sm">—</span>
+                    <span className="text-gray-400 text-sm text-center">—</span>
                     <select
                       value={day.end_time}
                       onChange={(e) => setDay(day.day_of_week, 'end_time', e.target.value)}
-                      className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="min-w-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     >
                       {TIME_OPTIONS.filter((t) => t > day.start_time).map((t) => <option key={t} value={t}>{fmtTime(t)}</option>)}
                     </select>
-                  </div>
+                  </>
                 ) : (
-                  <span className="text-sm text-gray-400 italic">Indisponible</span>
+                  <span className="col-span-3 text-sm text-gray-400 italic">Indisponible</span>
                 )}
               </div>
             ))}
