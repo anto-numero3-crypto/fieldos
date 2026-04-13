@@ -6,6 +6,8 @@ import AppLayout from '@/components/AppLayout'
 import UpgradePrompt from '@/components/UpgradePrompt'
 import { usePlan } from '@/lib/hooks/usePlan'
 import { toast } from 'sonner'
+import { useLanguage } from '@/lib/LanguageContext'
+import { fmtDate } from '@/lib/format'
 import {
   Clock, Calendar, Settings, Globe, Copy, Check, ExternalLink,
   Trash2, Plus, Info, ChevronLeft, ChevronRight
@@ -75,6 +77,7 @@ const DEFAULT_SETTINGS: AvailSettings = {
 }
 
 function AvailabilityPageInner() {
+  const { lang, t } = useLanguage()
   const [userId, setUserId] = useState<string | null>(null)
   const [orgSlug, setOrgSlug] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -161,10 +164,10 @@ function AvailabilityPageInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, settings, schedule }),
       })
-      if (res.ok) toast.success('Disponibilités sauvegardées')
-      else toast.error('Erreur lors de la sauvegarde')
+      if (res.ok) toast.success(t.success.saved)
+      else toast.error(t.errors.saveError)
     } catch {
-      toast.error('Erreur lors de la sauvegarde')
+      toast.error(t.errors.saveError)
     }
     setSaving(false)
   }
@@ -187,14 +190,14 @@ function AvailabilityPageInner() {
     setAddingOverride(false)
     setOverrideDate('')
     setOverrideReason('')
-    toast.success('Exception ajoutée')
+    toast.success(t.success.created)
   }
 
   const deleteOverride = async (date: string) => {
     if (!userId) return
     await fetch(`/api/availability?userId=${userId}&date=${date}`, { method: 'DELETE' })
     setOverrides((prev) => prev.filter((o) => o.date !== date))
-    toast.success('Exception supprimée')
+    toast.success(t.success.deleted)
   }
 
   const bookingUrl = orgSlug ? `https://gestivio.ca/book/${orgSlug}` : null
@@ -446,7 +449,7 @@ function AvailabilityPageInner() {
                 <div key={o.date} className="flex items-center justify-between px-6 py-3">
                   <div>
                     <span className="text-sm font-medium text-gray-900">
-                      {new Date(o.date + 'T12:00:00').toLocaleDateString('fr-CA', { weekday: 'long', month: 'long', day: 'numeric' })}
+                      {fmtDate(o.date, lang)}
                     </span>
                     <span className={`ml-2 text-xs font-medium px-1.5 py-0.5 rounded-full ${o.is_available ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-600'}`}>
                       {o.is_available ? `${fmtTime(o.start_time || '09:00')} – ${fmtTime(o.end_time || '17:00')}` : 'Indisponible'}
