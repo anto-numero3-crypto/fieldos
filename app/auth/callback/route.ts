@@ -73,6 +73,18 @@ export async function GET(request: NextRequest) {
         })
       }
 
+      // If the user provided a promo code at signup, try to apply it now.
+      const promoCode = data.user.user_metadata?.promo_code as string | undefined
+      if (promoCode) {
+        try {
+          await fetch(`${origin}/api/promo/redeem`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: promoCode, userId: data.user.id }),
+          })
+        } catch { /* non-fatal */ }
+      }
+
       // Send to /onboarding if they haven't finished setup yet:
       // no org yet (edge case) OR no customers imported OR default placeholder name.
       const needsOnboarding =

@@ -23,6 +23,10 @@ interface PlanInfo {
   customerCount: number
   aiMessagesThisMonth: number
   teamMemberCount: number
+  // Promo
+  promoCodeId: string | null
+  promoExpiresAt: string | null
+  promoDaysLeft: number
   loading: boolean
   isFeatureAvailable: (f: FeatureFlag) => boolean
   isAtCustomerLimit: boolean
@@ -41,6 +45,9 @@ const DEFAULT: PlanInfo = {
   customerCount: 0,
   aiMessagesThisMonth: 0,
   teamMemberCount: 0,
+  promoCodeId: null,
+  promoExpiresAt: null,
+  promoDaysLeft: 0,
   loading: true,
   isFeatureAvailable: () => false,
   isAtCustomerLimit: false,
@@ -62,7 +69,7 @@ export function usePlan(): PlanInfo {
 
     const { data: org } = await supabase
       .from('organizations')
-      .select('plan, plan_status, trial_ends_at, next_billing_at, ai_messages_this_month')
+      .select('plan, plan_status, trial_ends_at, next_billing_at, ai_messages_this_month, promo_code_id, promo_expires_at')
       .eq('owner_user_id', user.id)
       .single()
 
@@ -89,6 +96,9 @@ export function usePlan(): PlanInfo {
       customerCount,
       aiMessagesThisMonth,
       teamMemberCount,
+      promoCodeId: org?.promo_code_id || null,
+      promoExpiresAt: org?.promo_expires_at || null,
+      promoDaysLeft: daysUntil(org?.promo_expires_at || null),
       loading: false,
       isFeatureAvailable: (f) => isFeatureAvailable(plan, f),
       isAtCustomerLimit: customerCount >= limits.maxCustomers,

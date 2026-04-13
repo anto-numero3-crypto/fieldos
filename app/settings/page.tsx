@@ -6,6 +6,7 @@ import { formatPrice } from '@/lib/pricing'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { usePlan } from '@/lib/hooks/usePlan'
 import { PLAN_PRICING } from '@/lib/plan-limits'
+import PromoCodeInput from '@/components/PromoCodeInput'
 import AppLayout from '@/components/AppLayout'
 import { toast } from 'sonner'
 import {
@@ -851,8 +852,13 @@ export default function SettingsPage() {
                     </span>
                   </div>
                   <p className="text-2xl font-bold text-gray-900 mt-2">{PLAN_PRICING[plan.plan].label} — ${PLAN_PRICING[plan.plan].monthly}/mois</p>
-                  {plan.nextBillingAt && plan.status === 'active' && (
+                  {plan.nextBillingAt && plan.status === 'active' && !plan.promoCodeId && (
                     <p className="text-xs text-gray-400 mt-1">Prochaine facture le {new Date(plan.nextBillingAt).toLocaleDateString('fr-CA')}</p>
+                  )}
+                  {plan.promoCodeId && plan.promoExpiresAt && (
+                    <p className="text-xs font-medium text-emerald-700 mt-1">
+                      🎁 Code promo actif · {plan.promoDaysLeft} jour{plan.promoDaysLeft > 1 ? 's' : ''} restant{plan.promoDaysLeft > 1 ? 's' : ''} — expire le {new Date(plan.promoExpiresAt).toLocaleDateString('fr-CA')}
+                    </p>
                   )}
                 </div>
               </div>
@@ -916,6 +922,11 @@ export default function SettingsPage() {
                 })}
               </div>
             </div>
+
+            {/* Promo code — only useful on trial/starter/expired */}
+            {user && (plan.status === 'trial' || plan.plan === 'starter' || plan.status === 'expired') && (
+              <PromoCodeInput userId={user.id} onApplied={() => plan.refresh()} />
+            )}
 
             {/* Stripe Connect section */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">

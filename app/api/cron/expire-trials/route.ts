@@ -68,5 +68,26 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ expiredCount, warningCount })
+  // ── 3. Expire promo-code plans whose promo_expires_at has passed ───
+  const { data: promoExpired } = await supabase
+    .from('organizations')
+    .select('id, owner_user_id, email, name')
+    .eq('plan_status', 'active')
+    .not('promo_code_id', 'is', null)
+    .lt('promo_expires_at', now.toISOString())
+
+  let promoExpiredCount = 0
+  for (const org of promoExpired || []) {
+    await supabase
+      .from('organizations')
+      .update({ plan: 'starter', plan_status: 'expired', promo_code_id: null, promo_expires_at: null })
+      .eq('id', org.id)
+    if (org.email) {
+      // Reuse trial_expired template — copy is equivalent for "your access ended".
+      await sendPlanEmail('trial_expired', { to: org.email, name: org.name || undefined })
+    }
+    promoExpiredCount++
+  }
+
+  return NextResponse.json({ expiredCount, warningCount, promoExpiredCount })
 }

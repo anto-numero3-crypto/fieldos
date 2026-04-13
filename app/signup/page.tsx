@@ -74,6 +74,8 @@ export default function SignupPage() {
 
   // Step 3
   const [source, setSource] = useState('')
+  const [promoOpen, setPromoOpen] = useState(false)
+  const [promoCode, setPromoCode] = useState('')
 
   // Shared
   const [error, setError] = useState('')
@@ -120,7 +122,8 @@ export default function SignupPage() {
   async function submit() {
     setError('')
     setLoading(true)
-    const metadata = { business_name: business, phone, province, source }
+    const metadata: Record<string, string> = { business_name: business, phone, province, source }
+    if (promoCode.trim()) metadata.promo_code = promoCode.trim().toUpperCase()
     const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
@@ -464,6 +467,35 @@ export default function SignupPage() {
                       <span className="text-sm text-gray-700">{s}</span>
                     </label>
                   ))}
+
+                  {/* Promo code (collapsible) */}
+                  <div className="pt-2">
+                    {!promoOpen ? (
+                      <button
+                        type="button"
+                        onClick={() => setPromoOpen(true)}
+                        className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                      >
+                        {fr ? "Vous avez un code promotionnel ?" : 'Have a promo code?'}
+                      </button>
+                    ) : (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1.5">
+                          {fr ? 'Code promotionnel' : 'Promo code'}
+                        </label>
+                        <input
+                          type="text"
+                          value={promoCode}
+                          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                          placeholder="GESTIVIO-XXX"
+                          className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm font-mono tracking-wider uppercase focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        />
+                        <p className="text-xs text-gray-400 mt-1">
+                          {fr ? 'Le code sera appliqué après la confirmation de votre courriel.' : "The code will be applied after email confirmation."}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
