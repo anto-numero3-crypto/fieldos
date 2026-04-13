@@ -407,8 +407,14 @@ function BookingPageInner() {
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-100 mb-4">
         <Sparkles className="h-8 w-8 text-indigo-600" />
       </div>
-      <h1 className="text-xl font-bold text-gray-900 mb-2">Portail de réservation introuvable</h1>
-      <p className="text-sm text-gray-500">Ce lien est invalide ou désactivé.</p>
+      <h1 className="text-xl font-bold text-gray-900 mb-2">Portail non configuré</h1>
+      <p className="text-sm text-gray-600 max-w-md leading-relaxed mb-5">
+        Ce portail de réservation n&apos;est pas encore configuré. Si vous êtes le propriétaire,
+        connectez-vous et configurez votre lien dans <strong>Calendrier → Disponibilités</strong>.
+      </p>
+      <a href="/login" className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+        Me connecter
+      </a>
     </div>
   )
 

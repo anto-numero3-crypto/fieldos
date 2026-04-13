@@ -486,9 +486,11 @@ export default function SignupPage() {
                         <input
                           type="text"
                           value={promoCode}
-                          onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                          placeholder="GESTIVIO-XXX"
-                          className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm font-mono tracking-wider uppercase focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          onChange={(e) => setPromoCode(e.target.value.toUpperCase().replace(/\s+/g, '').slice(0, 28))}
+                          placeholder="XXXX-XXXXXX-XXXXXX"
+                          autoComplete="off"
+                          spellCheck={false}
+                          className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm font-mono tracking-[0.15em] uppercase focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         />
                         <p className="text-xs text-gray-400 mt-1">
                           {fr ? 'Le code sera appliqué après la confirmation de votre courriel.' : "The code will be applied after email confirmation."}

@@ -12,8 +12,16 @@ interface Props {
 export default function PromoCodeInput({ userId, onApplied }: Props) {
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
-  const [applied, setApplied] = useState<{ plan: string; durationDays: number; expiresAt: string } | null>(null)
+  const [applied, setApplied] = useState<{ plan: string; durationDays: number | null; lifetime: boolean; expiresAt: string | null } | null>(null)
   const [error, setError] = useState('')
+  const [locked, setLocked] = useState(false)
+
+  const onInput = (raw: string) => {
+    // Uppercase + strip internal whitespace. Keep hyphens so the user sees format.
+    const cleaned = raw.toUpperCase().replace(/\s+/g, '').slice(0, 28)
+    setCode(cleaned)
+    setError('')
+  }
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,10 +37,16 @@ export default function PromoCodeInput({ userId, onApplied }: Props) {
       const data = await res.json()
       if (!res.ok) {
         setError(data.error || 'Impossible d\'appliquer le code')
+        if (data.rateLimited) setLocked(true)
         return
       }
-      setApplied({ plan: data.plan, durationDays: data.durationDays, expiresAt: data.expiresAt })
-      toast.success(`Code appliqué ! Plan ${data.plan} pendant ${data.durationDays} jours.`)
+      setApplied({
+        plan: data.plan,
+        durationDays: data.durationDays,
+        lifetime: data.lifetime,
+        expiresAt: data.expiresAt,
+      })
+      toast.success(`Code appliqué ! Forfait ${data.plan}${data.lifetime ? ' à vie' : ` pendant ${data.durationDays} jours`}.`)
       onApplied?.()
     } catch {
       setError('Erreur réseau. Réessayez.')
@@ -49,8 +63,12 @@ export default function PromoCodeInput({ userId, onApplied }: Props) {
           <p className="font-semibold">Code appliqué !</p>
         </div>
         <p className="text-sm text-gray-700 mt-1">
-          Accès au forfait <strong className="capitalize">{applied.plan}</strong> pendant {applied.durationDays} jours —
-          expire le {new Date(applied.expiresAt).toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' })}.
+          Accès au forfait <strong className="capitalize">{applied.plan}</strong>{' '}
+          {applied.lifetime
+            ? <>à vie 🎉</>
+            : applied.expiresAt
+              ? <>pendant {applied.durationDays} jours — expire le {new Date(applied.expiresAt).toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' })}.</>
+              : null}
         </p>
       </div>
     )
@@ -71,13 +89,16 @@ export default function PromoCodeInput({ userId, onApplied }: Props) {
         <input
           type="text"
           value={code}
-          onChange={(e) => { setCode(e.target.value.toUpperCase()); setError('') }}
-          placeholder="GESTIVIO-XXX"
-          className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm font-mono tracking-wider focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 uppercase"
+          onChange={(e) => onInput(e.target.value)}
+          placeholder="XXXX-XXXXXX-XXXXXX"
+          disabled={locked}
+          autoComplete="off"
+          spellCheck={false}
+          className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm font-mono tracking-[0.15em] uppercase focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:bg-gray-50 disabled:cursor-not-allowed"
         />
         <button
           type="submit"
-          disabled={loading || !code.trim()}
+          disabled={loading || locked || !code.trim()}
           className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
         >
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Appliquer'}

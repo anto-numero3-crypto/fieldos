@@ -268,10 +268,22 @@ export default function PublicBookingPage() {
 
   if (notFound) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="text-center max-w-sm">
-        <AlertCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Page introuvable</h1>
-        <p className="text-sm text-gray-500">Cette page de réservation n'existe pas ou a été désactivée.</p>
+      <div className="text-center max-w-md">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 mb-5">
+          <Calendar className="h-8 w-8 text-indigo-500" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Portail non configuré</h1>
+        <p className="text-sm text-gray-600 leading-relaxed mb-5">
+          Ce portail de réservation n&apos;est pas encore configuré.
+          Si vous êtes le propriétaire, connectez-vous et configurez votre lien dans{' '}
+          <strong>Calendrier → Disponibilités</strong>.
+        </p>
+        <a
+          href="/login"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+        >
+          Me connecter
+        </a>
       </div>
     </div>
   )

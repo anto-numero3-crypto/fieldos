@@ -434,13 +434,13 @@ export default function SettingsPage() {
   }
 
   const tabs: { key: Tab; label: string; icon: typeof Building2 }[] = [
-    { key: 'business',      label: 'Entreprise',      icon: Building2 },
-    { key: 'services',      label: 'Services',        icon: Wrench },
-    { key: 'billing',       label: 'Paiements',       icon: DollarSign },
+    { key: 'business',      label: 'Entreprise',             icon: Building2 },
+    { key: 'services',      label: 'Services',               icon: Wrench },
     { key: 'booking',       label: 'Portail de réservation', icon: Sparkles },
-    { key: 'notifications', label: 'Notifications',   icon: Bell },
-    { key: 'security',      label: 'Sécurité',        icon: Shield },
-    { key: 'integrations',  label: 'Intégrations',    icon: Globe },
+    { key: 'billing',       label: 'Facturation',            icon: DollarSign },
+    { key: 'notifications', label: 'Notifications',          icon: Bell },
+    { key: 'security',      label: 'Sécurité',               icon: Shield },
+    { key: 'integrations',  label: 'Intégrations',           icon: Globe },
   ]
 
   const INTEGRATIONS = [

@@ -81,7 +81,7 @@ export const INDUSTRIES: IndustryPage[] = [
       { question: 'Comment fonctionnent les contrats d\'entretien récurrents ?', answer: 'Vous définissez une fois la fréquence (mensuelle, trimestrielle, semestrielle, annuelle), le tarif, et les services inclus. Gestivio génère ensuite automatiquement les rendez-vous et les factures.' },
       { question: "Est-ce adapté à une entreprise avec plusieurs techniciens ?", answer: 'Oui. Chaque technicien a son propre compte, son calendrier, et accès à son propre planning. Le répartiteur peut assigner les appels en temps réel.' },
       { question: "Puis-je importer mes contrats existants ?", answer: "Oui. Nous offrons un import CSV gratuit pour migrer vos clients, équipements et contrats depuis Excel ou un autre logiciel." },
-      { question: "Gestivio s'intègre-t-il à QuickBooks ?", answer: "Oui. L'intégration QuickBooks Canada est disponible sur les plans Growth et Pro pour synchroniser automatiquement les factures et les paiements." },
+      { question: "Gestivio s'intègre-t-il à QuickBooks ?", answer: "Oui. L'export CSV compatible QuickBooks est disponible sur le forfait Business pour synchroniser factures et paiements." },
     ],
     relatedSlugs: ['logiciel-plombier'],
     meta: {
