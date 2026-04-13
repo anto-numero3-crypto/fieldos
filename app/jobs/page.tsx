@@ -10,6 +10,7 @@ import { validateRequired } from '@/lib/validators'
 import FieldError from '@/components/FieldError'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonText, SkeletonCard } from '@/components/ui/skeleton'
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
 import {
   Briefcase, Plus, X, Calendar, User, CheckCircle,
@@ -69,6 +70,7 @@ export default function JobsPage() {
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime]   = useState('')
   const [touched, setTouched]   = useState<Record<string, boolean>>({})
+  const confirm = useConfirm()
 
   const errTitle = touched.title ? validateRequired(title) : ''
   const formInvalid = !!validateRequired(title)
@@ -115,7 +117,12 @@ export default function JobsPage() {
   }
 
   const deleteJob = async (id: string) => {
-    if (!confirm('Supprimer cette intervention ?')) return
+    const { confirmed } = await confirm({
+      title: 'Supprimer cet emploi ?',
+      description: 'Cette action est irréversible.',
+      confirmLabel: 'Supprimer',
+    })
+    if (!confirmed) return
     await supabase.from('jobs').delete().eq('id', id)
     setJobs((prev) => prev.filter((j) => j.id !== id))
     setMenuOpen(null)

@@ -10,6 +10,7 @@ import { validateRequired, validateEmail, validatePhone } from '@/lib/validators
 import FieldError from '@/components/FieldError'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonCard } from '@/components/ui/skeleton'
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
 import {
   Users2, Plus, X, Mail, Phone, Shield, Wrench,
@@ -50,6 +51,7 @@ export default function TeamPage() {
   const [phone, setPhone]   = useState('')
   const [role, setRole]     = useState('technician')
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const confirm = useConfirm()
 
   const errName  = touched.name  ? validateRequired(name) : ''
   const errEmail = touched.email ? validateEmail(email) : ''
@@ -123,7 +125,12 @@ export default function TeamPage() {
   }
 
   const deleteMember = async (id: string) => {
-    if (!confirm('Retirer ce membre de l\'équipe ?')) return
+    const { confirmed } = await confirm({
+      title: 'Retirer ce membre ?',
+      description: 'Ce membre perdra accès à la plateforme.',
+      confirmLabel: 'Retirer',
+    })
+    if (!confirmed) return
     await supabase.from('team_members').delete().eq('id', id)
     setMembers((prev) => prev.filter((m) => m.id !== id))
     setMenuOpen(null)

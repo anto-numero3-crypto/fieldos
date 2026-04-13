@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
 import { SkeletonText, SkeletonCard } from '@/components/ui/skeleton'
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { writeAuditLog } from '@/lib/audit'
 import { toast } from 'sonner'
 import {
@@ -51,6 +52,7 @@ const STATUS_CFG: Record<string, { label: string; className: string; icon: React
 export default function InvoiceDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router       = useRouter()
+  const confirm      = useConfirm()
   const searchParams = useSearchParams()
 
   const [invoice, setInvoice]       = useState<Invoice | null>(null)
@@ -138,7 +140,12 @@ export default function InvoiceDetailPage() {
   }
 
   const deleteInvoice = async () => {
-    if (!confirm('Supprimer cette facture ? Cette action est irréversible.')) return
+    const { confirmed } = await confirm({
+      title: 'Supprimer cette facture ?',
+      description: 'Cette action est irréversible. Le lien de paiement partagé ne fonctionnera plus.',
+      confirmLabel: 'Supprimer',
+    })
+    if (!confirmed) return
     const { data: auth } = await supabase.auth.getUser()
     if (auth.user) writeAuditLog({ userId: auth.user.id, action: 'delete', resourceType: 'invoice', resourceId: id })
     await supabase.from('invoices').delete().eq('id', id)

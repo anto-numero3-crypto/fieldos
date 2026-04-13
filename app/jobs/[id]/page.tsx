@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/app/supabase'
 import AppLayout from '@/components/AppLayout'
 import { SkeletonText, SkeletonCard } from '@/components/ui/skeleton'
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import {
   ArrowLeft, User, Calendar, Clock, Flag, Edit2, Save, CheckSquare,
   Square, Plus, Trash2, FileText, DollarSign, AlertCircle, CheckCircle,
@@ -41,6 +42,7 @@ const fmt     = (n: number) => `$${n.toLocaleString('fr-CA', { minimumFractionDi
 export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router  = useRouter()
+  const confirm = useConfirm()
 
   const [job, setJob]         = useState<Job | null>(null)
   const [loading, setLoading] = useState(true)
@@ -168,7 +170,12 @@ export default function JobDetailPage() {
   }
 
   const deleteJob = async () => {
-    if (!confirm('Supprimer cette intervention ?')) return
+    const { confirmed } = await confirm({
+      title: 'Supprimer cet emploi ?',
+      description: 'Cette action est irréversible.',
+      confirmLabel: 'Supprimer',
+    })
+    if (!confirmed) return
     await supabase.from('jobs').delete().eq('id', id)
     router.push('/jobs')
   }

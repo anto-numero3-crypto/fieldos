@@ -8,6 +8,7 @@ import { usePlan } from '@/lib/hooks/usePlan'
 import { PLAN_PRICING } from '@/lib/plan-limits'
 import PromoCodeInput from '@/components/PromoCodeInput'
 import { validateEmail, validatePhone } from '@/lib/validators'
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import AppLayout from '@/components/AppLayout'
 import { toast } from 'sonner'
 import {
@@ -95,6 +96,7 @@ function SaveBar({ saved, error, saving, onSave }: { saved: boolean; error: stri
 
 export default function SettingsPage() {
   const plan = usePlan()
+  const confirm = useConfirm()
   const [tab, setTab]       = useState<Tab>('business')
   const [user, setUser]     = useState<{ id: string; email?: string } | null>(null)
   const [orgId, setOrgId]     = useState<string | null>(null)
@@ -367,7 +369,12 @@ export default function SettingsPage() {
   }
 
   const deleteService = async (svc: Service) => {
-    if (!confirm(`Supprimer "${svc.name}" ?`)) return
+    const { confirmed } = await confirm({
+      title: 'Supprimer ce service ?',
+      description: `« ${svc.name} » ne sera plus disponible dans votre portail de réservation.`,
+      confirmLabel: 'Supprimer',
+    })
+    if (!confirmed) return
     const { error: svcErr } = await supabase.from('services').delete().eq('id', svc.id)
     if (svcErr) { toast.error(svcErr.message); return }
     setServices((prev) => prev.filter((s) => s.id !== svc.id))

@@ -8,6 +8,7 @@ import { validateRequired, validateAmount } from '@/lib/validators'
 import FieldError from '@/components/FieldError'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonText, SkeletonListRow } from '@/components/ui/skeleton'
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -48,6 +49,7 @@ export default function QuotesPage() {
   const [title, setTitle]         = useState('')
   const [customerId, setCustId]   = useState('')
   const [touched, setTouched]     = useState<Record<string, boolean>>({})
+  const confirm = useConfirm()
   const [validUntil, setValidUntil] = useState('')
   const [taxRate, setTaxRate]     = useState(0)
   const [notes, setNotes]         = useState('')
@@ -117,7 +119,12 @@ export default function QuotesPage() {
   }
 
   const deleteQuote = async (id: string) => {
-    if (!confirm('Supprimer ce devis ?')) return
+    const { confirmed } = await confirm({
+      title: 'Supprimer ce devis ?',
+      description: 'Cette action est irréversible.',
+      confirmLabel: 'Supprimer',
+    })
+    if (!confirmed) return
     await supabase.from('quotes').delete().eq('id', id)
     setQuotes((prev) => prev.filter((q) => q.id !== id))
   }

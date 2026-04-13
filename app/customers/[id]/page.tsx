@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { supabase } from '@/app/supabase'
 import AppLayout from '@/components/AppLayout'
 import { SkeletonText, SkeletonCard, SkeletonKPICard } from '@/components/ui/skeleton'
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { writeAuditLog } from '@/lib/audit'
 import {
   ArrowLeft, Mail, Phone, MapPin, Tag, Edit2, Trash2, Plus,
@@ -49,6 +50,7 @@ const fmtDate   = (d: string) => new Date(d).toLocaleDateString('fr-CA', { month
 export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router  = useRouter()
+  const confirm = useConfirm()
 
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [jobs, setJobs]         = useState<Job[]>([])
@@ -129,7 +131,12 @@ export default function CustomerDetailPage() {
   }
 
   const deleteCustomer = async () => {
-    if (!confirm('Supprimer ce client ? Toutes les interventions et factures associées seront dissociées.')) return
+    const { confirmed } = await confirm({
+      title: 'Supprimer ce client ?',
+      description: 'Cette action est irréversible. Tous les emplois et factures associés seront dissociés.',
+      confirmLabel: 'Supprimer',
+    })
+    if (!confirmed) return
     if (userId) writeAuditLog({ userId, action: 'delete', resourceType: 'customer', resourceId: id })
     await supabase.from('customers').delete().eq('id', id)
     router.push('/customers')

@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import JsonLd from "@/components/JsonLd";
 import { organizationSchema } from "@/lib/schema";
+import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -64,8 +65,10 @@ export default function RootLayout({
         <GoogleAnalytics />
         <ThemeProvider>
           <LanguageProvider>
-            {children}
-            <Toaster position="top-right" richColors closeButton duration={4000} />
+            <ConfirmProvider>
+              {children}
+              <Toaster position="top-right" richColors closeButton duration={4000} />
+            </ConfirmProvider>
           </LanguageProvider>
         </ThemeProvider>
       </body>

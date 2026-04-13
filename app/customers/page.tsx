@@ -11,6 +11,7 @@ import { validateRequired, validateEmail, validatePhone } from '@/lib/validators
 import FieldError from '@/components/FieldError'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonText, SkeletonListRow } from '@/components/ui/skeleton'
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
 import {
   Users, Plus, Search, Mail, Phone, MapPin, X,
@@ -54,6 +55,7 @@ export default function CustomersPage() {
   const [tags, setTags]       = useState<string[]>([])
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [orgSlug, setOrgSlug] = useState<string | null>(null)
+  const confirm = useConfirm()
 
   const errName  = touched.name  ? validateRequired(name) : ''
   const errEmail = touched.email ? validateEmail(email, false) : ''
@@ -142,7 +144,12 @@ export default function CustomersPage() {
   }
 
   const deleteCustomer = async (id: string) => {
-    if (!confirm('Supprimer ce client ? Cette action est irréversible.')) return
+    const { confirmed } = await confirm({
+      title: 'Supprimer ce client ?',
+      description: 'Cette action est irréversible. Tous les emplois et factures associés seront dissociés.',
+      confirmLabel: 'Supprimer',
+    })
+    if (!confirmed) return
     const { error } = await supabase.from('customers').delete().eq('id', id)
     if (error) { toast.error(error.message); return }
     setCustomers((prev) => prev.filter((c) => c.id !== id))
