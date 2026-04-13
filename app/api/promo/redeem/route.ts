@@ -1,13 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { normalizeCode, isValidCodeShape } from '@/lib/promo'
-
-function adminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-}
+import { adminClient, getAuthedUser } from '@/lib/supabase-server'
 
 const MAX_FAILS_PER_HOUR = 5
 const LOCK_WINDOW_MIN = 60
@@ -43,9 +36,22 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json() as { code?: string; userId?: string }
   const rawCode = normalizeCode(body.code || '')
-  const userId = body.userId || null
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || null
   const ua = req.headers.get('user-agent') || null
+
+  // Allow unauthenticated calls ONLY from the auth/callback internal flow.
+  // For safety: prefer authenticated session. Fallback to body userId only for
+  // the signup callback (detected via same-origin request) — otherwise reject.
+  const authed = await getAuthedUser(req)
+  let userId: string | null = authed?.id || null
+
+  // Callback bootstrap: accept body.userId only if request is same-origin from our app
+  if (!userId && body.userId) {
+    const origin = req.headers.get('origin') || ''
+    const host = req.headers.get('host') || ''
+    const sameOrigin = origin.includes(host) || origin.endsWith('gestivio.ca')
+    if (sameOrigin) userId = body.userId
+  }
 
   const attempt = (success: boolean, reason?: string, orgId: string | null = null) =>
     logAttempt(supabase, { code: rawCode, userId, orgId, ip, ua, success, reason })
@@ -56,10 +62,9 @@ export async function POST(req: NextRequest) {
   }
   if (!userId) {
     await attempt(false, 'unauthenticated')
-    return NextResponse.json({ error: 'Utilisateur non authentifié' }, { status: 401 })
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
-  // Rate limit — 5 failures per user per hour
   const windowStart = new Date(Date.now() - LOCK_WINDOW_MIN * 60 * 1000).toISOString()
   const { count: recentFails } = await supabase
     .from('promo_code_attempts')
@@ -75,7 +80,6 @@ export async function POST(req: NextRequest) {
     }, { status: 429 })
   }
 
-  // Cheap shape check before DB lookup (rejects obvious garbage)
   if (!isValidCodeShape(rawCode) && !/^[A-Z0-9-]{4,40}$/.test(rawCode)) {
     await attempt(false, 'invalid_shape')
     return NextResponse.json({ error: 'Code invalide' }, { status: 400 })
@@ -129,7 +133,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Organisation introuvable' }, { status: 404 })
   }
 
-  // Optional domain restriction
   if (code.allowed_email_domains && Array.isArray(code.allowed_email_domains) && code.allowed_email_domains.length > 0) {
     const email = (org.email || '').toLowerCase()
     const domain = email.includes('@') ? email.split('@')[1] : ''
@@ -140,7 +143,6 @@ export async function POST(req: NextRequest) {
   }
 
   const now = new Date()
-  // Lifetime codes have duration_days=null; fall back to a sentinel far future date.
   const planExpiresAt = code.duration_days == null
     ? new Date('2099-12-31T00:00:00Z')
     : new Date(now.getTime() + code.duration_days * 24 * 60 * 60 * 1000)

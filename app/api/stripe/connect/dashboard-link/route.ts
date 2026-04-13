@@ -1,21 +1,18 @@
 import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { adminClient, getAuthedUser, UNAUTHORIZED } from '@/lib/supabase-server'
 
 export async function POST(req: NextRequest) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03-25.dahlia' })
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const user = await getAuthedUser(req)
+  if (!user) return UNAUTHORIZED()
 
-  const { userId } = await req.json()
-  if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03-25.dahlia' })
+  const supabase = adminClient()
 
   const { data: org } = await supabase
     .from('organizations')
     .select('stripe_connect_account_id')
-    .eq('owner_user_id', userId)
+    .eq('owner_user_id', user.id)
     .single()
 
   if (!org?.stripe_connect_account_id) {

@@ -35,7 +35,16 @@
       "Bash(grep -rn \"converted_to_job_id\\\\|quote_id\" supabase/*.sql)",
       "Bash(grep -rn \"invoice_items\\\\|line_items\" supabase/*.sql)",
       "Bash(grep -nE \"^    [a-z]+: \\\\{$\" lib/i18n.ts)",
-      "Bash(grep -oE \"'[A-ZÀ-ÿ][a-zà-ÿ ']{3,40}'\" app/customers/page.tsx)"
+      "Bash(grep -oE \"'[A-ZÀ-ÿ][a-zà-ÿ ']{3,40}'\" app/customers/page.tsx)",
+      "Bash(git diff:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m 'feat: i18n jobs detail page:*)",
+      "Bash(git commit:*)",
+      "Bash(vercel --version)",
+      "Bash(git push:*)",
+      "Bash(vercel deploy:*)",
+      "Bash(wc:*)",
+      "Bash(ls lib/supabase*)"
     ]
   }
 }

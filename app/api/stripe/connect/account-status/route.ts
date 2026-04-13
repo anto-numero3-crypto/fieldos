@@ -1,21 +1,18 @@
 import Stripe from 'stripe'
-import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { adminClient, getAuthedUser, UNAUTHORIZED } from '@/lib/supabase-server'
 
 export async function GET(req: NextRequest) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03-25.dahlia' })
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const user = await getAuthedUser(req)
+  if (!user) return UNAUTHORIZED()
 
-  const userId = req.nextUrl.searchParams.get('userId')
-  if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-03-25.dahlia' })
+  const supabase = adminClient()
 
   const { data: org } = await supabase
     .from('organizations')
     .select('stripe_connect_account_id, stripe_connect_charges_enabled, stripe_connect_payouts_enabled, stripe_connect_onboarding_complete')
-    .eq('owner_user_id', userId)
+    .eq('owner_user_id', user.id)
     .single()
 
   if (!org?.stripe_connect_account_id) {
@@ -25,7 +22,6 @@ export async function GET(req: NextRequest) {
   try {
     const account = await stripe.accounts.retrieve(org.stripe_connect_account_id)
 
-    // Update DB with fresh status
     await supabase
       .from('organizations')
       .update({
@@ -34,7 +30,7 @@ export async function GET(req: NextRequest) {
         stripe_connect_onboarding_complete:   account.details_submitted,
         stripe_connect_connected_at:          account.created ? new Date(account.created * 1000).toISOString() : undefined,
       })
-      .eq('owner_user_id', userId)
+      .eq('owner_user_id', user.id)
 
     return NextResponse.json({
       connected:           true,
@@ -48,6 +44,6 @@ export async function GET(req: NextRequest) {
     })
   } catch (err) {
     console.error('Stripe account retrieval error:', err)
-    return NextResponse.json({ connected: false, error: String(err) })
+    return NextResponse.json({ connected: false })
   }
 }

@@ -1,26 +1,29 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { adminClient, getAuthedUser, UNAUTHORIZED } from '@/lib/supabase-server'
 
 export async function POST(req: NextRequest) {
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json({ reply: 'AI is not configured. Add ANTHROPIC_API_KEY to environment.' }, { status: 503 })
   }
 
+  const user = await getAuthedUser(req)
+  if (!user) return UNAUTHORIZED()
+
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  const supabase  = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase  = adminClient()
 
   try {
-    const { message, userId, history = [], pageContext, mode } = await req.json()
-
-    if (!message || !userId) {
-      return NextResponse.json({ error: 'Missing message or userId' }, { status: 400 })
+    const { message, history = [], pageContext, mode } = await req.json()
+    if (!message || typeof message !== 'string') {
+      return NextResponse.json({ error: 'Missing message' }, { status: 400 })
+    }
+    if (message.length > 4000) {
+      return NextResponse.json({ error: 'Message too long' }, { status: 400 })
     }
 
-    // Plan enforcement — Starter is capped at 20 AI messages per calendar month.
+    const userId = user.id
+
     const { data: orgPlan } = await supabase
       .from('organizations')
       .select('id, plan, plan_status, ai_messages_this_month, ai_messages_reset_at')
@@ -31,7 +34,6 @@ export async function POST(req: NextRequest) {
     let currentCount = orgPlan?.ai_messages_this_month || 0
     const resetAt = orgPlan?.ai_messages_reset_at ? new Date(orgPlan.ai_messages_reset_at) : null
     const nowTs = new Date()
-    // Monthly rollover
     if (!resetAt || nowTs.getTime() - resetAt.getTime() > 30 * 24 * 60 * 60 * 1000) {
       currentCount = 0
       if (orgPlan?.id) {
@@ -46,12 +48,10 @@ export async function POST(req: NextRequest) {
       }, { status: 402 })
     }
 
-    // Increment counter (best-effort, fire-and-forget after we generate the response would be ideal — doing it here for simplicity)
     if (orgPlan?.id) {
       await supabase.from('organizations').update({ ai_messages_this_month: currentCount + 1 }).eq('id', orgPlan.id)
     }
 
-    // Fetch business data for context
     const [
       { data: customers, count: customerCount },
       { data: jobs },
@@ -64,7 +64,6 @@ export async function POST(req: NextRequest) {
       supabase.from('quotes').select('id, title, status, total, created_at, customers(name)').eq('user_id', userId).order('created_at', { ascending: false }).limit(20),
     ])
 
-    // Compute business metrics
     const allInvoices = invoices || []
     const allJobs     = jobs || []
 
@@ -77,7 +76,6 @@ export async function POST(req: NextRequest) {
     const activeJobs      = allJobs.filter((j) => j.status === 'scheduled' || j.status === 'in_progress')
     const completedJobs   = allJobs.filter((j) => j.status === 'complete')
 
-    // Monthly revenue breakdown (last 6 months)
     const monthlyRevenue: Record<string, number> = {}
     const now = new Date()
     for (let i = 5; i >= 0; i--) {
@@ -120,7 +118,7 @@ ${overdueInvoices.slice(0, 5).map((i) => `- $${parseFloat(String(i.amount)).toFi
 `.trim()
 
     const isFloating = mode === 'floating'
-    const pageCtx = pageContext ? `\n\n**Current page context:** ${pageContext}` : ''
+    const pageCtx = pageContext ? `\n\n**Current page context:** ${String(pageContext).slice(0, 500)}` : ''
 
     const systemPrompt = `You are Gestivio AI — an expert business assistant for a field service management platform, with enterprise-grade reasoning quality.
 
@@ -129,16 +127,6 @@ ${businessContext}${pageCtx}
 ## Your role:
 Answer questions, provide insights, draft communications, and help the business owner make better decisions based on their real data.
 
-## What you can do:
-- Answer questions about customers, jobs, invoices, revenue with specific numbers from the data above
-- Draft professional follow-up emails for overdue invoices
-- Identify customers at churn risk (inactive for 90+ days)
-- Suggest optimal pricing based on job history
-- Generate weekly/monthly business summaries
-- Flag anomalies: unusual patterns, underbilling, pricing inconsistencies
-- Recommend upsell opportunities
-- Analyze cash flow and AR aging
-
 ## Response style:
 ${isFloating ? '- CONCISE: Keep responses under 150 words for the floating chat. Use bullet points.\n- Be direct and actionable.' : '- Detailed when helpful, concise when possible.\n- Use bullet points and formatting.'}
 - Use specific numbers from the business data
@@ -146,11 +134,11 @@ ${isFloating ? '- CONCISE: Keep responses under 150 words for the floating chat.
 - When drafting emails/documents, write them ready-to-use
 - Today: ${new Date().toLocaleDateString('en', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`
 
-    // Multi-turn conversation history
+    const trimmedHistory = Array.isArray(history) ? history.slice(-20) : []
     const messages: Anthropic.MessageParam[] = [
-      ...history.map((msg: { role: string; content: string }) => ({
+      ...trimmedHistory.map((msg: { role: string; content: string }) => ({
         role: msg.role as 'user' | 'assistant',
-        content: msg.content,
+        content: String(msg.content).slice(0, 4000),
       })),
       { role: 'user', content: message },
     ]
@@ -163,10 +151,9 @@ ${isFloating ? '- CONCISE: Keep responses under 150 words for the floating chat.
     })
 
     const reply = response.content[0].type === 'text' ? response.content[0].text : 'Sorry, I could not generate a response.'
-
     return NextResponse.json({ reply })
   } catch (err) {
     console.error('AI route error:', err)
-    return NextResponse.json({ reply: 'Something went wrong. Please try again.', error: String(err) }, { status: 500 })
+    return NextResponse.json({ reply: 'Something went wrong. Please try again.' }, { status: 500 })
   }
 }

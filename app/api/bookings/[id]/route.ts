@@ -1,12 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
-
-function adminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-}
+import { adminClient, getAuthedUser } from '@/lib/supabase-server'
 
 async function sendEmail(payload: Record<string, unknown>) {
   try {
@@ -20,44 +13,60 @@ async function sendEmail(payload: Record<string, unknown>) {
   }
 }
 
-// GET /api/bookings/[id] — fetch a single booking (by id or token)
+// GET: lookup by token (public — customer-facing cancel/confirm link) OR by id for authed owner
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = adminClient()
-
-  // Try by id first, then by token
-  let query = supabase.from('booking_requests').select('*')
   const isUUID = /^[0-9a-f-]{36}$/i.test(id)
-  query = isUUID
-    ? query.or(`id.eq.${id},token.eq.${id}`)
-    : query.eq('token', id)
 
-  const { data, error } = await query.single()
+  if (isUUID) {
+    // UUID → require auth + ownership
+    const user = await getAuthedUser(req)
+    if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+    const { data, error } = await supabase
+      .from('booking_requests').select('*').eq('id', id).eq('user_id', user.id).single()
+    if (error || !data) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return NextResponse.json({ booking: data })
+  }
 
+  // Token lookup (public — needs to work for customer cancel link)
+  const { data, error } = await supabase
+    .from('booking_requests').select('*').eq('token', id).single()
   if (error || !data) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json({ booking: data })
 }
 
-// PATCH /api/bookings/[id] — confirm, decline, cancel, complete
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const body = await req.json()
-  const { action, reason, userId } = body
-
+  const { action, reason } = body
   if (!action) return NextResponse.json({ error: 'Missing action' }, { status: 400 })
 
   const supabase = adminClient()
+  const isUUID = /^[0-9a-f-]{36}$/i.test(id)
 
-  // Fetch the booking
-  const { data: booking } = await supabase
-    .from('booking_requests')
-    .select('*')
-    .or(`id.eq.${id},token.eq.${id}`)
-    .single()
+  // Fetch booking
+  const q = supabase.from('booking_requests').select('*')
+  const { data: booking } = isUUID
+    ? await q.eq('id', id).single()
+    : await q.eq('token', id).single()
 
   if (!booking) return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
 
-  // Fetch org for email
+  // Auth: owner actions require auth+ownership; customer-cancel via token is allowed only for 'cancel'
+  const user = await getAuthedUser(req)
+  const isOwner = !!user && user.id === booking.user_id
+  const isCustomerCancelByToken = !isUUID && action === 'cancel'
+
+  if (!isOwner && !isCustomerCancelByToken) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
+  }
+
+  // Only the owner can confirm/decline/complete
+  if ((action === 'confirm' || action === 'decline' || action === 'complete') && !isOwner) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 403 })
+  }
+
   const { data: org } = await supabase
     .from('organizations')
     .select('name, email, owner_user_id')
@@ -73,9 +82,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   let update: Record<string, unknown> = {}
 
   if (action === 'confirm') {
-    update = { status: 'confirmed', confirmed_at: new Date().toISOString(), confirmed_by: userId || 'owner' }
-
-    // Create job if not already created
+    update = { status: 'confirmed', confirmed_at: new Date().toISOString(), confirmed_by: user!.id }
     if (!booking.converted_to_job_id && booking.customer_id) {
       const endTime = booking.requested_end_time || booking.requested_time
       const { data: job } = await supabase
@@ -94,11 +101,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         })
         .select('id')
         .single()
-
       if (job) update.converted_to_job_id = job.id
     }
-
-    // Email customer
     await sendEmail({
       type: 'booking_confirmed',
       to: booking.customer_email,
@@ -110,10 +114,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       servicePrice: booking.service_price ? `CA$${parseFloat(booking.service_price).toFixed(2)}` : undefined,
       cancelLink: `https://gestivio.ca/booking/cancel/${booking.token}`,
     })
-
   } else if (action === 'decline') {
     update = { status: 'declined', declined_at: new Date().toISOString(), decline_reason: reason || null }
-
     await sendEmail({
       type: 'booking_declined',
       to: booking.customer_email,
@@ -124,12 +126,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       bookingTime: timeFormatted,
       declineReason: reason || undefined,
     })
-
   } else if (action === 'cancel') {
     update = { status: 'cancelled', cancelled_at: new Date().toISOString(), cancellation_reason: reason || null }
-
-    // Email customer if cancellation is by business
-    if (userId) {
+    if (isOwner) {
       await sendEmail({
         type: 'booking_cancelled',
         to: booking.customer_email,
@@ -139,10 +138,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         bookingDate: dateFormatted,
         bookingTime: timeFormatted,
       })
-    }
-
-    // Notify owner if cancellation is by customer (no userId)
-    if (!userId && org?.email) {
+    } else if (org?.email) {
       await sendEmail({
         type: 'booking_cancelled_owner',
         to: org.email,
@@ -155,7 +151,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         cancelReason: reason || undefined,
       })
     }
-
   } else if (action === 'complete') {
     update = { status: 'completed' }
   } else {
@@ -165,9 +160,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { error } = await supabase
     .from('booking_requests')
     .update({ ...update, updated_at: new Date().toISOString() })
-    .or(`id.eq.${id},token.eq.${id}`)
+    .eq('id', booking.id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
+  if (error) return NextResponse.json({ error: 'Update failed' }, { status: 500 })
   return NextResponse.json({ success: true })
 }

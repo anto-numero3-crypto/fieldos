@@ -1,28 +1,20 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { adminClient, getAuthedUser, UNAUTHORIZED } from '@/lib/supabase-server'
 
-function adminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-}
-
-// GET /api/bookings?userId=...&status=...&from=...&to=...
 export async function GET(req: NextRequest) {
+  const user = await getAuthedUser(req)
+  if (!user) return UNAUTHORIZED()
+
   const { searchParams } = req.nextUrl
-  const userId = searchParams.get('userId')
   const status = searchParams.get('status')
   const from   = searchParams.get('from')
   const to     = searchParams.get('to')
-
-  if (!userId) return NextResponse.json({ error: 'Missing userId' }, { status: 400 })
 
   const supabase = adminClient()
   let query = supabase
     .from('booking_requests')
     .select('*')
-    .eq('user_id', userId)
+    .eq('user_id', user.id)
     .order('requested_date', { ascending: false })
     .order('requested_time', { ascending: false })
 
@@ -31,7 +23,6 @@ export async function GET(req: NextRequest) {
   if (to)   query = query.lte('requested_date', to)
 
   const { data, error } = await query
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) return NextResponse.json({ error: 'Query failed' }, { status: 500 })
   return NextResponse.json({ bookings: data || [] })
 }
