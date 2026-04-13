@@ -11,7 +11,7 @@ import { SkeletonText, SkeletonListRow } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import ConvertQuoteModal from '@/components/ConvertQuoteModal'
 import { useLanguage } from '@/lib/LanguageContext'
-import { fmtMoney } from '@/lib/format'
+import { fmtMoney, fmtDate } from '@/lib/format'
 import { ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -44,7 +44,6 @@ const STATUS_CFG: Record<string, { label: string; cls: string }> = {
 const CONVERTIBLE = new Set(['sent', 'viewed', 'approved', 'accepted'])
 const ACCEPTABLE  = new Set(['sent', 'viewed'])
 
-const fmt = (n: number) => `$${n.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 const newItem = (): LineItem => ({ id: Date.now().toString(), description: '', qty: 1, unit_price: 0 })
 
 export default function QuotesPage() {
@@ -64,6 +63,7 @@ export default function QuotesPage() {
   const confirm = useConfirm()
   const { lang, t } = useLanguage()
   const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
+  const fmt = (n: number) => fmtMoney(n, lang)
   const [convertingQuote, setConvertingQuote] = useState<Quote | null>(null)
   const [acceptingId, setAcceptingId] = useState<string | null>(null)
 
@@ -90,7 +90,7 @@ export default function QuotesPage() {
           })
         } catch { /* ignore */ }
       }
-      toast.success('Devis accepté')
+      toast.success(t.success.updated)
     } finally {
       setAcceptingId(null)
     }
@@ -136,7 +136,7 @@ export default function QuotesPage() {
   const createQuote = async (e: React.FormEvent) => {
     e.preventDefault()
     setTouched({ title: true })
-    if (formInvalid) { toast.error('Vérifiez les champs en surbrillance.'); return }
+    if (formInvalid) { toast.error(t.errors.required); return }
     setLoading(true)
     const { error } = await supabase.from('quotes').insert({
       user_id: user!.id,
@@ -150,7 +150,7 @@ export default function QuotesPage() {
     })
     if (error) { toast.error(error.message) }
     else {
-      toast.success('Devis créé !')
+      toast.success(t.success.created)
       setTitle(''); setCustId(''); setValidUntil(''); setTaxRate(0); setNotes(''); setLineItems([newItem()])
       await fetchQuotes(user!.id)
       setPanelOpen(false)
@@ -265,7 +265,7 @@ export default function QuotesPage() {
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap"><span className="text-sm font-semibold text-gray-900">{fmt(q.total)}</span></td>
                         <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {q.valid_until ? new Date(q.valid_until).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : <span className="text-gray-300">—</span>}
+                          {q.valid_until ? fmtDate(q.valid_until, lang) : <span className="text-gray-300">—</span>}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{tStatus(q.status)}</span>
