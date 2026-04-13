@@ -14,13 +14,23 @@ import {
 } from 'recharts'
 import { TrendingUp, DollarSign, Briefcase, Users, ArrowUpRight, ArrowDownRight, Download } from 'lucide-react'
 
-interface Invoice { id: string; amount: number; status: string; created_at: string; customers: { name: string } | null }
-interface Job { id: string; status: string; created_at: string; customers: { name: string } | null }
+interface LineItem { description: string; qty: number; unit_price: number }
+interface Invoice {
+  id: string; amount: number; status: string
+  created_at: string; paid_at: string | null
+  line_items: LineItem[] | null
+  customers: { name: string } | null
+}
+interface Job { id: string; status: string; created_at: string; updated_at: string | null; customers: { name: string } | null }
 interface Customer { id: string; name: string; created_at: string }
 
 const MONTHS_SHORT = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc']
 
-type Period = '30d' | '90d' | '1y' | 'all'
+type Period = '7d' | '30d' | '90d' | 'ytd' | 'all'
+
+const PERIOD_DAYS: Record<Period, number | null> = {
+  '7d': 7, '30d': 30, '90d': 90, 'ytd': -1, 'all': null,
+}
 
 const fmt  = (n: number) => `$${n.toLocaleString('en', { minimumFractionDigits: 0 })}`
 const fmtK = (n: number) => n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : fmt(n)
@@ -73,8 +83,8 @@ function ReportsPageInner() {
       const { data: auth } = await supabase.auth.getUser()
       if (!auth.user) { window.location.href = '/login'; return }
       const [{ data: inv }, { data: j }, { data: c }] = await Promise.all([
-        supabase.from('invoices').select('id, amount, status, created_at, customers(name)').eq('user_id', auth.user.id).order('created_at'),
-        supabase.from('jobs').select('id, status, created_at, customers(name)').eq('user_id', auth.user.id).order('created_at'),
+        supabase.from('invoices').select('id, amount, status, created_at, paid_at, line_items, customers(name)').eq('user_id', auth.user.id).order('created_at'),
+        supabase.from('jobs').select('id, status, created_at, updated_at, customers(name)').eq('user_id', auth.user.id).order('created_at'),
         supabase.from('customers').select('id, name, created_at').eq('user_id', auth.user.id).order('created_at'),
       ])
       setInvoices((inv || []) as unknown as Invoice[])
@@ -85,10 +95,15 @@ function ReportsPageInner() {
     init()
   }, [])
 
+  const periodCutoff = (): Date | null => {
+    const d = PERIOD_DAYS[period]
+    if (d === null) return null
+    if (d === -1) return new Date(new Date().getFullYear(), 0, 1) // YTD
+    return new Date(Date.now() - d * 86400000)
+  }
   const filterByPeriod = <T extends { created_at: string }>(data: T[]) => {
-    if (period === 'all') return data
-    const days = period === '30d' ? 30 : period === '90d' ? 90 : 365
-    const cutoff = new Date(Date.now() - days * 86400000)
+    const cutoff = periodCutoff()
+    if (!cutoff) return data
     return data.filter((d) => new Date(d.created_at) >= cutoff)
   }
 
@@ -96,37 +111,94 @@ function ReportsPageInner() {
   const filteredJobs      = filterByPeriod(jobs)
   const filteredCustomers = filterByPeriod(customers)
 
-  // Revenue by month
+  // Revenue by month (always last 12 months from PAID invoices via paid_at).
+  // Independent of period filter so the trend always shows the full year.
   const revenueByMonth = () => {
-    const months: Record<string, number> = {}
-    const numMonths = period === '30d' ? 3 : period === '90d' ? 3 : period === '1y' ? 12 : 6
     const now = new Date()
-    for (let i = numMonths - 1; i >= 0; i--) {
+    const months: { key: string; label: string; revenue: number }[] = []
+    for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      months[`${MONTHS_SHORT[d.getMonth()]} '${d.getFullYear().toString().slice(2)}`] = 0
+      months.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        label: `${MONTHS_SHORT[d.getMonth()]} '${d.getFullYear().toString().slice(2)}`,
+        revenue: 0,
+      })
     }
-    filteredInvoices.forEach((inv) => {
-      const d = new Date(inv.created_at)
-      const key = `${MONTHS_SHORT[d.getMonth()]} '${d.getFullYear().toString().slice(2)}`
-      if (key in months) months[key] += parseFloat(String(inv.amount))
+    const idx = new Map(months.map((m, i) => [m.key, i]))
+    invoices.forEach((inv) => {
+      if (inv.status !== 'paid') return
+      const ts = inv.paid_at || inv.created_at
+      if (!ts) return
+      const d = new Date(ts)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      const i = idx.get(key)
+      if (i !== undefined) months[i].revenue += parseFloat(String(inv.amount))
     })
-    return Object.entries(months).map(([month, revenue]) => ({ month, revenue }))
+    return months.map((m) => ({ month: m.label, revenue: m.revenue }))
   }
 
-  // Jobs by month
-  const jobsByMonth = () => {
-    const months: Record<string, number> = {}
-    const numMonths = period === '30d' ? 3 : period === '90d' ? 3 : period === '1y' ? 12 : 6
+  // Jobs COMPLETED per month (last 12 months, by updated_at fallback created_at)
+  const completedJobsByMonth = () => {
     const now = new Date()
-    for (let i = numMonths - 1; i >= 0; i--) {
+    const months: { key: string; label: string; jobs: number }[] = []
+    for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-      months[`${MONTHS_SHORT[d.getMonth()]}`] = 0
+      months.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        label: MONTHS_SHORT[d.getMonth()],
+        jobs: 0,
+      })
     }
-    filteredJobs.forEach((j) => {
-      const key = MONTHS_SHORT[new Date(j.created_at).getMonth()]
-      if (key in months) months[key]++
+    const idx = new Map(months.map((m, i) => [m.key, i]))
+    jobs.forEach((j) => {
+      if (j.status !== 'complete') return
+      const ts = j.updated_at || j.created_at
+      const d = new Date(ts)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      const i = idx.get(key)
+      if (i !== undefined) months[i].jobs += 1
     })
-    return Object.entries(months).map(([month, jobs]) => ({ month, jobs }))
+    return months.map((m) => ({ month: m.label, jobs: m.jobs }))
+  }
+
+  // Revenue by service (top 5) — pulled from invoices.line_items JSONB
+  const revenueByService = () => {
+    const map = new Map<string, number>()
+    for (const inv of invoices) {
+      if (inv.status !== 'paid') continue
+      const items = Array.isArray(inv.line_items) ? inv.line_items : []
+      for (const li of items) {
+        const name = (li.description || 'Sans description').trim().slice(0, 60)
+        const total = (Number(li.qty) || 1) * (Number(li.unit_price) || 0)
+        map.set(name, (map.get(name) || 0) + total)
+      }
+    }
+    return Array.from(map.entries())
+      .map(([service, total]) => ({ service, total }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5)
+  }
+
+  // New customers per month (last 12 months)
+  const newCustomersByMonth = () => {
+    const now = new Date()
+    const months: { key: string; label: string; count: number }[] = []
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      months.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        label: MONTHS_SHORT[d.getMonth()],
+        count: 0,
+      })
+    }
+    const idx = new Map(months.map((m, i) => [m.key, i]))
+    customers.forEach((c) => {
+      const d = new Date(c.created_at)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      const i = idx.get(key)
+      if (i !== undefined) months[i].count += 1
+    })
+    return months.map((m) => ({ month: m.label, count: m.count }))
   }
 
   // Job status distribution
@@ -150,8 +222,28 @@ function ReportsPageInner() {
       map[name].revenue += parseFloat(String(inv.amount))
       map[name].invoices++
     })
-    return Object.values(map).sort((a, b) => b.revenue - a.revenue).slice(0, 5)
+    return Object.values(map).sort((a, b) => b.revenue - a.revenue).slice(0, 10)
   }
+
+  // Key metrics ----------------------------------------------------------
+  const paidInvoices       = filteredInvoices.filter((i) => i.status === 'paid')
+  const collectionRatePct  = filteredInvoices.length > 0
+    ? Math.round((paidInvoices.length / filteredInvoices.length) * 100)
+    : 0
+  // Days to payment: average across paid invoices that have both timestamps
+  const paymentDelays = paidInvoices
+    .map((i) => {
+      const created = new Date(i.created_at).getTime()
+      const paid = i.paid_at ? new Date(i.paid_at).getTime() : null
+      return paid && paid > created ? (paid - created) / 86400000 : null
+    })
+    .filter((d): d is number => d !== null && Number.isFinite(d))
+  const avgDSO = paymentDelays.length > 0
+    ? Math.round(paymentDelays.reduce((s, d) => s + d, 0) / paymentDelays.length)
+    : 0
+  const avgInvoiceValue = paidInvoices.length > 0
+    ? paidInvoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0) / paidInvoices.length
+    : 0
 
   // AR aging
   const arAging = () => {
@@ -171,8 +263,9 @@ function ReportsPageInner() {
 
   const exportCSV = () => {
     const rows: string[][] = []
+    const periodLabel = period === '7d' ? '7 jours' : period === '30d' ? '30 jours' : period === '90d' ? '90 jours' : period === 'ytd' ? 'Cette année' : 'Tout'
     rows.push(['=== RAPPORT GESTIVIO ==='])
-    rows.push([`Période: ${period === '30d' ? '30 derniers jours' : period === '90d' ? '90 derniers jours' : period === '1y' ? 'Dernière année' : 'Depuis le début'}`])
+    rows.push([`Période: ${periodLabel}`])
     rows.push([`Généré le: ${new Date().toLocaleDateString('fr-CA')}`])
     rows.push([])
 
@@ -182,6 +275,9 @@ function ReportsPageInner() {
     rows.push(['Revenus totaux', fmt(filteredInvoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0))])
     rows.push(['Encaissé', fmt(filteredInvoices.filter((i) => i.status === 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0))])
     rows.push(['Impayés', fmt(filteredInvoices.filter((i) => i.status !== 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0))])
+    rows.push(['Taux de recouvrement', `${collectionRatePct}%`])
+    rows.push(['Délai moyen de paiement (j)', String(avgDSO)])
+    rows.push(['Valeur moyenne de facture', fmt(avgInvoiceValue)])
     rows.push(['Nb interventions', String(filteredJobs.length)])
     rows.push(['Nb nouveaux clients', String(filteredCustomers.length)])
     rows.push([])
@@ -215,7 +311,7 @@ function ReportsPageInner() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `rapport-gestivio-${period}-${new Date().toISOString().split('T')[0]}.csv`
+    a.download = `rapport-gestivio-${new Date().toISOString().split('T')[0]}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -227,10 +323,13 @@ function ReportsPageInner() {
   const completionRate = filteredJobs.length > 0 ? (completedJobs / filteredJobs.length * 100).toFixed(0) : '0'
 
   const prevInvoices  = invoices.filter((i) => {
-    const days = period === '30d' ? 30 : period === '90d' ? 90 : period === '1y' ? 365 : 9999
-    const d = new Date(i.created_at)
-    const now = new Date()
-    const diffDays = (now.getTime() - d.getTime()) / 86400000
+    const d = PERIOD_DAYS[period]
+    if (d === null) return false
+    const days = d === -1
+      ? Math.ceil((Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) / 86400000)
+      : d
+    const t = new Date(i.created_at).getTime()
+    const diffDays = (Date.now() - t) / 86400000
     return diffDays > days && diffDays <= days * 2
   })
   const prevRevenue = prevInvoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0)
@@ -273,8 +372,8 @@ function ReportsPageInner() {
 
         {/* Period selector */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
-            {([['30d', '30 derniers jours'], ['90d', '90 derniers jours'], ['1y', 'Dernière année'], ['all', 'Depuis le début']] as [Period, string][]).map(([key, label]) => (
+          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 flex-wrap">
+            {([['7d', '7 jours'], ['30d', '30 jours'], ['90d', '90 jours'], ['ytd', "Cette année"], ['all', 'Tout']] as [Period, string][]).map(([key, label]) => (
               <button
                 key={key}
                 onClick={() => setPeriod(key)}
@@ -389,15 +488,15 @@ function ReportsPageInner() {
         {/* Jobs per month + AR aging */}
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Interventions créées par mois</h2>
-            <p className="text-xs text-gray-400 mb-5">Volume de nouveaux bons de travail</p>
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">Emplois terminés par mois</h2>
+            <p className="text-xs text-gray-400 mb-5">12 derniers mois · status = Terminé (par updated_at)</p>
             <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={jobsByMonth()} barSize={24}>
+              <BarChart data={completedJobsByMonth()} barSize={24}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="jobs" fill="#818cf8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="jobs" fill="#10b981" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -423,10 +522,69 @@ function ReportsPageInner() {
           </div>
         </div>
 
+        {/* Key metrics strip */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <p className="text-xs font-medium text-gray-500">Taux de recouvrement</p>
+            <p className="text-2xl font-bold text-gray-900 tabular-nums mt-1">{collectionRatePct}%</p>
+            <p className="text-xs text-gray-400 mt-1">{paidInvoices.length} payées sur {filteredInvoices.length}</p>
+          </div>
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <p className="text-xs font-medium text-gray-500">Délai moyen de paiement</p>
+            <p className="text-2xl font-bold text-gray-900 tabular-nums mt-1">{avgDSO} <span className="text-base font-medium text-gray-500">jours</span></p>
+            <p className="text-xs text-gray-400 mt-1">Création → paiement</p>
+          </div>
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <p className="text-xs font-medium text-gray-500">Valeur moyenne</p>
+            <p className="text-2xl font-bold text-gray-900 tabular-nums mt-1">{fmt(avgInvoiceValue)}</p>
+            <p className="text-xs text-gray-400 mt-1">Par facture payée</p>
+          </div>
+          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <p className="text-xs font-medium text-gray-500">Nouveaux clients</p>
+            <p className="text-2xl font-bold text-gray-900 tabular-nums mt-1">{filteredCustomers.length}</p>
+            <p className="text-xs text-gray-400 mt-1">Sur la période</p>
+          </div>
+        </div>
+
+        {/* Revenue by service + New customers per month */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">Revenus par service</h2>
+            <p className="text-xs text-gray-400 mb-5">Top 5 · factures payées</p>
+            {revenueByService().length === 0 ? (
+              <div className="flex items-center justify-center h-32 text-gray-400 text-sm">Aucune facture payée pour le moment</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={revenueByService()} layout="vertical" barSize={18} margin={{ left: 24 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" tickFormatter={fmtK} tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="service" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} width={110} />
+                  <Tooltip formatter={(v) => fmt(Number(v))} />
+                  <Bar dataKey="total" fill="#6366f1" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">Nouveaux clients par mois</h2>
+            <p className="text-xs text-gray-400 mb-5">12 derniers mois</p>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={newCustomersByMonth()} barSize={20}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                <Tooltip />
+                <Bar dataKey="count" fill="#a78bfa" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
         {/* Top customers */}
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-900">Meilleurs clients par revenu</h2>
+            <h2 className="text-sm font-semibold text-gray-900">Top 10 clients par revenu</h2>
           </div>
           {topCustomers().length === 0 ? (
             <div className="flex items-center justify-center py-10 text-gray-400 text-sm">Aucune donnée de revenus pour cette période</div>
