@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
+import { Pagination } from '@/components/Pagination'
+import { usePagination } from '@/lib/hooks/usePagination'
 import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
 import EmptyState from '@/components/EmptyState'
@@ -121,13 +123,17 @@ export default function BookingsPage() {
     setDeclineReason('')
   }
 
-  const pending = bookings.filter((b) => b.status === 'pending')
-  const filtered = bookings.filter((b) => {
+  const pending = useMemo(() => bookings.filter((b) => b.status === 'pending'), [bookings])
+  const filtered = useMemo(() => bookings.filter((b) => {
     if (statusFilter !== 'all' && b.status !== statusFilter) return false
     if (search && !b.customer_name.toLowerCase().includes(search.toLowerCase()) &&
         !b.service_name.toLowerCase().includes(search.toLowerCase())) return false
     return true
-  })
+  }), [bookings, statusFilter, search])
+
+  const { page, setPage, range, pageSize, reset: resetPage } = usePagination(filtered.length)
+  const paged = useMemo(() => filtered.slice(range.from, range.to), [filtered, range.from, range.to])
+  useEffect(() => { resetPage() }, [statusFilter, search, resetPage])
 
   // Stats
   const today = new Date().toISOString().slice(0, 10)
@@ -307,7 +313,7 @@ export default function BookingsPage() {
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
-              {filtered.map((b) => {
+              {paged.map((b) => {
                 const cfg = STATUS_CFG[b.status] || STATUS_CFG.pending
                 const Icon = cfg.icon
                 return (
@@ -367,6 +373,7 @@ export default function BookingsPage() {
               })}
             </div>
           )}
+          <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} />
         </div>
 
         {/* Decline modal overlay (for table row actions) */}

@@ -11,8 +11,10 @@ import { toast } from 'sonner'
 import { useLanguage } from '@/lib/LanguageContext'
 import {
   Bell, Calendar, CheckCircle, DollarSign, AlertCircle, UserPlus,
-  Briefcase, XCircle, Clock, Info, AlertTriangle, ChevronLeft, ChevronRight,
+  Briefcase, XCircle, Clock, Info, AlertTriangle,
 } from 'lucide-react'
+import { Pagination } from '@/components/Pagination'
+import { usePagination } from '@/lib/hooks/usePagination'
 
 interface Notification {
   id: string
@@ -49,7 +51,6 @@ const FILTER_TYPES: Array<{ value: string; label: string }> = [
   { value: 'trial_ending',      label: 'Essai' },
 ]
 
-const PAGE_SIZE = 25
 
 const timeAgo = (date: string) => {
   const secs = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
@@ -65,7 +66,6 @@ export default function NotificationsPage() {
   const [userId, setUserId]   = useState<string | null>(null)
   const [filterType, setFilterType] = useState<string>('all')
   const [filterRead, setFilterRead] = useState<'all' | 'unread' | 'read'>('all')
-  const [page, setPage]       = useState(0)
   const confirm = useConfirm()
   const { t } = useLanguage()
 
@@ -95,10 +95,10 @@ export default function NotificationsPage() {
     if (filterRead === 'read' && !n.read) return false
     return true
   })
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const pageItems = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  const { page, setPage, range, pageSize, reset: resetPage } = usePagination(filtered.length)
+  const pageItems = filtered.slice(range.from, range.to)
 
-  useEffect(() => { setPage(0) }, [filterType, filterRead])
+  useEffect(() => { resetPage() }, [filterType, filterRead, resetPage])
 
   const markAllRead = async () => {
     if (!userId) return
@@ -218,28 +218,9 @@ export default function NotificationsPage() {
           </div>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xs text-gray-500">Page {page + 1} sur {totalPages} · {filtered.length} notifications</p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={page === 0}
-                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="h-3.5 w-3.5" /> Précédent
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Suivant <ChevronRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
-        )}
+        <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+          <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} />
+        </div>
 
         {/* Quick link back */}
         <div className="text-center pt-2">

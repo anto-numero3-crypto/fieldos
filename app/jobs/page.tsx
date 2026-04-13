@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Pagination } from '@/components/Pagination'
+import { usePagination } from '@/lib/hooks/usePagination'
 import Link from 'next/link'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
@@ -138,14 +140,18 @@ export default function JobsPage() {
     setMenuOpen(null)
   }
 
-  const filtered = jobs.filter((j) => {
+  const filtered = useMemo(() => jobs.filter((j) => {
     const matchesFilter = activeFilter === 'all' || j.status === activeFilter
     const q = search.toLowerCase()
     const matchesSearch = !q || j.title.toLowerCase().includes(q) ||
       (j.description || '').toLowerCase().includes(q) ||
       (j.customers?.name || '').toLowerCase().includes(q)
     return matchesFilter && matchesSearch
-  })
+  }), [jobs, activeFilter, search])
+
+  const { page, setPage, range, pageSize, reset: resetPage } = usePagination(filtered.length)
+  const paged = useMemo(() => filtered.slice(range.from, range.to), [filtered, range.from, range.to])
+  useEffect(() => { resetPage() }, [activeFilter, search, resetPage])
 
   const countByStatus = (s: string) => jobs.filter((j) => j.status === s).length
 
@@ -235,7 +241,7 @@ export default function JobsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {filtered.map((job) => {
+                  {paged.map((job) => {
                     const scfg = STATUS_CFG[job.status]
                     const pcfg = PRIORITY_CFG[job.priority || 'normal']
                     return (
@@ -311,6 +317,7 @@ export default function JobsPage() {
                 )
               })}
             </div>
+            <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} />
           </div>
         )}
       </div>

@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Pagination } from '@/components/Pagination'
+import { usePagination } from '@/lib/hooks/usePagination'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
@@ -83,7 +85,13 @@ export default function InvoicesPage() {
     setLoading(false)
   }
 
-  const filtered = activeFilter === 'all' ? invoices : invoices.filter(i => i.status === activeFilter)
+  const filtered = useMemo(
+    () => activeFilter === 'all' ? invoices : invoices.filter(i => i.status === activeFilter),
+    [invoices, activeFilter]
+  )
+  const { page, setPage, range, pageSize, reset: resetPage } = usePagination(filtered.length)
+  const paged = useMemo(() => filtered.slice(range.from, range.to), [filtered, range.from, range.to])
+  useEffect(() => { resetPage() }, [activeFilter, resetPage])
   const totalAll = invoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0)
   const totalPaid = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
   const totalUnpaid = invoices.filter(i => i.status === 'unpaid').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
@@ -172,7 +180,7 @@ export default function InvoicesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {filtered.map((inv) => {
+                  {paged.map((inv) => {
                     const cfg = statusConfig[inv.status]
                     return (
                       <tr key={inv.id} className="hover:bg-gray-50 transition-colors group cursor-pointer" onClick={() => window.location.href = `/invoices/${inv.id}`}>
@@ -219,6 +227,7 @@ export default function InvoicesPage() {
                 )
               })}
             </div>
+            <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} />
           </div>
         )}
       </div>

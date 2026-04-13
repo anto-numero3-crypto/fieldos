@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Pagination } from '@/components/Pagination'
+import { usePagination } from '@/lib/hooks/usePagination'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
@@ -43,6 +45,8 @@ export default function TeamPage() {
   const [pageLoading, setPageLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
+  const { page: teamPage, setPage: setTeamPage, range: teamRange, pageSize: teamPageSize } = usePagination(members.length)
+  const pagedMembers = useMemo(() => members.slice(teamRange.from, teamRange.to), [members, teamRange.from, teamRange.to])
   const plan = usePlan()
   const [editMember, setEditMember] = useState<TeamMember | null>(null)
 
@@ -204,8 +208,9 @@ export default function TeamPage() {
             />
           </div>
         ) : (
+          <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {members.map((m) => {
+            {pagedMembers.map((m) => {
               const rcfg = ROLE_CFG[m.role] || ROLE_CFG.technician
               return (
                 <div key={m.id} className={`rounded-2xl border border-gray-100 bg-white shadow-sm p-5 transition-all hover:shadow-md ${!m.is_active ? 'opacity-60' : ''}`}>
@@ -266,6 +271,10 @@ export default function TeamPage() {
               )
             })}
           </div>
+          <div className="mt-4 rounded-2xl border border-gray-100 bg-white overflow-hidden">
+            <Pagination page={teamPage} pageSize={teamPageSize} total={members.length} onPageChange={setTeamPage} />
+          </div>
+          </>
         )}
       </div>
 

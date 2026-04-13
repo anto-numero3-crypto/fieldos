@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { supabase } from '../../supabase'
 import { ChevronLeft, ChevronRight, Clock, MapPin, Check, Calendar, AlertCircle } from 'lucide-react'
@@ -300,7 +301,15 @@ export default function PublicBookingPage() {
       {/* Header */}
       <div style={{ background: primaryColor }} className="px-4 py-6 text-white text-center shadow-sm">
         {org?.logo_url && (
-          <img src={org.logo_url} alt={org.name} className="h-10 mx-auto mb-3 object-contain" />
+          <Image
+            src={org.logo_url}
+            alt={org.name}
+            width={160}
+            height={40}
+            priority
+            className="h-10 w-auto mx-auto mb-3 object-contain"
+            unoptimized
+          />
         )}
         <h1 className="text-xl font-bold">{org?.name}</h1>
         {step !== 'done' && (

@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
+import { Pagination } from '@/components/Pagination'
+import { usePagination } from '@/lib/hooks/usePagination'
 import Link from 'next/link'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
@@ -102,6 +104,10 @@ export default function CustomersPage() {
       (c.tags || []).some((t) => t.toLowerCase().includes(q))
     ))
   }, [search, customers])
+
+  const { page, setPage, range, pageSize, reset: resetPage } = usePagination(filtered.length)
+  const paged = useMemo(() => filtered.slice(range.from, range.to), [filtered, range.from, range.to])
+  useEffect(() => { resetPage() }, [search, resetPage])
 
   const fetch_ = async (uid: string) => {
     const { data } = await supabase
@@ -289,7 +295,7 @@ export default function CustomersPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {filtered.map((c) => (
+                  {paged.map((c) => (
                     <tr key={c.id} className="hover:bg-gray-50 transition-colors group">
                       <td className="px-5 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
@@ -358,7 +364,7 @@ export default function CustomersPage() {
 
             {/* Mobile cards */}
             <div className="sm:hidden divide-y divide-gray-100">
-              {filtered.map((c) => (
+              {paged.map((c) => (
                 <Link key={c.id} href={`/customers/${c.id}`} className="block p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-3 mb-2">
                     <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold ${getColor(c.name)}`}>{initials(c.name)}</div>
@@ -385,6 +391,7 @@ export default function CustomersPage() {
                 </Link>
               ))}
             </div>
+            <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} />
           </div>
         )}
       </div>

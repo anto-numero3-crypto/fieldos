@@ -1,6 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Pagination } from '@/components/Pagination'
+import { usePagination } from '@/lib/hooks/usePagination'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
@@ -174,12 +176,16 @@ export default function QuotesPage() {
     setQuotes((prev) => prev.filter((q) => q.id !== id))
   }
 
-  const filtered = quotes.filter((q) => {
+  const filtered = useMemo(() => quotes.filter((q) => {
     const matchFilter = filter === 'all' || q.status === filter
     const q2 = search.toLowerCase()
     const matchSearch = !q2 || q.title.toLowerCase().includes(q2) || (q.customers?.name || '').toLowerCase().includes(q2)
     return matchFilter && matchSearch
-  })
+  }), [quotes, filter, search])
+
+  const { page, setPage, range, pageSize, reset: resetPage } = usePagination(filtered.length)
+  const paged = useMemo(() => filtered.slice(range.from, range.to), [filtered, range.from, range.to])
+  useEffect(() => { resetPage() }, [filter, search, resetPage])
 
   const counts = Object.fromEntries(Object.keys(STATUS_CFG).map((k) => [k, quotes.filter((q) => q.status === k).length]))
 
@@ -252,7 +258,7 @@ export default function QuotesPage() {
               <table className="min-w-full divide-y divide-gray-100">
                 <thead><tr className="bg-gray-50">{['Devis', 'Client', 'Total', 'Valide jusqu\'au', 'Statut', ''].map((c) => <th key={c} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{c}</th>)}</tr></thead>
                 <tbody className="divide-y divide-gray-50">
-                  {filtered.map((q) => {
+                  {paged.map((q) => {
                     const scfg = STATUS_CFG[q.status]
                     return (
                       <tr key={q.id} className="hover:bg-gray-50 transition-colors group">
@@ -326,6 +332,7 @@ export default function QuotesPage() {
                 )
               })}
             </div>
+            <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} />
           </div>
         )}
       </div>
