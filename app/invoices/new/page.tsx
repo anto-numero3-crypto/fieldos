@@ -7,6 +7,8 @@ import AppLayout from '@/components/AppLayout'
 import { toast } from 'sonner'
 import { validateAmount } from '@/lib/validators'
 import FieldError from '@/components/FieldError'
+import { useLanguage } from '@/lib/LanguageContext'
+import { fmtMoney, fmtDate } from '@/lib/format'
 import {
   Plus, Trash2, GripVertical, Save, Send, Eye, ArrowLeft,
   User, Calendar, Hash, FileText, ChevronDown,
@@ -45,6 +47,7 @@ const newLine = (): LineItem => ({
 export default function NewInvoicePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { lang, t } = useLanguage()
 
   const [user, setUser] = useState<{ id: string } | null>(null)
   const [orgName, setOrgName] = useState('')
@@ -153,7 +156,7 @@ export default function NewInvoicePage() {
   const errLines     = !linesValid ? 'Chaque ligne doit avoir une description, une quantité et un prix valide' : ''
   const formInvalid  = !!errCustomer || !linesValid
 
-  const fmt = (n: number) => `$${n.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const fmt = (n: number) => fmtMoney(n, lang)
 
   const addLine  = () => setLines([...lines, newLine()])
   const removeLine = (id: string) => setLines(lines.filter((l) => l.id !== id))
@@ -186,17 +189,17 @@ export default function NewInvoicePage() {
   const saveDraft = async () => {
     if (!user) return
     setShowErrors(true)
-    if (formInvalid) { toast.error('Vérifiez les champs en surbrillance.'); return }
+    if (formInvalid) { toast.error(t.errors.required); return }
     setSaving(true)
     const { data, error } = await supabase.from('invoices').insert(buildPayload()).select('id').single()
     if (error) { toast.error(error.message); setSaving(false); return }
-    toast.success('Brouillon enregistré !')
+    toast.success(t.success.saved)
     router.push(`/invoices/${data.id}`)
   }
 
   const saveAndSend = async () => {
     setShowErrors(true)
-    if (formInvalid) { toast.error('Vérifiez les champs en surbrillance.'); return }
+    if (formInvalid) { toast.error(t.errors.required); return }
     setSending(true)
     const { data, error } = await supabase.from('invoices').insert(buildPayload()).select('id, token').single()
     if (error) { toast.error(error.message); setSending(false); return }
@@ -213,12 +216,12 @@ export default function NewInvoicePage() {
           customerName: cust.name,
           invoiceNumber,
           amount: fmt(total),
-          dueDate: dueDate ? new Date(dueDate).toLocaleDateString('fr-CA', { month: 'long', day: 'numeric', year: 'numeric' }) : undefined,
+          dueDate: dueDate ? fmtDate(dueDate, lang) : undefined,
           paymentLink: `${window.location.origin}/invoice/${data.token}`,
         }),
       })
     }
-    toast.success('Facture créée et envoyée !')
+    toast.success(t.success.sent)
     router.push(`/invoices/${data.id}`)
   }
 
