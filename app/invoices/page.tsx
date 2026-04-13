@@ -57,9 +57,15 @@ export default function InvoicesPage() {
     init()
   }, [])
 
-  const fetchInvoices = async (userId: string) => {
-    const { data } = await supabase.from('invoices').select('*, customers(name), jobs(title)').eq('user_id', userId).order('created_at', { ascending: false })
-    setInvoices(data || [])
+  const fetchInvoices = async (_userId: string) => {
+    try {
+      const res = await fetch('/api/invoices', { cache: 'no-store' })
+      const data = await res.json()
+      setInvoices(data.invoices || [])
+    } catch (e) {
+      console.error('[invoices] fetch failed:', e)
+      setInvoices([])
+    }
   }
   const fetchCustomers = async (userId: string) => {
     const { data } = await supabase.from('customers').select('id, name').eq('user_id', userId)
