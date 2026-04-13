@@ -83,13 +83,44 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   if (action === 'confirm') {
     update = { status: 'confirmed', confirmed_at: new Date().toISOString(), confirmed_by: user!.id }
-    if (!booking.converted_to_job_id && booking.customer_id) {
+
+    // STEP 1: Find or create customer (by email, scoped to owner)
+    let customerId: string | null = booking.customer_id || null
+    if (!customerId && booking.customer_email) {
+      const { data: existing } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('user_id', booking.user_id)
+        .eq('email', booking.customer_email)
+        .maybeSingle()
+      if (existing) {
+        customerId = existing.id
+      } else {
+        const { data: created, error: custErr } = await supabase
+          .from('customers')
+          .insert({
+            user_id: booking.user_id,
+            name: booking.customer_name,
+            email: booking.customer_email,
+            phone: booking.customer_phone || null,
+            address: booking.customer_address || null,
+            source: 'booking_portal',
+          })
+          .select('id')
+          .single()
+        if (custErr) console.error('[booking confirm] customer create failed:', custErr)
+        customerId = created?.id || null
+      }
+    }
+
+    // STEP 2: Create job (always, if we have a customer)
+    if (!booking.converted_to_job_id && customerId) {
       const endTime = booking.requested_end_time || booking.requested_time
-      const { data: job } = await supabase
+      const { data: job, error: jobErr } = await supabase
         .from('jobs')
         .insert({
           user_id: booking.user_id,
-          customer_id: booking.customer_id,
+          customer_id: customerId,
           title: `${booking.service_name} — ${booking.customer_name}`,
           description: booking.notes || null,
           status: 'scheduled',
@@ -98,11 +129,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           end_time: endTime,
           service_address: booking.customer_address || null,
           source: 'booking',
+          booking_id: booking.id,
         })
         .select('id')
         .single()
+      if (jobErr) console.error('[booking confirm] job create failed:', jobErr)
       if (job) update.converted_to_job_id = job.id
     }
+
+    // STEP 3: booking update (customer_id + converted_to_job_id)
+    if (customerId && !booking.customer_id) update.customer_id = customerId
+
+    // STEP 4: confirmation email
     await sendEmail({
       type: 'booking_confirmed',
       to: booking.customer_email,
@@ -114,6 +152,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       servicePrice: booking.service_price ? `CA$${parseFloat(booking.service_price).toFixed(2)}` : undefined,
       cancelLink: `https://gestivio.ca/booking/cancel/${booking.token}`,
     })
+
+    // STEP 5: in-app notification
+    try {
+      await supabase.from('notifications').insert({
+        user_id: booking.user_id,
+        type: 'booking_confirmed',
+        title: 'Réservation confirmée',
+        body: `${booking.customer_name} — ${dateFormatted} à ${timeFormatted}`,
+        link: '/schedule/bookings',
+        read: false,
+      })
+    } catch (e) {
+      console.error('[booking confirm] notification insert failed:', e)
+    }
   } else if (action === 'decline') {
     update = { status: 'declined', declined_at: new Date().toISOString(), decline_reason: reason || null }
     await sendEmail({

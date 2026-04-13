@@ -128,9 +128,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 })
   }
 
-  // If auto-accepted, create a job
+  // If auto-accepted, create a job linked back to this booking
   if (autoAccept && customerId) {
-    const { data: job } = await supabase
+    const { data: job, error: jobErr } = await supabase
       .from('jobs')
       .insert({
         user_id: userId,
@@ -143,10 +143,12 @@ export async function POST(req: NextRequest) {
         end_time: endTime,
         service_address: customerAddress || null,
         source: 'booking',
+        booking_id: booking.id,
       })
       .select('id')
       .single()
 
+    if (jobErr) console.error('[public booking] job create failed:', jobErr)
     if (job) {
       await supabase
         .from('booking_requests')
