@@ -8,6 +8,7 @@ import MobileFAB from '@/components/MobileFAB'
 import { usePlan } from '@/lib/hooks/usePlan'
 import { validateRequired } from '@/lib/validators'
 import FieldError from '@/components/FieldError'
+import EmptyState from '@/components/EmptyState'
 import { toast } from 'sonner'
 import {
   Briefcase, Plus, X, Calendar, User, CheckCircle,
@@ -197,13 +198,13 @@ export default function JobsPage() {
         </div>
 
         {jobs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-20 text-center">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50"><Briefcase className="h-7 w-7 text-violet-500" /></div>
-            <h3 className="text-base font-semibold text-gray-900 mb-1">Aucune intervention</h3>
-            <p className="text-sm text-gray-400 mb-6 max-w-xs">Créez votre première intervention pour commencer le suivi terrain.</p>
-            <button onClick={openAddJob} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
-              <Plus className="h-4 w-4" /> Créer une intervention
-            </button>
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
+            <EmptyState
+              icon={Briefcase}
+              title="Aucun emploi"
+              description="Créez votre premier emploi ou attendez une réservation en ligne."
+              actions={[{ label: 'Créer un emploi', onClick: openAddJob, variant: 'primary' }]}
+            />
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">

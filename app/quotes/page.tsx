@@ -6,6 +6,8 @@ import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
 import { validateRequired, validateAmount } from '@/lib/validators'
 import FieldError from '@/components/FieldError'
+import EmptyState from '@/components/EmptyState'
+import { ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   FileSignature, Plus, X, Search, User, Calendar, DollarSign,
@@ -178,11 +180,13 @@ export default function QuotesPage() {
         </div>
 
         {quotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-20 text-center">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50"><FileSignature className="h-7 w-7 text-indigo-500" /></div>
-            <h3 className="text-base font-semibold text-gray-900 mb-1">Aucun devis pour l&apos;instant</h3>
-            <p className="text-sm text-gray-400 mb-6 max-w-xs">Créez des devis professionnels avec des lignes d&apos;articles et envoyez-les à vos clients pour approbation.</p>
-            <button onClick={() => setPanelOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"><Plus className="h-4 w-4" /> Créer le premier devis</button>
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
+            <EmptyState
+              icon={ClipboardList}
+              title="Aucun devis"
+              description="Créez un devis pour un client."
+              actions={[{ label: 'Créer un devis', onClick: () => setPanelOpen(true), variant: 'primary' }]}
+            />
           </div>
         ) : (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">

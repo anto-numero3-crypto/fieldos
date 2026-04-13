@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
+import EmptyState from '@/components/EmptyState'
 import { toast } from 'sonner'
 import {
   CheckCircle, XCircle, Clock, Calendar, User, Phone, Mail,
@@ -247,6 +248,17 @@ export default function BookingsPage() {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Empty state — no pending and no bookings at all */}
+        {pending.length === 0 && bookings.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
+            <EmptyState
+              icon={Clock}
+              title="Aucune réservation en attente"
+              description="Vous recevrez une notification quand un client réservera en ligne."
+            />
           </div>
         )}
 

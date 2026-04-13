@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import EmptyState from '@/components/EmptyState'
+import { Lightbulb } from 'lucide-react'
 import {
   Sparkles, TrendingUp, TrendingDown, AlertTriangle, CheckCircle,
   Users, DollarSign, Briefcase, Zap, ArrowRight, RefreshCw,
@@ -339,6 +341,29 @@ export default function InsightsPage() {
   const revChange = summary && summary.revenueLastWeek > 0
     ? ((summary.revenueThisWeek - summary.revenueLastWeek) / summary.revenueLastWeek * 100)
     : null
+
+  // Empty state when there's no meaningful data yet (no summary or no jobs/revenue).
+  const hasNoData = !summary || (
+    summary.revenueThisWeek === 0 &&
+    summary.revenueLastWeek === 0 &&
+    summary.jobsCompleted === 0 &&
+    summary.jobsScheduled === 0
+  )
+  if (hasNoData) {
+    return (
+      <AppLayout title="AI Insights">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
+            <EmptyState
+              icon={Lightbulb}
+              title="Pas encore d'analyses"
+              description="Revenez après quelques semaines d'utilisation."
+            />
+          </div>
+        </div>
+      </AppLayout>
+    )
+  }
 
   return (
     <AppLayout title="AI Insights">

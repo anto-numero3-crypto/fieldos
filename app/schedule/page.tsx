@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import EmptyState from '@/components/EmptyState'
 import Link from 'next/link'
 import {
   ChevronLeft, ChevronRight, Plus, Calendar, User, Clock, Briefcase,
@@ -190,11 +191,12 @@ export default function SchedulePage() {
               <h3 className="text-sm font-semibold text-gray-900">Interventions à venir (30 prochains jours)</h3>
             </div>
             {upcoming.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 text-center">
-                <Calendar className="h-8 w-8 text-gray-200 mb-2" />
-                <p className="text-sm text-gray-400">Aucune intervention planifiée</p>
-                <Link href="/jobs" className="mt-2 text-xs font-medium text-indigo-600 hover:underline">Planifier une intervention →</Link>
-              </div>
+              <EmptyState
+                icon={Calendar}
+                title="Aucun rendez-vous aujourd'hui"
+                description="Votre journée est libre."
+                actions={[{ label: 'Créer un emploi', href: '/jobs', variant: 'primary' }]}
+              />
             ) : (
               <ul className="divide-y divide-gray-50">
                 {upcoming.map((job) => {

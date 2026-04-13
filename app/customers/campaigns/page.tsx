@@ -5,6 +5,8 @@ import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
 import UpgradePrompt from '@/components/UpgradePrompt'
 import { usePlan } from '@/lib/hooks/usePlan'
+import EmptyState from '@/components/EmptyState'
+import { Megaphone } from 'lucide-react'
 import {
   Send, Users, Mail, Clock, ChevronDown, Sparkles, CheckCircle,
   AlertCircle, Loader2, Plus, X, Calendar, Tag, MessageSquare,
@@ -431,15 +433,12 @@ Subject line first, then body. Keep it warm, professional, and concise.`
         {tab === 'history' && (
           <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
             {campaigns.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-                <Mail className="h-10 w-10 text-gray-200 mb-3" />
-                <p className="text-sm font-semibold text-gray-900 mb-1">No campaigns sent yet</p>
-                <p className="text-sm text-gray-400 mb-4">Create your first re-engagement campaign to see it here.</p>
-                <button onClick={() => setTab('create')}
-                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
-                  <Plus className="h-4 w-4" /> Create campaign
-                </button>
-              </div>
+              <EmptyState
+                icon={Megaphone}
+                title="Aucune campagne"
+                description="Créez votre première campagne de réengagement pour la voir ici."
+                actions={[{ label: 'Créer une campagne', onClick: () => setTab('create'), variant: 'primary' }]}
+              />
             ) : (
               <table className="min-w-full">
                 <thead>

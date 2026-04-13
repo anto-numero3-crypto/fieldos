@@ -5,6 +5,8 @@ import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import UpgradePrompt from '@/components/UpgradePrompt'
 import { usePlan } from '@/lib/hooks/usePlan'
+import EmptyState from '@/components/EmptyState'
+import { BarChart3 } from 'lucide-react'
 import {
   BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
@@ -241,6 +243,22 @@ function ReportsPageInner() {
       </div>
     </AppLayout>
   )
+
+  if (invoices.length === 0 && jobs.length === 0) {
+    return (
+      <AppLayout title="Rapports">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
+            <EmptyState
+              icon={BarChart3}
+              title="Pas encore de données"
+              description="Les rapports apparaîtront une fois que vous aurez des factures et emplois."
+            />
+          </div>
+        </div>
+      </AppLayout>
+    )
+  }
 
   return (
     <AppLayout title="Rapports">

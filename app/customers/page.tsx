@@ -9,6 +9,7 @@ import UpgradePrompt from '@/components/UpgradePrompt'
 import { usePlan } from '@/lib/hooks/usePlan'
 import { validateRequired, validateEmail, validatePhone } from '@/lib/validators'
 import FieldError from '@/components/FieldError'
+import EmptyState from '@/components/EmptyState'
 import { toast } from 'sonner'
 import {
   Users, Plus, Search, Mail, Phone, MapPin, X,
@@ -51,6 +52,7 @@ export default function CustomersPage() {
   const [tagInput, setTagInput] = useState('')
   const [tags, setTags]       = useState<string[]>([])
   const [touched, setTouched] = useState<Record<string, boolean>>({})
+  const [orgSlug, setOrgSlug] = useState<string | null>(null)
 
   const errName  = touched.name  ? validateRequired(name) : ''
   const errEmail = touched.email ? validateEmail(email, false) : ''
@@ -62,11 +64,27 @@ export default function CustomersPage() {
       const { data } = await supabase.auth.getUser()
       if (!data.user) { window.location.href = '/login'; return }
       setUser(data.user)
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('slug')
+        .eq('owner_user_id', data.user.id)
+        .maybeSingle()
+      if (org?.slug) setOrgSlug(org.slug)
       await fetch_(data.user.id)
       setPageLoading(false)
     }
     init()
   }, [])
+
+  const copyBookingLink = () => {
+    if (!orgSlug) {
+      toast.error('Configurez d\'abord votre lien de réservation dans Disponibilités.')
+      return
+    }
+    const url = `https://gestivio.ca/book/${orgSlug}`
+    navigator.clipboard.writeText(url)
+    toast.success('Lien de réservation copié !')
+  }
 
   useEffect(() => {
     const q = search.toLowerCase()
@@ -231,15 +249,16 @@ export default function CustomersPage() {
         </div>
 
         {customers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-20 text-center">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50">
-              <Users className="h-7 w-7 text-indigo-500" />
-            </div>
-            <h3 className="text-base font-semibold text-gray-900 mb-1">Aucun client pour l&apos;instant</h3>
-            <p className="text-sm text-gray-400 mb-6 max-w-xs">Ajoutez votre premier client pour commencer à gérer vos interventions.</p>
-            <button onClick={openAddCustomer} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
-              <Plus className="h-4 w-4" /> Ajouter votre premier client
-            </button>
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
+            <EmptyState
+              icon={Users}
+              title="Aucun client pour l'instant"
+              description="Ajoutez votre premier client ou partagez votre lien de réservation."
+              actions={[
+                { label: 'Ajouter un client', onClick: openAddCustomer, variant: 'primary' },
+                { label: 'Copier le lien de réservation', onClick: copyBookingLink, variant: 'secondary' },
+              ]}
+            />
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">

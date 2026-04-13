@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
+import EmptyState from '@/components/EmptyState'
 import { useLanguage } from '@/lib/LanguageContext'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -146,11 +147,13 @@ export default function InvoicesPage() {
         </div>
 
         {invoices.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-20 text-center">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50"><FileText className="h-7 w-7 text-emerald-500" /></div>
-            <h3 className="text-base font-semibold text-gray-900 mb-1">{l.noInvoices}</h3>
-            <p className="text-sm text-gray-400 mb-6 max-w-xs">{l.noInvoicesSub}</p>
-            <Link href="/invoices/new" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"><Plus className="h-4 w-4" />{l.createFirstBtn}</Link>
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
+            <EmptyState
+              icon={FileText}
+              title="Aucune facture"
+              description="Créez votre première facture et commencez à vous faire payer en ligne."
+              actions={[{ label: 'Créer une facture', href: '/invoices/new', variant: 'primary' }]}
+            />
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">
