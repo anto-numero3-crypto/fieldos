@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/app/supabase'
 import AppLayout from '@/components/AppLayout'
+import { SkeletonText, SkeletonCard, SkeletonKPICard } from '@/components/ui/skeleton'
 import { writeAuditLog } from '@/lib/audit'
 import {
   ArrowLeft, Mail, Phone, MapPin, Tag, Edit2, Trash2, Plus,
@@ -136,10 +137,13 @@ export default function CustomerDetailPage() {
 
   if (loading) return (
     <AppLayout>
-      <div className="p-6 max-w-5xl mx-auto space-y-4">
-        <div className="h-8 w-32 skeleton rounded" />
-        <div className="h-40 skeleton rounded-2xl" />
-        <div className="h-64 skeleton rounded-2xl" />
+      <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-4">
+        <SkeletonText className="h-8 w-48" />
+        <SkeletonCard className="h-40" />
+        <div className="grid gap-4 sm:grid-cols-3">
+          <SkeletonKPICard /><SkeletonKPICard /><SkeletonKPICard />
+        </div>
+        <SkeletonCard className="h-64" />
       </div>
     </AppLayout>
   )

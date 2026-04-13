@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/app/supabase'
 import AppLayout from '@/components/AppLayout'
+import { SkeletonText, SkeletonCard } from '@/components/ui/skeleton'
 import {
   ArrowLeft, User, Calendar, Clock, Flag, Edit2, Save, CheckSquare,
   Square, Plus, Trash2, FileText, DollarSign, AlertCircle, CheckCircle,
@@ -174,10 +175,20 @@ export default function JobDetailPage() {
 
   if (loading) return (
     <AppLayout>
-      <div className="p-6 max-w-5xl mx-auto space-y-4">
-        <div className="h-8 w-32 skeleton rounded" />
-        <div className="h-48 skeleton rounded-2xl" />
-        <div className="h-64 skeleton rounded-2xl" />
+      <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-4">
+        <SkeletonText className="h-6 w-48" />
+        <SkeletonCard className="h-16" />
+        <SkeletonCard className="h-48" />
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-4">
+            <SkeletonCard className="h-40" />
+            <SkeletonCard className="h-32" />
+          </div>
+          <div className="space-y-4">
+            <SkeletonCard className="h-32" />
+            <SkeletonCard className="h-32" />
+          </div>
+        </div>
       </div>
     </AppLayout>
   )

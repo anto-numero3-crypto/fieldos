@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import { SkeletonText, SkeletonChart, SkeletonKPICard, SkeletonListRow } from '@/components/ui/skeleton'
 import {
   Users, Briefcase, FileText, DollarSign, TrendingUp, ArrowRight,
   Plus, Sparkles, Clock, CheckCircle, AlertCircle, Calendar,
@@ -175,14 +176,17 @@ export default function Dashboard() {
 
   if (loading) return (
     <AppLayout>
-      <div className="p-6 space-y-6 max-w-7xl mx-auto">
-        <div className="h-9 w-64 rounded-xl bg-gray-100 animate-pulse" />
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+        <SkeletonText className="h-8 w-64" />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {[...Array(4)].map((_, i) => <div key={i} className="h-32 rounded-2xl bg-gray-100 animate-pulse" />)}
+          {[...Array(4)].map((_, i) => <SkeletonKPICard key={i} />)}
         </div>
         <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 h-72 rounded-2xl bg-gray-100 animate-pulse" />
-          <div className="h-72 rounded-2xl bg-gray-100 animate-pulse" />
+          <div className="lg:col-span-2"><SkeletonChart className="h-72" /></div>
+          <div className="space-y-3">
+            <SkeletonText className="h-4 w-40 mb-3" />
+            {[...Array(4)].map((_, i) => <SkeletonListRow key={i} />)}
+          </div>
         </div>
       </div>
     </AppLayout>

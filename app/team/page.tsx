@@ -9,6 +9,7 @@ import { usePlan } from '@/lib/hooks/usePlan'
 import { validateRequired, validateEmail, validatePhone } from '@/lib/validators'
 import FieldError from '@/components/FieldError'
 import EmptyState from '@/components/EmptyState'
+import { SkeletonCard } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import {
   Users2, Plus, X, Mail, Phone, Shield, Wrench,
@@ -142,8 +143,8 @@ export default function TeamPage() {
 
   if (pageLoading) return (
     <AppLayout title="Équipe">
-      <div className="p-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[...Array(3)].map((_, i) => <div key={i} className="h-40 skeleton rounded-2xl" />)}
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {[...Array(3)].map((_, i) => <SkeletonCard key={i} className="h-40" />)}
       </div>
     </AppLayout>
   )

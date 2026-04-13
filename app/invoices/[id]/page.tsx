@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
+import { SkeletonText, SkeletonCard } from '@/components/ui/skeleton'
 import { writeAuditLog } from '@/lib/audit'
 import { toast } from 'sonner'
 import {
@@ -231,8 +232,14 @@ export default function InvoiceDetailPage() {
 
   if (loading) return (
     <AppLayout title="Facture">
-      <div className="flex h-full items-center justify-center p-12">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-200 border-t-indigo-600" />
+      <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-4">
+        <SkeletonText className="h-6 w-48" />
+        <SkeletonCard className="h-32" />
+        <SkeletonCard className="h-64" />
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2"><SkeletonCard className="h-48" /></div>
+          <SkeletonCard className="h-48" />
+        </div>
       </div>
     </AppLayout>
   )

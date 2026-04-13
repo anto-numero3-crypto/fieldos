@@ -10,6 +10,7 @@ import { usePlan } from '@/lib/hooks/usePlan'
 import { validateRequired, validateEmail, validatePhone } from '@/lib/validators'
 import FieldError from '@/components/FieldError'
 import EmptyState from '@/components/EmptyState'
+import { SkeletonText, SkeletonListRow } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import {
   Users, Plus, Search, Mail, Phone, MapPin, X,
@@ -193,9 +194,9 @@ export default function CustomersPage() {
 
   if (pageLoading) return (
     <AppLayout title="Clients">
-      <div className="p-6 space-y-3">
-        <div className="h-10 w-64 skeleton rounded-xl" />
-        {[...Array(5)].map((_, i) => <div key={i} className="h-16 skeleton rounded-2xl" />)}
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-3">
+        <SkeletonText className="h-10 w-64 mb-3" />
+        {[...Array(5)].map((_, i) => <SkeletonListRow key={i} />)}
       </div>
     </AppLayout>
   )

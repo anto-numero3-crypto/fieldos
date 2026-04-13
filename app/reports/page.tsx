@@ -6,6 +6,7 @@ import AppLayout from '@/components/AppLayout'
 import UpgradePrompt from '@/components/UpgradePrompt'
 import { usePlan } from '@/lib/hooks/usePlan'
 import EmptyState from '@/components/EmptyState'
+import { SkeletonChart, SkeletonKPICard } from '@/components/ui/skeleton'
 import { BarChart3 } from 'lucide-react'
 import {
   BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -237,9 +238,15 @@ function ReportsPageInner() {
 
   if (loading) return (
     <AppLayout title="Rapports">
-      <div className="p-6 space-y-4">
-        <div className="grid grid-cols-4 gap-4">{[...Array(4)].map((_, i) => <div key={i} className="h-24 skeleton rounded-2xl" />)}</div>
-        <div className="h-64 skeleton rounded-2xl" />
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
+          {[...Array(4)].map((_, i) => <SkeletonKPICard key={i} />)}
+        </div>
+        <SkeletonChart className="h-72" />
+        <div className="grid gap-4 lg:grid-cols-2">
+          <SkeletonChart className="h-64" />
+          <SkeletonChart className="h-64" />
+        </div>
       </div>
     </AppLayout>
   )

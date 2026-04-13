@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
 import EmptyState from '@/components/EmptyState'
+import { SkeletonCard, SkeletonKPICard } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import {
   CheckCircle, XCircle, Clock, Calendar, User, Phone, Mail,
@@ -135,8 +136,11 @@ export default function BookingsPage() {
 
   if (loading) return (
     <AppLayout title="Réservations">
-      <div className="flex h-full items-center justify-center p-12">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-gray-200 border-t-indigo-600" />
+      <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-4">
+        <div className="grid gap-4 sm:grid-cols-4">
+          {[...Array(4)].map((_, i) => <SkeletonKPICard key={i} />)}
+        </div>
+        {[...Array(3)].map((_, i) => <SkeletonCard key={i} className="h-28" />)}
       </div>
     </AppLayout>
   )

@@ -5,6 +5,7 @@ import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
 import EmptyState from '@/components/EmptyState'
+import { SkeletonText, SkeletonListRow } from '@/components/ui/skeleton'
 import { useLanguage } from '@/lib/LanguageContext'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -104,11 +105,9 @@ export default function InvoicesPage() {
 
   if (pageLoading) return (
     <AppLayout title={l.title}>
-      <div className="flex h-full items-center justify-center p-12">
-        <div className="flex items-center gap-3 text-gray-400">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-200 border-t-indigo-600" />
-          <span className="text-sm">{l.loading}</span>
-        </div>
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-3">
+        <SkeletonText className="h-10 w-64 mb-3" />
+        {[...Array(5)].map((_, i) => <SkeletonListRow key={i} />)}
       </div>
     </AppLayout>
   )

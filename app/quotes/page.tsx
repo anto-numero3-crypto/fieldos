@@ -7,6 +7,7 @@ import MobileFAB from '@/components/MobileFAB'
 import { validateRequired, validateAmount } from '@/lib/validators'
 import FieldError from '@/components/FieldError'
 import EmptyState from '@/components/EmptyState'
+import { SkeletonText, SkeletonListRow } from '@/components/ui/skeleton'
 import { ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -137,7 +138,12 @@ export default function QuotesPage() {
   )
 
   if (pageLoading) return (
-    <AppLayout title="Devis"><div className="p-6 space-y-3">{[...Array(5)].map((_, i) => <div key={i} className="h-16 skeleton rounded-2xl" />)}</div></AppLayout>
+    <AppLayout title="Devis">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-3">
+        <SkeletonText className="h-10 w-64 mb-3" />
+        {[...Array(3)].map((_, i) => <SkeletonListRow key={i} />)}
+      </div>
+    </AppLayout>
   )
 
   const totalValue    = quotes.reduce((s, q) => s + q.total, 0)

@@ -9,6 +9,7 @@ import { usePlan } from '@/lib/hooks/usePlan'
 import { validateRequired } from '@/lib/validators'
 import FieldError from '@/components/FieldError'
 import EmptyState from '@/components/EmptyState'
+import { SkeletonText, SkeletonCard } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import {
   Briefcase, Plus, X, Calendar, User, CheckCircle,
@@ -145,9 +146,9 @@ export default function JobsPage() {
 
   if (pageLoading) return (
     <AppLayout title="Interventions">
-      <div className="p-6 space-y-3">
-        <div className="h-10 w-64 skeleton rounded-xl" />
-        {[...Array(5)].map((_, i) => <div key={i} className="h-16 skeleton rounded-2xl" />)}
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-3">
+        <SkeletonText className="h-10 w-64 mb-3" />
+        {[...Array(3)].map((_, i) => <SkeletonCard key={i} className="h-24" />)}
       </div>
     </AppLayout>
   )
