@@ -8,6 +8,7 @@ import AppLayout from '@/components/AppLayout'
 import { SkeletonText, SkeletonCard, SkeletonKPICard } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import { useLanguage } from '@/lib/LanguageContext'
+import { fmtMoney, fmtDate as fmtDateLib } from '@/lib/format'
 import { writeAuditLog } from '@/lib/audit'
 import {
   ArrowLeft, Mail, Phone, MapPin, Tag, Edit2, Trash2, Plus,
@@ -75,15 +76,15 @@ type StatusKey = keyof typeof STATUS
 const AVATAR_COLORS = ['bg-blue-500','bg-violet-500','bg-emerald-500','bg-amber-500','bg-pink-500','bg-cyan-500']
 const initials  = (n: string) => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
 const getColor  = (n: string) => AVATAR_COLORS[n.charCodeAt(0) % AVATAR_COLORS.length]
-const fmt       = (n: number) => `$${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-const fmtDate   = (d: string) => new Date(d).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' })
 
 export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router  = useRouter()
   const confirm = useConfirm()
-  const { t }   = useLanguage()
+  const { lang, t }   = useLanguage()
   const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
+  const fmt     = (n: number) => fmtMoney(n, lang)
+  const fmtDate = (d: string) => fmtDateLib(d, lang)
 
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [jobs, setJobs]         = useState<Job[]>([])
