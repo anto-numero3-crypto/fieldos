@@ -12,6 +12,8 @@ import EmptyState from '@/components/EmptyState'
 import { SkeletonText, SkeletonCard } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
+import { useLanguage } from '@/lib/LanguageContext'
+import { fmtDate } from '@/lib/format'
 import {
   Briefcase, Plus, X, Calendar, User, CheckCircle,
   Search, ChevronRight, MoreHorizontal, Trash2, Clock, Zap, Flag,
@@ -71,6 +73,8 @@ export default function JobsPage() {
   const [endTime, setEndTime]   = useState('')
   const [touched, setTouched]   = useState<Record<string, boolean>>({})
   const confirm = useConfirm()
+  const { lang, t } = useLanguage()
+  const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
 
   const errTitle = touched.title ? validateRequired(title) : ''
   const formInvalid = !!validateRequired(title)
@@ -252,7 +256,7 @@ export default function JobsPage() {
                           ) : <span className="text-gray-300">—</span>}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{scfg?.label || job.status}</span>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{tStatus(job.status)}</span>
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -267,7 +271,7 @@ export default function JobsPage() {
                                     {Object.entries(STATUS_CFG).map(([key, cfg]) => (
                                       <button key={key} onClick={() => updateStatus(job.id, key)} className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${job.status === key ? 'font-semibold text-indigo-600' : 'text-gray-700'}`}>
                                         <span className={`h-2 w-2 rounded-full ${key === 'scheduled' ? 'bg-blue-500' : key === 'in_progress' ? 'bg-amber-500' : key === 'complete' ? 'bg-emerald-500' : 'bg-gray-400'}`} />
-                                        {cfg.label}
+                                        {tStatus(key)}
                                       </button>
                                     ))}
                                     <div className="border-t border-gray-100 mt-1 pt-1">
@@ -299,7 +303,7 @@ export default function JobsPage() {
                         {job.scheduled_date && <p className="flex items-center gap-1 text-xs text-gray-400"><Calendar className="h-3 w-3" />{new Date(job.scheduled_date).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric' })}</p>}
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{scfg?.label || job.status}</span>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{tStatus(job.status)}</span>
                         <span className={`text-xs font-medium ${pcfg.cls}`}>{pcfg.icon} {pcfg.label}</span>
                       </div>
                     </div>
@@ -356,10 +360,10 @@ export default function JobsPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Statut</label>
                   <select value={status} onChange={(e) => setStatus(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
-                    <option value="scheduled">Planifié</option>
-                    <option value="in_progress">En cours</option>
-                    <option value="complete">Terminé</option>
-                    <option value="cancelled">Annulé</option>
+                    <option value="scheduled">{tStatus('scheduled')}</option>
+                    <option value="in_progress">{tStatus('in_progress')}</option>
+                    <option value="complete">{tStatus('complete')}</option>
+                    <option value="cancelled">{tStatus('cancelled')}</option>
                   </select>
                 </div>
               </div>

@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import { SkeletonText, SkeletonChart, SkeletonKPICard, SkeletonListRow } from '@/components/ui/skeleton'
+import { useLanguage } from '@/lib/LanguageContext'
+import { fmtMoney, fmtDate } from '@/lib/format'
 import {
   Users, Briefcase, FileText, DollarSign, TrendingUp, ArrowRight,
   Plus, Sparkles, Clock, CheckCircle, AlertCircle, Calendar,
@@ -121,6 +123,8 @@ export default function Dashboard() {
   const [overdueList, setOverdueList]       = useState<OverdueInvoice[]>([])
   const [loading, setLoading]               = useState(true)
   const [reminderSending, setReminderSending] = useState<string | null>(null)
+  const { lang, t } = useLanguage()
+  const tStatus = (key: string) => (t.status as Record<string, string>)[key] || key
 
   const init = useCallback(async () => {
     const { data } = await supabase.auth.getUser()
@@ -255,8 +259,8 @@ export default function Dashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
-  const fmt        = (n: number) => `$${n.toLocaleString('en', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
-  const fmt2       = (n: number) => `$${n.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const fmt        = (n: number) => fmtMoney(n, lang).replace(/[,.]\d{2}\b/, '')
+  const fmt2       = (n: number) => fmtMoney(n, lang)
 
   const sendReminder = async (inv: OverdueInvoice) => {
     if (!inv.customers?.email) return
@@ -539,7 +543,7 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[job.status]?.className || ''}`}>
-                    {statusConfig[job.status]?.label || job.status}
+                    {tStatus(job.status)}
                   </span>
                 </Link>
               ))}
@@ -608,7 +612,7 @@ export default function Dashboard() {
                         </p>
                       </div>
                       <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[job.status]?.className || ''}`}>
-                        {statusConfig[job.status]?.label || job.status}
+                        {tStatus(job.status)}
                       </span>
                     </Link>
                   </li>
@@ -655,7 +659,7 @@ export default function Dashboard() {
                         </p>
                       </div>
                       <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[inv.status]?.className || ''}`}>
-                        {statusConfig[inv.status]?.label || inv.status}
+                        {tStatus(inv.status)}
                       </span>
                     </Link>
                   </li>

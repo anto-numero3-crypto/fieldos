@@ -6,6 +6,7 @@ import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
 import { SkeletonText, SkeletonCard } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
+import { useLanguage } from '@/lib/LanguageContext'
 import { writeAuditLog } from '@/lib/audit'
 import { toast } from 'sonner'
 import {
@@ -54,6 +55,8 @@ export default function InvoiceDetailPage() {
   const router       = useRouter()
   const confirm      = useConfirm()
   const searchParams = useSearchParams()
+  const { t }        = useLanguage()
+  const tStatus      = (k: string) => (t.status as Record<string, string>)[k] || k
 
   const [invoice, setInvoice]       = useState<Invoice | null>(null)
   const [businessName, setBusinessName] = useState<string>('')
@@ -335,9 +338,9 @@ export default function InvoiceDetailPage() {
                     <label className="block text-xs font-medium text-gray-500 mb-1">Statut</label>
                     <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)}
                       className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                      <option value="unpaid">Non payé</option>
-                      <option value="paid">Payé</option>
-                      <option value="overdue">En retard</option>
+                      <option value="unpaid">{tStatus('unpaid')}</option>
+                      <option value="paid">{tStatus('paid')}</option>
+                      <option value="overdue">{tStatus('overdue')}</option>
                     </select>
                   </div>
                   <div>
@@ -349,7 +352,7 @@ export default function InvoiceDetailPage() {
               ) : (
                 <div className="px-6 py-4 flex items-center gap-6 bg-gray-50 border-b border-gray-100">
                   <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${cfg?.className}`}>
-                    <StatusIcon className="h-3.5 w-3.5" /> {cfg?.label || invoice.status}
+                    <StatusIcon className="h-3.5 w-3.5" /> {tStatus(invoice.status)}
                   </span>
                   {invoice.due_date && (
                     <span className="flex items-center gap-1.5 text-sm text-gray-500">

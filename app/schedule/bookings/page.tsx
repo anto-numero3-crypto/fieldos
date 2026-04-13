@@ -5,6 +5,7 @@ import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonCard, SkeletonKPICard } from '@/components/ui/skeleton'
+import { useLanguage } from '@/lib/LanguageContext'
 import { toast } from 'sonner'
 import {
   CheckCircle, XCircle, Clock, Calendar, User, Phone, Mail,
@@ -62,6 +63,8 @@ function timeAgo(ts: string) {
 }
 
 export default function BookingsPage() {
+  const { lang, t } = useLanguage()
+  const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
   const [userId, setUserId] = useState<string | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
@@ -286,12 +289,12 @@ export default function BookingsPage() {
                   if (userId) load(userId, e.target.value)
                 }}
                   className="h-8 appearance-none pl-8 pr-6 rounded-lg border border-gray-200 bg-gray-50 text-xs focus:border-indigo-500 focus:outline-none">
-                  <option value="all">Tous</option>
-                  <option value="pending">En attente</option>
-                  <option value="confirmed">Confirmés</option>
-                  <option value="declined">Refusés</option>
-                  <option value="cancelled">Annulés</option>
-                  <option value="completed">Terminés</option>
+                  <option value="all">{lang === 'fr' ? 'Tous' : 'All'}</option>
+                  <option value="pending">{tStatus('pending')}</option>
+                  <option value="confirmed">{tStatus('confirmed')}</option>
+                  <option value="declined">{tStatus('declined')}</option>
+                  <option value="cancelled">{tStatus('cancelled')}</option>
+                  <option value="completed">{tStatus('completed')}</option>
                 </select>
                 <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400 pointer-events-none" />
               </div>
@@ -316,7 +319,7 @@ export default function BookingsPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-semibold text-gray-900 truncate">{b.customer_name}</span>
                         <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${cfg.bg} ${cfg.text}`}>
-                          <Icon className="h-3 w-3" />{cfg.label}
+                          <Icon className="h-3 w-3" />{tStatus(b.status)}
                         </span>
                       </div>
                       <div className="flex items-center gap-3 mt-0.5 flex-wrap">

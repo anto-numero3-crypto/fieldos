@@ -7,6 +7,7 @@ import { supabase } from '@/app/supabase'
 import AppLayout from '@/components/AppLayout'
 import { SkeletonText, SkeletonCard } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
+import { useLanguage } from '@/lib/LanguageContext'
 import {
   ArrowLeft, User, Calendar, Clock, Flag, Edit2, Save, CheckSquare,
   Square, Plus, Trash2, FileText, DollarSign, AlertCircle, CheckCircle,
@@ -44,6 +45,8 @@ export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router  = useRouter()
   const confirm = useConfirm()
+  const { t }   = useLanguage()
+  const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
 
   const [job, setJob]         = useState<Job | null>(null)
   const [loading, setLoading] = useState(true)
@@ -296,7 +299,7 @@ export default function JobDetailPage() {
                     className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold cursor-pointer hover:opacity-80 transition-opacity ${scfg?.cls || ''}`}
                   >
                     <span className={`h-2 w-2 rounded-full ${scfg?.dotCls}`} />
-                    {scfg?.label || job.status}
+                    {tStatus(job.status)}
                   </button>
                   {statusDropdown && (
                     <>
@@ -304,7 +307,7 @@ export default function JobDetailPage() {
                       <div className="absolute left-0 top-full mt-1 z-20 w-44 rounded-xl border border-gray-100 bg-white shadow-lg py-1 slide-up">
                         {Object.entries(STATUS_CFG).map(([key, cfg]) => (
                           <button key={key} onClick={() => changeStatus(key)} className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${job.status === key ? 'font-semibold text-indigo-600' : 'text-gray-700'}`}>
-                            <span className={`h-2 w-2 rounded-full ${cfg.dotCls}`} />{cfg.label}
+                            <span className={`h-2 w-2 rounded-full ${cfg.dotCls}`} />{tStatus(key)}
                           </button>
                         ))}
                       </div>
@@ -506,7 +509,7 @@ export default function JobDetailPage() {
               <dl className="space-y-2.5 text-sm">
                 <div className="flex justify-between">
                   <dt className="text-gray-500">Statut</dt>
-                  <dd><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scfg?.cls}`}>{scfg?.label}</span></dd>
+                  <dd><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scfg?.cls}`}>{tStatus(job.status)}</span></dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-gray-500">Priorité</dt>

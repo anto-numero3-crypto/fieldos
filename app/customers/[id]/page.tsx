@@ -7,6 +7,7 @@ import { supabase } from '@/app/supabase'
 import AppLayout from '@/components/AppLayout'
 import { SkeletonText, SkeletonCard, SkeletonKPICard } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
+import { useLanguage } from '@/lib/LanguageContext'
 import { writeAuditLog } from '@/lib/audit'
 import {
   ArrowLeft, Mail, Phone, MapPin, Tag, Edit2, Trash2, Plus,
@@ -81,6 +82,8 @@ export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router  = useRouter()
   const confirm = useConfirm()
+  const { t }   = useLanguage()
+  const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
 
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [jobs, setJobs]         = useState<Job[]>([])
@@ -379,7 +382,7 @@ export default function CustomerDetailPage() {
                             {j.scheduled_date ? fmtDate(j.scheduled_date) : fmtDate(j.created_at)}
                           </p>
                         </div>
-                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s?.cls || ''}`}>{s?.label || j.status}</span>
+                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s?.cls || ''}`}>{tStatus(j.status)}</span>
                       </Link>
                     </li>
                   )
@@ -425,7 +428,7 @@ export default function CustomerDetailPage() {
                             {inv.invoice_number || 'Facture'} · {inv.due_date ? `Éch. ${fmtDate(inv.due_date)}` : fmtDate(inv.created_at)}
                           </p>
                         </div>
-                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s?.cls || ''}`}>{s?.label || inv.status}</span>
+                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s?.cls || ''}`}>{tStatus(inv.status)}</span>
                       </Link>
                     </li>
                   )
@@ -466,8 +469,8 @@ export default function CustomerDetailPage() {
                           {q.valid_until ? `Valide jusqu'au ${fmtDate(q.valid_until)}` : `Créé le ${fmtDate(q.created_at)}`}
                         </p>
                       </div>
-                      {s && (
-                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s.cls}`}>{s.label}</span>
+                      {s && q.status && (
+                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s.cls}`}>{tStatus(q.status)}</span>
                       )}
                     </li>
                   )
@@ -505,7 +508,7 @@ export default function CustomerDetailPage() {
                         </p>
                       </div>
                       {s && (
-                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s.cls}`}>{s.label}</span>
+                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s.cls}`}>{tStatus(b.status)}</span>
                       )}
                     </li>
                   )

@@ -10,6 +10,8 @@ import EmptyState from '@/components/EmptyState'
 import { SkeletonText, SkeletonListRow } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import ConvertQuoteModal from '@/components/ConvertQuoteModal'
+import { useLanguage } from '@/lib/LanguageContext'
+import { fmtMoney } from '@/lib/format'
 import { ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -60,6 +62,8 @@ export default function QuotesPage() {
   const [customerId, setCustId]   = useState('')
   const [touched, setTouched]     = useState<Record<string, boolean>>({})
   const confirm = useConfirm()
+  const { lang, t } = useLanguage()
+  const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
   const [convertingQuote, setConvertingQuote] = useState<Quote | null>(null)
   const [acceptingId, setAcceptingId] = useState<string | null>(null)
 
@@ -264,7 +268,7 @@ export default function QuotesPage() {
                           {q.valid_until ? new Date(q.valid_until).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : <span className="text-gray-300">—</span>}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{scfg?.label || q.status}</span>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{tStatus(q.status)}</span>
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-1">
@@ -314,7 +318,7 @@ export default function QuotesPage() {
                         {q.customers && <p className="text-xs text-gray-400 flex items-center gap-1"><User className="h-3 w-3" />{q.customers.name}</p>}
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{scfg?.label}</span>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{tStatus(q.status)}</span>
                         <span className="text-sm font-bold text-gray-900">{fmt(q.total)}</span>
                       </div>
                     </div>
