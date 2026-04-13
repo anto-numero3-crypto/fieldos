@@ -12,6 +12,7 @@ import EmptyState from '@/components/EmptyState'
 import { SkeletonCard } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
+import { useLanguage } from '@/lib/LanguageContext'
 import {
   Users2, Plus, X, Mail, Phone, Shield, Wrench,
   Trash2, MoreHorizontal, Edit2, CheckCircle,
@@ -52,6 +53,7 @@ export default function TeamPage() {
   const [role, setRole]     = useState('technician')
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const confirm = useConfirm()
+  const { t } = useLanguage()
 
   const errName  = touched.name  ? validateRequired(name) : ''
   const errEmail = touched.email ? validateEmail(email) : ''
@@ -97,7 +99,7 @@ export default function TeamPage() {
   const saveMember = async (e: React.FormEvent) => {
     e.preventDefault()
     setTouched({ name: true, email: true, phone: true })
-    if (formInvalid) { toast.error('Vérifiez les champs en surbrillance.'); return }
+    if (formInvalid) { toast.error(t.errors.required); return }
     setLoading(true)
 
     const payload = {
@@ -116,7 +118,7 @@ export default function TeamPage() {
 
     if (error) { toast.error(error.message) }
     else {
-      toast.success(editMember ? 'Membre mis à jour !' : 'Membre ajouté !')
+      toast.success(editMember ? t.success.updated : t.success.created)
       resetForm()
       await fetchMembers(user!.id)
       setPanelOpen(false)
