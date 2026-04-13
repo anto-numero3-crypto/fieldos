@@ -7,6 +7,7 @@ import MobileFAB from '@/components/MobileFAB'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonText, SkeletonListRow } from '@/components/ui/skeleton'
 import { useLanguage } from '@/lib/LanguageContext'
+import { fmtMoney, fmtDate } from '@/lib/format'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { FileText, Plus, X, DollarSign, Calendar, User, Briefcase, Clock, Hash, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react'
@@ -20,7 +21,7 @@ interface Customer { id: string; name: string }
 interface Job { id: string; title: string }
 
 export default function InvoicesPage() {
-  const { t } = useLanguage()
+  const { lang, t } = useLanguage()
   const l = t.invoices
 
   const statusConfig: Record<string, { label: string; className: string }> = {
@@ -88,7 +89,7 @@ export default function InvoicesPage() {
   const totalUnpaid = invoices.filter(i => i.status === 'unpaid').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
   const totalOverdue = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
   const countByStatus = (s: string) => invoices.filter(i => i.status === s).length
-  const fmt = (n: number) => `${n.toLocaleString('fr-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $`
+  const fmt = (n: number) => fmtMoney(n, lang)
 
   const statusFilters = [
     { key: 'all', label: l.all },
@@ -149,9 +150,9 @@ export default function InvoicesPage() {
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
             <EmptyState
               icon={FileText}
-              title="Aucune facture"
-              description="Créez votre première facture et commencez à vous faire payer en ligne."
-              actions={[{ label: 'Créer une facture', href: '/invoices/new', variant: 'primary' }]}
+              title={l.noInvoices}
+              description={l.noInvoicesSub}
+              actions={[{ label: l.newBtn, href: '/invoices/new', variant: 'primary' }]}
             />
           </div>
         ) : filtered.length === 0 ? (
@@ -188,7 +189,7 @@ export default function InvoicesPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-semibold text-gray-900">{fmt(parseFloat(String(inv.amount)))}</span></td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {inv.due_date ? <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-gray-300" />{new Date(inv.due_date).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' })}</span> : <span className="text-gray-300">—</span>}
+                          {inv.due_date ? <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-gray-300" />{fmtDate(inv.due_date, lang)}</span> : <span className="text-gray-300">—</span>}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap"><span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${cfg?.className || ''}`}>{cfg?.label || inv.status}</span></td>
                       </tr>
