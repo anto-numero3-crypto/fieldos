@@ -30,7 +30,8 @@
       "Bash(gh api:*)",
       "Bash(curl -s \"https://api.github.com/repos/anto-numero3-crypto/fieldos/commits/7bae24c/status\")",
       "Bash(grep -rn \"services\" supabase/*.sql)",
-      "Bash(grep -l \"skeleton\" app/*/page.tsx app/*/*/page.tsx)"
+      "Bash(grep -l \"skeleton\" app/*/page.tsx app/*/*/page.tsx)",
+      "Bash(grep -rn \"paid_at\" supabase/*.sql)"
     ]
   }
 }
