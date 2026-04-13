@@ -7,6 +7,7 @@ import AppLayout from '@/components/AppLayout'
 import { SkeletonText, SkeletonCard } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import { useLanguage } from '@/lib/LanguageContext'
+import { fmtMoney, fmtDate } from '@/lib/format'
 import { writeAuditLog } from '@/lib/audit'
 import { toast } from 'sonner'
 import {
@@ -55,7 +56,7 @@ export default function InvoiceDetailPage() {
   const router       = useRouter()
   const confirm      = useConfirm()
   const searchParams = useSearchParams()
-  const { t }        = useLanguage()
+  const { lang, t }  = useLanguage()
   const tStatus      = (k: string) => (t.status as Record<string, string>)[k] || k
 
   const [invoice, setInvoice]       = useState<Invoice | null>(null)
@@ -135,7 +136,7 @@ export default function InvoiceDetailPage() {
     if (error) {
       toast.error(error.message)
     } else {
-      toast.success('Facture mise à jour.')
+      toast.success(t.success.updated)
       setEditing(false)
       fetchInvoice()
     }
@@ -160,7 +161,7 @@ export default function InvoiceDetailPage() {
     fetchInvoice()
   }
 
-  const fmtCAD = (n: number) => n.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 2 })
+  const fmtCAD = (n: number) => fmtMoney(n, lang)
 
   const sendInvoiceEmail = async (type: 'invoice' | 'payment_reminder') => {
     if (!invoice?.customers?.email) return
@@ -186,7 +187,7 @@ export default function InvoiceDetailPage() {
           tax2Name: invoice.tax2_name || 'TVQ',
           tax2Amount: tax2Amt > 0 ? fmtCAD(tax2Amt) : undefined,
           discount: invoice.discount && invoice.discount > 0 ? fmtCAD(invoice.discount) : undefined,
-          dueDate: invoice.due_date ? new Date(invoice.due_date).toLocaleDateString('fr-CA', { month: 'long', day: 'numeric', year: 'numeric' }) : undefined,
+          dueDate: invoice.due_date ? fmtDate(invoice.due_date, lang) : undefined,
           paymentLink: invoice.token ? `${window.location.origin}/invoice/${invoice.token}` : undefined,
           lineItems: items.length > 0 ? items : undefined,
           businessName: businessName || undefined,
@@ -194,17 +195,17 @@ export default function InvoiceDetailPage() {
       })
       const data = await res.json()
       if (data.success) {
-        toast.success(`Email envoyé à ${invoice.customers.email}`)
+        toast.success(t.success.sent)
         // Mark invoice as sent if it was unpaid
         if (type === 'invoice' && invoice.status === 'unpaid') {
           await supabase.from('invoices').update({ status: 'sent' }).eq('id', id)
           fetchInvoice()
         }
       } else {
-        toast.error(data.error || "Échec de l'envoi de l'email")
+        toast.error(data.error || t.errors.unknown)
       }
     } catch {
-      toast.error("Échec de l'envoi de l'email")
+      toast.error(t.errors.unknown)
     }
     setSending(false)
   }
@@ -221,10 +222,10 @@ export default function InvoiceDetailPage() {
       if (data.url) {
         window.open(data.url, '_blank')
       } else {
-        toast.error(data.error || 'Impossible de créer le lien de paiement')
+        toast.error(data.error || t.errors.unknown)
       }
     } catch {
-      toast.error('Impossible de créer le lien de paiement')
+      toast.error(t.errors.unknown)
     }
     setPaying(false)
   }
@@ -238,7 +239,7 @@ export default function InvoiceDetailPage() {
   }
   const removeLineItem = (i: number) => setLineItems(lineItems.filter((_, idx) => idx !== i))
 
-  const fmt = (n: number) => n.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 2 })
+  const fmt = (n: number) => fmtMoney(n, lang)
 
   if (loading) return (
     <AppLayout title="Facture">
@@ -302,7 +303,7 @@ export default function InvoiceDetailPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-lg font-bold text-gray-900 truncate">{invoice.invoice_number || `INV-${invoice.id.slice(0,8).toUpperCase()}`}</p>
-                    <p className="text-xs text-gray-400">Créé le {new Date(invoice.created_at).toLocaleDateString('fr-CA', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                    <p className="text-xs text-gray-400">{fmtDate(invoice.created_at, lang)}</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -357,13 +358,13 @@ export default function InvoiceDetailPage() {
                   {invoice.due_date && (
                     <span className="flex items-center gap-1.5 text-sm text-gray-500">
                       <Calendar className="h-4 w-4 text-gray-300" />
-                      Éch. {new Date(invoice.due_date).toLocaleDateString('fr-CA', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      {fmtDate(invoice.due_date, lang)}
                     </span>
                   )}
                   {invoice.paid_at && (
                     <span className="flex items-center gap-1.5 text-sm text-emerald-600">
                       <CheckCircle className="h-4 w-4" />
-                      Payé le {new Date(invoice.paid_at).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      {fmtDate(invoice.paid_at, lang)}
                     </span>
                   )}
                 </div>
@@ -480,7 +481,7 @@ export default function InvoiceDetailPage() {
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Montant total</p>
               <p className="text-4xl font-bold text-gray-900">{fmt(invoice.amount)}</p>
               {invoice.status === 'paid' && invoice.paid_at && (
-                <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> Payé le {new Date(invoice.paid_at).toLocaleDateString('fr-CA')}</p>
+                <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> {fmtDate(invoice.paid_at, lang)}</p>
               )}
             </div>
 
@@ -528,7 +529,7 @@ export default function InvoiceDetailPage() {
                   onClick={() => {
                     const url = `${window.location.origin}/invoice/${invoice.token}`
                     navigator.clipboard.writeText(url)
-                    toast.success('Lien copié !')
+                    toast.success(t.success.copied)
                   }}
                   className="w-full flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
                 >
