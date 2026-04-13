@@ -7,6 +7,8 @@ import UpgradePrompt from '@/components/UpgradePrompt'
 import { usePlan } from '@/lib/hooks/usePlan'
 import EmptyState from '@/components/EmptyState'
 import { Megaphone } from 'lucide-react'
+import { useLanguage } from '@/lib/LanguageContext'
+import { fmtDate } from '@/lib/format'
 import {
   Send, Users, Mail, Clock, ChevronDown, Sparkles, CheckCircle,
   AlertCircle, Loader2, Plus, X, Calendar, Tag, MessageSquare,
@@ -64,9 +66,9 @@ const AUDIENCE_LABELS: Record<AudienceType, string> = {
   all: 'All customers',
 }
 
-const fmt = (d: string) => new Date(d).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
-
 function CampaignsPageInner() {
+  const { lang } = useLanguage()
+  const fmt = (d: string) => fmtDate(d, lang)
   const [tab, setTab]             = useState<'create' | 'history'>('create')
   const [loading, setLoading]     = useState(true)
   const [sending, setSending]     = useState(false)
