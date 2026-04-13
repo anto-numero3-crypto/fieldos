@@ -285,40 +285,50 @@ function AvailabilityPageInner() {
             {schedule.map((day) => (
               <div
                 key={day.day_of_week}
-                className="grid items-center gap-3 px-5 py-3.5"
-                style={{ gridTemplateColumns: '44px 110px 1fr auto 1fr' }}
+                className="flex flex-wrap md:flex-nowrap items-center gap-3 px-4 sm:px-5 py-3.5"
               >
+                {/* Toggle */}
                 <button
                   type="button"
-                  onClick={() => setDay(day.day_of_week, 'is_available', !day.is_available)}
-                  className={`relative h-5 w-9 rounded-full transition-colors ${day.is_available ? 'bg-indigo-600' : 'bg-gray-200'}`}
+                  role="switch"
+                  aria-checked={day.is_available}
                   aria-label={`Activer ${DAYS[day.day_of_week]}`}
+                  onClick={() => setDay(day.day_of_week, 'is_available', !day.is_available)}
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${day.is_available ? 'bg-indigo-600' : 'bg-gray-200'}`}
                 >
-                  <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${day.is_available ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${day.is_available ? 'translate-x-[18px]' : 'translate-x-0.5'}`}
+                  />
                 </button>
-                <span className={`text-sm font-medium truncate ${day.is_available ? 'text-gray-900' : 'text-gray-400'}`}>
+
+                {/* Day name */}
+                <span
+                  className={`text-sm font-medium truncate w-[90px] shrink-0 ${day.is_available ? 'text-gray-900' : 'text-gray-400'}`}
+                >
                   {DAYS[day.day_of_week]}
                 </span>
+
+                {/* Time controls */}
                 {day.is_available ? (
-                  <>
+                  <div className="flex items-center gap-2 ml-auto md:ml-0 w-full md:w-auto">
                     <select
                       value={day.start_time}
                       onChange={(e) => setDay(day.day_of_week, 'start_time', e.target.value)}
-                      className="min-w-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="min-w-0 flex-1 md:flex-none md:w-[120px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     >
                       {TIME_OPTIONS.map((t) => <option key={t} value={t}>{fmtTime(t)}</option>)}
                     </select>
-                    <span className="text-gray-400 text-sm text-center">—</span>
+                    <span className="text-gray-400 text-sm shrink-0">—</span>
                     <select
                       value={day.end_time}
                       onChange={(e) => setDay(day.day_of_week, 'end_time', e.target.value)}
-                      className="min-w-0 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="min-w-0 flex-1 md:flex-none md:w-[120px] rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     >
                       {TIME_OPTIONS.filter((t) => t > day.start_time).map((t) => <option key={t} value={t}>{fmtTime(t)}</option>)}
                     </select>
-                  </>
+                  </div>
                 ) : (
-                  <span className="col-span-3 text-sm text-gray-400 italic">Indisponible</span>
+                  <span className="text-sm text-gray-400 italic ml-auto md:ml-0">Indisponible</span>
                 )}
               </div>
             ))}
