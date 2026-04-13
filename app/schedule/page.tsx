@@ -6,6 +6,8 @@ import AppLayout from '@/components/AppLayout'
 import EmptyState from '@/components/EmptyState'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import { useLanguage } from '@/lib/LanguageContext'
+import { fmtDate } from '@/lib/format'
 import {
   ChevronLeft, ChevronRight, Plus, Calendar, User, Clock, Briefcase,
 } from 'lucide-react'
@@ -61,6 +63,7 @@ function addDays(date: Date, n: number) {
 const toISO = (d: Date) => d.toISOString().slice(0, 10)
 
 export default function SchedulePage() {
+  const { lang, t } = useLanguage()
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()))
   const [jobs, setJobs]           = useState<Job[]>([])
   const [loading, setLoading]     = useState(true)
@@ -79,7 +82,7 @@ export default function SchedulePage() {
     // Past-date guard
     const todayISO = new Date().toISOString().slice(0, 10)
     if (newDate < todayISO) {
-      toast.error("Ce créneau n'est pas disponible (date passée)")
+      toast.error(t.errors.unknown)
       return
     }
 
@@ -94,7 +97,7 @@ export default function SchedulePage() {
         overlaps(job.start_time!, dur, other.start_time, durationOf(other))
       )
       if (conflict) {
-        toast.error("Ce créneau n'est pas disponible (conflit avec une autre intervention)")
+        toast.error(t.errors.unknown)
         return
       }
     }
@@ -114,7 +117,7 @@ export default function SchedulePage() {
     if (error) {
       // Roll back
       setJobs((js) => js.map((j) => j.id === id ? { ...j, scheduled_date: prev } : j))
-      toast.error('Erreur lors de la mise à jour')
+      toast.error(t.errors.saveError)
       return
     }
 
@@ -126,7 +129,7 @@ export default function SchedulePage() {
         .eq('converted_to_job_id', job.id)
     }
 
-    toast.success('Emploi reprogrammé')
+    toast.success(t.success.updated)
   }
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
@@ -325,7 +328,7 @@ export default function SchedulePage() {
                             {job.scheduled_date && (
                               <span className="flex items-center gap-0.5">
                                 <Calendar className="h-2.5 w-2.5" />
-                                {new Date(job.scheduled_date).toLocaleDateString('fr-CA', { month: 'short', day: 'numeric' })}
+                                {fmtDate(job.scheduled_date, lang)}
                               </span>
                             )}
                           </div>
