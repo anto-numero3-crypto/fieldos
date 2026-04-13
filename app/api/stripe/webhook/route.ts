@@ -1,6 +1,8 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { sendPlanEmail } from '@/lib/plan-emails'
+import { PLAN_PRICING } from '@/lib/plan-limits'
 
 export async function POST(req: NextRequest) {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -46,6 +48,18 @@ export async function POST(req: NextRequest) {
             title: 'Abonnement activé',
             body: `Votre forfait ${planId} est maintenant actif.`,
           })
+          // Plan-upgrade confirmation email
+          const { data: orgRow } = await supabase
+            .from('organizations').select('email, name').eq('owner_user_id', userId).single()
+          const info = PLAN_PRICING[planId as keyof typeof PLAN_PRICING]
+          if (orgRow?.email && info) {
+            await sendPlanEmail('payment_success', {
+              to: orgRow.email,
+              name: orgRow.name || undefined,
+              planLabel: info.label,
+              planPrice: `${info.monthly} $ CAD/mois`,
+            })
+          }
         } else if (invoiceId) {
           // Client paying a business invoice
           const amountPaid = (session.amount_total || 0) / 100
@@ -123,6 +137,11 @@ export async function POST(req: NextRequest) {
             title:   'Abonnement annulé',
             body:    "Votre abonnement a pris fin. Passez à Pro pour restaurer l'accès complet.",
           })
+          const { data: orgRow } = await supabase
+            .from('organizations').select('email, name').eq('owner_user_id', userId).single()
+          if (orgRow?.email) {
+            await sendPlanEmail('subscription_cancelled', { to: orgRow.email, name: orgRow.name || undefined })
+          }
         }
         break
       }
@@ -143,6 +162,11 @@ export async function POST(req: NextRequest) {
             title:   'Paiement échoué',
             body:    'Le paiement de votre abonnement a échoué. Veuillez mettre à jour votre mode de paiement.',
           })
+          const { data: orgRow } = await supabase
+            .from('organizations').select('email, name').eq('owner_user_id', org.owner_user_id).single()
+          if (orgRow?.email) {
+            await sendPlanEmail('payment_failed', { to: orgRow.email, name: orgRow.name || undefined })
+          }
         }
         break
       }

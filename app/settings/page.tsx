@@ -108,6 +108,31 @@ export default function SettingsPage() {
     payoutsEnabled?: boolean; onboardingComplete?: boolean; email?: string; displayName?: string
   } | null>(null)
   const [connectLoading, setConnectLoading] = useState(false)
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
+
+  const handlePlanChange = async (planId: 'starter' | 'pro' | 'business') => {
+    if (!user) return
+    setCheckoutLoading(planId)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId, userId: user.id, billingCycle }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.url) {
+        toast.error(data.error || 'Impossible de créer la session de paiement.')
+        setCheckoutLoading(null)
+        return
+      }
+      window.location.href = data.url
+    } catch (err) {
+      console.error('Plan change error:', err)
+      toast.error('Erreur lors du changement de forfait.')
+      setCheckoutLoading(null)
+    }
+  }
 
   // Business profile
   const [bizName, setBizName]       = useState('')
@@ -175,6 +200,13 @@ export default function SettingsPage() {
       if (params.get('connected') === 'true') {
         toast.success('Compte Stripe connecté !')
         loadConnectStatus(data.user.id)
+      }
+      if (params.get('success') === 'true' && params.get('session_id')) {
+        toast.success('Paiement confirmé ! Votre forfait est en cours d\'activation.')
+        plan.refresh()
+      }
+      if (params.get('canceled') === 'true') {
+        toast.info('Paiement annulé.')
       }
 
       if (org) {
@@ -848,23 +880,35 @@ export default function SettingsPage() {
               </div>
 
               {/* Plan switcher */}
-              <div className="p-6 grid gap-4 md:grid-cols-3">
+              <div className="px-6 pt-2 pb-4 flex items-center gap-2">
+                <button
+                  onClick={() => setBillingCycle('monthly')}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${billingCycle === 'monthly' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                >Mensuel</button>
+                <button
+                  onClick={() => setBillingCycle('annual')}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${billingCycle === 'annual' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                >Annuel <span className="ml-1 text-emerald-600">(-20%)</span></button>
+              </div>
+              <div className="p-6 pt-2 grid gap-4 md:grid-cols-3">
                 {(['starter', 'pro', 'business'] as const).map((p) => {
                   const info = PLAN_PRICING[p]
+                  const price = billingCycle === 'annual' ? info.annual : info.monthly
                   const isCurrent = plan.plan === p
                   return (
                     <div key={p} className={`rounded-xl border p-4 ${isCurrent ? 'border-indigo-300 bg-indigo-50/40' : 'border-gray-200 bg-white'}`}>
                       <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">{info.label}</p>
-                      <p className="text-xl font-bold text-gray-900 mt-1">${info.monthly}<span className="text-xs font-normal text-gray-400">/mois</span></p>
+                      <p className="text-xl font-bold text-gray-900 mt-1">${price}<span className="text-xs font-normal text-gray-400">/mois{billingCycle === 'annual' ? ' · facturé annuellement' : ''}</span></p>
                       <p className="text-xs text-gray-500 mt-1 mb-3">{info.tagline}</p>
                       {isCurrent ? (
                         <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white">Forfait actuel</span>
                       ) : (
                         <button
-                          onClick={() => toast.info(`Pour changer vers ${info.label}, contactez-nous à support@gestivio.ca. Intégration Stripe en cours.`)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                          onClick={() => handlePlanChange(p)}
+                          disabled={checkoutLoading === p}
+                          className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
                         >
-                          {p === 'starter' ? 'Rétrograder' : 'Changer de forfait'}
+                          {checkoutLoading === p ? 'Chargement…' : p === 'starter' ? 'Rétrograder' : `Passer à ${info.label}`}
                         </button>
                       )}
                     </div>

@@ -48,6 +48,7 @@ interface OrgData {
   zip: string | null
   tax_number: string | null
   stripe_connect_charges_enabled: boolean | null
+  plan?: string | null
 }
 
 const supabase = createClient(
@@ -97,7 +98,7 @@ function PublicInvoiceContent() {
       if (invData.user_id) {
         const { data: orgData } = await supabase
           .from('organizations')
-          .select('name, email, phone, address, city, state, zip, tax_number, stripe_connect_charges_enabled')
+          .select('name, email, phone, address, city, state, zip, tax_number, stripe_connect_charges_enabled, plan')
           .eq('owner_user_id', invData.user_id)
           .single()
         if (orgData) setOrg(orgData as OrgData)
@@ -387,7 +388,11 @@ function PublicInvoiceContent() {
                 </a>
               )}
             </div>
-            <p className="text-xs text-gray-300 pt-1">Propulsé par Gestivio</p>
+            {(!org.plan || org.plan === 'starter') && (
+              <p className="text-xs text-gray-300 pt-1">
+                Propulsé par <a href="https://gestivio.ca" target="_blank" rel="noopener noreferrer" className="hover:text-gray-500 transition-colors">Gestivio</a>
+              </p>
+            )}
           </div>
         )}
       </div>

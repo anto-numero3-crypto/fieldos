@@ -489,7 +489,7 @@ export default function LandingPage() {
                         </li>
                       ))}
                     </ul>
-                    <Link href={plan.href} className={`inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-150 ${plan.highlighted ? 'bg-white text-indigo-700 hover:bg-indigo-50' : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:-translate-y-0.5'}`}>
+                    <Link href={`${plan.href}?plan=${plan.key}&cycle=${billing}`} className={`inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-150 ${plan.highlighted ? 'bg-white text-indigo-700 hover:bg-indigo-50' : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:-translate-y-0.5'}`}>
                       {plan.cta}<ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                     </Link>
                   </div>

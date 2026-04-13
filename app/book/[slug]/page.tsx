@@ -26,6 +26,7 @@ interface OrgData {
   phone: string | null
   email: string | null
   logo_url: string | null
+  plan?: string | null
 }
 interface AvailSettings {
   booking_page_title: string
@@ -810,6 +811,11 @@ export default function PublicBookingPage() {
           </div>
         )}
       </div>
+      {(!org?.plan || org.plan === 'starter') && (
+        <footer className="py-4 text-center text-xs text-gray-400">
+          Propulsé par <a href="https://gestivio.ca" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-700">Gestivio</a>
+        </footer>
+      )}
     </div>
   )
 }

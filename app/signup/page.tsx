@@ -130,6 +130,14 @@ export default function SignupPage() {
     if (signUpError) {
       setError(signUpError.message)
     } else {
+      // Welcome + trial-started email (fire and forget)
+      try {
+        await fetch('/api/plan-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'welcome_trial', to: email, name: business || undefined }),
+        })
+      } catch { /* ignore */ }
       setCooldown(60)
       setStep('done')
     }

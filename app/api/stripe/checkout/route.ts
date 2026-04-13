@@ -4,12 +4,15 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // All clients initialized lazily inside handler
 
-// Map plan IDs to Stripe price IDs (set these in your Stripe dashboard and .env)
-const PRICE_MAP: Record<string, string> = {
-  starter: process.env.STRIPE_PRICE_STARTER || '',
-  growth:  process.env.STRIPE_PRICE_GROWTH  || '',
-  pro:     process.env.STRIPE_PRICE_PRO     || '',
-  scale:   process.env.STRIPE_PRICE_SCALE   || '',
+// Map plan + billing period to Stripe price IDs. Populate these env vars
+// using `node scripts/create-stripe-products.js`.
+const PRICE_MAP: Record<string, string | undefined> = {
+  starter_monthly:  process.env.STRIPE_PRICE_STARTER_MONTHLY,
+  starter_annual:   process.env.STRIPE_PRICE_STARTER_ANNUAL,
+  pro_monthly:      process.env.STRIPE_PRICE_PRO_MONTHLY,
+  pro_annual:       process.env.STRIPE_PRICE_PRO_ANNUAL,
+  business_monthly: process.env.STRIPE_PRICE_BUSINESS_MONTHLY,
+  business_annual:  process.env.STRIPE_PRICE_BUSINESS_ANNUAL,
 }
 
 export async function POST(req: NextRequest) {
@@ -29,11 +32,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing planId or userId' }, { status: 400 })
     }
 
-    const priceKey = billingCycle === 'annual' ? `${planId}_annual` : planId
-    const priceId = PRICE_MAP[priceKey] || PRICE_MAP[planId]
+    const period = billingCycle === 'annual' ? 'annual' : 'monthly'
+    const priceId = PRICE_MAP[`${planId}_${period}`]
 
     if (!priceId) {
-      return NextResponse.json({ error: `No Stripe price configured for plan: ${planId}` }, { status: 400 })
+      return NextResponse.json({ error: `No Stripe price configured for ${planId} ${period}. Run scripts/create-stripe-products.js and set env vars.` }, { status: 400 })
     }
 
     // Get or create Stripe customer
@@ -65,8 +68,8 @@ export async function POST(req: NextRequest) {
       customer: customerId,
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  `${origin}/billing?canceled=true`,
+      success_url: `${origin}/settings?tab=billing&success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${origin}/settings?tab=billing&canceled=true`,
       metadata: { userId, planId },
       subscription_data: {
         metadata: { userId, planId },
