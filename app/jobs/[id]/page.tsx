@@ -17,6 +17,7 @@ interface Job {
   priority: string | null; scheduled_date: string | null; start_time: string | null
   end_time: string | null; service_address: string | null; internal_notes: string | null
   checklist: ChecklistItem[] | null; created_at: string
+  source: string | null
   customers: { id: string; name: string; email: string | null; phone: string | null } | null
 }
 
@@ -250,7 +251,14 @@ export default function JobDetailPage() {
               {editMode ? (
                 <input value={eTitle} onChange={(e) => setETitle(e.target.value)} className="block w-full text-xl font-bold text-gray-900 rounded-xl border border-gray-200 px-3.5 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-3" />
               ) : (
-                <h1 className="text-xl font-bold text-gray-900 mb-2">{job.title}</h1>
+                <div className="flex items-center gap-2 flex-wrap mb-2">
+                  <h1 className="text-xl font-bold text-gray-900">{job.title}</h1>
+                  {job.source === 'booking' && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 text-indigo-700 px-2.5 py-0.5 text-xs font-semibold">
+                      <Calendar className="h-3 w-3" /> Réservé en ligne
+                    </span>
+                  )}
+                </div>
               )}
 
               <div className="flex flex-wrap items-center gap-3">

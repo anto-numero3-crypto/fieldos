@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
 import { toast } from 'sonner'
@@ -42,6 +42,7 @@ const newLine = (): LineItem => ({
 
 export default function NewInvoicePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const [user, setUser] = useState<{ id: string } | null>(null)
   const [orgName, setOrgName] = useState('')
@@ -98,10 +99,27 @@ export default function NewInvoicePage() {
     setCustomers(custs || [])
     setJobs(jbs || [])
 
+    // Pre-fill from ?customerId= or ?jobId= query params (cross-module handoff)
+    const preCustomerId = searchParams.get('customerId')
+    const preJobId = searchParams.get('jobId')
+    if (preCustomerId && custs?.some((c) => c.id === preCustomerId)) {
+      setCustomerId(preCustomerId)
+    }
+    if (preJobId && jbs?.some((j) => j.id === preJobId)) {
+      setJobId(preJobId)
+      // If the job has a customer, pre-select it too
+      const { data: job } = await supabase
+        .from('jobs')
+        .select('customer_id')
+        .eq('id', preJobId)
+        .maybeSingle()
+      if (job?.customer_id) setCustomerId(job.customer_id)
+    }
+
     // Generate invoice number
     const { count } = await supabase.from('invoices').select('*', { count: 'exact', head: true }).eq('user_id', auth.user.id)
     setInvoiceNumber(`INV-${String((count || 0) + 1).padStart(4, '0')}`)
-  }, [router])
+  }, [router, searchParams])
 
   useEffect(() => { init() }, [init])
 
