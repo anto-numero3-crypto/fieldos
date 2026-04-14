@@ -57,6 +57,7 @@ export default function InvoiceDetailPage() {
   const confirm      = useConfirm()
   const searchParams = useSearchParams()
   const { lang, t }  = useLanguage()
+  const fr = lang === 'fr'
   const tStatus      = (k: string) => (t.status as Record<string, string>)[k] || k
 
   const [invoice, setInvoice]       = useState<Invoice | null>(null)
@@ -146,9 +147,11 @@ export default function InvoiceDetailPage() {
 
   const deleteInvoice = async () => {
     const { confirmed } = await confirm({
-      title: 'Supprimer cette facture ?',
-      description: 'Cette action est irréversible. Le lien de paiement partagé ne fonctionnera plus.',
-      confirmLabel: 'Supprimer',
+      title: fr ? 'Supprimer cette facture ?' : 'Delete this invoice?',
+      description: fr
+        ? 'Cette action est irréversible. Le lien de paiement partagé ne fonctionnera plus.'
+        : 'This cannot be undone. The shared payment link will no longer work.',
+      confirmLabel: fr ? 'Supprimer' : 'Delete',
     })
     if (!confirmed) return
     const { data: auth } = await supabase.auth.getUser()
@@ -278,7 +281,7 @@ export default function InvoiceDetailPage() {
   const displayTax = displaySubtotal * ((invoice.tax_rate || 0) / 100)
 
   return (
-    <AppLayout title={invoice.invoice_number || 'Facture'}>
+    <AppLayout title={invoice.invoice_number || (fr ? 'Facture' : 'Invoice')}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
 
         {/* Header */}
@@ -313,20 +316,20 @@ export default function InvoiceDetailPage() {
                       onClick={markPaid}
                       className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-all shadow-sm"
                     >
-                      <CheckCircle className="h-4 w-4" /> Marquer payé
+                      <CheckCircle className="h-4 w-4" /> {fr ? 'Marquer payée' : 'Mark as paid'}
                     </button>
                   )}
                   {!editing ? (
                     <button onClick={() => setEditing(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all">
-                      <Edit2 className="h-4 w-4" /> Modifier
+                      <Edit2 className="h-4 w-4" /> {fr ? 'Modifier' : 'Edit'}
                     </button>
                   ) : (
                     <>
                       <button onClick={() => setEditing(false)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all">
-                        <X className="h-4 w-4" /> Annuler
+                        <X className="h-4 w-4" /> {fr ? 'Annuler' : 'Cancel'}
                       </button>
                       <button onClick={saveEdits} disabled={saving} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-sm">
-                        <Save className="h-4 w-4" /> {saving ? 'Enregistrement…' : 'Enregistrer'}
+                        <Save className="h-4 w-4" /> {saving ? (fr ? 'Enregistrement…' : 'Saving…') : (fr ? 'Enregistrer' : 'Save')}
                       </button>
                     </>
                   )}
@@ -501,7 +504,7 @@ export default function InvoiceDetailPage() {
                   </div>
                 </div>
                 <Link href={`/customers/${invoice.customers.id}`} className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
-                  Voir le profil <ExternalLink className="h-3 w-3" />
+                  {fr ? 'Voir le profil' : 'View profile'} <ExternalLink className="h-3 w-3" />
                 </Link>
               </div>
             )}
@@ -515,14 +518,14 @@ export default function InvoiceDetailPage() {
                   <p className="text-sm font-medium text-gray-900 truncate">{invoice.jobs.title}</p>
                 </div>
                 <Link href={`/jobs/${invoice.jobs.id}`} className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
-                  Voir l'intervention <ExternalLink className="h-3 w-3" />
+                  {fr ? "Voir l'intervention" : 'View job'} <ExternalLink className="h-3 w-3" />
                 </Link>
               </div>
             )}
 
             {/* Actions */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5 space-y-2">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Actions</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{fr ? 'Actions' : 'Actions'}</p>
 
               {/* Public invoice link */}
               {invoice.token && (
@@ -534,7 +537,7 @@ export default function InvoiceDetailPage() {
                   }}
                   className="w-full flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
                 >
-                  <Link2 className="h-4 w-4" /> Copier le lien client
+                  <Link2 className="h-4 w-4" /> {fr ? 'Copier le lien client' : 'Copy client link'}
                 </button>
               )}
               {invoice.token && (
@@ -544,7 +547,7 @@ export default function InvoiceDetailPage() {
                   rel="noopener noreferrer"
                   className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  <ExternalLink className="h-4 w-4 text-gray-400" /> Voir la facture client
+                  <ExternalLink className="h-4 w-4 text-gray-400" /> {fr ? 'Voir la facture client' : 'View client invoice'}
                 </a>
               )}
 
@@ -562,7 +565,7 @@ export default function InvoiceDetailPage() {
                 onClick={() => window.print()}
                 className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
               >
-                <Printer className="h-4 w-4 text-gray-400" /> Imprimer / Télécharger PDF
+                <Printer className="h-4 w-4 text-gray-400" /> {fr ? 'Imprimer / Télécharger PDF' : 'Print / Download PDF'}
               </button>
               {invoice.customers?.email && (
                 <>
@@ -572,7 +575,7 @@ export default function InvoiceDetailPage() {
                     className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-colors"
                   >
                     {sending ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" /> : <Send className="h-4 w-4 text-gray-400" />}
-                    Envoyer la facture par email
+                    {fr ? 'Envoyer la facture par courriel' : 'Send invoice by email'}
                   </button>
                   {invoice.status === 'overdue' && (
                     <button
@@ -580,7 +583,7 @@ export default function InvoiceDetailPage() {
                       disabled={sending}
                       className="w-full flex items-center gap-2 rounded-xl border border-red-100 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60 transition-colors"
                     >
-                      <Send className="h-4 w-4" /> Envoyer un rappel de paiement
+                      <Send className="h-4 w-4" /> {fr ? 'Envoyer un rappel de paiement' : 'Send payment reminder'}
                     </button>
                   )}
                 </>
@@ -589,7 +592,7 @@ export default function InvoiceDetailPage() {
                 onClick={deleteInvoice}
                 className="w-full flex items-center gap-2 rounded-xl border border-red-100 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
               >
-                <Trash2 className="h-4 w-4" /> Supprimer la facture
+                <Trash2 className="h-4 w-4" /> {fr ? 'Supprimer la facture' : 'Delete invoice'}
               </button>
             </div>
           </div>
