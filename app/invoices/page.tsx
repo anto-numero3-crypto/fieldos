@@ -180,7 +180,7 @@ export default function InvoicesPage() {
               <table className="min-w-full divide-y divide-gray-100">
                 <thead>
                   <tr className="bg-gray-50">
-                    {['Invoice #', l.colCustomer, l.colJob, l.colAmount, l.colDueDate, l.colStatus].map(col => (
+                    {[lang === 'fr' ? 'Facture #' : 'Invoice #', l.colCustomer, l.colJob, l.colAmount, l.colDueDate, l.colStatus].map(col => (
                       <th key={col} className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{col}</th>
                     ))}
                   </tr>

@@ -58,7 +58,9 @@
       "Bash(grep -l \"LanguageToggle\\\\|setLang\\\\|useLanguage\" app/login/page.tsx app/signup/page.tsx app/forgot-password/page.tsx app/pricing/page.tsx app/onboarding/page.tsx app/book/page.tsx app/booking/cancel/*/page.tsx)",
       "Bash(grep -n \"Titre\\\\|Description\\\\|Date planifiée\\\\|Heure\\\\|Client$\\\\|Priorité\\\\|Statut\\\\|Création\\\\|Créer\\\\|Créé\\\\b\" app/jobs/page.tsx)",
       "Bash(grep -nE \"'[A-ZÉÀ][a-zé]{2,}[^=.]+'\" app/jobs/\\\\[id\\\\]/page.tsx)",
-      "Bash(grep -nE \">[A-ZÉÀÔÇ][a-zéàôç].{3,}<\" app/jobs/\\\\[id\\\\]/page.tsx)"
+      "Bash(grep -nE \">[A-ZÉÀÔÇ][a-zéàôç].{3,}<\" app/jobs/\\\\[id\\\\]/page.tsx)",
+      "Bash(grep -nE \"'[A-ZÉÀÔÇ][a-zéàôç].{3,}'\" app/invoices/page.tsx)",
+      "Bash(grep -nE \"\\(placeholder=\\\\\"|>[A-ZÉÀ][a-zéà].{3,}<\\)\" app/invoices/page.tsx)"
     ]
   }
 }
