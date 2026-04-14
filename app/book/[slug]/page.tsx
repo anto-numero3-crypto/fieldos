@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation'
 import { supabase } from '../../supabase'
 import { ChevronLeft, ChevronRight, Clock, MapPin, Check, Calendar, AlertCircle } from 'lucide-react'
 import { formatPrice, requiresQuote, type PricingType } from '@/lib/pricing'
+import { secureUrl } from '@/lib/secure-url'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 
 interface Service {
@@ -302,7 +303,7 @@ export default function PublicBookingPage() {
       <div style={{ background: primaryColor }} className="px-4 py-6 text-white text-center shadow-sm">
         {org?.logo_url && (
           <Image
-            src={org.logo_url}
+            src={secureUrl(org.logo_url)}
             alt={org.name}
             width={160}
             height={40}

@@ -12,7 +12,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301)
   }
 
-  return NextResponse.next()
+  const response = NextResponse.next()
+  response.headers.set('Content-Security-Policy', 'upgrade-insecure-requests')
+  return response
 }
 
 export const config = {
