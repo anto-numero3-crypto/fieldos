@@ -25,14 +25,8 @@ html { scroll-behavior: smooth; }
   .print-only { display: block !important; }
   .print-invoice-section { page-break-inside: avoid; }
   .print-table-header {
-    background: #1a1a1a !important;
-    color: #ffffff !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  .print-total-row {
-    background: #000 !important;
-    color: #fff !important;
+    background: #f3f4f6 !important;
+    color: #374151 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }

@@ -7,7 +7,7 @@ import {
   Wrench, Users, Briefcase, FileText, Sparkles, CheckCircle,
   ArrowRight, BarChart3, Shield, Zap, Check,
   ChevronRight, ChevronDown, CreditCard, Calendar, Play,
-  MessageSquare, Building2,
+  MessageSquare, Building2, Leaf, Globe,
 } from 'lucide-react'
 
 // ── Scroll-reveal hook ────────────────────────────────────────
@@ -135,7 +135,7 @@ export default function LandingPage() {
               <a href="#features"     className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">{l.navFeatures}</a>
               <a href="#pricing"      className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">{l.navPricing}</a>
               <a href="#how-it-works" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">{l.navHowItWorks}</a>
-              <Link href="/book" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+              <Link href="/signup" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
                 {lang === 'fr' ? 'Démo' : 'Book a demo'}
               </Link>
             </div>
@@ -186,13 +186,13 @@ export default function LandingPage() {
           {/* Trust badges */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
             {[
-              { icon: '🍁', label: lang === 'fr' ? 'Fait au Québec'            : 'Made in Quebec' },
-              { icon: '🔒', label: lang === 'fr' ? 'Données au Canada'         : 'Data in Canada' },
-              { icon: '🤖', label: lang === 'fr' ? "Propulsé par l'IA"         : 'AI-powered' },
-              { icon: '🇫🇷', label: lang === 'fr' ? 'Bilingue FR/EN'            : 'Fully bilingual FR/EN' },
-            ].map(({ icon, label }) => (
+              { Icon: Leaf,     label: lang === 'fr' ? 'Fait au Québec'     : 'Made in Quebec' },
+              { Icon: Shield,   label: lang === 'fr' ? 'Données au Canada'  : 'Data in Canada' },
+              { Icon: Sparkles, label: lang === 'fr' ? "Propulsé par l'IA"  : 'AI-powered' },
+              { Icon: Globe,    label: lang === 'fr' ? 'Bilingue FR/EN'     : 'Fully bilingual FR/EN' },
+            ].map(({ Icon, label }) => (
               <span key={label} className="inline-flex items-center gap-1.5 text-xs text-gray-500">
-                <span>{icon}</span>{label}
+                <Icon className="h-3.5 w-3.5 text-gray-500" />{label}
               </span>
             ))}
           </div>
@@ -363,7 +363,7 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <Link href="/book" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white hover:bg-indigo-700 hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-indigo-100">
+                <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white hover:bg-indigo-700 hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-indigo-100">
                   {l.aiBookingCta}<ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -503,7 +503,7 @@ export default function LandingPage() {
               <span>✓ {lang === 'fr' ? 'Aucune carte de crédit' : 'No credit card required'}</span>
               <span>✓ {lang === 'fr' ? 'Annulable à tout moment' : 'Cancel anytime'}</span>
               <span>✓ {lang === 'fr' ? 'Remboursement 30 jours' : '30-day money-back guarantee'}</span>
-              <span>🍁 {lang === 'fr' ? 'Données au Canada' : 'Data in Canada'}</span>
+              <span className="inline-flex items-center gap-1.5"><Leaf className="h-3.5 w-3.5" />{lang === 'fr' ? 'Données au Canada' : 'Data in Canada'}</span>
             </div>
           </Reveal>
         </div>
@@ -598,7 +598,7 @@ export default function LandingPage() {
                 <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-sky-100 hover:text-sky-500 transition-colors" title="Twitter / X"><MessageSquare className="h-4 w-4" /></a>
                 <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-700 transition-colors" title="Facebook"><Users className="h-4 w-4" /></a>
               </div>
-              <p className="text-xs text-gray-400">{lang === 'fr' ? 'Fait avec ❤️ au Québec, Canada 🍁' : 'Made with ❤️ in Québec, Canada 🍁'}</p>
+              <p className="text-xs text-gray-400">{lang === 'fr' ? 'Fait au Québec, Canada' : 'Made in Québec, Canada'}</p>
             </div>
 
             {/* Col 2 — Product */}

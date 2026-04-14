@@ -279,18 +279,10 @@ export default function PublicBookingPage() {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 mb-5">
           <Calendar className="h-8 w-8 text-indigo-500" />
         </div>
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Portail non configuré</h1>
-        <p className="text-sm text-gray-600 leading-relaxed mb-5">
-          Ce portail de réservation n&apos;est pas encore configuré.
-          Si vous êtes le propriétaire, connectez-vous et configurez votre lien dans{' '}
-          <strong>Calendrier → Disponibilités</strong>.
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Lien non actif</h1>
+        <p className="text-sm text-gray-600 leading-relaxed">
+          Ce lien de réservation n&apos;est pas encore actif. Veuillez contacter l&apos;entreprise directement pour prendre rendez-vous.
         </p>
-        <a
-          href="/login"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
-        >
-          Me connecter
-        </a>
       </div>
     </div>
   )

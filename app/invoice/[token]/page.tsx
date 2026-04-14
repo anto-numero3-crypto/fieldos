@@ -193,11 +193,13 @@ function PublicInvoiceContent() {
       {/* ══════════ PRINT-ONLY FORMAL INVOICE ══════════ */}
       <div className="print-only" style={{
         background: 'white',
-        color: '#000',
+        color: '#111827',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, sans-serif',
         padding: '0',
         fontSize: '11px',
         lineHeight: 1.6,
+        borderTop: '4px solid #4f46e5',
+        paddingTop: '20px',
       }}>
         {/* ── ROW 1: Header (business left, FACTURE right) ── */}
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px' }}>
@@ -294,7 +296,7 @@ function PublicInvoiceContent() {
         {/* ── ROW 3: Line items table ── */}
         <table className="print-invoice-section" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '24px' }}>
           <thead>
-            <tr className="print-table-header" style={{ background: '#1a1a1a', color: '#ffffff' }}>
+            <tr className="print-table-header" style={{ background: '#f3f4f6', color: '#374151' }}>
               <th style={{ padding: '10px 12px', textAlign: 'left',   fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', width: '55%' }}>Description</th>
               <th style={{ padding: '10px 12px', textAlign: 'center', fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', width: '10%' }}>Qté</th>
               <th style={{ padding: '10px 12px', textAlign: 'right',  fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', width: '17%' }}>Prix unitaire</th>
@@ -342,10 +344,11 @@ function PublicInvoiceContent() {
             <div style={{ borderTop: '2px solid #000', marginTop: '4px' }} />
 
             {isPaid ? (
-              <div className="print-total-row" style={{
-                background: '#1a1a1a',
-                color: '#ffffff',
-                padding: '10px 12px',
+              <div style={{
+                border: '2px solid #059669',
+                background: '#f0fdf4',
+                color: '#059669',
+                padding: '12px 16px',
                 marginTop: '8px',
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -353,22 +356,23 @@ function PublicInvoiceContent() {
               }}>
                 <div>
                   <div style={{ fontSize: '14px', fontWeight: 800 }}>✓ PAYÉE</div>
-                  {inv.paid_at && <div style={{ fontSize: '10px', color: '#aaaaaa', marginTop: '2px' }}>Reçu le {printDate(inv.paid_at)}</div>}
+                  {inv.paid_at && <div style={{ fontSize: '10px', color: '#047857', marginTop: '2px' }}>Reçu le {printDate(inv.paid_at)}</div>}
                 </div>
                 <div style={{ fontSize: '14px', fontWeight: 800 }}>{fmt(total)}</div>
               </div>
             ) : (
-              <div className="print-total-row" style={{
-                background: '#000000',
-                color: '#ffffff',
-                padding: '10px 12px',
+              <div style={{
+                border: '2px solid #000',
+                background: '#f9fafb',
+                color: '#000',
+                padding: '12px 16px',
                 marginTop: '8px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 fontSize: '14px',
                 fontWeight: 800,
               }}>
-                <span>TOTAL DÛ</span>
+                <span>SOLDE DÛ</span>
                 <span>{fmt(total)}</span>
               </div>
             )}
