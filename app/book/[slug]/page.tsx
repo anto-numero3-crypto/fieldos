@@ -279,9 +279,11 @@ export default function PublicBookingPage() {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 mb-5">
           <Calendar className="h-8 w-8 text-indigo-500" />
         </div>
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Lien non actif</h1>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Lien non actif / Link inactive</h1>
         <p className="text-sm text-gray-600 leading-relaxed">
           Ce lien de réservation n&apos;est pas encore actif. Veuillez contacter l&apos;entreprise directement pour prendre rendez-vous.
+          <br /><br />
+          This booking link is not yet active. Please contact the business directly to schedule an appointment.
         </p>
       </div>
     </div>

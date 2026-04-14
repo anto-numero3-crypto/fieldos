@@ -54,7 +54,8 @@
       "Read(//tmp/**)",
       "Bash(awk 'NR==193{print \" {/* PRINT_BLOCK_REPLACE */}\";flag=1;next} NR==424{flag=0;next} !flag' \"app/invoice/[token]/page.tsx\")",
       "Bash(mv /tmp/invoice_new.tsx \"app/invoice/[token]/page.tsx\")",
-      "Bash(grep -v \"//\")"
+      "Bash(grep -v \"//\")",
+      "Bash(grep -l \"LanguageToggle\\\\|setLang\\\\|useLanguage\" app/login/page.tsx app/signup/page.tsx app/forgot-password/page.tsx app/pricing/page.tsx app/onboarding/page.tsx app/book/page.tsx app/booking/cancel/*/page.tsx)"
     ]
   }
 }

@@ -407,9 +407,11 @@ function BookingPageInner() {
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-100 mb-4">
         <Sparkles className="h-8 w-8 text-indigo-600" />
       </div>
-      <h1 className="text-xl font-bold text-gray-900 mb-2">Lien non actif</h1>
+      <h1 className="text-xl font-bold text-gray-900 mb-2">Lien non actif / Link inactive</h1>
       <p className="text-sm text-gray-600 max-w-md leading-relaxed">
         Ce lien de réservation n&apos;est pas encore actif. Veuillez contacter l&apos;entreprise directement pour prendre rendez-vous.
+        <br /><br />
+        This booking link is not yet active. Please contact the business directly to schedule an appointment.
       </p>
     </div>
   )

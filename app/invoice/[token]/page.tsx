@@ -5,6 +5,9 @@ import { useParams, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { CheckCircle, Clock, AlertCircle, CreditCard, Phone, Mail, Printer, Lock } from 'lucide-react'
 import { secureUrl } from '@/lib/secure-url'
+import { useLanguage } from '@/lib/LanguageContext'
+import { LanguageToggle } from '@/components/LanguageToggle'
+import translations from '@/lib/i18n'
 
 interface LineItem {
   id?: string
@@ -64,6 +67,9 @@ const fmt = (n: number) =>
 function PublicInvoiceContent() {
   const { token } = useParams<{ token: string }>()
   const searchParams = useSearchParams()
+  const { lang } = useLanguage()
+  // publicInvoice keys were added via Object.assign merge; access via typed cast
+  const ti = (translations[lang] as unknown as { publicInvoice: Record<string, string> }).publicInvoice
 
   const [invoice, setInvoice] = useState<PublicInvoice | null>(null)
   const [org, setOrg] = useState<OrgData | null>(null)
@@ -154,8 +160,8 @@ function PublicInvoiceContent() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
       <div className="rounded-2xl border border-gray-200 bg-white p-10 max-w-sm shadow-sm">
         <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Facture introuvable</h1>
-        <p className="text-sm text-gray-500">Ce lien est invalide ou a expiré. Contactez l&apos;entreprise qui vous a envoyé cette facture.</p>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">{ti.notFound}</h1>
+        <p className="text-sm text-gray-500">{ti.notFoundDesc}</p>
       </div>
     </div>
   )
@@ -354,14 +360,18 @@ function PublicInvoiceContent() {
 
       {/* ══════════ SCREEN-ONLY ONLINE PAYMENT VIEW ══════════ */}
       <div className="screen-only max-w-2xl mx-auto space-y-4">
-        <div className="flex justify-end">
+        <div className="flex justify-end items-center gap-2">
+          <LanguageToggle />
           <button
             onClick={() => window.print()}
             className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 shadow-sm transition"
           >
-            <Printer className="h-3.5 w-3.5" /> Imprimer / Télécharger PDF
+            <Printer className="h-3.5 w-3.5" /> {ti.printPdf}
           </button>
         </div>
+        {lang === 'en' && (
+          <p className="text-xs text-center text-gray-400 italic">{ti.formalNote}</p>
+        )}
 
         {/* Business header */}
         {org?.name && (
@@ -381,9 +391,9 @@ function PublicInvoiceContent() {
               <CheckCircle className="h-6 w-6 text-emerald-600" />
             </div>
             <div>
-              <p className="font-bold text-emerald-900">Paiement reçu — Merci !</p>
+              <p className="font-bold text-emerald-900">{ti.paymentReceived}</p>
               <p className="text-sm text-emerald-700 mt-0.5">
-                Votre paiement a été traité avec succès.
+                {ti.paymentReceivedSub}
                 {inv.customers?.email && ` Un reçu a été envoyé à ${inv.customers.email}.`}
               </p>
             </div>
@@ -397,19 +407,19 @@ function PublicInvoiceContent() {
           <div className="px-6 py-6 sm:px-8">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Facture</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">{ti.invoice}</p>
                 <h1 className="text-2xl font-black text-gray-900">{inv.invoice_number || `INV-${inv.id.slice(0, 8).toUpperCase()}`}</h1>
               </div>
               <div className="text-right">
                 <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold mb-2 ${isPaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : isOverdue ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
                   {isPaid ? <CheckCircle className="h-3.5 w-3.5" /> : isOverdue ? <AlertCircle className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
-                  {isPaid ? 'Payée' : isOverdue ? 'En retard' : 'En attente'}
+                  {isPaid ? ti.paid : isOverdue ? ti.overdue : ti.outstanding}
                 </div>
                 <div className="text-sm text-gray-500 space-y-0.5">
-                  <p>Émise le {new Date(inv.created_at).toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                  <p>{ti.issued} {new Date(inv.created_at).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                   {inv.due_date && (
                     <p className={isOverdue && !isPaid ? 'text-red-600 font-semibold' : ''}>
-                      Échéance: {new Date(inv.due_date).toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {ti.due}: {new Date(inv.due_date).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </p>
                   )}
                 </div>
@@ -420,7 +430,7 @@ function PublicInvoiceContent() {
           {/* Amount due — prominent */}
           {!isPaid && (
             <div className="mx-6 sm:mx-8 mb-2 rounded-2xl bg-indigo-600 px-6 py-5 text-white text-center">
-              <p className="text-sm font-medium text-indigo-200 mb-1">Montant dû</p>
+              <p className="text-sm font-medium text-indigo-200 mb-1">{ti.amountDue}</p>
               <p className="text-4xl font-black">{fmt(total)}</p>
             </div>
           )}
@@ -429,7 +439,7 @@ function PublicInvoiceContent() {
           <div className="px-6 sm:px-8 py-5 grid sm:grid-cols-2 gap-5 border-t border-gray-100">
             {org && (
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">De</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{ti.from}</p>
                 <p className="font-semibold text-gray-900 text-sm">{org.name}</p>
                 {org.address && <p className="text-xs text-gray-500 mt-0.5">{org.address}</p>}
                 {(org.city || org.state) && <p className="text-xs text-gray-500">{[org.city, org.state, org.zip].filter(Boolean).join(', ')}</p>}
@@ -440,7 +450,7 @@ function PublicInvoiceContent() {
             )}
             {inv.customers && (
               <div className={org ? '' : 'sm:col-start-2'}>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Facturé à</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{ti.billedTo}</p>
                 <p className="font-semibold text-gray-900 text-sm">{inv.customers.name}</p>
                 {inv.customers.address && <p className="text-xs text-gray-500 mt-0.5">{inv.customers.address}</p>}
                 {inv.customers.email && <p className="text-xs text-gray-500">{inv.customers.email}</p>}
@@ -455,10 +465,10 @@ function PublicInvoiceContent() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="pb-2 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Description</th>
-                    <th className="pb-2 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider w-14">Qté</th>
-                    <th className="pb-2 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">Prix unit.</th>
-                    <th className="pb-2 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">Total</th>
+                    <th className="pb-2 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{lang === 'fr' ? 'Description' : 'Description'}</th>
+                    <th className="pb-2 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider w-14">{lang === 'fr' ? 'Qté' : 'Qty'}</th>
+                    <th className="pb-2 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">{lang === 'fr' ? 'Prix unit.' : 'Unit price'}</th>
+                    <th className="pb-2 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">{lang === 'fr' ? 'Total' : 'Total'}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -483,13 +493,13 @@ function PublicInvoiceContent() {
             <div className="flex flex-col items-end gap-1.5 max-w-xs ml-auto">
               {lineItems.length > 0 && (
                 <div className="flex justify-between w-full text-sm">
-                  <span className="text-gray-500">Sous-total</span>
+                  <span className="text-gray-500">{lang === 'fr' ? 'Sous-total' : 'Subtotal'}</span>
                   <span className="font-medium text-gray-900">{fmt(subtotal)}</span>
                 </div>
               )}
               {discount > 0 && (
                 <div className="flex justify-between w-full text-sm">
-                  <span className="text-gray-500">Escompte</span>
+                  <span className="text-gray-500">{lang === 'fr' ? 'Escompte' : 'Discount'}</span>
                   <span className="font-medium text-emerald-600">-{fmt(discount)}</span>
                 </div>
               )}
@@ -506,7 +516,7 @@ function PublicInvoiceContent() {
                 </div>
               )}
               <div className="flex justify-between w-full border-t border-gray-200 pt-2 mt-1">
-                <span className="font-bold text-gray-900">Total</span>
+                <span className="font-bold text-gray-900">{lang === 'fr' ? 'Total' : 'Total'}</span>
                 <span className="text-2xl font-black text-gray-900">{fmt(total)}</span>
               </div>
             </div>
@@ -531,7 +541,7 @@ function PublicInvoiceContent() {
               <div className="flex items-center justify-center gap-3 py-4 rounded-2xl bg-emerald-50 border border-emerald-100">
                 <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0" />
                 <p className="font-semibold text-emerald-800">
-                  Payé le {inv.paid_at ? new Date(inv.paid_at).toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}
+                  {ti.paidOn} {inv.paid_at ? new Date(inv.paid_at).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}
                 </p>
               </div>
             ) : (
@@ -542,7 +552,7 @@ function PublicInvoiceContent() {
                   className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-indigo-600 py-4 text-base font-bold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all active:scale-[0.99] shadow-lg shadow-indigo-100"
                 >
                   <CreditCard className="h-5 w-5" />
-                  {paying ? 'Redirection en cours…' : `Payer ${fmt(total)}`}
+                  {paying ? ti.redirecting : `${ti.payNow} ${fmt(total)}`}
                 </button>
                 {payError && (
                   <p className="text-sm text-red-600 text-center">{payError}</p>
@@ -556,7 +566,7 @@ function PublicInvoiceContent() {
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-gray-400">
                     <Lock className="h-3.5 w-3.5" />
-                    <span>Paiement sécurisé par Stripe · Chiffré de bout en bout</span>
+                    <span>{ti.securedByStripe}</span>
                   </div>
                 </div>
               </div>
@@ -567,7 +577,7 @@ function PublicInvoiceContent() {
         {/* Contact footer */}
         {org && (
           <div className="text-center py-2 space-y-1 no-print">
-            <p className="text-xs text-gray-400">Des questions ? Contactez {org.name}</p>
+            <p className="text-xs text-gray-400">{ti.questionsContact.replace('{name}', org.name || '')}</p>
             <div className="flex items-center justify-center gap-5 text-xs text-gray-400">
               {org.email && (
                 <a href={`mailto:${org.email}`} className="flex items-center gap-1 hover:text-gray-700 transition-colors">
