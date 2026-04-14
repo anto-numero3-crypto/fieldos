@@ -65,7 +65,8 @@
       "Bash(grep -nE \">[A-ZÉÀÔ][a-zéàô].{4,}<\" app/invoices/\\\\[id\\\\]/page.tsx)",
       "Bash(grep -nE \">[A-ZÉÀÔÇ][a-zéàôç].{3,}<|placeholder=\\\\\"\" app/invoices/new/page.tsx)",
       "Bash(grep -nE \">[A-ZÉÀÔÇ][a-zéàôç].{4,}<|placeholder=\\\\\"\" app/quotes/page.tsx)",
-      "Bash(grep -nE \">[A-ZÉÀÔÇ][a-zéàôç].{4,}<|placeholder=\\\\\"|title=\\\\\"[A-Z]|toast\\\\.\\(success|error\\)\" app/schedule/page.tsx)"
+      "Bash(grep -nE \">[A-ZÉÀÔÇ][a-zéàôç].{4,}<|placeholder=\\\\\"|title=\\\\\"[A-Z]|toast\\\\.\\(success|error\\)\" app/schedule/page.tsx)",
+      "Bash(grep -nE \">[A-ZÉÀÔÇ][a-zéàôç].{4,}<|placeholder=\\\\\"|title=\\\\\"[A-ZÉ]|<h[1-4]\" app/schedule/availability/page.tsx)"
     ]
   }
 }
