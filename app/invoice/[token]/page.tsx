@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { CheckCircle, Clock, AlertCircle, CreditCard, Phone, Mail, Printer, Lock } from 'lucide-react'
+import { secureUrl } from '@/lib/secure-url'
 
 interface LineItem {
   id?: string
@@ -47,6 +48,7 @@ interface OrgData {
   state: string | null
   zip: string | null
   tax_number: string | null
+  logo_url: string | null
   stripe_connect_charges_enabled: boolean | null
   plan?: string | null
 }
@@ -98,7 +100,7 @@ function PublicInvoiceContent() {
       if (invData.user_id) {
         const { data: orgData } = await supabase
           .from('organizations')
-          .select('name, email, phone, address, city, state, zip, tax_number, stripe_connect_charges_enabled, plan')
+          .select('name, email, phone, address, city, state, zip, tax_number, logo_url, stripe_connect_charges_enabled, plan')
           .eq('owner_user_id', invData.user_id)
           .single()
         if (orgData) setOrg(orgData as OrgData)
@@ -192,47 +194,102 @@ function PublicInvoiceContent() {
       <div className="print-only" style={{
         background: 'white',
         color: '#000',
-        fontFamily: 'Georgia, "Times New Roman", serif',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, sans-serif',
         padding: '0',
-        fontSize: '11pt',
-        lineHeight: '1.5',
+        fontSize: '11px',
+        lineHeight: 1.6,
       }}>
-        {/* Header: Business info left, FACTURE label right */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24pt' }}>
-          <div>
-            <div style={{ fontSize: '18pt', fontWeight: 700, marginBottom: '6pt' }}>{org?.name || ''}</div>
-            {org?.address && <div>{org.address}</div>}
-            {(org?.city || org?.state || org?.zip) && (
-              <div>{[org.city, org.state, org.zip].filter(Boolean).join(', ')}</div>
-            )}
-            <div style={{ marginTop: '4pt' }}>
-              {org?.phone && <span>{org.phone}</span>}
-              {org?.phone && org?.email && <span> · </span>}
-              {org?.email && <span>{org.email}</span>}
-            </div>
-            {org?.tax_number && <div style={{ marginTop: '4pt' }}>TPS/TVQ: {org.tax_number}</div>}
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '24pt', fontWeight: 700, letterSpacing: '2pt', marginBottom: '8pt' }}>FACTURE</div>
-            <div>Numéro: {inv.invoice_number || inv.id.slice(0, 8).toUpperCase()}</div>
-            <div>Date: {printDate(inv.created_at)}</div>
-            {inv.due_date && <div>Échéance: {printDate(inv.due_date)}</div>}
-          </div>
-        </div>
+        {/* ── ROW 1: Header (business left, FACTURE right) ── */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px' }}>
+          <tbody>
+            <tr>
+              <td style={{ width: '50%', verticalAlign: 'top' }}>
+                {org?.logo_url ? (
+                  <img
+                    src={secureUrl(org.logo_url)}
+                    alt={org.name || ''}
+                    style={{ maxWidth: '180px', maxHeight: '80px', objectFit: 'contain', display: 'block', marginBottom: '12px' }}
+                  />
+                ) : (
+                  <div style={{ fontSize: '22px', fontWeight: 700, color: '#000', letterSpacing: '-0.5px', marginBottom: '8px' }}>
+                    {org?.name || ''}
+                  </div>
+                )}
+                <div style={{ fontSize: '11px', color: '#555', lineHeight: 1.8 }}>
+                  {org?.address && <div>{org.address}</div>}
+                  {(org?.city || org?.state || org?.zip) && (
+                    <div>{[org.city, org.state, org.zip].filter(Boolean).join(', ')}</div>
+                  )}
+                  {org?.phone && <div>{org.phone}</div>}
+                  {org?.email && <div>{org.email}</div>}
+                  {org?.tax_number && <div style={{ marginTop: '4px' }}>TPS/TVQ: {org.tax_number}</div>}
+                </div>
+              </td>
+              <td style={{ width: '50%', verticalAlign: 'top', textAlign: 'right' }}>
+                <div style={{
+                  fontSize: '32px',
+                  fontWeight: 800,
+                  color: '#000',
+                  letterSpacing: '3px',
+                  textTransform: 'uppercase',
+                  marginBottom: '16px',
+                }}>
+                  Facture
+                </div>
+                <table style={{ marginLeft: 'auto', borderCollapse: 'collapse', fontSize: '11px' }}>
+                  <tbody>
+                    <tr>
+                      <td style={{ color: '#888', padding: '2px 12px 2px 0', textAlign: 'right' }}>Numéro&nbsp;:</td>
+                      <td style={{ color: '#000', fontWeight: 700, textAlign: 'right', padding: '2px 0' }}>
+                        {inv.invoice_number || inv.id.slice(0, 8).toUpperCase()}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style={{ color: '#888', padding: '2px 12px 2px 0', textAlign: 'right' }}>Date&nbsp;:</td>
+                      <td style={{ color: '#000', fontWeight: 700, textAlign: 'right', padding: '2px 0' }}>
+                        {printDate(inv.created_at)}
+                      </td>
+                    </tr>
+                    {inv.due_date && (
+                      <tr>
+                        <td style={{ color: '#888', padding: '2px 12px 2px 0', textAlign: 'right' }}>Échéance&nbsp;:</td>
+                        <td style={{ color: '#000', fontWeight: 700, textAlign: 'right', padding: '2px 0' }}>
+                          {printDate(inv.due_date)}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-        <hr style={{ border: 0, borderTop: '1px solid #333', marginBottom: '16pt' }} />
+        <div style={{ borderTop: '2px solid #000', width: '100%', margin: '0 0 20px 0' }} />
 
-        {/* Bill To */}
+        {/* ── ROW 2: Bill To ── */}
         {inv.customers && (
-          <>
-            <div style={{ fontSize: '9pt', letterSpacing: '1.5pt', color: '#666', marginBottom: '6pt' }}>FACTURÉ À</div>
-            <div style={{ fontWeight: 700 }}>{inv.customers.name}</div>
-            {inv.customers.address && <div>{inv.customers.address}</div>}
-            {inv.customers.phone && <div>{inv.customers.phone}</div>}
-            {inv.customers.email && <div>{inv.customers.email}</div>}
-            <hr style={{ border: 0, borderTop: '1px solid #ddd', margin: '16pt 0' }} />
-          </>
+          <div style={{ padding: '20px 0' }}>
+            <div style={{
+              fontSize: '9px',
+              fontWeight: 700,
+              color: '#888',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              marginBottom: '6px',
+            }}>
+              Facturé à
+            </div>
+            <div style={{ fontSize: '13px', fontWeight: 700, color: '#000' }}>{inv.customers.name}</div>
+            <div style={{ fontSize: '11px', color: '#555', lineHeight: 1.8 }}>
+              {inv.customers.address && <div>{inv.customers.address}</div>}
+              {inv.customers.phone && <div>{inv.customers.phone}</div>}
+              {inv.customers.email && <div>{inv.customers.email}</div>}
+            </div>
+          </div>
         )}
+
+        <div style={{ borderTop: '1px solid #e5e5e5', width: '100%', margin: '0 0 20px 0' }} />
 
         {/* Line items table */}
         <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '12pt', fontSize: '10pt' }}>
