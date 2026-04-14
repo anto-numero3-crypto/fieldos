@@ -9,18 +9,14 @@
 html { scroll-behavior: smooth; }
 
 /* ─── Print (Télécharger PDF via browser print-to-PDF) ────── */
+.print-only { display: none; }
+
 @media print {
-  body { background: white !important; }
-  .no-print { display: none !important; }
-  .print-container {
-    max-width: none !important;
-    box-shadow: none !important;
-    border: none !important;
-  }
-  @page {
-    margin: 0.5in;
-    size: letter;
-  }
+  body { background: white !important; color: #000 !important; }
+  .screen-only, .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { margin: 1in; size: letter; }
 }
 
 body {
