@@ -64,6 +64,7 @@ const toISO = (d: Date) => d.toISOString().slice(0, 10)
 
 export default function SchedulePage() {
   const { lang, t } = useLanguage()
+  const fr = lang === 'fr'
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()))
   const [jobs, setJobs]           = useState<Job[]>([])
   const [loading, setLoading]     = useState(true)
@@ -198,12 +199,12 @@ export default function SchedulePage() {
 
   const AddButton = (
     <Link href="/jobs" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all">
-      <Plus className="h-4 w-4" /> Nouvelle intervention
+      <Plus className="h-4 w-4" /> {fr ? 'Nouvelle intervention' : 'New job'}
     </Link>
   )
 
   return (
-    <AppLayout title="Calendrier" actions={AddButton}>
+    <AppLayout title={fr ? 'Calendrier' : 'Schedule'} actions={AddButton}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         {/* Header controls */}
@@ -212,7 +213,7 @@ export default function SchedulePage() {
             <h2 className="text-lg font-bold text-gray-900">{monthLabel()}</h2>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={goToday} className="rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">Aujourd&apos;hui</button>
+            <button onClick={goToday} className="rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">{fr ? "Aujourd'hui" : 'Today'}</button>
             <div className="flex items-center rounded-xl border border-gray-200 bg-white shadow-sm">
               <button onClick={prevWeek} className="p-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-l-xl transition-colors"><ChevronLeft className="h-4 w-4" /></button>
               <div className="w-px h-4 bg-gray-200" />
@@ -285,7 +286,7 @@ export default function SchedulePage() {
                         e.dataTransfer.setData('text/plain', job.id)
                       }}
                       onDragEnd={() => { setDraggingId(null); setDropTarget(null) }}
-                      title="Glisser-déposer pour reprogrammer"
+                      title={fr ? 'Glisser-déposer pour reprogrammer' : 'Drag and drop to reschedule'}
                       className={`block rounded-lg border-l-2 px-2 py-1.5 text-xs transition-all hover:shadow-sm cursor-grab active:cursor-grabbing ${draggingId === job.id ? 'opacity-50' : ''} ${STATUS_COLOR[job.status] || 'bg-gray-50 border-gray-200 text-gray-600'}`}
                     >
                       <p className="font-semibold truncate">{job.title}</p>
@@ -304,12 +305,12 @@ export default function SchedulePage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-900">Interventions à venir (30 prochains jours)</h3>
+              <h3 className="text-sm font-semibold text-gray-900">{fr ? 'Interventions à venir (30 prochains jours)' : 'Upcoming jobs (next 30 days)'}</h3>
             </div>
             {upcoming.length === 0 ? (
               <EmptyState
                 icon={Calendar}
-                title="Aucun rendez-vous aujourd'hui"
+                title={fr ? "Aucun rendez-vous aujourd'hui" : 'No appointments today'}
                 description="Votre journée est libre."
                 actions={[{ label: 'Créer un emploi', href: '/jobs', variant: 'primary' }]}
               />
@@ -346,7 +347,7 @@ export default function SchedulePage() {
 
           {/* Legend */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Légende des statuts</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">{fr ? 'Légende des statuts' : 'Status legend'}</h3>
             <div className="space-y-3">
               {[
                 { status: 'scheduled',   label: 'Planifié',   desc: 'Bons de travail à venir' },
@@ -364,8 +365,8 @@ export default function SchedulePage() {
               ))}
             </div>
             <div className="mt-6 rounded-xl bg-indigo-50 p-4">
-              <p className="text-xs text-indigo-700 font-medium mb-1">Pro Tip</p>
-              <p className="text-xs text-indigo-600">Set scheduled dates and times when creating jobs to see them on the calendar view.</p>
+              <p className="text-xs text-indigo-700 font-medium mb-1">{fr ? 'Astuce' : 'Pro Tip'}</p>
+              <p className="text-xs text-indigo-600">{fr ? 'Définissez des dates et heures planifiées lors de la création des interventions pour les voir sur le calendrier.' : 'Set scheduled dates and times when creating jobs to see them on the calendar view.'}</p>
             </div>
           </div>
         </div>
