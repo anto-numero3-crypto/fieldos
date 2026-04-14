@@ -82,6 +82,7 @@ export default function CustomerDetailPage() {
   const router  = useRouter()
   const confirm = useConfirm()
   const { lang, t }   = useLanguage()
+  const fr = lang === 'fr'
   const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
   const fmt     = (n: number) => fmtMoney(n, lang)
   const fmtDate = (d: string) => fmtDateLib(d, lang)
@@ -175,9 +176,11 @@ export default function CustomerDetailPage() {
 
   const deleteCustomer = async () => {
     const { confirmed } = await confirm({
-      title: 'Supprimer ce client ?',
-      description: 'Cette action est irréversible. Tous les emplois et factures associés seront dissociés.',
-      confirmLabel: 'Supprimer',
+      title: fr ? 'Supprimer ce client ?' : 'Delete this customer?',
+      description: fr
+        ? 'Cette action est irréversible. Tous les emplois et factures associés seront dissociés.'
+        : 'This cannot be undone. All associated jobs and invoices will be unlinked.',
+      confirmLabel: fr ? 'Supprimer' : 'Delete',
     })
     if (!confirmed) return
     if (userId) writeAuditLog({ userId, action: 'delete', resourceType: 'customer', resourceId: id })
@@ -260,15 +263,15 @@ export default function CustomerDetailPage() {
             <div className="flex items-center gap-2 shrink-0">
               {editMode ? (
                 <>
-                  <button onClick={() => setEditMode(false)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Annuler</button>
+                  <button onClick={() => setEditMode(false)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
                   <button onClick={saveEdit} disabled={saving} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors">
-                    <Save className="h-4 w-4" />{saving ? 'Enregistrement...' : 'Enregistrer'}
+                    <Save className="h-4 w-4" />{saving ? (fr ? 'Enregistrement...' : 'Saving...') : (fr ? 'Enregistrer' : 'Save')}
                   </button>
                 </>
               ) : (
                 <>
                   <button onClick={() => setEditMode(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                    <Edit2 className="h-4 w-4" /> Modifier
+                    <Edit2 className="h-4 w-4" /> {fr ? 'Modifier' : 'Edit'}
                   </button>
                   <button onClick={deleteCustomer} className="inline-flex items-center gap-1.5 rounded-xl border border-red-100 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
                     <Trash2 className="h-4 w-4" />
@@ -346,7 +349,7 @@ export default function CustomerDetailPage() {
             ) : (
               <div className="rounded-xl bg-gray-50 p-4 text-center">
                 <StickyNote className="h-6 w-6 text-gray-300 mx-auto mb-1" />
-                <p className="text-sm text-gray-400">Aucune note. Modifiez le client pour ajouter des notes internes.</p>
+                <p className="text-sm text-gray-400">{fr ? 'Aucune note. Modifiez le client pour ajouter des notes internes.' : 'No notes. Edit the customer to add internal notes.'}</p>
               </div>
             )}
             <div className="grid grid-cols-2 gap-3 text-sm">
@@ -367,7 +370,7 @@ export default function CustomerDetailPage() {
             {jobs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Briefcase className="h-8 w-8 text-gray-300 mb-2" />
-                <p className="text-sm text-gray-400">Aucun emploi pour ce client</p>
+                <p className="text-sm text-gray-400">{fr ? 'Aucun emploi pour ce client' : 'No jobs for this customer'}</p>
               </div>
             ) : (
               <ul className="divide-y divide-gray-50">
@@ -414,7 +417,7 @@ export default function CustomerDetailPage() {
             {invoices.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <FileText className="h-8 w-8 text-gray-300 mb-2" />
-                <p className="text-sm text-gray-400">Aucune facture pour ce client</p>
+                <p className="text-sm text-gray-400">{fr ? 'Aucune facture pour ce client' : 'No invoices for this customer'}</p>
               </div>
             ) : (
               <ul className="divide-y divide-gray-50">
@@ -453,7 +456,7 @@ export default function CustomerDetailPage() {
             {quotes.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <FileText className="h-8 w-8 text-gray-300 mb-2" />
-                <p className="text-sm text-gray-400">Aucun devis pour ce client</p>
+                <p className="text-sm text-gray-400">{fr ? 'Aucun devis pour ce client' : 'No quotes for this customer'}</p>
               </div>
             ) : (
               <ul className="divide-y divide-gray-50">
@@ -492,7 +495,7 @@ export default function CustomerDetailPage() {
             {bookings.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Calendar className="h-8 w-8 text-gray-300 mb-2" />
-                <p className="text-sm text-gray-400">Aucune réservation pour ce client</p>
+                <p className="text-sm text-gray-400">{fr ? 'Aucune réservation pour ce client' : 'No bookings for this customer'}</p>
               </div>
             ) : (
               <ul className="divide-y divide-gray-50">
@@ -545,7 +548,7 @@ export default function CustomerDetailPage() {
             {notes.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-12 text-center">
                 <StickyNote className="h-8 w-8 text-gray-300 mb-2" />
-                <p className="text-sm text-gray-400">Aucune note. Ajoutez votre première note ci-dessus.</p>
+                <p className="text-sm text-gray-400">{fr ? 'Aucune note. Ajoutez votre première note ci-dessus.' : 'No notes. Add your first note above.'}</p>
               </div>
             ) : (
               <div className="space-y-3">
