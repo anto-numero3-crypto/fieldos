@@ -29,7 +29,7 @@ const NAV_ITEMS: PaletteItem[] = [
   { id: 'team',       label: 'Équipe',           icon: Users2,           href: '/team',       group: 'Pages', keywords: 'equipe techniciens employes' },
   { id: 'reports',    label: 'Rapports',         icon: BarChart3,        href: '/reports',    group: 'Pages', keywords: 'analytique revenus' },
   { id: 'assistant',  label: 'Assistant IA',     icon: Sparkles,         href: '/assistant',  group: 'Pages', keywords: 'ia chat aide' },
-  { id: 'book',       label: 'Portail de réservation', icon: Globe,      href: '/book',       group: 'Pages', keywords: 'reservation public' },
+  { id: 'book',       label: 'Portail de réservation', icon: Globe,      href: '/schedule/availability', group: 'Pages', keywords: 'reservation public' },
   { id: 'settings',   label: 'Paramètres',       icon: Settings,         href: '/settings',   group: 'Pages', keywords: 'parametres configuration' },
   { id: 'billing',    label: 'Facturation',      icon: CreditCard,       href: '/billing',    group: 'Pages', keywords: 'abonnement plan' },
 ]

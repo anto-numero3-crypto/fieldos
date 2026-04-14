@@ -19,7 +19,7 @@ const moreItems = [
   { href: '/insights',            icon: Lightbulb,  label: 'Analyses IA' },
   { href: '/customers/campaigns', icon: Megaphone,  label: 'Campagnes' },
   { href: '/assistant',           icon: Sparkles,   label: 'Assistant IA' },
-  { href: '/book',                icon: Globe,      label: 'Réservation' },
+  { href: '/schedule/availability', icon: Globe, label: 'Réservation' },
   { href: '/settings',            icon: Settings,   label: 'Paramètres' },
   { href: '/billing',             icon: CreditCard, label: 'Facturation' },
 ]

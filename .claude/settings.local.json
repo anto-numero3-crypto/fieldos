@@ -46,7 +46,8 @@
       "Bash(wc:*)",
       "Bash(ls lib/supabase*)",
       "Bash(ls:*)",
-      "Bash(grep -v \"//localhost\")"
+      "Bash(grep -v \"//localhost\")",
+      "Bash(grep -rn \"href=\\\\\"/book\\\\\"\\\\|href=\\\\\"/book/\\\\|Link href={['\\\\\"]\\\\\\\\/book\" app/ components/ --include=\"*.tsx\")"
     ]
   }
 }

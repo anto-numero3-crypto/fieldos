@@ -135,40 +135,14 @@ function AvailabilityPageInner() {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { window.location.href = '/login'; return }
       setUserId(data.user.id)
-      // Load org slug for booking URL — generate + save if missing
-      const { data: org } = await supabase
-        .from('organizations')
-        .select('id, slug, name')
-        .eq('owner_user_id', data.user.id)
-        .single()
-
-      let slug = org?.slug ?? null
-      if (!slug && org?.id) {
-        const base = (org.name || 'entreprise')
-          .toLowerCase()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-+|-+$/g, '')
-          .slice(0, 60) || 'entreprise'
-        let candidate = base
-        let n = 2
-        while (n < 50) {
-          const { data: clash } = await supabase
-            .from('organizations')
-            .select('id')
-            .eq('slug', candidate)
-            .maybeSingle()
-          if (!clash || clash.id === org.id) break
-          candidate = `${base}-${n++}`
-        }
-        const { error: slugErr } = await supabase
-          .from('organizations')
-          .update({ slug: candidate })
-          .eq('id', org.id)
-        if (!slugErr) slug = candidate
-        else console.error('[availability] slug update failed:', slugErr)
+      // Resolve booking slug via service-role route (bypasses RLS, creates org if missing)
+      try {
+        const res = await fetch('/api/org/ensure-slug', { cache: 'no-store' })
+        const j = await res.json()
+        if (j?.slug) setOrgSlug(j.slug)
+      } catch (e) {
+        console.error('[availability] ensure-slug failed:', e)
       }
-      setOrgSlug(slug)
       await load(data.user.id)
     })
   }, [load])

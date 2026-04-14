@@ -609,7 +609,7 @@ export default function LandingPage() {
                   { label: lang === 'fr' ? 'Fonctionnalités' : 'Features', href: '#features' },
                   { label: lang === 'fr' ? 'Tarification' : 'Pricing', href: '#pricing' },
                   { label: lang === 'fr' ? 'Assistant IA' : 'AI Assistant', href: '/login' },
-                  { label: lang === 'fr' ? 'Portail de réservation' : 'Booking Portal', href: '/book' },
+                  { label: lang === 'fr' ? 'Portail de réservation' : 'Booking Portal', href: '/signup' },
                   { label: lang === 'fr' ? 'Intégrations' : 'Integrations', href: '#features' },
                   { label: lang === 'fr' ? 'Nouveautés' : 'Changelog', href: '/changelog' },
                 ].map((link) => (

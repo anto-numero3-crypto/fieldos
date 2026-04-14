@@ -44,7 +44,7 @@ const navSections = [
 const bottomItems = [
   { href: '/assistant',           label: 'Assistant IA',   icon: Sparkles },
   { href: '/customers/campaigns', label: 'Campagnes',      icon: Megaphone },
-  { href: '/book',                label: 'Portail réserv.', icon: Globe },
+  { href: '/schedule/availability', label: 'Portail réserv.', icon: Globe },
   { href: '/settings',            label: 'Paramètres',     icon: Settings },
   { href: '/billing',             label: 'Facturation',    icon: CreditCard },
 ]
