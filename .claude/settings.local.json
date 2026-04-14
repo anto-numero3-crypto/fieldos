@@ -45,7 +45,8 @@
       "Bash(vercel deploy:*)",
       "Bash(wc:*)",
       "Bash(ls lib/supabase*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(grep -v \"//localhost\")"
     ]
   }
 }

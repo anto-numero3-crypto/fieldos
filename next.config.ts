@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
             key: 'Strict-Transport-Security',
             value: 'max-age=31536000; includeSubDomains; preload',
           },
+          {
+            // Tells the browser to auto-upgrade any http:// subresource
+            // request to https:// — eliminates mixed-content warnings
+            // without having to track down every dynamic asset URL.
+            key: 'Content-Security-Policy',
+            value: 'upgrade-insecure-requests',
+          },
         ],
       },
     ]
