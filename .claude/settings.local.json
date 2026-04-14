@@ -47,7 +47,13 @@
       "Bash(ls lib/supabase*)",
       "Bash(ls:*)",
       "Bash(grep -v \"//localhost\")",
-      "Bash(grep -rn \"href=\\\\\"/book\\\\\"\\\\|href=\\\\\"/book/\\\\|Link href={['\\\\\"]\\\\\\\\/book\" app/ components/ --include=\"*.tsx\")"
+      "Bash(grep -rn \"href=\\\\\"/book\\\\\"\\\\|href=\\\\\"/book/\\\\|Link href={['\\\\\"]\\\\\\\\/book\" app/ components/ --include=\"*.tsx\")",
+      "Bash(sed -n '424,430p' \"app/invoice/[id]/page.tsx\")",
+      "Bash(sed -n '190,200p' \"app/invoice/[token]/page.tsx\")",
+      "Bash(awk 'NR==193{print;flag=1;next} NR==424{flag=0;print \"REPLACE_MARKER\";next} !flag' \"app/invoice/[token]/page.tsx\")",
+      "Read(//tmp/**)",
+      "Bash(awk 'NR==193{print \" {/* PRINT_BLOCK_REPLACE */}\";flag=1;next} NR==424{flag=0;next} !flag' \"app/invoice/[token]/page.tsx\")",
+      "Bash(mv /tmp/invoice_new.tsx \"app/invoice/[token]/page.tsx\")"
     ]
   }
 }

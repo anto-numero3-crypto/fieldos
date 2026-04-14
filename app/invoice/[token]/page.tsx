@@ -190,74 +190,45 @@ function PublicInvoiceContent() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-6 px-4">
-      {/* ══════════ PRINT-ONLY FORMAL INVOICE ══════════ */}
-      <div className="print-only" style={{
-        background: 'white',
-        color: '#111827',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, sans-serif',
-        padding: '0',
-        fontSize: '11px',
-        lineHeight: 1.6,
-        borderTop: '4px solid #4f46e5',
-        paddingTop: '20px',
-      }}>
-        {/* ── ROW 1: Header (business left, FACTURE right) ── */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px' }}>
+      {/* ═══════ PRINT-ONLY FORMAL INVOICE (QuickBooks-style) ═══════ */}
+      <div className="print-only" style={{ background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '10px' }}>
+
+        {/* SECTION 1 — HEADER */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
           <tbody>
             <tr>
-              <td style={{ width: '50%', verticalAlign: 'top' }}>
-                {org?.logo_url ? (
+              <td style={{ width: '55%', verticalAlign: 'top' }}>
+                {org?.logo_url && (
                   <img
                     src={secureUrl(org.logo_url)}
                     alt={org.name || ''}
-                    style={{ maxWidth: '180px', maxHeight: '80px', objectFit: 'contain', display: 'block', marginBottom: '12px' }}
+                    style={{ maxWidth: '160px', maxHeight: '70px', objectFit: 'contain', marginBottom: '12px', display: 'block' }}
                   />
-                ) : (
-                  <div style={{ fontSize: '22px', fontWeight: 700, color: '#000', letterSpacing: '-0.5px', marginBottom: '8px' }}>
-                    {org?.name || ''}
-                  </div>
                 )}
-                <div style={{ fontSize: '11px', color: '#555', lineHeight: 1.8 }}>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#000', marginBottom: '4px' }}>{org?.name || ''}</div>
+                <div style={{ fontSize: '10px', color: '#333', lineHeight: 1.7 }}>
                   {org?.address && <div>{org.address}</div>}
-                  {(org?.city || org?.state || org?.zip) && (
-                    <div>{[org.city, org.state, org.zip].filter(Boolean).join(', ')}</div>
-                  )}
+                  {(org?.city || org?.state || org?.zip) && <div>{[org.city, org.state, org.zip].filter(Boolean).join(', ')}</div>}
                   {org?.phone && <div>{org.phone}</div>}
                   {org?.email && <div>{org.email}</div>}
-                  {org?.tax_number && <div style={{ marginTop: '4px' }}>TPS/TVQ: {org.tax_number}</div>}
                 </div>
               </td>
-              <td style={{ width: '50%', verticalAlign: 'top', textAlign: 'right' }}>
-                <div style={{
-                  fontSize: '32px',
-                  fontWeight: 800,
-                  color: '#000',
-                  letterSpacing: '3px',
-                  textTransform: 'uppercase',
-                  marginBottom: '16px',
-                }}>
-                  Facture
-                </div>
-                <table style={{ marginLeft: 'auto', borderCollapse: 'collapse', fontSize: '11px' }}>
+              <td style={{ width: '45%', verticalAlign: 'top', textAlign: 'right' }}>
+                <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#000', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '16px' }}>Facture</div>
+                <table style={{ marginLeft: 'auto', borderCollapse: 'collapse', fontSize: '10px' }}>
                   <tbody>
                     <tr>
-                      <td style={{ color: '#888', padding: '2px 12px 2px 0', textAlign: 'right' }}>Numéro&nbsp;:</td>
-                      <td style={{ color: '#000', fontWeight: 700, textAlign: 'right', padding: '2px 0' }}>
-                        {inv.invoice_number || inv.id.slice(0, 8).toUpperCase()}
-                      </td>
+                      <td style={{ color: '#666', textAlign: 'right', padding: '2px 12px 2px 0' }}>Numéro&nbsp;:</td>
+                      <td style={{ color: '#000', fontWeight: 'bold', textAlign: 'right' }}>{inv.invoice_number || inv.id.slice(0, 8).toUpperCase()}</td>
                     </tr>
                     <tr>
-                      <td style={{ color: '#888', padding: '2px 12px 2px 0', textAlign: 'right' }}>Date&nbsp;:</td>
-                      <td style={{ color: '#000', fontWeight: 700, textAlign: 'right', padding: '2px 0' }}>
-                        {printDate(inv.created_at)}
-                      </td>
+                      <td style={{ color: '#666', textAlign: 'right', padding: '2px 12px 2px 0' }}>Date&nbsp;:</td>
+                      <td style={{ color: '#000', fontWeight: 'bold', textAlign: 'right' }}>{printDate(inv.created_at)}</td>
                     </tr>
                     {inv.due_date && (
                       <tr>
-                        <td style={{ color: '#888', padding: '2px 12px 2px 0', textAlign: 'right' }}>Échéance&nbsp;:</td>
-                        <td style={{ color: '#000', fontWeight: 700, textAlign: 'right', padding: '2px 0' }}>
-                          {printDate(inv.due_date)}
-                        </td>
+                        <td style={{ color: '#666', textAlign: 'right', padding: '2px 12px 2px 0' }}>Échéance&nbsp;:</td>
+                        <td style={{ color: '#000', fontWeight: 'bold', textAlign: 'right' }}>{printDate(inv.due_date)}</td>
                       </tr>
                     )}
                   </tbody>
@@ -267,23 +238,14 @@ function PublicInvoiceContent() {
           </tbody>
         </table>
 
-        <div style={{ borderTop: '2px solid #000', width: '100%', margin: '0 0 20px 0' }} />
+        <div style={{ borderTop: '1.5px solid #000', margin: '20px 0' }} />
 
-        {/* ── ROW 2: Bill To ── */}
+        {/* SECTION 2 — BILL TO */}
         {inv.customers && (
-          <div style={{ padding: '20px 0' }}>
-            <div style={{
-              fontSize: '9px',
-              fontWeight: 700,
-              color: '#888',
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              marginBottom: '6px',
-            }}>
-              Facturé à
-            </div>
-            <div style={{ fontSize: '13px', fontWeight: 700, color: '#000' }}>{inv.customers.name}</div>
-            <div style={{ fontSize: '11px', color: '#555', lineHeight: 1.8 }}>
+          <div>
+            <div style={{ fontSize: '8px', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase', color: '#999', marginBottom: '6px' }}>Facturé à</div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#000', marginBottom: '3px' }}>{inv.customers.name}</div>
+            <div style={{ fontSize: '10px', color: '#333', lineHeight: 1.7 }}>
               {inv.customers.address && <div>{inv.customers.address}</div>}
               {inv.customers.phone && <div>{inv.customers.phone}</div>}
               {inv.customers.email && <div>{inv.customers.email}</div>}
@@ -291,137 +253,104 @@ function PublicInvoiceContent() {
           </div>
         )}
 
-        <div style={{ borderTop: '1px solid #e5e5e5', width: '100%', margin: '0 0 20px 0' }} />
+        <div style={{ borderTop: '1px solid #ccc', margin: '16px 0' }} />
 
-        {/* ── ROW 3: Line items table ── */}
-        <table className="print-invoice-section" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '24px' }}>
+        {/* SECTION 3 — ITEMS TABLE */}
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr className="print-table-header" style={{ background: '#f3f4f6', color: '#374151' }}>
-              <th style={{ padding: '10px 12px', textAlign: 'left',   fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', width: '55%' }}>Description</th>
-              <th style={{ padding: '10px 12px', textAlign: 'center', fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', width: '10%' }}>Qté</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right',  fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', width: '17%' }}>Prix unitaire</th>
-              <th style={{ padding: '10px 12px', textAlign: 'right',  fontSize: '9px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', width: '18%' }}>Total</th>
+            <tr className="print-table-header" style={{ background: '#f2f2f2', borderTop: '1px solid #ccc', borderBottom: '1px solid #ccc' }}>
+              <th style={{ padding: '8px 10px', textAlign: 'left',   fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', color: '#333', width: '58%' }}>Description</th>
+              <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', color: '#333', width: '9%' }}>Qté</th>
+              <th style={{ padding: '8px 10px', textAlign: 'right',  fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', color: '#333', width: '16%' }}>Prix unit.</th>
+              <th style={{ padding: '8px 10px', textAlign: 'right',  fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', color: '#333', width: '17%' }}>Montant</th>
             </tr>
           </thead>
           <tbody>
             {(lineItems.length > 0 ? lineItems : [{ description: inv.invoice_number || 'Services', qty: 1, unit_price: subtotal } as LineItem]).map((item, i) => (
-              <tr key={i} style={{ background: i % 2 === 0 ? '#ffffff' : '#f9f9f9', borderBottom: '1px solid #eeeeee' }}>
-                <td style={{ padding: '10px 12px', textAlign: 'left',   fontSize: '11px', color: '#222', lineHeight: 1.5 }}>{item.description}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: '11px', color: '#555' }}>{item.qty}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'right',  fontSize: '11px', color: '#555' }}>{fmt(item.unit_price)}</td>
-                <td style={{ padding: '10px 12px', textAlign: 'right',  fontSize: '11px', color: '#222', fontWeight: 600 }}>{fmt((item.qty || 1) * (item.unit_price || 0))}</td>
+              <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
+                <td style={{ padding: '9px 10px', textAlign: 'left',   fontSize: '10px', color: '#000' }}>{item.description}</td>
+                <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '10px', color: '#666' }}>{item.qty}</td>
+                <td style={{ padding: '9px 10px', textAlign: 'right',  fontSize: '10px', color: '#666' }}>{fmt(item.unit_price)}</td>
+                <td style={{ padding: '9px 10px', textAlign: 'right',  fontSize: '10px', color: '#000', fontWeight: 'bold' }}>{fmt((item.qty || 1) * (item.unit_price || 0))}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        <div style={{ borderTop: '1px solid #ccc' }} />
 
-        {/* ── ROW 4: Totals block (right-aligned, 45% wide) ── */}
-        <div className="print-invoice-section" style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
-          <div style={{ width: '45%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #eeeeee', fontSize: '11px' }}>
+        {/* SECTION 4 — TOTALS */}
+        <div style={{ width: '100%', overflow: 'hidden', marginTop: '12px' }}>
+          <div style={{ float: 'right', width: '38%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #eee', fontSize: '10px' }}>
               <span style={{ color: '#666' }}>Sous-total</span>
               <span style={{ color: '#000' }}>{fmt(subtotal)}</span>
             </div>
             {discount > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #eeeeee', fontSize: '11px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #eee', fontSize: '10px' }}>
                 <span style={{ color: '#666' }}>Escompte</span>
-                <span style={{ color: '#228b22' }}>-{fmt(discount)}</span>
+                <span style={{ color: '#000' }}>-{fmt(discount)}</span>
               </div>
             )}
             {taxAmt > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #eeeeee', fontSize: '11px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #eee', fontSize: '10px' }}>
                 <span style={{ color: '#666' }}>{inv.tax_name || 'TPS'}{inv.tax_rate ? ` (${inv.tax_rate}%)` : ''}</span>
                 <span style={{ color: '#000' }}>{fmt(taxAmt)}</span>
               </div>
             )}
             {tax2Amt > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #eeeeee', fontSize: '11px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #eee', fontSize: '10px' }}>
                 <span style={{ color: '#666' }}>{inv.tax2_name || 'TVQ'}{inv.tax2_rate ? ` (${inv.tax2_rate}%)` : ''}</span>
                 <span style={{ color: '#000' }}>{fmt(tax2Amt)}</span>
               </div>
             )}
+            <div style={{ borderTop: '1.5px solid #000' }} />
+            {isPaid && (
+              <div style={{ padding: '6px 0 0 0', fontSize: '10px', color: '#333' }}>✓ Cette facture a été payée.</div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: '12px', fontWeight: 'bold', color: '#000' }}>
+              <span>{isPaid ? `Payée le ${inv.paid_at ? printDate(inv.paid_at) : '—'} :` : 'Solde dû :'}</span>
+              <span>{fmt(total)}</span>
+            </div>
+          </div>
+          <div style={{ clear: 'both' }} />
+        </div>
 
-            <div style={{ borderTop: '2px solid #000', marginTop: '4px' }} />
-
-            {isPaid ? (
-              <div style={{
-                border: '2px solid #059669',
-                background: '#f0fdf4',
-                color: '#059669',
-                padding: '12px 16px',
-                marginTop: '8px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: 800 }}>✓ PAYÉE</div>
-                  {inv.paid_at && <div style={{ fontSize: '10px', color: '#047857', marginTop: '2px' }}>Reçu le {printDate(inv.paid_at)}</div>}
-                </div>
-                <div style={{ fontSize: '14px', fontWeight: 800 }}>{fmt(total)}</div>
+        {/* SECTION 5 — TERMS + NOTES */}
+        {(inv.terms || inv.client_notes) && (
+          <div style={{ clear: 'both', marginTop: '32px', fontSize: '10px' }}>
+            {inv.terms && (
+              <div style={{ marginBottom: '12px' }}>
+                <span style={{ fontWeight: 'bold', color: '#333' }}>Modalités&nbsp;: </span>
+                <span style={{ color: '#666', whiteSpace: 'pre-line' }}>{inv.terms}</span>
               </div>
-            ) : (
-              <div style={{
-                border: '2px solid #000',
-                background: '#f9fafb',
-                color: '#000',
-                padding: '12px 16px',
-                marginTop: '8px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: '14px',
-                fontWeight: 800,
-              }}>
-                <span>SOLDE DÛ</span>
-                <span>{fmt(total)}</span>
+            )}
+            {inv.client_notes && (
+              <div>
+                <span style={{ fontWeight: 'bold', color: '#333' }}>Notes&nbsp;: </span>
+                <span style={{ color: '#666', whiteSpace: 'pre-line' }}>{inv.client_notes}</span>
               </div>
             )}
           </div>
-        </div>
-
-        {/* ── ROW 5: Notes + Payment terms ── */}
-        {(inv.client_notes || inv.terms) && (
-          <div className="print-invoice-section" style={{ marginTop: '32px', clear: 'both', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-            <div>
-              {inv.client_notes && (
-                <>
-                  <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#888', marginBottom: '8px' }}>Notes</div>
-                  <div style={{ background: '#f5f5f5', borderLeft: '3px solid #000', padding: '12px', fontSize: '11px', color: '#444', lineHeight: 1.6, whiteSpace: 'pre-line' }}>
-                    {inv.client_notes}
-                  </div>
-                </>
-              )}
-            </div>
-            <div>
-              {inv.terms && (
-                <>
-                  <div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#888', marginBottom: '8px' }}>Modalités de paiement</div>
-                  <div style={{ fontSize: '11px', color: '#555', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{inv.terms}</div>
-                </>
-              )}
-            </div>
-          </div>
         )}
 
-        {/* ── ROW 6: Footer ── */}
-        <div style={{ marginTop: '48px', borderTop: '2px solid #000', paddingTop: '16px', textAlign: 'center' }}>
-          <div style={{ fontSize: '12px', fontStyle: 'italic', color: '#555', marginBottom: '8px' }}>
-            Merci pour votre confiance.
-          </div>
+        {/* SECTION 6 — FOOTER */}
+        <div style={{ marginTop: '40px', borderTop: '1px solid #ccc', paddingTop: '12px', textAlign: 'center', fontSize: '9px', color: '#999' }}>
+          <div style={{ marginBottom: '4px' }}>Merci pour votre confiance.</div>
           {org?.name && (
-            <div style={{ fontSize: '10px', color: '#888' }}>
+            <div>
               {org.name}
               {org.phone && ` · ${org.phone}`}
               {org.email && ` · ${org.email}`}
             </div>
           )}
           {isStarter && (
-            <div style={{ marginTop: '8px', fontSize: '8px', color: '#cccccc' }}>
-              Document généré via Gestivio · gestivio.ca
+            <div style={{ marginTop: '6px', fontSize: '8px', color: '#ccc' }}>
+              Facture générée via Gestivio
             </div>
           )}
         </div>
       </div>
+
 
       {/* ══════════ SCREEN-ONLY ONLINE PAYMENT VIEW ══════════ */}
       <div className="screen-only max-w-2xl mx-auto space-y-4">

@@ -12,24 +12,12 @@ html { scroll-behavior: smooth; }
 .print-only { display: none; }
 
 @media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   @page { size: letter; margin: 0.75in; }
-  body {
-    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif !important;
-    font-size: 11px !important;
-    color: #000 !important;
-    background: #fff !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
+  body { background: #ffffff !important; font-family: Arial, Helvetica, sans-serif !important; }
   .screen-only, .no-print { display: none !important; }
   .print-only { display: block !important; }
-  .print-invoice-section { page-break-inside: avoid; }
-  .print-table-header {
-    background: #f3f4f6 !important;
-    color: #374151 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
+  .print-table-header { background: #f2f2f2 !important; -webkit-print-color-adjust: exact !important; }
 }
 
 body {
