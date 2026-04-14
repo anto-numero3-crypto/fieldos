@@ -8,6 +8,8 @@ import { ChevronLeft, ChevronRight, Clock, MapPin, Check, Calendar, AlertCircle 
 import { formatPrice, requiresQuote, type PricingType } from '@/lib/pricing'
 import { secureUrl } from '@/lib/secure-url'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
+import { useLanguage } from '@/lib/LanguageContext'
+import { LanguageToggle } from '@/components/LanguageToggle'
 
 interface Service {
   id: string
@@ -45,20 +47,24 @@ interface AvailSettings {
 type Step = 'service' | 'date' | 'time' | 'info' | 'confirm' | 'done'
 
 const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const DAYS_FR = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam']
+const DAYS_EN = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 
 function fmtTime(t: string) {
   const [h, m] = t.split(':').map(Number)
   return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`
 }
-function fmtDateLong(d: string) {
-  return new Date(d + 'T12:00:00').toLocaleDateString('fr-CA', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-  })
-}
 
 export default function PublicBookingPage() {
   const { slug } = useParams<{ slug: string }>()
+  const { lang } = useLanguage()
+  const fr = lang === 'fr'
+  const MONTHS = fr ? MONTHS_FR : MONTHS_EN
+  const DAYS = fr ? DAYS_FR : DAYS_EN
+  const fmtDateLong = (d: string) => new Date(d + 'T12:00:00').toLocaleDateString(fr ? 'fr-CA' : 'en-CA', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  })
 
   const [org, setOrg] = useState<OrgData | null>(null)
   const [services, setServices] = useState<Service[]>([])
@@ -218,13 +224,14 @@ export default function PublicBookingPage() {
 
   const validateInfo = () => {
     const errs: Record<string, string> = {}
-    if (!firstName.trim()) errs.firstName = 'Ce champ est obligatoire'
-    if (!lastName.trim()) errs.lastName = 'Ce champ est obligatoire'
-    if (!email.trim()) errs.email = 'Ce champ est obligatoire'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) errs.email = 'Adresse courriel invalide'
+    const req = fr ? 'Ce champ est obligatoire' : 'This field is required'
+    if (!firstName.trim()) errs.firstName = req
+    if (!lastName.trim()) errs.lastName = req
+    if (!email.trim()) errs.email = req
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) errs.email = fr ? 'Adresse courriel invalide' : 'Invalid email address'
     if (phone.trim()) {
       const digits = phone.replace(/\D/g, '')
-      if (digits.length < 10 || digits.length > 15) errs.phone = 'Numéro de téléphone invalide'
+      if (digits.length < 10 || digits.length > 15) errs.phone = fr ? 'Numéro de téléphone invalide' : 'Invalid phone number'
     }
     setErrors(errs)
     return Object.keys(errs).length === 0
@@ -257,10 +264,10 @@ export default function PublicBookingPage() {
         setBookingResult(data.booking)
         setStep('done')
       } else {
-        alert(data.error || 'Une erreur est survenue. Veuillez réessayer.')
+        alert(data.error || (fr ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.'))
       }
     } catch {
-      alert('Une erreur est survenue. Veuillez réessayer.')
+      alert(fr ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.')
     }
     setSubmitting(false)
   }
@@ -294,7 +301,7 @@ export default function PublicBookingPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div style={{ background: primaryColor }} className="px-4 py-6 text-white text-center shadow-sm">
+      <div style={{ background: primaryColor }} className="relative px-4 py-6 text-white text-center shadow-sm">
         {org?.logo_url && (
           <Image
             src={secureUrl(org.logo_url)}
@@ -308,8 +315,9 @@ export default function PublicBookingPage() {
         )}
         <h1 className="text-xl font-bold">{org?.name}</h1>
         {step !== 'done' && (
-          <p className="text-white/80 text-sm mt-1">{avSettings?.booking_page_title || 'Réserver un rendez-vous'}</p>
+          <p className="text-white/80 text-sm mt-1">{avSettings?.booking_page_title || (fr ? 'Réserver un rendez-vous' : 'Book an appointment')}</p>
         )}
+        <div className="absolute top-3 right-3"><LanguageToggle /></div>
       </div>
 
       {/* Progress bar */}
@@ -339,9 +347,9 @@ export default function PublicBookingPage() {
         {/* ── Step 1: Service Selection ── */}
         {step === 'service' && (
           <div className="space-y-3">
-            <h2 className="text-lg font-bold text-gray-900">Choisissez un service</h2>
+            <h2 className="text-lg font-bold text-gray-900">{fr ? 'Choisissez un service' : 'Choose a service'}</h2>
             {services.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-8">Aucun service disponible pour le moment.</p>
+              <p className="text-sm text-gray-500 text-center py-8">{fr ? 'Aucun service disponible pour le moment.' : 'No services available at the moment.'}</p>
             ) : (
               services.map((svc) => (
                 <button
@@ -365,10 +373,10 @@ export default function PublicBookingPage() {
                     <div className="shrink-0 text-right">
                       {svc.pricing_type === 'quote_required' ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-700 px-2.5 py-1 text-xs font-semibold">
-                          <AlertCircle className="h-3 w-3" /> Sur devis
+                          <AlertCircle className="h-3 w-3" /> {fr ? 'Sur devis' : 'Quote'}
                         </span>
                       ) : svc.pricing_type === 'free' ? (
-                        <span className="rounded-full bg-emerald-50 text-emerald-700 px-2.5 py-1 text-xs font-semibold">Gratuit</span>
+                        <span className="rounded-full bg-emerald-50 text-emerald-700 px-2.5 py-1 text-xs font-semibold">{fr ? 'Gratuit' : 'Free'}</span>
                       ) : (
                         <span className="text-base font-bold text-gray-900">{formatPrice(svc)}</span>
                       )}
@@ -387,8 +395,8 @@ export default function PublicBookingPage() {
               onClick={() => setCustomOpen(true)}
               className="w-full text-left rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/60 p-4 hover:border-indigo-300 hover:bg-indigo-50/40 transition-all"
             >
-              <p className="font-semibold text-gray-900">Vous ne voyez pas ce dont vous avez besoin ?</p>
-              <p className="text-sm text-gray-500 mt-0.5">Envoyez-nous une demande personnalisée →</p>
+              <p className="font-semibold text-gray-900">{fr ? 'Vous ne voyez pas ce dont vous avez besoin ?' : "Don't see what you need?"}</p>
+              <p className="text-sm text-gray-500 mt-0.5">{fr ? 'Envoyez-nous une demande personnalisée →' : 'Send us a custom request →'}</p>
             </button>
           </div>
         )}
@@ -402,61 +410,63 @@ export default function PublicBookingPage() {
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
                     <Check className="h-6 w-6 text-emerald-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">Demande envoyée !</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">{fr ? 'Demande envoyée !' : 'Request sent!'}</h3>
                   <p className="text-sm text-gray-500 mb-5">
-                    Nous avons reçu votre demande et vous contacterons sous 24 heures pour discuter de vos besoins et vous fournir un devis.
+                    {fr
+                      ? 'Nous avons reçu votre demande et vous contacterons sous 24 heures pour discuter de vos besoins et vous fournir un devis.'
+                      : "We've received your request and will contact you within 24 hours to discuss your needs and provide a quote."}
                   </p>
                   <button
                     onClick={() => { setCustomOpen(false); setCustomSubmitted(false) }}
                     className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
                   >
-                    Fermer
+                    {fr ? 'Fermer' : 'Close'}
                   </button>
                 </div>
               ) : (
                 <div className="p-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">Demande personnalisée</h3>
-                  <p className="text-sm text-gray-500 mb-4">Dites-nous ce dont vous avez besoin — nous vous contacterons sous 24 h.</p>
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">{fr ? 'Demande personnalisée' : 'Custom request'}</h3>
+                  <p className="text-sm text-gray-500 mb-4">{fr ? "Dites-nous ce dont vous avez besoin — nous vous contacterons sous 24 h." : "Tell us what you need — we'll contact you within 24 hours."}</p>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Quel service souhaitez-vous ? *</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Quel service souhaitez-vous ? *' : 'What service do you need? *'}</label>
                       <textarea
                         rows={3}
                         value={customDesc}
                         onChange={(e) => setCustomDesc(e.target.value)}
-                        placeholder="Décrivez vos besoins…"
+                        placeholder={fr ? 'Décrivez vos besoins…' : 'Describe your needs…'}
                         className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm resize-none focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Date / période souhaitée (optionnel)</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Date / période souhaitée (optionnel)' : 'Preferred date / timeframe (optional)'}</label>
                       <input
                         type="text"
                         value={customPreferredDate}
                         onChange={(e) => setCustomPreferredDate(e.target.value)}
-                        placeholder="ex. Semaine du 15 mai, weekends uniquement…"
+                        placeholder={fr ? 'ex. Semaine du 15 mai, weekends uniquement…' : 'e.g. Week of May 15, weekends only…'}
                         className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Nom *</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Nom *' : 'Name *'}</label>
                         <input type="text" value={customName} onChange={(e) => setCustomName(e.target.value)}
                           className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Téléphone</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Téléphone' : 'Phone'}</label>
                         <input type="tel" value={customPhone} onChange={(e) => setCustomPhone(e.target.value)}
                           className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Email *</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Email *' : 'Email *'}</label>
                       <input type="email" value={customEmail} onChange={(e) => setCustomEmail(e.target.value)}
                         className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Adresse (optionnel)</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Adresse (optionnel)' : 'Address (optional)'}</label>
                       <AddressAutocomplete value={customAddress} onChange={setCustomAddress} />
                     </div>
                   </div>
@@ -467,7 +477,7 @@ export default function PublicBookingPage() {
                       disabled={customSubmitting}
                       className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
                     >
-                      Annuler
+                      {fr ? 'Annuler' : 'Cancel'}
                     </button>
                     <button
                       type="button"
@@ -491,15 +501,15 @@ export default function PublicBookingPage() {
                           })
                           const data = await res.json()
                           if (data.success) setCustomSubmitted(true)
-                          else alert(data.error || "Une erreur s'est produite. Veuillez réessayer.")
+                          else alert(data.error || (fr ? "Une erreur s'est produite. Veuillez réessayer." : 'An error occurred. Please try again.'))
                         } catch {
-                          alert("Une erreur s'est produite. Veuillez réessayer.")
+                          alert(fr ? "Une erreur s'est produite. Veuillez réessayer." : 'An error occurred. Please try again.')
                         }
                         setCustomSubmitting(false)
                       }}
                       className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
                     >
-                      {customSubmitting ? 'Envoi…' : 'Envoyer la demande'}
+                      {customSubmitting ? (fr ? 'Envoi…' : 'Sending…') : (fr ? 'Envoyer la demande' : 'Send request')}
                     </button>
                   </div>
                 </div>
@@ -518,7 +528,7 @@ export default function PublicBookingPage() {
                   <ChevronLeft className="h-5 w-5" />
                 </button>
               )}
-              <h2 className="text-lg font-bold text-gray-900">Choisissez une date</h2>
+              <h2 className="text-lg font-bold text-gray-900">{fr ? 'Choisissez une date' : 'Choose a date'}</h2>
             </div>
             {selectedService && (
               <div className="flex items-center gap-2 mb-4 rounded-xl bg-indigo-50 px-3 py-2 text-sm">
@@ -534,7 +544,7 @@ export default function PublicBookingPage() {
                 <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-500">
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className="text-sm font-semibold text-gray-900">{MONTHS_FR[calMonth]} {calYear}</span>
+                <span className="text-sm font-semibold text-gray-900">{MONTHS[calMonth]} {calYear}</span>
                 <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-500">
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -543,7 +553,7 @@ export default function PublicBookingPage() {
               <div className="px-3 py-2">
                 {/* Day headers */}
                 <div className="grid grid-cols-7 mb-1">
-                  {DAYS_FR.map((d) => (
+                  {DAYS.map((d) => (
                     <div key={d} className="text-center text-xs font-medium text-gray-400 py-1">{d}</div>
                   ))}
                 </div>
@@ -579,8 +589,8 @@ export default function PublicBookingPage() {
                 </div>
               </div>
               <div className="px-4 pb-3 flex items-center gap-3 text-xs text-gray-400 border-t border-gray-50 pt-2">
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-indigo-500" />Disponible</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-gray-200" />Indisponible</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-indigo-500" />{fr ? 'Disponible' : 'Available'}</span>
+                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-gray-200" />{fr ? 'Indisponible' : 'Unavailable'}</span>
               </div>
             </div>
           </div>
@@ -594,7 +604,7 @@ export default function PublicBookingPage() {
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Choisissez un horaire</h2>
+                <h2 className="text-lg font-bold text-gray-900">{fr ? 'Choisissez un horaire' : 'Choose a time'}</h2>
                 <p className="text-sm text-gray-500">{fmtDateLong(selectedDate)}</p>
               </div>
             </div>
@@ -606,10 +616,10 @@ export default function PublicBookingPage() {
             ) : slots.length === 0 ? (
               <div className="text-center py-10">
                 <Calendar className="h-10 w-10 text-gray-200 mx-auto mb-3" />
-                <p className="text-sm font-medium text-gray-600">Aucune disponibilité ce jour</p>
-                <p className="text-sm text-gray-400">Choisissez une autre date.</p>
+                <p className="text-sm font-medium text-gray-600">{fr ? 'Aucune disponibilité ce jour' : 'No availability on this day'}</p>
+                <p className="text-sm text-gray-400">{fr ? 'Choisissez une autre date.' : 'Choose another date.'}</p>
                 <button onClick={() => setStep('date')} className="mt-4 text-sm font-semibold text-indigo-600 hover:underline">
-                  ← Choisir une autre date
+                  ← {fr ? 'Choisir une autre date' : 'Choose another date'}
                 </button>
               </div>
             ) : (
@@ -640,7 +650,7 @@ export default function PublicBookingPage() {
               <button onClick={() => { setStep('time') }} className="text-gray-400 hover:text-gray-700 transition-colors">
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <h2 className="text-lg font-bold text-gray-900">Vos informations</h2>
+              <h2 className="text-lg font-bold text-gray-900">{fr ? 'Vos informations' : 'Your information'}</h2>
             </div>
 
             {/* Booking summary */}
@@ -655,37 +665,37 @@ export default function PublicBookingPage() {
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Prénom *</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Prénom *' : 'First name *'}</label>
                   <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
                     className={`block w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${errors.firstName ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-indigo-500'}`} />
                   {errors.firstName && <p className="mt-1 text-xs text-red-500">{errors.firstName}</p>}
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Nom *</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Nom *' : 'Last name *'}</label>
                   <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)}
                     className={`block w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${errors.lastName ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-indigo-500'}`} />
                   {errors.lastName && <p className="mt-1 text-xs text-red-500">{errors.lastName}</p>}
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Adresse email *</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Adresse courriel *' : 'Email address *'}</label>
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                   className={`block w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${errors.email ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-indigo-500'}`} />
                 {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Téléphone</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Téléphone' : 'Phone'}</label>
                 <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
                   className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Adresse (si applicable)</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Adresse (si applicable)' : 'Address (if applicable)'}</label>
                 <AddressAutocomplete value={address} onChange={setAddress} />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Notes / demandes spéciales</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Notes / demandes spéciales' : 'Notes / special requests'}</label>
                 <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Informations supplémentaires pour le prestataire…"
+                  placeholder={fr ? 'Informations supplémentaires pour le prestataire…' : 'Additional info for the provider…'}
                   className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               </div>
 
@@ -694,7 +704,7 @@ export default function PublicBookingPage() {
                 className="w-full py-3 rounded-xl text-white text-sm font-semibold shadow-sm hover:opacity-90 transition-opacity mt-1"
                 style={{ background: primaryColor }}
               >
-                Continuer →
+                {fr ? 'Continuer →' : 'Continue →'}
               </button>
             </div>
           </div>
@@ -707,21 +717,21 @@ export default function PublicBookingPage() {
               <button onClick={() => setStep('info')} className="text-gray-400 hover:text-gray-700 transition-colors">
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <h2 className="text-lg font-bold text-gray-900">Confirmer la réservation</h2>
+              <h2 className="text-lg font-bold text-gray-900">{fr ? 'Confirmer la réservation' : 'Confirm booking'}</h2>
             </div>
 
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5 space-y-4 mb-4">
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Service</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{fr ? 'Service' : 'Service'}</p>
                 <p className="font-semibold text-gray-900">{selectedService?.name}</p>
                 {selectedService && (
                   <p className="text-sm text-gray-500">
-                    {requiresQuote(selectedService) ? 'Devis fourni après évaluation' : formatPrice(selectedService)}
+                    {requiresQuote(selectedService) ? (fr ? 'Devis fourni après évaluation' : 'Quote provided after assessment') : formatPrice(selectedService)}
                   </p>
                 )}
               </div>
               <div className="border-t border-gray-50 pt-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Date & heure</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{fr ? 'Date & heure' : 'Date & time'}</p>
                 <p className="font-semibold text-gray-900 flex items-center gap-1.5">
                   <Calendar className="h-4 w-4 text-gray-400" /> {fmtDateLong(selectedDate)}
                 </p>
@@ -730,7 +740,7 @@ export default function PublicBookingPage() {
                 </p>
               </div>
               <div className="border-t border-gray-50 pt-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Vos informations</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{fr ? 'Vos informations' : 'Your information'}</p>
                 <p className="font-semibold text-gray-900">{firstName} {lastName}</p>
                 <p className="text-sm text-gray-500">{email}</p>
                 {phone && <p className="text-sm text-gray-500">{phone}</p>}
@@ -742,7 +752,7 @@ export default function PublicBookingPage() {
               </div>
               {notes && (
                 <div className="border-t border-gray-50 pt-3">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Notes</p>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{fr ? 'Notes' : 'Notes'}</p>
                   <p className="text-sm text-gray-600 italic">{notes}</p>
                 </div>
               )}
@@ -750,7 +760,7 @@ export default function PublicBookingPage() {
 
             {avSettings?.cancellation_policy && (
               <div className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 mb-4 text-xs text-gray-500">
-                <p className="font-semibold text-gray-600 mb-0.5">Politique d'annulation</p>
+                <p className="font-semibold text-gray-600 mb-0.5">{fr ? "Politique d'annulation" : 'Cancellation policy'}</p>
                 {avSettings.cancellation_policy}
               </div>
             )}
@@ -762,8 +772,8 @@ export default function PublicBookingPage() {
               style={{ background: primaryColor }}
             >
               {submitting ? (
-                <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Envoi en cours…</>
-              ) : 'Confirmer ma réservation'}
+                <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> {fr ? 'Envoi en cours…' : 'Sending…'}</>
+              ) : (fr ? 'Confirmer ma réservation' : 'Confirm my booking')}
             </button>
           </div>
         )}
@@ -778,12 +788,14 @@ export default function PublicBookingPage() {
               <Check className="h-10 w-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {bookingResult.status === 'confirmed' ? 'Rendez-vous confirmé !' : 'Demande reçue !'}
+              {bookingResult.status === 'confirmed'
+                ? (fr ? 'Rendez-vous confirmé !' : 'Booking confirmed!')
+                : (fr ? 'Demande reçue !' : 'Request received!')}
             </h2>
             <p className="text-gray-500 text-sm mb-6">
               {bookingResult.status === 'confirmed'
-                ? 'Votre rendez-vous est confirmé. Un email de confirmation vous a été envoyé.'
-                : 'Votre demande a été envoyée. Vous recevrez une confirmation par email sous peu.'}
+                ? (fr ? 'Votre rendez-vous est confirmé. Un email de confirmation vous a été envoyé.' : 'Your appointment is confirmed. A confirmation email has been sent to you.')
+                : (fr ? 'Votre demande a été envoyée. Vous recevrez une confirmation par email sous peu.' : "Your request has been sent. You'll receive a confirmation email shortly.")}
             </p>
 
             {avSettings?.confirmation_message && (
@@ -795,22 +807,22 @@ export default function PublicBookingPage() {
             {/* Booking summary */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-4 text-left mb-6 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Service</span>
+                <span className="text-gray-500">{fr ? 'Service' : 'Service'}</span>
                 <span className="font-medium text-gray-900">{selectedService?.name}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Date</span>
+                <span className="text-gray-500">{fr ? 'Date' : 'Date'}</span>
                 <span className="font-medium text-gray-900">{fmtDateLong(selectedDate)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Heure</span>
+                <span className="text-gray-500">{fr ? 'Heure' : 'Time'}</span>
                 <span className="font-medium text-gray-900">{fmtTime(selectedTime)}</span>
               </div>
             </div>
 
             {/* Add to calendar */}
             <div className="mb-5">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Ajouter à votre calendrier</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{fr ? 'Ajouter à votre calendrier' : 'Add to your calendar'}</p>
               <div className="flex gap-2 justify-center flex-wrap">
                 {[
                   { label: 'Google Calendar', href: `https://calendar.google.com/calendar/r/eventedit?text=${encodeURIComponent(selectedService?.name + ' chez ' + (org?.name || ''))}&dates=${selectedDate.replace(/-/g, '')}/${selectedDate.replace(/-/g, '')}&details=${encodeURIComponent(`Rendez-vous confirmé · ${fmtTime(selectedTime)}`)}&location=${encodeURIComponent(org?.name || '')}` },
@@ -824,9 +836,9 @@ export default function PublicBookingPage() {
             </div>
 
             <p className="text-xs text-gray-400">
-              Besoin d'annuler ?{' '}
+              {fr ? "Besoin d'annuler ?" : 'Need to cancel?'}{' '}
               <a href={`/booking/cancel/${bookingResult.token}`} className="underline hover:text-gray-600">
-                Annuler mon rendez-vous
+                {fr ? 'Annuler mon rendez-vous' : 'Cancel my appointment'}
               </a>
             </p>
           </div>
@@ -834,7 +846,7 @@ export default function PublicBookingPage() {
       </div>
       {(!org?.plan || org.plan === 'starter') && (
         <footer className="py-4 text-center text-xs text-gray-400">
-          Propulsé par <a href="https://gestivio.ca" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-700">Gestivio</a>
+          {fr ? 'Propulsé par' : 'Powered by'} <a href="https://gestivio.ca" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-700">Gestivio</a>
         </footer>
       )}
     </div>
