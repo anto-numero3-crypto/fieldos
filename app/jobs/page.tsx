@@ -76,6 +76,7 @@ export default function JobsPage() {
   const [touched, setTouched]   = useState<Record<string, boolean>>({})
   const confirm = useConfirm()
   const { lang, t } = useLanguage()
+  const fr = lang === 'fr'
   const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
 
   const errTitle = touched.title ? validateRequired(title) : ''
@@ -130,9 +131,9 @@ export default function JobsPage() {
 
   const deleteJob = async (id: string) => {
     const { confirmed } = await confirm({
-      title: 'Supprimer cet emploi ?',
-      description: 'Cette action est irréversible.',
-      confirmLabel: 'Supprimer',
+      title: fr ? 'Supprimer cet emploi ?' : 'Delete this job?',
+      description: fr ? 'Cette action est irréversible.' : 'This cannot be undone.',
+      confirmLabel: fr ? 'Supprimer' : 'Delete',
     })
     if (!confirmed) return
     await supabase.from('jobs').delete().eq('id', id)
@@ -163,7 +164,7 @@ export default function JobsPage() {
 
   const AddButton = (
     <button onClick={openAddJob} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all">
-      <Plus className="h-4 w-4" /> Nouvelle intervention
+      <Plus className="h-4 w-4" /> {fr ? 'Nouvelle intervention' : 'New job'}
     </button>
   )
 
@@ -217,7 +218,7 @@ export default function JobsPage() {
           </div>
           <div className="relative sm:ml-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input type="text" placeholder="Rechercher…" value={search} onChange={(e) => setSearch(e.target.value)} className="block rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm w-64" />
+            <input type="text" placeholder={fr ? 'Rechercher…' : 'Search…'} value={search} onChange={(e) => setSearch(e.target.value)} className="block rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm w-64" />
           </div>
         </div>
 
@@ -225,15 +226,15 @@ export default function JobsPage() {
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
             <EmptyState
               icon={Briefcase}
-              title="Aucun emploi"
+              title={fr ? 'Aucun emploi' : 'No jobs'}
               description="Créez votre premier emploi ou attendez une réservation en ligne."
-              actions={[{ label: 'Créer un emploi', onClick: openAddJob, variant: 'primary' }]}
+              actions={[{ label: fr ? 'Créer un emploi' : 'Create a job', onClick: openAddJob, variant: 'primary' }]}
             />
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">
             <Search className="h-8 w-8 text-gray-300 mb-3" />
-            <p className="text-sm text-gray-500">Aucun résultat pour vos filtres</p>
+            <p className="text-sm text-gray-500">{fr ? 'Aucun résultat pour vos filtres' : 'No results for your filters'}</p>
           </div>
         ) : (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
@@ -241,7 +242,7 @@ export default function JobsPage() {
               <table className="min-w-full divide-y divide-gray-100">
                 <thead>
                   <tr className="bg-gray-50">
-                    {['Intervention', 'Client', 'Priorité', 'Date', 'Statut', ''].map((col) => (
+                    {(fr ? ['Intervention', 'Client', 'Priorité', 'Date', 'Statut', ''] : ['Job', 'Customer', 'Priority', 'Date', 'Status', '']).map((col) => (
                       <th key={col} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{col}</th>
                     ))}
                   </tr>
@@ -287,7 +288,7 @@ export default function JobsPage() {
                                       </button>
                                     ))}
                                     <div className="border-t border-gray-100 mt-1 pt-1">
-                                      <button onClick={() => deleteJob(job.id)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"><Trash2 className="h-4 w-4" /> Supprimer</button>
+                                      <button onClick={() => deleteJob(job.id)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"><Trash2 className="h-4 w-4" /> {fr ? 'Supprimer' : 'Delete'}</button>
                                     </div>
                                   </div>
                                 </>
@@ -333,13 +334,13 @@ export default function JobsPage() {
           <div className="fixed inset-0 z-30 bg-gray-900/50 backdrop-blur-sm fade-in" onClick={() => setPanelOpen(false)} />
           <div className="fixed inset-y-0 right-0 z-40 w-full max-w-md bg-white shadow-2xl slide-over flex flex-col">
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-              <div><h2 className="text-base font-semibold text-gray-900">Créer une intervention</h2><p className="text-xs text-gray-400 mt-0.5">Nouveau bon de travail</p></div>
+              <div><h2 className="text-base font-semibold text-gray-900">{fr ? 'Créer une intervention' : 'Create a job'}</h2><p className="text-xs text-gray-400 mt-0.5">{fr ? 'Nouveau bon de travail' : 'New work order'}</p></div>
               <button type="button" onClick={() => setPanelOpen(false)} className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"><X className="h-5 w-5" /></button>
             </div>
 
             <form onSubmit={addJob} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Titre <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Titre' : 'Title'} <span className="text-red-500">*</span></label>
                 <input type="text" placeholder="ex. Entretien climatisation" value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, title: true }))}
@@ -348,30 +349,30 @@ export default function JobsPage() {
                 <FieldError message={errTitle} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Description' : 'Description'}</label>
                 <textarea placeholder="Décrivez les travaux à effectuer…" value={description} onChange={(e) => setDesc(e.target.value)} rows={3} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Client</label>
                 <div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <select value={customerId} onChange={(e) => setCustId(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
-                    <option value="">Aucun client sélectionné</option>
+                    <option value="">{fr ? 'Aucun client sélectionné' : 'No customer selected'}</option>
                     {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Priorité</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Priorité' : 'Priority'}</label>
                   <select value={priority} onChange={(e) => setPriority(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
-                    <option value="low">Faible</option>
-                    <option value="normal">Normal</option>
-                    <option value="high">Élevée</option>
-                    <option value="urgent">Urgent</option>
+                    <option value="low">{fr ? 'Faible' : 'Low'}</option>
+                    <option value="normal">{fr ? 'Normal' : 'Normal'}</option>
+                    <option value="high">{fr ? 'Élevée' : 'High'}</option>
+                    <option value="urgent">{fr ? 'Urgent' : 'Urgent'}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Statut</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Statut' : 'Status'}</label>
                   <select value={status} onChange={(e) => setStatus(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
                     <option value="scheduled">{tStatus('scheduled')}</option>
                     <option value="in_progress">{tStatus('in_progress')}</option>
@@ -381,16 +382,16 @@ export default function JobsPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Date planifiée</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Date planifiée' : 'Scheduled date'}</label>
                 <div className="relative"><Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="date" value={scheduledDate} onChange={(e) => setDate(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" /></div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Heure début</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Heure début' : 'Start time'}</label>
                   <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Heure fin</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Heure fin' : 'End time'}</label>
                   <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                 </div>
               </div>
@@ -398,15 +399,15 @@ export default function JobsPage() {
             </form>
 
             <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">
-              <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Annuler</button>
+              <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
               <button onClick={addJob} disabled={loading || formInvalid} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
-                {loading ? 'Création…' : 'Créer'}
+                {loading ? (fr ? 'Création…' : 'Creating…') : (fr ? 'Créer' : 'Create')}
               </button>
             </div>
           </div>
         </>
       )}
-      <MobileFAB onClick={openAddJob} label="Nouvelle intervention" />
+      <MobileFAB onClick={openAddJob} label={fr ? 'Nouvelle intervention' : 'New job'} />
     </AppLayout>
   )
 }
