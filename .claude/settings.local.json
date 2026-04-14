@@ -53,7 +53,8 @@
       "Bash(awk 'NR==193{print;flag=1;next} NR==424{flag=0;print \"REPLACE_MARKER\";next} !flag' \"app/invoice/[token]/page.tsx\")",
       "Read(//tmp/**)",
       "Bash(awk 'NR==193{print \" {/* PRINT_BLOCK_REPLACE */}\";flag=1;next} NR==424{flag=0;next} !flag' \"app/invoice/[token]/page.tsx\")",
-      "Bash(mv /tmp/invoice_new.tsx \"app/invoice/[token]/page.tsx\")"
+      "Bash(mv /tmp/invoice_new.tsx \"app/invoice/[token]/page.tsx\")",
+      "Bash(grep -v \"//\")"
     ]
   }
 }
