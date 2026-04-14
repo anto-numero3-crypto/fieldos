@@ -49,6 +49,7 @@ export default function CustomersPage() {
   const [menuOpen, setMenuOpen]     = useState<string | null>(null)
   const plan = usePlan()
   const { lang, t } = useLanguage()
+  const fr = lang === 'fr'
 
   // Form
   const [name, setName]       = useState('')
@@ -150,7 +151,9 @@ export default function CustomersPage() {
 
   const openAddCustomer = () => {
     if (plan.isAtCustomerLimit) {
-      toast.error(`Limite de ${plan.limits.maxCustomers} clients atteinte sur le forfait Starter. Passez à Pro pour un nombre illimité.`)
+      toast.error(fr
+        ? `Limite de ${plan.limits.maxCustomers} clients atteinte sur le forfait Starter. Passez à Pro pour un nombre illimité.`
+        : `Starter plan limit of ${plan.limits.maxCustomers} customers reached. Upgrade to Pro for unlimited.`)
       return
     }
     setPanelOpen(true)
@@ -158,9 +161,11 @@ export default function CustomersPage() {
 
   const deleteCustomer = async (id: string) => {
     const { confirmed } = await confirm({
-      title: 'Supprimer ce client ?',
-      description: 'Cette action est irréversible. Tous les emplois et factures associés seront dissociés.',
-      confirmLabel: 'Supprimer',
+      title: fr ? 'Supprimer ce client ?' : 'Delete this customer?',
+      description: fr
+        ? 'Cette action est irréversible. Tous les emplois et factures associés seront dissociés.'
+        : 'This cannot be undone. All associated jobs and invoices will be unlinked.',
+      confirmLabel: fr ? 'Supprimer' : 'Delete',
     })
     if (!confirmed) return
     const { error } = await supabase.from('customers').delete().eq('id', id)
@@ -171,7 +176,9 @@ export default function CustomersPage() {
   }
 
   const exportCSV = () => {
-    const header = ['Nom', 'Email', 'Téléphone', 'Adresse', 'Étiquettes', 'Valeur cumulée', 'Ajouté le']
+    const header = fr
+      ? ['Nom', 'Courriel', 'Téléphone', 'Adresse', 'Étiquettes', 'Valeur cumulée', 'Ajouté le']
+      : ['Name', 'Email', 'Phone', 'Address', 'Tags', 'Lifetime value', 'Added']
     const rows = customers.map((c) => [
       c.name,
       c.email || '',
@@ -195,19 +202,19 @@ export default function CustomersPage() {
         onClick={exportCSV}
         className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-all"
       >
-        <Download className="h-4 w-4" /> Exporter CSV
+        <Download className="h-4 w-4" /> {fr ? 'Exporter CSV' : 'Export CSV'}
       </button>
       <Link
         href="/customers/import"
         className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-all"
       >
-        <Upload className="h-4 w-4" /> Importer CSV
+        <Upload className="h-4 w-4" /> {fr ? 'Importer CSV' : 'Import CSV'}
       </Link>
       <button
         onClick={openAddCustomer}
         className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all"
       >
-        <Plus className="h-4 w-4" /> Ajouter un client
+        <Plus className="h-4 w-4" /> {fr ? 'Ajouter un client' : 'Add customer'}
       </button>
     </div>
   )
@@ -240,9 +247,9 @@ export default function CustomersPage() {
         )}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           {[
-            { label: 'Total clients', value: customers.length, icon: Users, bg: 'bg-blue-50', color: 'text-blue-600' },
-            { label: 'Avec email', value: customers.filter((c) => c.email).length, icon: Mail, bg: 'bg-indigo-50', color: 'text-indigo-600' },
-            { label: 'Valeur cumulée totale', value: fmtMoney(totalLTV, lang), icon: TrendingUp, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+            { label: fr ? 'Total clients' : 'Total customers', value: customers.length, icon: Users, bg: 'bg-blue-50', color: 'text-blue-600' },
+            { label: fr ? 'Avec courriel' : 'With email',    value: customers.filter((c) => c.email).length, icon: Mail, bg: 'bg-indigo-50', color: 'text-indigo-600' },
+            { label: fr ? 'Valeur cumulée totale' : 'Total lifetime value', value: fmtMoney(totalLTV, lang), icon: TrendingUp, bg: 'bg-emerald-50', color: 'text-emerald-600' },
           ].map((s) => (
             <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${s.bg} mb-2`}>
@@ -260,7 +267,7 @@ export default function CustomersPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Rechercher par nom, email, téléphone, étiquettes..."
+              placeholder={fr ? 'Rechercher par nom, courriel, téléphone, étiquettes...' : 'Search by name, email, phone, tags...'}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="block w-full rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm"
@@ -273,18 +280,18 @@ export default function CustomersPage() {
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
             <EmptyState
               icon={Users}
-              title="Aucun client pour l'instant"
-              description="Ajoutez votre premier client ou partagez votre lien de réservation."
+              title={fr ? "Aucun client pour l'instant" : 'No customers yet'}
+              description={fr ? 'Ajoutez votre premier client ou partagez votre lien de réservation.' : 'Add your first customer or share your booking link.'}
               actions={[
-                { label: 'Ajouter un client', onClick: openAddCustomer, variant: 'primary' },
-                { label: 'Copier le lien de réservation', onClick: copyBookingLink, variant: 'secondary' },
+                { label: fr ? 'Ajouter un client' : 'Add customer', onClick: openAddCustomer, variant: 'primary' },
+                { label: fr ? 'Copier le lien de réservation' : 'Copy booking link', onClick: copyBookingLink, variant: 'secondary' },
               ]}
             />
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">
             <Search className="h-8 w-8 text-gray-300 mb-3" />
-            <p className="text-sm text-gray-500">Aucun client ne correspond à &ldquo;<span className="font-medium">{search}</span>&rdquo;</p>
+            <p className="text-sm text-gray-500">{fr ? 'Aucun client ne correspond à' : 'No customer matches'} &ldquo;<span className="font-medium">{search}</span>&rdquo;</p>
           </div>
         ) : (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
@@ -293,7 +300,7 @@ export default function CustomersPage() {
               <table className="min-w-full divide-y divide-gray-100">
                 <thead>
                   <tr className="bg-gray-50">
-                    {['Client', 'Contact', 'Adresse', 'Étiquettes', 'VCV', 'Ajouté', ''].map((col) => (
+                    {(fr ? ['Client', 'Contact', 'Adresse', 'Étiquettes', 'VCV', 'Ajouté', ''] : ['Customer', 'Contact', 'Address', 'Tags', 'LTV', 'Added', '']).map((col) => (
                       <th key={col} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{col}</th>
                     ))}
                   </tr>
@@ -352,7 +359,7 @@ export default function CustomersPage() {
                                 <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(null)} />
                                 <div className="absolute right-0 top-full mt-1 z-20 w-40 rounded-xl border border-gray-100 bg-white shadow-lg py-1 slide-up">
                                   <button onClick={() => deleteCustomer(c.id)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                                    <Trash2 className="h-4 w-4" /> Supprimer
+                                    <Trash2 className="h-4 w-4" /> {fr ? 'Supprimer' : 'Delete'}
                                   </button>
                                 </div>
                               </>
@@ -407,8 +414,8 @@ export default function CustomersPage() {
           <div className="fixed inset-y-0 right-0 z-40 w-full max-w-md bg-white shadow-2xl slide-over flex flex-col">
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">Ajouter un client</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Remplissez les informations du client ci-dessous</p>
+                <h2 className="text-base font-semibold text-gray-900">{fr ? 'Ajouter un client' : 'Add customer'}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Remplissez les informations du client ci-dessous' : 'Fill in the customer info below'}</p>
               </div>
               <button type="button" onClick={() => setPanelOpen(false)} className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
                 <X className="h-5 w-5" />
@@ -417,7 +424,7 @@ export default function CustomersPage() {
 
             <form onSubmit={addCustomer} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nom complet <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Nom complet' : 'Full name'} <span className="text-red-500">*</span></label>
                 <input type="text" placeholder="Jean Tremblay" value={name}
                   onChange={(e) => setName(e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, name: true }))}
@@ -427,7 +434,7 @@ export default function CustomersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Adresse courriel</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Adresse courriel' : 'Email address'}</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input type="email" placeholder="jean@exemple.com" value={email}
@@ -439,7 +446,7 @@ export default function CustomersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Numéro de téléphone</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Numéro de téléphone' : 'Phone number'}</label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input type="tel" placeholder="+1 (514) 000-0000" value={phone}
@@ -451,7 +458,7 @@ export default function CustomersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Adresse</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Adresse' : 'Address'}</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <textarea
@@ -465,17 +472,17 @@ export default function CustomersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Étiquettes</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Étiquettes' : 'Tags'}</label>
                 <div className="flex gap-2 mb-2">
                   <input
                     type="text"
-                    placeholder="ex. VIP, Commercial"
+                    placeholder={fr ? 'ex. VIP, Commercial' : 'e.g. VIP, Commercial'}
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
                     className="flex-1 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                   />
-                  <button type="button" onClick={addTag} className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Ajouter</button>
+                  <button type="button" onClick={addTag} className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">{fr ? 'Ajouter' : 'Add'}</button>
                 </div>
                 {tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
@@ -492,7 +499,7 @@ export default function CustomersPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
                 <textarea
-                  placeholder="Notes internes sur ce client..."
+                  placeholder={fr ? 'Notes internes sur ce client...' : 'Internal notes about this customer...'}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
@@ -504,16 +511,16 @@ export default function CustomersPage() {
 
             <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">
               <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                Annuler
+                {fr ? 'Annuler' : 'Cancel'}
               </button>
               <button onClick={addCustomer} disabled={loading || formInvalid} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
-                {loading ? 'Ajout en cours...' : 'Ajouter un client'}
+                {loading ? (fr ? 'Ajout en cours...' : 'Adding...') : (fr ? 'Ajouter un client' : 'Add customer')}
               </button>
             </div>
           </div>
         </>
       )}
-      <MobileFAB onClick={openAddCustomer} label="Ajouter un client" />
+      <MobileFAB onClick={openAddCustomer} label={fr ? 'Ajouter un client' : 'Add customer'} />
     </AppLayout>
   )
 }
