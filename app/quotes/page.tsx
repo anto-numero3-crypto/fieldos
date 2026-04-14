@@ -64,6 +64,7 @@ export default function QuotesPage() {
   const [touched, setTouched]     = useState<Record<string, boolean>>({})
   const confirm = useConfirm()
   const { lang, t } = useLanguage()
+  const fr = lang === 'fr'
   const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
   const fmt = (n: number) => fmtMoney(n, lang)
   const [convertingQuote, setConvertingQuote] = useState<Quote | null>(null)
@@ -168,9 +169,9 @@ export default function QuotesPage() {
 
   const deleteQuote = async (id: string) => {
     const { confirmed } = await confirm({
-      title: 'Supprimer ce devis ?',
-      description: 'Cette action est irréversible.',
-      confirmLabel: 'Supprimer',
+      title: fr ? 'Supprimer ce devis ?' : 'Delete this quote?',
+      description: fr ? 'Cette action est irréversible.' : 'This cannot be undone.',
+      confirmLabel: fr ? 'Supprimer' : 'Delete',
     })
     if (!confirmed) return
     await supabase.from('quotes').delete().eq('id', id)
@@ -216,7 +217,7 @@ export default function QuotesPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
-            { label: 'Total devis', value: quotes.length, icon: FileSignature, bg: 'bg-indigo-50', color: 'text-indigo-600' },
+            { label: fr ? 'Total devis' : 'Total quotes', value: quotes.length, icon: FileSignature, bg: 'bg-indigo-50', color: 'text-indigo-600' },
             { label: 'Valeur totale', value: fmt(totalValue), icon: DollarSign, bg: 'bg-emerald-50', color: 'text-emerald-600' },
             { label: 'Approuvés', value: fmt(approvedValue), icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
             { label: 'Taux d\'acceptation', value: `${isNaN(acceptRate) ? 0 : acceptRate.toFixed(0)}%`, icon: Tag, bg: 'bg-blue-50', color: 'text-blue-600' },
@@ -240,7 +241,7 @@ export default function QuotesPage() {
           </div>
           <div className="relative sm:ml-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input type="text" placeholder="Rechercher des devis..." value={search} onChange={(e) => setSearch(e.target.value)} className="block rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm w-56" />
+            <input type="text" placeholder={fr ? 'Rechercher des devis...' : 'Search quotes...'} value={search} onChange={(e) => setSearch(e.target.value)} className="block rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm w-56" />
           </div>
         </div>
 
@@ -248,9 +249,9 @@ export default function QuotesPage() {
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
             <EmptyState
               icon={ClipboardList}
-              title="Aucun devis"
+              title={fr ? 'Aucun devis' : 'No quotes'}
               description="Créez un devis pour un client."
-              actions={[{ label: 'Créer un devis', onClick: () => setPanelOpen(true), variant: 'primary' }]}
+              actions={[{ label: fr ? 'Créer un devis' : 'Create quote', onClick: () => setPanelOpen(true), variant: 'primary' }]}
             />
           </div>
         ) : (
@@ -289,7 +290,7 @@ export default function QuotesPage() {
                                 onClick={() => acceptQuote(q)}
                                 disabled={acceptingId === q.id}
                                 className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 px-2 py-1.5 text-xs font-semibold text-emerald-700 disabled:opacity-60"
-                                title="Accepter le devis"
+                                title={fr ? 'Accepter le devis' : 'Accept quote'}
                               >
                                 <CheckCircle className="h-3.5 w-3.5" /> Accepter
                               </button>
@@ -298,7 +299,7 @@ export default function QuotesPage() {
                               <button
                                 onClick={() => setConvertingQuote(q)}
                                 className="inline-flex items-center gap-1 rounded-lg bg-violet-50 hover:bg-violet-100 px-2 py-1.5 text-xs font-semibold text-violet-700"
-                                title="Convertir en emploi"
+                                title={fr ? 'Convertir en emploi' : 'Convert to job'}
                               >
                                 <Briefcase className="h-3.5 w-3.5" /> Convertir
                               </button>
@@ -344,14 +345,14 @@ export default function QuotesPage() {
           <div className="fixed inset-0 z-30 bg-gray-900/50 backdrop-blur-sm fade-in" onClick={() => setPanelOpen(false)} />
           <div className="fixed inset-y-0 right-0 z-40 w-full max-w-lg bg-white shadow-2xl slide-over flex flex-col">
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-              <div><h2 className="text-base font-semibold text-gray-900">Nouveau devis</h2><p className="text-xs text-gray-400 mt-0.5">Créez un devis professionnel avec des lignes d&apos;articles</p></div>
+              <div><h2 className="text-base font-semibold text-gray-900">{fr ? 'Nouveau devis' : 'New quote'}</h2><p className="text-xs text-gray-400 mt-0.5">{fr ? "Créez un devis professionnel avec des lignes d'articles" : 'Create a professional quote with line items'}</p></div>
               <button type="button" onClick={() => setPanelOpen(false)} className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"><X className="h-5 w-5" /></button>
             </div>
 
             <form onSubmit={createQuote} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Titre <span className="text-red-500">*</span></label>
-                <input type="text" placeholder="ex. Installation HVAC" value={title}
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Titre' : 'Title'} <span className="text-red-500">*</span></label>
+                <input type="text" placeholder={fr ? 'ex. Installation HVAC' : 'e.g. HVAC installation'} value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, title: true }))}
                   required
@@ -360,14 +361,14 @@ export default function QuotesPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Client</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Client' : 'Customer'}</label>
                   <select value={customerId} onChange={(e) => setCustId(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
-                    <option value="">Sélectionner un client</option>
+                    <option value="">{fr ? 'Sélectionner un client' : 'Select a customer'}</option>
                     {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Valide jusqu&apos;au</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? "Valide jusqu'au" : 'Valid until'}</label>
                   <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                 </div>
               </div>
@@ -375,7 +376,7 @@ export default function QuotesPage() {
               {/* Line items */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium text-gray-700">Lignes d&apos;articles</label>
+                  <label className="text-sm font-medium text-gray-700">{fr ? "Lignes d'articles" : 'Line items'}</label>
                   <button type="button" onClick={() => setLineItems([...lineItems, newItem()])} className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
                     <Plus className="h-3.5 w-3.5" /> Ajouter une ligne
                   </button>
@@ -384,7 +385,7 @@ export default function QuotesPage() {
                   {lineItems.map((item, idx) => (
                     <div key={item.id} className="flex gap-2 items-start">
                       <input placeholder={`Item ${idx + 1}`} value={item.description} onChange={(e) => updateItem(item.id, 'description', e.target.value)} className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
-                      <input type="number" placeholder="Qty" value={item.qty} min={1} onChange={(e) => updateItem(item.id, 'qty', parseInt(e.target.value) || 1)} className="w-16 rounded-xl border border-gray-200 px-2 py-2 text-sm text-gray-900 text-center focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                      <input type="number" placeholder={fr ? 'Qté' : 'Qty'} value={item.qty} min={1} onChange={(e) => updateItem(item.id, 'qty', parseInt(e.target.value) || 1)} className="w-16 rounded-xl border border-gray-200 px-2 py-2 text-sm text-gray-900 text-center focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                       <div className="relative w-28">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
                         <input type="number" placeholder="0.00" step="0.01" min="0" value={item.unit_price} onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)} className="block w-full rounded-xl border border-gray-200 pl-6 pr-2 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
@@ -402,11 +403,11 @@ export default function QuotesPage() {
               {/* Totals */}
               <div className="rounded-xl bg-gray-50 p-4 space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Sous-total</span>
+                  <span className="text-gray-500">{fr ? 'Sous-total' : 'Subtotal'}</span>
                   <span className="font-medium">{fmt(subtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Taux de taxe</span>
+                  <span className="text-gray-500">{fr ? 'Taux de taxe' : 'Tax rate'}</span>
                   <div className="flex items-center gap-1.5">
                     <input type="number" value={taxRate} onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)} min={0} max={100} step="0.5" className="w-16 rounded-lg border border-gray-200 px-2 py-1 text-sm text-right text-gray-900 focus:border-indigo-500 focus:outline-none" />
                     <span className="text-gray-500">%</span>
@@ -417,28 +418,28 @@ export default function QuotesPage() {
                   <span className="font-medium">{fmt(taxAmount)}</span>
                 </div>
                 <div className="flex justify-between text-base font-bold border-t border-gray-200 pt-2 mt-2">
-                  <span>Total</span>
+                  <span>{fr ? 'Total' : 'Total'}</span>
                   <span className="text-indigo-600">{fmt(total)}</span>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
-                <textarea placeholder="Conditions, notes ou informations supplémentaires..." value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
+                <textarea placeholder={fr ? 'Conditions, notes ou informations supplémentaires...' : 'Terms, notes, or additional information...'} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               </div>
 
             </form>
 
             <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">
-              <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Annuler</button>
+              <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
               <button onClick={createQuote} disabled={loading || formInvalid} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
-                {loading ? 'Création en cours...' : 'Créer le devis'}
+                {loading ? (fr ? 'Création en cours...' : 'Creating...') : (fr ? 'Créer le devis' : 'Create quote')}
               </button>
             </div>
           </div>
         </>
       )}
-      <MobileFAB onClick={() => setPanelOpen(true)} label="Nouveau devis" />
+      <MobileFAB onClick={() => setPanelOpen(true)} label={fr ? 'Nouveau devis' : 'New quote'} />
       <ConvertQuoteModal
         open={!!convertingQuote}
         quote={convertingQuote}
