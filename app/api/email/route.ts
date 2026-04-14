@@ -98,7 +98,7 @@ function buildEmailContent(payload: EmailPayload): { subject: string; html: stri
             <span style="font-size:24px;font-weight:700;color:#4f46e5">${payload.amount || '—'}</span>
           </div>`
       return {
-        subject: `Facture ${payload.invoiceNumber || ''} — ${biz}`,
+        subject: `Facture ${payload.invoiceNumber || ''} de ${biz}${payload.amount ? ` — ${payload.amount} CAD` : ''}${payload.dueDate ? ` due ${payload.dueDate}` : ''}`.replace(/\s+/g, ' ').trim(),
         html: `
           <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#111827">
             <div style="background:#4f46e5;padding:28px 36px;border-radius:12px 12px 0 0">

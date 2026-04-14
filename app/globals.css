@@ -8,6 +8,21 @@
 /* ─── Base ─────────────────────────────────── */
 html { scroll-behavior: smooth; }
 
+/* ─── Print (Télécharger PDF via browser print-to-PDF) ────── */
+@media print {
+  body { background: white !important; }
+  .no-print { display: none !important; }
+  .print-container {
+    max-width: none !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  @page {
+    margin: 0.5in;
+    size: letter;
+  }
+}
+
 body {
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
