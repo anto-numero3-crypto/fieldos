@@ -62,7 +62,8 @@
       "Bash(grep -nE \"'[A-ZÉÀÔÇ][a-zéàôç].{3,}'\" app/invoices/page.tsx)",
       "Bash(grep -nE \"\\(placeholder=\\\\\"|>[A-ZÉÀ][a-zéà].{3,}<\\)\" app/invoices/page.tsx)",
       "Bash(grep -nE \"'[A-ZÉÀÔÇ][a-zéàôç].{3,}'\" app/invoices/\\\\[id\\\\]/page.tsx)",
-      "Bash(grep -nE \">[A-ZÉÀÔ][a-zéàô].{4,}<\" app/invoices/\\\\[id\\\\]/page.tsx)"
+      "Bash(grep -nE \">[A-ZÉÀÔ][a-zéàô].{4,}<\" app/invoices/\\\\[id\\\\]/page.tsx)",
+      "Bash(grep -nE \">[A-ZÉÀÔÇ][a-zéàôç].{3,}<|placeholder=\\\\\"\" app/invoices/new/page.tsx)"
     ]
   }
 }

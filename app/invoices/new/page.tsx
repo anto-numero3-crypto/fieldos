@@ -48,6 +48,7 @@ export default function NewInvoicePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { lang, t } = useLanguage()
+  const fr = lang === 'fr'
 
   const [user, setUser] = useState<{ id: string } | null>(null)
   const [orgName, setOrgName] = useState('')
@@ -247,7 +248,7 @@ export default function NewInvoicePage() {
             <ArrowLeft className="h-4 w-4" /> Factures
           </Link>
           <span className="text-gray-300">/</span>
-          <span className="text-sm font-semibold text-gray-900">Nouvelle facture</span>
+          <span className="text-sm font-semibold text-gray-900">{fr ? 'Nouvelle facture' : 'New invoice'}</span>
         </div>
 
         <div className="space-y-6">
@@ -257,7 +258,7 @@ export default function NewInvoicePage() {
             <div className="grid sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1.5">
-                  <Hash className="h-3.5 w-3.5" /> Numéro de facture
+                  <Hash className="h-3.5 w-3.5" /> {fr ? 'Numéro de facture' : 'Invoice number'}
                 </label>
                 <input
                   value={invoiceNumber}
@@ -311,13 +312,13 @@ export default function NewInvoicePage() {
             </h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Client *</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{fr ? 'Client *' : 'Customer *'}</label>
                 <select
                   value={customerId}
                   onChange={(e) => setCustomerId(e.target.value)}
                   className={`block w-full rounded-xl border ${showErrors && errCustomer ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'} bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2`}
                 >
-                  <option value="">Sélectionner un client…</option>
+                  <option value="">{fr ? 'Sélectionner un client…' : 'Select a customer…'}</option>
                   {customers.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
@@ -325,13 +326,13 @@ export default function NewInvoicePage() {
                 <FieldError message={showErrors ? errCustomer : ''} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Intervention liée (optionnel)</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{fr ? 'Intervention liée (optionnel)' : 'Linked job (optional)'}</label>
                 <select
                   value={jobId}
                   onChange={(e) => setJobId(e.target.value)}
                   className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
-                  <option value="">Aucune</option>
+                  <option value="">{fr ? 'Aucune' : 'None'}</option>
                   {jobs.map((j) => (
                     <option key={j.id} value={j.id}>{j.title}</option>
                   ))}
@@ -363,11 +364,11 @@ export default function NewInvoicePage() {
 
             {/* Column headers */}
             <div className="hidden sm:grid grid-cols-[1fr_80px_100px_120px_100px_40px] gap-3 px-6 py-2.5 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              <span>Description</span>
+              <span>{fr ? 'Description' : 'Description'}</span>
               <span className="text-center">Qté</span>
-              <span className="text-center">Unité</span>
-              <span className="text-right">Prix unit.</span>
-              <span className="text-right">Taxable</span>
+              <span className="text-center">{fr ? 'Unité' : 'Unit'}</span>
+              <span className="text-right">{fr ? 'Prix unit.' : 'Unit price'}</span>
+              <span className="text-right">{fr ? 'Taxable' : 'Taxable'}</span>
               <span />
             </div>
 
@@ -445,7 +446,7 @@ export default function NewInvoicePage() {
               <div className="space-y-4">
                 {/* Tax 1 */}
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">Taxe 1</label>
+                  <label className="text-sm font-medium text-gray-700">{fr ? 'Taxe 1' : 'Tax 1'}</label>
                   <button
                     type="button"
                     onClick={() => setTaxEnabled(!taxEnabled)}
@@ -459,7 +460,7 @@ export default function NewInvoicePage() {
                     <input
                       value={taxName}
                       onChange={(e) => setTaxName(e.target.value)}
-                      placeholder="Nom (ex: TPS)"
+                      placeholder={fr ? 'Nom (ex: TPS)' : 'Name (e.g. GST)'}
                       className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                     />
                     <div className="relative">
@@ -479,7 +480,7 @@ export default function NewInvoicePage() {
 
                 {/* Tax 2 */}
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">Taxe 2 (TVQ)</label>
+                  <label className="text-sm font-medium text-gray-700">{fr ? 'Taxe 2 (TVQ)' : 'Tax 2 (QST)'}</label>
                   <button
                     type="button"
                     onClick={() => setTax2Enabled(!tax2Enabled)}
@@ -493,7 +494,7 @@ export default function NewInvoicePage() {
                     <input
                       value={tax2Name}
                       onChange={(e) => setTax2Name(e.target.value)}
-                      placeholder="Nom (ex: TVQ)"
+                      placeholder={fr ? 'Nom (ex: TVQ)' : 'Name (e.g. QST)'}
                       className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                     />
                     <div className="relative">
@@ -513,7 +514,7 @@ export default function NewInvoicePage() {
 
                 {/* Discount */}
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">Escompte</label>
+                  <label className="text-sm font-medium text-gray-700">{fr ? 'Escompte' : 'Discount'}</label>
                   <button
                     type="button"
                     onClick={() => setDiscountEnabled(!discountEnabled)}
@@ -529,8 +530,8 @@ export default function NewInvoicePage() {
                       onChange={(e) => setDiscountType(e.target.value as 'fixed' | 'percent')}
                       className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                     >
-                      <option value="fixed">Montant fixe ($)</option>
-                      <option value="percent">Pourcentage (%)</option>
+                      <option value="fixed">{fr ? 'Montant fixe ($)' : 'Fixed amount ($)'}</option>
+                      <option value="percent">{fr ? 'Pourcentage (%)' : 'Percent (%)'}</option>
                     </select>
                     <div className="relative">
                       <input
@@ -553,12 +554,12 @@ export default function NewInvoicePage() {
               {/* Right: totals */}
               <div className="flex flex-col justify-end space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Sous-total</span>
+                  <span className="text-gray-500">{fr ? 'Sous-total' : 'Subtotal'}</span>
                   <span className="font-medium text-gray-900">{fmt(subtotal)}</span>
                 </div>
                 {discAmt > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Escompte</span>
+                    <span className="text-gray-500">{fr ? 'Escompte' : 'Discount'}</span>
                     <span className="font-medium text-emerald-600">-{fmt(discAmt)}</span>
                   </div>
                 )}
@@ -575,7 +576,7 @@ export default function NewInvoicePage() {
                   </div>
                 )}
                 <div className="flex justify-between border-t border-gray-200 pt-3 mt-2">
-                  <span className="text-base font-bold text-gray-900">Total</span>
+                  <span className="text-base font-bold text-gray-900">{fr ? 'Total' : 'Total'}</span>
                   <span className="text-2xl font-black text-gray-900">{fmt(total)}</span>
                 </div>
               </div>
@@ -584,31 +585,31 @@ export default function NewInvoicePage() {
 
           {/* Notes */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6 space-y-4">
-            <h2 className="text-sm font-semibold text-gray-900">Notes et conditions</h2>
+            <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Notes et conditions' : 'Notes and terms'}</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Note au client (visible sur la facture)</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{fr ? 'Note au client (visible sur la facture)' : 'Client note (visible on invoice)'}</label>
                 <textarea
                   rows={3}
                   value={clientNotes}
                   onChange={(e) => setClientNotes(e.target.value)}
-                  placeholder="Merci pour votre confiance…"
+                  placeholder={fr ? 'Merci pour votre confiance…' : 'Thank you for your business…'}
                   className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none resize-none"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 mb-1.5">Note interne (non visible par le client)</label>
+                <label className="block text-xs font-semibold text-gray-500 mb-1.5">{fr ? 'Note interne (non visible par le client)' : 'Internal note (not visible to client)'}</label>
                 <textarea
                   rows={3}
                   value={internalNotes}
                   onChange={(e) => setInternalNotes(e.target.value)}
-                  placeholder="Notes internes…"
+                  placeholder={fr ? 'Notes internes…' : 'Internal notes…'}
                   className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none resize-none"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1.5">Conditions de paiement</label>
+              <label className="block text-xs font-semibold text-gray-500 mb-1.5">{fr ? 'Conditions de paiement' : 'Payment terms'}</label>
               <input
                 value={terms}
                 onChange={(e) => setTerms(e.target.value)}
@@ -622,7 +623,7 @@ export default function NewInvoicePage() {
         <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 shadow-xl">
           <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
             <div className="text-right min-w-0 hidden sm:block">
-              <p className="text-xs text-gray-400">Total</p>
+              <p className="text-xs text-gray-400">{fr ? 'Total' : 'Total'}</p>
               <p className="text-xl font-black text-gray-900">{fmt(total)}</p>
             </div>
             <div className="flex items-center gap-2 flex-1 sm:flex-initial justify-end">
@@ -632,7 +633,7 @@ export default function NewInvoicePage() {
                 className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-sm"
               >
                 <Save className="h-4 w-4" />
-                {saving ? 'Enregistrement…' : 'Brouillon'}
+                {saving ? (fr ? 'Enregistrement…' : 'Saving…') : (fr ? 'Brouillon' : 'Draft')}
               </button>
               <button
                 onClick={saveAndSend}
@@ -640,7 +641,7 @@ export default function NewInvoicePage() {
                 className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-sm"
               >
                 <Send className="h-4 w-4" />
-                {sending ? 'Envoi…' : 'Enregistrer et envoyer'}
+                {sending ? (fr ? 'Envoi…' : 'Sending…') : (fr ? 'Enregistrer et envoyer' : 'Save and send')}
               </button>
             </div>
           </div>
