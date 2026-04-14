@@ -12,11 +12,30 @@ html { scroll-behavior: smooth; }
 .print-only { display: none; }
 
 @media print {
-  body { background: white !important; color: #000 !important; }
+  @page { size: letter; margin: 0.75in; }
+  body {
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif !important;
+    font-size: 11px !important;
+    color: #000 !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .screen-only, .no-print { display: none !important; }
   .print-only { display: block !important; }
-  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  @page { margin: 1in; size: letter; }
+  .print-invoice-section { page-break-inside: avoid; }
+  .print-table-header {
+    background: #1a1a1a !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-total-row {
+    background: #000 !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
 
 body {
