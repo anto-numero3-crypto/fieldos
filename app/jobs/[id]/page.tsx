@@ -35,11 +35,17 @@ const STATUS_CFG: Record<string, { label: string; cls: string; dotCls: string }>
   complete:    { label: 'Terminé',    cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100', dotCls: 'bg-emerald-500' },
   cancelled:   { label: 'Annulé',     cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100',      dotCls: 'bg-gray-400' },
 }
-const PRIORITY_CFG: Record<string, { label: string; cls: string }> = {
+const PRIORITY_CFG_FR: Record<string, { label: string; cls: string }> = {
   low:    { label: 'Basse priorité',   cls: 'text-gray-500' },
   normal: { label: 'Priorité normale', cls: 'text-blue-500' },
   high:   { label: 'Haute priorité',   cls: 'text-amber-600' },
   urgent: { label: 'Urgent',           cls: 'text-red-600' },
+}
+const PRIORITY_CFG_EN: Record<string, { label: string; cls: string }> = {
+  low:    { label: 'Low priority',    cls: 'text-gray-500' },
+  normal: { label: 'Normal priority', cls: 'text-blue-500' },
+  high:   { label: 'High priority',   cls: 'text-amber-600' },
+  urgent: { label: 'Urgent',          cls: 'text-red-600' },
 }
 
 
@@ -48,7 +54,9 @@ export default function JobDetailPage() {
   const router  = useRouter()
   const confirm = useConfirm()
   const { lang, t }   = useLanguage()
+  const fr = lang === 'fr'
   const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
+  const PRIORITY_CFG = fr ? PRIORITY_CFG_FR : PRIORITY_CFG_EN
   const fmtDate = (d: string) => fmtDateLib(d, lang)
   const fmt = (n: number) => fmtMoney(n, lang)
 
@@ -192,9 +200,9 @@ export default function JobDetailPage() {
 
   const deleteJob = async () => {
     const { confirmed } = await confirm({
-      title: 'Supprimer cet emploi ?',
-      description: 'Cette action est irréversible.',
-      confirmLabel: 'Supprimer',
+      title: fr ? 'Supprimer cet emploi ?' : 'Delete this job?',
+      description: fr ? 'Cette action est irréversible.' : 'This cannot be undone.',
+      confirmLabel: fr ? 'Supprimer' : 'Delete',
     })
     if (!confirmed) return
     await supabase.from('jobs').delete().eq('id', id)
@@ -235,7 +243,7 @@ export default function JobDetailPage() {
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6">
           <Link href="/jobs" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Interventions
+            <ArrowLeft className="h-4 w-4" /> {fr ? 'Interventions' : 'Jobs'}
           </Link>
           <span className="text-gray-300">/</span>
           <span className="text-sm font-medium text-gray-900 truncate">{job.title}</span>
@@ -245,10 +253,10 @@ export default function JobDetailPage() {
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm px-6 py-4 mb-4 overflow-x-auto">
           <div className="flex items-center gap-0 min-w-max">
             {[
-              { key: 'scheduled', label: 'Planifié', dot: 'bg-blue-500' },
-              { key: 'in_progress', label: 'En cours', dot: 'bg-amber-500' },
-              { key: 'complete', label: 'Terminé', dot: 'bg-emerald-500' },
-              { key: 'invoiced', label: 'Facturé', dot: 'bg-indigo-500' },
+              { key: 'scheduled', label: tStatus('scheduled'), dot: 'bg-blue-500' },
+              { key: 'in_progress', label: tStatus('in_progress'), dot: 'bg-amber-500' },
+              { key: 'complete', label: tStatus('complete'), dot: 'bg-emerald-500' },
+              { key: 'invoiced', label: fr ? 'Facturé' : 'Invoiced', dot: 'bg-indigo-500' },
             ].map((step, i) => {
               const statuses = ['scheduled', 'in_progress', 'complete', 'invoiced']
               const currentIdx = statuses.indexOf(job.status === 'cancelled' ? 'scheduled' : (invoiceLinked ? 'invoiced' : job.status))
@@ -299,7 +307,7 @@ export default function JobDetailPage() {
                   )}
                   {job.source === 'quote' && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 text-violet-700 px-2.5 py-0.5 text-xs font-semibold">
-                      <FileText className="h-3 w-3" /> Créé depuis un devis
+                      <FileText className="h-3 w-3" /> {fr ? 'Créé depuis un devis' : 'Created from quote'}
                       {job.quote_id && (
                         <Link href={`/quotes`} className="ml-1 underline">voir</Link>
                       )}
@@ -373,25 +381,25 @@ export default function JobDetailPage() {
               <textarea value={eDesc} onChange={(e) => setEDesc(e.target.value)} placeholder="Description..." rows={3} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Date</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Date' : 'Date'}</label>
                   <input type="date" value={eDate} onChange={(e) => setEDate(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Priorité</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Priorité' : 'Priority'}</label>
                   <select value={ePriority} onChange={(e) => setEPriority(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                    {[['low','Basse'],['normal','Normale'],['high','Haute'],['urgent','Urgent']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                    {(fr ? [['low','Basse'],['normal','Normale'],['high','Haute'],['urgent','Urgent']] : [['low','Low'],['normal','Normal'],['high','High'],['urgent','Urgent']]).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Heure de début</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Heure de début' : 'Start time'}</label>
                   <input type="time" value={eStart} onChange={(e) => setEStart(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">Heure de fin</label>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Heure de fin' : 'End time'}</label>
                   <input type="time" value={eEnd} onChange={(e) => setEEnd(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
               </div>
-              <input value={eAddr} onChange={(e) => setEAddr(e.target.value)} placeholder="Adresse d'intervention..." className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+              <input value={eAddr} onChange={(e) => setEAddr(e.target.value)} placeholder={fr ? "Adresse d'intervention..." : 'Service address...'} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
             </div>
           ) : (
             <div className="mt-4 space-y-3">
@@ -461,7 +469,7 @@ export default function JobDetailPage() {
               <div className="flex gap-2 px-5 py-3 border-t border-gray-50">
                 <input
                   type="text"
-                  placeholder="Ajouter une tâche..."
+                  placeholder={fr ? 'Ajouter une tâche...' : 'Add a task...'}
                   value={newCheckItem}
                   onChange={(e) => setNewCheckItem(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCheckItem() } }}
@@ -476,14 +484,14 @@ export default function JobDetailPage() {
             {/* Internal notes */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
               <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <StickyNote className="h-4 w-4 text-amber-500" /> Notes internes
+                <StickyNote className="h-4 w-4 text-amber-500" /> {fr ? 'Notes internes' : 'Internal notes'}
               </h2>
               {editMode ? (
-                <textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} placeholder="Notes visibles uniquement par votre équipe..." rows={4} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
+                <textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} placeholder={fr ? 'Notes visibles uniquement par votre équipe...' : 'Notes visible to your team only...'} rows={4} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               ) : job.internal_notes ? (
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{job.internal_notes}</p>
               ) : (
-                <p className="text-sm text-gray-400 italic">Aucune note. Modifiez l'intervention pour ajouter des notes.</p>
+                <p className="text-sm text-gray-400 italic">{fr ? "Aucune note. Modifiez l'intervention pour ajouter des notes." : 'No notes. Edit the job to add notes.'}</p>
               )}
             </div>
           </div>
@@ -508,12 +516,12 @@ export default function JobDetailPage() {
               ) : (
                 <div className="text-center py-4">
                   <DollarSign className="h-8 w-8 text-gray-200 mx-auto mb-2" />
-                  <p className="text-xs text-gray-400 mb-3">Aucune facture générée</p>
+                  <p className="text-xs text-gray-400 mb-3">{fr ? 'Aucune facture générée' : 'No invoice generated'}</p>
                   <button
                     onClick={generateInvoice}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors"
                   >
-                    <Plus className="h-3.5 w-3.5" />Créer une facture
+                    <Plus className="h-3.5 w-3.5" />{fr ? 'Créer une facture' : 'Create invoice'}
                   </button>
                 </div>
               )}
@@ -523,14 +531,14 @@ export default function JobDetailPage() {
             {team.length > 0 && (
               <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
                 <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <User className="h-4 w-4 text-indigo-500" /> Assigné à
+                  <User className="h-4 w-4 text-indigo-500" /> {fr ? 'Assigné à' : 'Assigned to'}
                 </h2>
                 <select
                   value={job.assigned_to || ''}
                   onChange={(e) => assignMember(e.target.value)}
                   className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
-                  <option value="">Non assigné</option>
+                  <option value="">{fr ? 'Non assigné' : 'Unassigned'}</option>
                   {team.map((m) => (
                     <option key={m.id} value={m.id}>{m.name}</option>
                   ))}
@@ -540,30 +548,30 @@ export default function JobDetailPage() {
 
             {/* Job details */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
-              <h2 className="text-sm font-semibold text-gray-900 mb-3">Détails de l'intervention</h2>
+              <h2 className="text-sm font-semibold text-gray-900 mb-3">{fr ? "Détails de l'intervention" : 'Job details'}</h2>
               <dl className="space-y-2.5 text-sm">
                 <div className="flex justify-between">
-                  <dt className="text-gray-500">Statut</dt>
+                  <dt className="text-gray-500">{fr ? 'Statut' : 'Status'}</dt>
                   <dd><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scfg?.cls}`}>{tStatus(job.status)}</span></dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-gray-500">Priorité</dt>
+                  <dt className="text-gray-500">{fr ? 'Priorité' : 'Priority'}</dt>
                   <dd className={`font-medium text-xs ${pcfg.cls}`}>{pcfg.label}</dd>
                 </div>
                 {job.scheduled_date && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-500">Date</dt>
+                    <dt className="text-gray-500">{fr ? 'Date' : 'Date'}</dt>
                     <dd className="font-medium text-gray-900 text-xs">{fmtDate(job.scheduled_date)}</dd>
                   </div>
                 )}
                 {job.start_time && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-500">Heure</dt>
+                    <dt className="text-gray-500">{fr ? 'Heure' : 'Time'}</dt>
                     <dd className="font-medium text-gray-900 text-xs">{job.start_time}{job.end_time ? ` – ${job.end_time}` : ''}</dd>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <dt className="text-gray-500">Créé</dt>
+                  <dt className="text-gray-500">{fr ? 'Créé' : 'Created'}</dt>
                   <dd className="font-medium text-gray-900 text-xs">{fmtDate(job.created_at)}</dd>
                 </div>
               </dl>
