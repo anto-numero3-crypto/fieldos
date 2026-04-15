@@ -70,7 +70,8 @@
       "Bash(grep -nE \">[A-ZÉÀÔÇ][a-zéàôç].{4,}<|placeholder=\\\\\"|title=\\\\\"[A-ZÉ]\" app/team/page.tsx)",
       "Bash(grep -nE \"'[A-ZÉÀÔÇ][a-zéàôç].{4,}'|>[A-ZÉÀÔÇ][a-zéàôç].{4,}<\" app/team/page.tsx)",
       "Bash(grep -nE \">[A-ZÉÀÔÇ][a-zéàôç].{4,}<|placeholder=\\\\\"\" app/settings/page.tsx)",
-      "Bash(grep -nE \"label=\\\\\"[A-ZÉÀÔÇ][a-zéàôç].{3,}\\\\\"\" app/settings/page.tsx)"
+      "Bash(grep -nE \"label=\\\\\"[A-ZÉÀÔÇ][a-zéàôç].{3,}\\\\\"\" app/settings/page.tsx)",
+      "Bash(grep -nE \">[A-ZÉÀÔÇ][a-zéàôç].{4,}<|placeholder=\\\\\"|label:\\\\s*'\" app/notifications/page.tsx)"
     ]
   }
 }

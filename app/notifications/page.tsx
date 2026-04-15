@@ -26,38 +26,51 @@ interface Notification {
   created_at: string
 }
 
-const TYPE_ICON: Record<string, { Icon: React.ComponentType<{ className?: string }>; bg: string; fg: string; label: string }> = {
-  booking_request:   { Icon: Calendar,    bg: 'bg-amber-50',   fg: 'text-amber-600',   label: 'Réservation' },
-  booking_confirmed: { Icon: CheckCircle, bg: 'bg-emerald-50', fg: 'text-emerald-600', label: 'Réservation' },
-  invoice_paid:      { Icon: DollarSign,  bg: 'bg-emerald-50', fg: 'text-emerald-600', label: 'Paiement' },
-  invoice_overdue:   { Icon: AlertCircle, bg: 'bg-red-50',     fg: 'text-red-600',     label: 'Facture' },
-  new_customer:      { Icon: UserPlus,    bg: 'bg-blue-50',    fg: 'text-blue-600',    label: 'Client' },
-  job_completed:     { Icon: Briefcase,   bg: 'bg-emerald-50', fg: 'text-emerald-600', label: 'Emploi' },
-  payment_failed:    { Icon: XCircle,     bg: 'bg-red-50',     fg: 'text-red-600',     label: 'Paiement' },
-  trial_ending:      { Icon: Clock,       bg: 'bg-orange-50',  fg: 'text-orange-600',  label: 'Essai' },
-  success:           { Icon: CheckCircle, bg: 'bg-emerald-50', fg: 'text-emerald-600', label: 'Succès' },
-  error:             { Icon: AlertCircle, bg: 'bg-red-50',     fg: 'text-red-600',     label: 'Erreur' },
-  warning:           { Icon: AlertTriangle, bg: 'bg-amber-50', fg: 'text-amber-600',   label: 'Alerte' },
-  info:              { Icon: Info,        bg: 'bg-blue-50',    fg: 'text-blue-600',    label: 'Info' },
+type IconMap = Record<string, { Icon: React.ComponentType<{ className?: string }>; bg: string; fg: string; label: string }>
+
+function getTypeIcon(fr: boolean): IconMap {
+  return {
+    booking_request:   { Icon: Calendar,    bg: 'bg-amber-50',   fg: 'text-amber-600',   label: fr ? 'Réservation' : 'Booking' },
+    booking_confirmed: { Icon: CheckCircle, bg: 'bg-emerald-50', fg: 'text-emerald-600', label: fr ? 'Réservation' : 'Booking' },
+    invoice_paid:      { Icon: DollarSign,  bg: 'bg-emerald-50', fg: 'text-emerald-600', label: fr ? 'Paiement' : 'Payment' },
+    invoice_overdue:   { Icon: AlertCircle, bg: 'bg-red-50',     fg: 'text-red-600',     label: fr ? 'Facture' : 'Invoice' },
+    new_customer:      { Icon: UserPlus,    bg: 'bg-blue-50',    fg: 'text-blue-600',    label: fr ? 'Client' : 'Customer' },
+    job_completed:     { Icon: Briefcase,   bg: 'bg-emerald-50', fg: 'text-emerald-600', label: fr ? 'Emploi' : 'Job' },
+    payment_failed:    { Icon: XCircle,     bg: 'bg-red-50',     fg: 'text-red-600',     label: fr ? 'Paiement' : 'Payment' },
+    trial_ending:      { Icon: Clock,       bg: 'bg-orange-50',  fg: 'text-orange-600',  label: fr ? 'Essai' : 'Trial' },
+    success:           { Icon: CheckCircle, bg: 'bg-emerald-50', fg: 'text-emerald-600', label: fr ? 'Succès' : 'Success' },
+    error:             { Icon: AlertCircle, bg: 'bg-red-50',     fg: 'text-red-600',     label: fr ? 'Erreur' : 'Error' },
+    warning:           { Icon: AlertTriangle, bg: 'bg-amber-50', fg: 'text-amber-600',   label: fr ? 'Alerte' : 'Alert' },
+    info:              { Icon: Info,        bg: 'bg-blue-50',    fg: 'text-blue-600',    label: 'Info' },
+  }
 }
-const FILTER_TYPES: Array<{ value: string; label: string }> = [
-  { value: 'all',               label: 'Tous les types' },
-  { value: 'booking_request',   label: 'Réservations' },
-  { value: 'invoice_paid',      label: 'Paiements reçus' },
-  { value: 'invoice_overdue',   label: 'Factures en retard' },
-  { value: 'new_customer',      label: 'Nouveaux clients' },
-  { value: 'job_completed',     label: 'Emplois complétés' },
-  { value: 'payment_failed',    label: 'Paiements échoués' },
-  { value: 'trial_ending',      label: 'Essai' },
-]
 
+function getFilterTypes(fr: boolean): Array<{ value: string; label: string }> {
+  return [
+    { value: 'all',               label: fr ? 'Tous les types' : 'All types' },
+    { value: 'booking_request',   label: fr ? 'Réservations' : 'Bookings' },
+    { value: 'invoice_paid',      label: fr ? 'Paiements reçus' : 'Payments received' },
+    { value: 'invoice_overdue',   label: fr ? 'Factures en retard' : 'Overdue invoices' },
+    { value: 'new_customer',      label: fr ? 'Nouveaux clients' : 'New customers' },
+    { value: 'job_completed',     label: fr ? 'Emplois complétés' : 'Completed jobs' },
+    { value: 'payment_failed',    label: fr ? 'Paiements échoués' : 'Failed payments' },
+    { value: 'trial_ending',      label: fr ? 'Essai' : 'Trial' },
+  ]
+}
 
-const timeAgo = (date: string) => {
+const timeAgoFr = (date: string) => {
   const secs = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
   if (secs < 60) return "à l'instant"
   if (secs < 3600) return `il y a ${Math.floor(secs / 60)} min`
   if (secs < 86400) return `il y a ${Math.floor(secs / 3600)} h`
   return `il y a ${Math.floor(secs / 86400)} j`
+}
+const timeAgoEn = (date: string) => {
+  const secs = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
+  if (secs < 60) return 'just now'
+  if (secs < 3600) return `${Math.floor(secs / 60)} min ago`
+  if (secs < 86400) return `${Math.floor(secs / 3600)} h ago`
+  return `${Math.floor(secs / 86400)} d ago`
 }
 
 export default function NotificationsPage() {
@@ -67,7 +80,11 @@ export default function NotificationsPage() {
   const [filterType, setFilterType] = useState<string>('all')
   const [filterRead, setFilterRead] = useState<'all' | 'unread' | 'read'>('all')
   const confirm = useConfirm()
-  const { t } = useLanguage()
+  const { lang, t } = useLanguage()
+  const fr = lang === 'fr'
+  const TYPE_ICON = getTypeIcon(fr)
+  const FILTER_TYPES = getFilterTypes(fr)
+  const timeAgo = fr ? timeAgoFr : timeAgoEn
 
   const load = useCallback(async (uid: string) => {
     setLoading(true)
@@ -118,9 +135,11 @@ export default function NotificationsPage() {
   const deleteOld = async () => {
     if (!userId) return
     const { confirmed } = await confirm({
-      title: 'Supprimer les anciennes notifications ?',
-      description: 'Toutes les notifications de plus de 30 jours seront supprimées définitivement.',
-      confirmLabel: 'Supprimer',
+      title: fr ? 'Supprimer les anciennes notifications ?' : 'Delete old notifications?',
+      description: fr
+        ? 'Toutes les notifications de plus de 30 jours seront supprimées définitivement.'
+        : 'All notifications older than 30 days will be permanently deleted.',
+      confirmLabel: fr ? 'Supprimer' : 'Delete',
     })
     if (!confirmed) return
     const cutoff = new Date(Date.now() - 30 * 86400000).toISOString()
@@ -137,22 +156,26 @@ export default function NotificationsPage() {
   const unreadCount = items.filter((n) => !n.read).length
 
   return (
-    <AppLayout title="Notifications">
+    <AppLayout title={fr ? 'Notifications' : 'Notifications'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto space-y-5">
         {/* Header / actions */}
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Notifications</h1>
-            <p className="text-sm text-gray-500 mt-0.5">{items.length} au total · {unreadCount} non lue{unreadCount > 1 ? 's' : ''}</p>
+            <h1 className="text-xl font-bold text-gray-900">{fr ? 'Notifications' : 'Notifications'}</h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {fr
+                ? `${items.length} au total · ${unreadCount} non lue${unreadCount > 1 ? 's' : ''}`
+                : `${items.length} total · ${unreadCount} unread`}
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {unreadCount > 0 && (
               <button onClick={markAllRead} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-                Tout marquer comme lu
+                {fr ? 'Tout marquer comme lu' : 'Mark all as read'}
               </button>
             )}
             <button onClick={deleteOld} className="inline-flex items-center gap-1.5 rounded-xl border border-red-100 bg-white px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">
-              Supprimer les anciennes
+              {fr ? 'Supprimer les anciennes' : 'Delete old'}
             </button>
           </div>
         </div>
@@ -173,7 +196,7 @@ export default function NotificationsPage() {
                 onClick={() => setFilterRead(k)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${filterRead === k ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
-                {k === 'all' ? 'Toutes' : k === 'unread' ? 'Non lues' : 'Lues'}
+                {k === 'all' ? (fr ? 'Toutes' : 'All') : k === 'unread' ? (fr ? 'Non lues' : 'Unread') : (fr ? 'Lues' : 'Read')}
               </button>
             ))}
           </div>
@@ -186,8 +209,10 @@ export default function NotificationsPage() {
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
             <EmptyState
               icon={Bell}
-              title="Aucune notification"
-              description={items.length === 0 ? "Vos alertes apparaîtront ici dès qu'il se passera quelque chose dans votre compte." : 'Aucune notification ne correspond à vos filtres.'}
+              title={fr ? 'Aucune notification' : 'No notifications'}
+              description={items.length === 0
+                ? (fr ? "Vos alertes apparaîtront ici dès qu'il se passera quelque chose dans votre compte." : 'Your alerts will appear here as soon as something happens in your account.')
+                : (fr ? 'Aucune notification ne correspond à vos filtres.' : 'No notifications match your filters.')}
             />
           </div>
         ) : (
@@ -224,7 +249,7 @@ export default function NotificationsPage() {
 
         {/* Quick link back */}
         <div className="text-center pt-2">
-          <Link href="/dashboard" className="text-xs text-gray-400 hover:text-gray-600">← Retour au tableau de bord</Link>
+          <Link href="/dashboard" className="text-xs text-gray-400 hover:text-gray-600">← {fr ? 'Retour au tableau de bord' : 'Back to dashboard'}</Link>
         </div>
       </div>
     </AppLayout>
