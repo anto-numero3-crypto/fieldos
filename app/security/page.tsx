@@ -57,14 +57,14 @@ export default function SecurityPage() {
     'Les mots de passe sont hachés avec bcrypt (minimum 10 rondes)',
     'Les jetons de session sont cryptographiquement aléatoires et expirent automatiquement',
     'Vérification par courriel requise pour les nouveaux comptes',
-    'Authentification à deux facteurs (2FA) à venir au T3 2025',
+    'Authentification à deux facteurs (2FA) disponible via TOTP et SMS',
     'Connexion sociale via OAuth 2.0 (Google) disponible',
     'Limitation de débit sur tous les points d\'authentification pour prévenir les attaques par force brute',
   ] : [
     'Passwords are hashed using bcrypt with a minimum 10 rounds',
     'Session tokens are cryptographically random and expire automatically',
     'Email verification required for new accounts',
-    'Two-factor authentication (2FA) coming in Q3 2025',
+    'Two-factor authentication (2FA) available via TOTP and SMS',
     'Social login via OAuth 2.0 (Google) available',
     'Rate limiting on all authentication endpoints to prevent brute-force attacks',
   ]
@@ -74,9 +74,9 @@ export default function SecurityPage() {
     { status: 'done', item: lang === 'fr' ? 'Conformité Loi 25 du Québec' : 'Québec Law 25 compliance' },
     { status: 'done', item: lang === 'fr' ? 'TLS/HTTPS partout' : 'TLS/HTTPS everywhere' },
     { status: 'done', item: lang === 'fr' ? 'Ententes de traitement avec tous les sous-traitants' : 'Data processing agreements with all sub-processors' },
-    { status: 'planned', item: lang === 'fr' ? 'Audit SOC 2 Type I (prévu T4 2025)' : 'SOC 2 Type I audit (planned Q4 2025)' },
-    { status: 'planned', item: lang === 'fr' ? 'Certification SOC 2 Type II (prévue 2026)' : 'SOC 2 Type II certification (planned 2026)' },
-    { status: 'planned', item: lang === 'fr' ? 'Certification ISO 27001 (prévue 2026)' : 'ISO 27001 certification (planned 2026)' },
+    { status: 'done', item: lang === 'fr' ? 'Audit SOC 2 Type I complété (janvier 2026)' : 'SOC 2 Type I audit completed (January 2026)' },
+    { status: 'planned', item: lang === 'fr' ? 'Certification SOC 2 Type II (prévue T4 2026)' : 'SOC 2 Type II certification (planned Q4 2026)' },
+    { status: 'planned', item: lang === 'fr' ? 'Certification ISO 27001 (prévue 2027)' : 'ISO 27001 certification (planned 2027)' },
   ]
 
   return (
