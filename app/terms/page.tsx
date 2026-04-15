@@ -7,7 +7,7 @@ import { LanguageToggle } from '@/components/LanguageToggle'
 
 export default function TermsPage() {
   const { lang } = useLanguage()
-  const lastUpdated = lang === 'fr' ? '11 avril 2025' : 'April 11, 2025'
+  const lastUpdated = lang === 'fr' ? '1 avril 2026' : 'April 1, 2026'
 
   return (
     <div className="min-h-screen bg-white">
