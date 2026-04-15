@@ -88,6 +88,12 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
         return
       }
 
+      fetch('/api/integrations/google/sync-job', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId: job.id, action: 'upsert' }),
+      }).catch(() => {})
+
       const { error: qErr } = await supabase
         .from('quotes')
         .update({ status: 'converted', converted_to_job_id: job.id })

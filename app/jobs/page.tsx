@@ -113,14 +113,21 @@ export default function JobsPage() {
     setTouched({ title: true })
     if (formInvalid) return
     setLoading(true)
-    const { error } = await supabase.from('jobs').insert({
+    const { data: inserted, error } = await supabase.from('jobs').insert({
       user_id: user!.id, customer_id: customerId || null,
       title: title.trim(), description: description.trim() || null,
       scheduled_date: scheduledDate || null, status, priority,
       start_time: startTime || null, end_time: endTime || null,
-    })
+    }).select('id').single()
     if (error) { toast.error(error.message) }
     else {
+      if (inserted?.id) {
+        fetch('/api/integrations/google/sync-job', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobId: inserted.id, action: 'upsert' }),
+        }).catch(() => {})
+      }
       toast.success(t.success.created)
       setTitle(''); setDesc(''); setCustId(''); setDate(''); setStatus('scheduled'); setPriority('normal'); setStartTime(''); setEndTime('')
       await fetchJobs(user!.id)
@@ -136,6 +143,11 @@ export default function JobsPage() {
       confirmLabel: fr ? 'Supprimer' : 'Delete',
     })
     if (!confirmed) return
+    fetch('/api/integrations/google/sync-job', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId: id, action: 'delete' }),
+    }).catch(() => {})
     await supabase.from('jobs').delete().eq('id', id)
     setJobs((prev) => prev.filter((j) => j.id !== id))
     setMenuOpen(null)

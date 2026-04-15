@@ -17,7 +17,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 import { fmtDate } from '@/lib/format'
 import {
   Building2, Bell, Shield, Globe, Save, CheckCircle, AlertCircle,
-  Phone, CreditCard, Wrench, Sparkles, Link as LinkIcon, Copy, Check,
+  CreditCard, Wrench, Sparkles, Link as LinkIcon, Copy, Check,
   ExternalLink, Loader2, DollarSign, Plus, Trash2, Clock,
 } from 'lucide-react'
 
@@ -220,6 +220,11 @@ export default function SettingsPage() {
   const [newSvcDesc, setNewSvcDesc]     = useState('')
   const [addingSvc, setAddingSvc]       = useState(false)
 
+  // Google Calendar
+  const [googleConnected, setGoogleConnected] = useState(false)
+  const [googleEmail, setGoogleEmail] = useState<string | null>(null)
+  const [googleLoading, setGoogleLoading] = useState(false)
+
   // Notifications
   const [notifJobCreated, setNotifJobCreated]         = useState(true)
   const [notifJobComplete, setNotifJobComplete]       = useState(true)
@@ -262,10 +267,17 @@ export default function SettingsPage() {
       if (params.get('canceled') === 'true') {
         toast.info('Paiement annulé.')
       }
+      if (params.get('google') === 'success') {
+        toast.success(fr ? 'Google Calendar connecté' : 'Google Calendar connected')
+      } else if (params.get('google') === 'error') {
+        toast.error(fr ? 'Échec de la connexion à Google Calendar' : 'Google Calendar connection failed')
+      }
 
       if (org) {
         setOrgId(org.id)
         if (org.slug) setOrgSlug(org.slug)
+        setGoogleConnected(!!org.google_calendar_connected)
+        setGoogleEmail(org.google_calendar_email || null)
         if (org.name)            setBizName(org.name)
         if (org.phone)           setBizPhone(org.phone)
         if (org.email)           setBizEmail(org.email)
@@ -507,14 +519,33 @@ export default function SettingsPage() {
     { key: 'integrations',  label: fr ? 'Intégrations' : 'Integrations',          icon: Globe },
   ]
 
-  const INTEGRATIONS = [
-    { name: 'Stripe Payments', desc: 'Accept online payments from customers', icon: CreditCard, connected: true },
-    { name: 'Resend Email', desc: 'Transactional email for invoices and reminders', icon: Bell, connected: true },
-    { name: 'Anthropic Claude', desc: 'AI assistant and booking agent', icon: Sparkles, connected: true },
-    { name: 'Google Calendar', desc: 'Two-way sync jobs with Google Calendar', icon: Globe, connected: false },
-    { name: 'QuickBooks', desc: 'Export invoices and revenue data', icon: Building2, connected: false },
-    { name: 'Twilio SMS', desc: 'Send SMS notifications to customers', icon: Phone, connected: false },
-  ]
+  const handleGoogleConnect = () => {
+    window.location.href = '/api/integrations/google/connect'
+  }
+
+  const handleGoogleDisconnect = async () => {
+    const { confirmed } = await confirm({
+      title: fr ? 'Déconnecter Google Calendar ?' : 'Disconnect Google Calendar?',
+      description: fr
+        ? 'Les nouveaux emplois ne seront plus synchronisés. Les événements déjà créés resteront dans votre calendrier.'
+        : 'New jobs will no longer sync. Events already created will remain in your calendar.',
+      confirmLabel: fr ? 'Déconnecter' : 'Disconnect',
+    })
+    if (!confirmed) return
+    setGoogleLoading(true)
+    try {
+      const res = await fetch('/api/integrations/google/disconnect', { method: 'POST' })
+      if (!res.ok) throw new Error(await res.text())
+      setGoogleConnected(false)
+      setGoogleEmail(null)
+      toast.success(fr ? 'Google Calendar déconnecté' : 'Google Calendar disconnected')
+    } catch (err) {
+      console.error('[google disconnect]', err)
+      toast.error(fr ? 'Échec de la déconnexion' : 'Disconnect failed')
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
 
   return (
     <AppLayout title="Paramètres">
@@ -1133,41 +1164,74 @@ export default function SettingsPage() {
         {tab === 'integrations' && (
           <div className="space-y-4">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Services connectés</h2>
-              <p className="text-sm text-gray-400 mb-5">Gérez les intégrations avec des outils tiers.</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Services connectés' : 'Connected services'}</h2>
+              <p className="text-sm text-gray-400 mb-5">{fr ? 'Gérez les intégrations avec des outils tiers.' : 'Manage third-party integrations.'}</p>
               <div className="space-y-3">
-                {INTEGRATIONS.map((intg) => (
+                {[
+                  { name: 'Stripe Payments', desc: fr ? 'Paiements en ligne par vos clients' : 'Accept online payments from customers', icon: CreditCard },
+                  { name: 'Resend Email', desc: fr ? 'E-mails transactionnels pour factures et rappels' : 'Transactional email for invoices and reminders', icon: Bell },
+                  { name: 'Anthropic Claude', desc: fr ? 'Assistant IA et agent de réservation' : 'AI assistant and booking agent', icon: Sparkles },
+                ].map((intg) => (
                   <div key={intg.name} className="flex items-center justify-between rounded-xl border border-gray-100 p-4">
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${intg.connected ? 'bg-emerald-100' : 'bg-gray-100'}`}>
-                        <intg.icon className={`h-5 w-5 ${intg.connected ? 'text-emerald-600' : 'text-gray-500'}`} />
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100">
+                        <intg.icon className="h-5 w-5 text-emerald-600" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-semibold text-gray-900">{intg.name}</p>
-                          {intg.connected && (
-                            <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                              <CheckCircle className="h-3 w-3" /> Connecté
-                            </span>
-                          )}
+                          <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                            <CheckCircle className="h-3 w-3" /> Connecté
+                          </span>
                         </div>
                         <p className="text-xs text-gray-400">{intg.desc}</p>
                       </div>
                     </div>
-                    {!intg.connected && (
-                      <button className="shrink-0 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors">Connecter</button>
-                    )}
                   </div>
                 ))}
-              </div>
-            </div>
 
-            <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-5">
-              <p className="text-sm font-semibold text-indigo-700 mb-1 flex items-center gap-2">
-                <Wrench className="h-4 w-4" /> Webhooks & Automation
-              </p>
-              <p className="text-xs text-indigo-600 mb-3">Connectez Gestivio à plus de 5 000 applications via Zapier, ou créez des automatisations personnalisées avec des webhooks.</p>
-              <button className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">Configurer les webhooks</button>
+                {/* Google Calendar */}
+                <div className="flex items-center justify-between rounded-xl border border-gray-100 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${googleConnected ? 'bg-emerald-100' : 'bg-gray-100'}`}>
+                      <Globe className={`h-5 w-5 ${googleConnected ? 'text-emerald-600' : 'text-gray-500'}`} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-gray-900">Google Calendar</p>
+                        {googleConnected && (
+                          <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                            <CheckCircle className="h-3 w-3" /> Connecté
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-400">
+                        {googleConnected
+                          ? (googleEmail
+                              ? (fr ? `Synchronisation active · ${googleEmail}` : `Sync active · ${googleEmail}`)
+                              : (fr ? 'Synchronisation active' : 'Sync active'))
+                          : (fr ? 'Synchronisez vos interventions avec Google Calendar automatiquement' : 'Automatically sync your jobs with Google Calendar')}
+                      </p>
+                    </div>
+                  </div>
+                  {googleConnected ? (
+                    <button
+                      onClick={handleGoogleDisconnect}
+                      disabled={googleLoading}
+                      className="shrink-0 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors disabled:opacity-60"
+                    >
+                      {fr ? 'Déconnecter' : 'Disconnect'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleGoogleConnect}
+                      className="shrink-0 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                    >
+                      {fr ? 'Connecter Google Calendar' : 'Connect Google Calendar'}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}

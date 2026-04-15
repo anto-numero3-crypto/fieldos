@@ -156,6 +156,11 @@ export default function JobDetailPage() {
         start_time: eStart || null, end_time: eEnd || null, service_address: eAddr || null,
         internal_notes: eNotes || null, priority: ePriority })
       setEditMode(false)
+      fetch('/api/integrations/google/sync-job', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId: id, action: 'upsert' }),
+      }).catch(() => {})
     }
     setSaving(false)
   }
@@ -205,6 +210,11 @@ export default function JobDetailPage() {
       confirmLabel: fr ? 'Supprimer' : 'Delete',
     })
     if (!confirmed) return
+    fetch('/api/integrations/google/sync-job', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId: id, action: 'delete' }),
+    }).catch(() => {})
     await supabase.from('jobs').delete().eq('id', id)
     router.push('/jobs')
   }
