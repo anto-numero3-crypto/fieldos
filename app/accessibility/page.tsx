@@ -80,7 +80,7 @@ export default function AccessibilityPage() {
           {lang === 'fr' ? 'Déclaration d\'accessibilité' : 'Accessibility Statement'}
         </h1>
         <p className="text-sm text-gray-400 mb-12">
-          {lang === 'fr' ? 'Dernière révision : 11 avril 2025' : 'Last reviewed: April 11, 2025'}
+          {lang === 'fr' ? 'Dernière révision : 1 avril 2026' : 'Last reviewed: April 1, 2026'}
         </p>
 
         <div className="space-y-8 text-sm text-gray-700 leading-relaxed">
