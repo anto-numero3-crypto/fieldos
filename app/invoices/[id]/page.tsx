@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../../supabase'
 import AppLayout from '@/components/AppLayout'
@@ -13,7 +13,7 @@ import { toast } from 'sonner'
 import {
   ArrowLeft, FileText, User, Briefcase, Calendar, DollarSign,
   CheckCircle, Clock, AlertCircle, Edit2, Save, X, Printer,
-  Send, Trash2, ExternalLink, CreditCard, Copy, Link2
+  Send, Trash2, ExternalLink, Copy, Link2
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -66,7 +66,6 @@ export default function InvoiceDetailPage() {
   const [editing, setEditing]       = useState(false)
   const [saving, setSaving]         = useState(false)
   const [sending, setSending]       = useState(false)
-  const [paying, setPaying]         = useState(false)
 
   // Edit form state
   const [editStatus, setEditStatus]   = useState('unpaid')
@@ -96,6 +95,11 @@ export default function InvoiceDetailPage() {
       const json = await res.json()
       const data = json.invoice
       if (data) {
+        if (!data.token) {
+          const newToken = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`).replace(/-/g, '')
+          const { error: tokenErr } = await supabase.from('invoices').update({ token: newToken }).eq('id', data.id)
+          if (!tokenErr) data.token = newToken
+        }
         setInvoice(data)
         setEditStatus(data.status)
         setEditDueDate(data.due_date || '')
@@ -212,26 +216,6 @@ export default function InvoiceDetailPage() {
       toast.error(t.errors.unknown)
     }
     setSending(false)
-  }
-
-  const createPaymentLink = async () => {
-    setPaying(true)
-    try {
-      const res = await fetch('/api/stripe/invoice-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ invoiceId: id }),
-      })
-      const data = await res.json()
-      if (data.url) {
-        window.open(data.url, '_blank')
-      } else {
-        toast.error(data.error || t.errors.unknown)
-      }
-    } catch {
-      toast.error(t.errors.unknown)
-    }
-    setPaying(false)
   }
 
   const addLineItem = () => setLineItems([...lineItems, { description: '', qty: 1, unit_price: 0, taxable: true }])
@@ -551,16 +535,6 @@ export default function InvoiceDetailPage() {
                 </a>
               )}
 
-              {invoice.status !== 'paid' && (
-                <button
-                  onClick={createPaymentLink}
-                  disabled={paying}
-                  className="w-full flex items-center gap-2 rounded-xl bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors shadow-sm"
-                >
-                  {paying ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <CreditCard className="h-4 w-4" />}
-                  Payer via Stripe
-                </button>
-              )}
               <button
                 onClick={() => window.print()}
                 className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
