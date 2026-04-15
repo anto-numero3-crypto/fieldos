@@ -84,13 +84,13 @@ function NotifRow({ label, sub, checked, onChange }: { label: string; sub?: stri
   )
 }
 
-function SaveBar({ saved, error, saving, onSave }: { saved: boolean; error: string | null; saving: boolean; onSave: () => void }) {
+function SaveBar({ saved, error, saving, onSave, fr }: { saved: boolean; error: string | null; saving: boolean; onSave: () => void; fr: boolean }) {
   return (
     <div className="flex items-center justify-end gap-3 pt-2">
-      {saved && <div className="flex items-center gap-1.5 text-sm text-emerald-600"><CheckCircle className="h-4 w-4" /> Enregistré !</div>}
+      {saved && <div className="flex items-center gap-1.5 text-sm text-emerald-600"><CheckCircle className="h-4 w-4" /> {fr ? 'Enregistré !' : 'Saved!'}</div>}
       {error && <div className="flex items-center gap-1.5 text-sm text-red-600"><AlertCircle className="h-4 w-4" />{error}</div>}
       <button onClick={onSave} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all">
-        <Save className="h-4 w-4" />{saving ? 'Enregistrement...' : 'Enregistrer'}
+        <Save className="h-4 w-4" />{saving ? (fr ? 'Enregistrement...' : 'Saving...') : (fr ? 'Enregistrer' : 'Save')}
       </button>
     </div>
   )
@@ -100,6 +100,7 @@ export default function SettingsPage() {
   const plan = usePlan()
   const confirm = useConfirm()
   const { lang, t } = useLanguage()
+  const fr = lang === 'fr'
   const [tab, setTab]       = useState<Tab>('business')
   const [user, setUser]     = useState<{ id: string; email?: string } | null>(null)
   const [orgId, setOrgId]     = useState<string | null>(null)
@@ -451,13 +452,13 @@ export default function SettingsPage() {
   }
 
   const tabs: { key: Tab; label: string; icon: typeof Building2 }[] = [
-    { key: 'business',      label: 'Entreprise',             icon: Building2 },
-    { key: 'services',      label: 'Services',               icon: Wrench },
-    { key: 'booking',       label: 'Portail de réservation', icon: Sparkles },
-    { key: 'billing',       label: 'Facturation',            icon: DollarSign },
-    { key: 'notifications', label: 'Notifications',          icon: Bell },
-    { key: 'security',      label: 'Sécurité',               icon: Shield },
-    { key: 'integrations',  label: 'Intégrations',           icon: Globe },
+    { key: 'business',      label: fr ? 'Entreprise' : 'Business',                icon: Building2 },
+    { key: 'services',      label: fr ? 'Services' : 'Services',                  icon: Wrench },
+    { key: 'booking',       label: fr ? 'Portail de réservation' : 'Booking portal', icon: Sparkles },
+    { key: 'billing',       label: fr ? 'Facturation' : 'Billing',                icon: DollarSign },
+    { key: 'notifications', label: fr ? 'Notifications' : 'Notifications',        icon: Bell },
+    { key: 'security',      label: fr ? 'Sécurité' : 'Security',                  icon: Shield },
+    { key: 'integrations',  label: fr ? 'Intégrations' : 'Integrations',          icon: Globe },
   ]
 
   const INTEGRATIONS = [
@@ -490,26 +491,26 @@ export default function SettingsPage() {
         {tab === 'business' && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Informations de l&apos;entreprise</h2>
-              <p className="text-sm text-gray-400 mb-5">Ces informations apparaissent sur vos factures, devis et communications clients.</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? "Informations de l'entreprise" : 'Business information'}</h2>
+              <p className="text-sm text-gray-400 mb-5">{fr ? 'Ces informations apparaissent sur vos factures, devis et communications clients.' : 'This info appears on invoices, quotes, and client communications.'}</p>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <InputRow label="Nom de l'entreprise" value={bizName} onChange={setBizName} placeholder="HVAC Tremblay inc." />
+                  <InputRow label={fr ? "Nom de l'entreprise" : 'Business name'} value={bizName} onChange={setBizName} placeholder="HVAC Tremblay inc." />
                 </div>
-                <InputRow label="Téléphone" value={bizPhone} onChange={setBizPhone} type="tel" placeholder="+1 (514) 000-0000" />
-                <InputRow label="Email professionnel" value={bizEmail} onChange={setBizEmail} type="email" placeholder="info@entreprise.com" />
+                <InputRow label={fr ? 'Téléphone' : 'Phone'} value={bizPhone} onChange={setBizPhone} type="tel" placeholder="+1 (514) 000-0000" />
+                <InputRow label={fr ? 'Courriel professionnel' : 'Business email'} value={bizEmail} onChange={setBizEmail} type="email" placeholder="info@entreprise.com" />
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-0.5">Adresse</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-0.5">{fr ? 'Adresse' : 'Address'}</label>
                   <AddressAutocomplete value={bizAddress} onChange={setBizAddress} />
                 </div>
-                <InputRow label="Ville" value={bizCity} onChange={setBizCity} placeholder="Montréal" />
-                <InputRow label="Province / État" value={bizState} onChange={setBizState} placeholder="QC" />
-                <InputRow label="Code postal" value={bizZip} onChange={setBizZip} placeholder="H1A 1A1" />
-                <InputRow label="Site web" value={bizWebsite} onChange={setBizWebsite} type="url" placeholder="https://votre-entreprise.com" />
-                <InputRow label="Numéro de taxe (TPS/TVQ/TVH)" value={bizTaxNum} onChange={setBizTaxNum} placeholder="123456789 RT0001" />
+                <InputRow label={fr ? 'Ville' : 'City'} value={bizCity} onChange={setBizCity} placeholder="Montréal" />
+                <InputRow label={fr ? 'Province / État' : 'Province / State'} value={bizState} onChange={setBizState} placeholder="QC" />
+                <InputRow label={fr ? 'Code postal' : 'Postal code'} value={bizZip} onChange={setBizZip} placeholder="H1A 1A1" />
+                <InputRow label={fr ? 'Site web' : 'Website'} value={bizWebsite} onChange={setBizWebsite} type="url" placeholder="https://votre-entreprise.com" />
+                <InputRow label={fr ? 'Numéro de taxe (TPS/TVQ/TVH)' : 'Tax number (GST/QST/HST)'} value={bizTaxNum} onChange={setBizTaxNum} placeholder="123456789 RT0001" />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Devise</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Devise' : 'Currency'}</label>
                   <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                     <option value="CAD">CAD — Canadian Dollar</option>
                     <option value="USD">USD — US Dollar</option>
@@ -519,7 +520,7 @@ export default function SettingsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Fuseau horaire</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Fuseau horaire' : 'Timezone'}</label>
                   <select value={timezone} onChange={(e) => setTimezone(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                     <option value="America/Toronto">Eastern (Toronto)</option>
                     <option value="America/Vancouver">Pacific (Vancouver)</option>
@@ -536,12 +537,12 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
               <div>
-                <p className="text-sm font-semibold text-gray-900">Compte</p>
-                <p className="text-xs text-gray-400 mt-0.5">Connecté en tant que {user?.email}</p>
+                <p className="text-sm font-semibold text-gray-900">{fr ? 'Compte' : 'Account'}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Connecté en tant que' : 'Signed in as'} {user?.email}</p>
               </div>
             </div>
 
-            <SaveBar saved={saved} error={error} saving={saving} onSave={saveSettings} />
+            <SaveBar saved={saved} error={error} saving={saving} onSave={saveSettings} fr={fr} />
           </div>
         )}
 
@@ -549,8 +550,8 @@ export default function SettingsPage() {
         {tab === 'services' && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Vos services</h2>
-              <p className="text-sm text-gray-400 mb-5">Ajoutez les services que vos clients peuvent réserver en ligne. Ils apparaîtront sur votre portail de réservation.</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Vos services' : 'Your services'}</h2>
+              <p className="text-sm text-gray-400 mb-5">{fr ? 'Ajoutez les services que vos clients peuvent réserver en ligne. Ils apparaîtront sur votre portail de réservation.' : 'Add services clients can book online. They appear on your booking portal.'}</p>
 
               {/* Existing services */}
               {servicesLoading ? (
@@ -568,7 +569,7 @@ export default function SettingsPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-semibold text-gray-900 truncate">{svc.name}</p>
-                          {!svc.is_active && <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">Inactif</span>}
+                          {!svc.is_active && <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">{fr ? 'Inactif' : 'Inactive'}</span>}
                         </div>
                         {svc.description && <p className="text-xs text-gray-500 mt-0.5 truncate">{svc.description}</p>}
                         <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 flex-wrap">
@@ -584,7 +585,7 @@ export default function SettingsPage() {
                       <button
                         onClick={() => deleteService(svc)}
                         className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
-                        aria-label="Supprimer"
+                        aria-label={fr ? 'Supprimer' : 'Delete'}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -595,10 +596,10 @@ export default function SettingsPage() {
 
               {/* Add new service */}
               <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
-                <p className="text-sm font-semibold text-gray-900 mb-3">Ajouter un service</p>
+                <p className="text-sm font-semibold text-gray-900 mb-3">{fr ? 'Ajouter un service' : 'Add service'}</p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Nom du service</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Nom du service' : 'Service name'}</label>
                     <input
                       type="text"
                       value={newSvcName}
@@ -609,7 +610,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Catégorie</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Catégorie' : 'Category'}</label>
                     <select
                       value={newSvcCategory}
                       onChange={(e) => setNewSvcCategory(e.target.value)}
@@ -621,18 +622,18 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Type de prix</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Type de prix' : 'Price type'}</label>
                     <select
                       value={newSvcPricingType}
                       onChange={(e) => setNewSvcPricingType(e.target.value as Service['pricing_type'])}
                       className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     >
-                      <option value="fixed">Prix fixe</option>
+                      <option value="fixed">{fr ? 'Prix fixe' : 'Fixed price'}</option>
                       <option value="starting_from">À partir de…</option>
-                      <option value="hourly">Par heure</option>
-                      <option value="custom_range">Fourchette (min – max)</option>
-                      <option value="quote_required">Sur devis</option>
-                      <option value="free">Gratuit</option>
+                      <option value="hourly">{fr ? 'Par heure' : 'Hourly'}</option>
+                      <option value="custom_range">{fr ? 'Fourchette (min – max)' : 'Range (min – max)'}</option>
+                      <option value="quote_required">{fr ? 'Sur devis' : 'Quote required'}</option>
+                      <option value="free">{fr ? 'Gratuit' : 'Free'}</option>
                     </select>
                   </div>
 
@@ -656,7 +657,7 @@ export default function SettingsPage() {
 
                   {newSvcPricingType === 'custom_range' && (
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Prix maximum ({currency})</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Prix maximum' : 'Maximum price'} ({currency})</label>
                       <input
                         type="number" step="0.01" min="0"
                         value={newSvcPriceMax}
@@ -668,7 +669,7 @@ export default function SettingsPage() {
                   )}
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Durée (minutes)</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Durée (minutes)' : 'Duration (minutes)'}</label>
                     <input
                       type="number" min="5" step="5"
                       value={newSvcDuration}
@@ -679,7 +680,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Temps tampon après (min)</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Temps tampon après (min)' : 'Buffer after (min)'}</label>
                     <input
                       type="number" min="0" step="5"
                       value={newSvcBuffer}
@@ -690,7 +691,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Note de prix (optionnel)</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Note de prix (optionnel)' : 'Price note (optional)'}</label>
                     <input
                       type="text"
                       value={newSvcPricingNote}
@@ -701,7 +702,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Description (optionnel)</label>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Description (optionnel)' : 'Description (optional)'}</label>
                     <textarea
                       rows={2}
                       value={newSvcDesc}
@@ -728,12 +729,12 @@ export default function SettingsPage() {
         {tab === 'booking' && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Agent IA de réservation</h2>
-              <p className="text-sm text-gray-400 mb-5">Personnalisez l&apos;agent IA qui accueille vos clients sur votre portail de réservation.</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Agent IA de réservation' : 'AI booking agent'}</h2>
+              <p className="text-sm text-gray-400 mb-5">{fr ? "Personnalisez l'agent IA qui accueille vos clients sur votre portail de réservation." : 'Customize the AI agent that greets clients on your booking portal.'}</p>
 
               <div className="space-y-4">
                 <InputRow
-                  label="Nom de l'agent"
+                  label={fr ? "Nom de l'agent" : "Agent's name"}
                   sub="C'est le nom que votre agent IA utilise pour se présenter"
                   value={agentName}
                   onChange={setAgentName}
@@ -785,7 +786,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <SaveBar saved={saved} error={error} saving={saving} onSave={saveSettings} />
+            <SaveBar saved={saved} error={error} saving={saving} onSave={saveSettings} fr={fr} />
           </div>
         )}
 
@@ -797,19 +798,19 @@ export default function SettingsPage() {
               <p className="text-sm text-gray-400 mb-5">Choisissez quels événements déclenchent des notifications dans l&apos;app et par email.</p>
 
               <div className="rounded-xl bg-gray-50 px-5 py-4 mb-4">
-                <NotifRow label="Notifications par email" sub="Recevoir toutes les notifications par email également" checked={notifEmail} onChange={setNotifEmail} />
+                <NotifRow label={fr ? 'Notifications par courriel' : 'Email notifications'} sub={fr ? 'Recevoir toutes les notifications par courriel également' : 'Receive all notifications by email as well'} checked={notifEmail} onChange={setNotifEmail} />
               </div>
 
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Déclencheurs d&apos;événements</h3>
               <div className="rounded-xl border border-gray-100 px-5 divide-y divide-gray-50">
-                <NotifRow label="Nouvelle intervention créée" sub="Quand un nouveau bon de travail est ajouté" checked={notifJobCreated} onChange={setNotifJobCreated} />
-                <NotifRow label="Intervention terminée" sub="Quand un technicien marque une intervention comme terminée" checked={notifJobComplete} onChange={setNotifJobComplete} />
-                <NotifRow label="Facture payée" sub="Quand un client paie une facture" checked={notifInvoicePaid} onChange={setNotifInvoicePaid} />
-                <NotifRow label="Facture en retard" sub="Quand une facture dépasse sa date d'échéance" checked={notifOverdueInvoice} onChange={setNotifOverdueInvoice} />
-                <NotifRow label="Nouveau client ajouté" sub="Quand un nouveau client est créé" checked={notifNewCustomer} onChange={setNotifNewCustomer} />
+                <NotifRow label={fr ? 'Nouvelle intervention créée' : 'New job created'} sub={fr ? "Quand un nouveau bon de travail est ajouté" : 'When a new work order is added'} checked={notifJobCreated} onChange={setNotifJobCreated} />
+                <NotifRow label={fr ? 'Intervention terminée' : 'Job completed'} sub={fr ? 'Quand un technicien marque une intervention comme terminée' : 'When a technician marks a job complete'} checked={notifJobComplete} onChange={setNotifJobComplete} />
+                <NotifRow label={fr ? 'Facture payée' : 'Invoice paid'} sub={fr ? 'Quand un client paie une facture' : 'When a customer pays an invoice'} checked={notifInvoicePaid} onChange={setNotifInvoicePaid} />
+                <NotifRow label={fr ? 'Facture en retard' : 'Invoice overdue'} sub={fr ? "Quand une facture dépasse sa date d'échéance" : 'When an invoice passes its due date'} checked={notifOverdueInvoice} onChange={setNotifOverdueInvoice} />
+                <NotifRow label={fr ? 'Nouveau client ajouté' : 'New customer added'} sub={fr ? 'Quand un nouveau client est créé' : 'When a new customer is created'} checked={notifNewCustomer} onChange={setNotifNewCustomer} />
               </div>
             </div>
-            <SaveBar saved={saved} error={error} saving={saving} onSave={saveSettings} />
+            <SaveBar saved={saved} error={error} saving={saving} onSave={saveSettings} fr={fr} />
           </div>
         )}
 
