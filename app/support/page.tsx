@@ -14,11 +14,11 @@ export default function SupportPage() {
       icon: Zap,
       questions: lang === 'fr' ? [
         { q: 'Comment démarrer mon essai gratuit ?', a: 'Cliquez simplement sur « Commencer » sur notre page d\'accueil, créez votre compte avec votre adresse courriel et vous serez automatiquement inscrit à l\'essai gratuit de 14 jours. Aucune carte de crédit requise.' },
-        { q: 'Comment importer mes clients existants ?', a: 'Allez à Clients → cliquez sur le bouton Exporter CSV pour voir le format, puis préparez vos données dans ce format. Actuellement, vous pouvez ajouter des clients manuellement ou via l\'assistant IA. L\'importation CSV arrive au T3 2025.' },
+        { q: 'Comment importer mes clients existants ?', a: 'Allez à Clients → cliquez sur le bouton Importer CSV et téléversez votre fichier. Gestivio prend en charge l\'importation CSV depuis QuickBooks, HubSpot, Jobber et d\'autres plateformes. Vous pouvez aussi ajouter des clients manuellement ou via l\'assistant IA.' },
         { q: 'Puis-je essayer Gestivio avant de m\'inscrire ?', a: 'Oui ! Visitez /book sur notre site pour essayer le portail de réservation IA en mode démo. Pour la plateforme complète, inscrivez-vous à l\'essai gratuit de 14 jours.' },
       ] : [
         { q: 'How do I start my free trial?', a: 'Simply click "Get started" on our homepage, create your account with your email address, and you\'ll be automatically enrolled in the 14-day free trial. No credit card required.' },
-        { q: 'How do I import my existing customers?', a: 'Go to Customers → click the Export CSV button to see the format, then prepare your data in that format. Currently you can add customers manually or through the AI assistant. CSV import is coming in Q3 2025.' },
+        { q: 'How do I import my existing customers?', a: 'Go to Customers → click the Import CSV button and upload your file. Gestivio supports CSV imports from QuickBooks, HubSpot, Jobber, and other platforms. You can also add customers manually or through the AI assistant.' },
         { q: 'Can I try Gestivio before signing up?', a: 'Yes! Visit /book on our website to try the AI booking portal in demo mode. For the full platform, sign up for the free 14-day trial.' },
       ],
     },
@@ -28,11 +28,11 @@ export default function SupportPage() {
       questions: lang === 'fr' ? [
         { q: 'Comment créer un nouveau contrat ?', a: 'Allez à Contrats et cliquez sur « Nouveau contrat », ou utilisez l\'assistant IA et dites « Créer un contrat pour [nom du client] ». Remplissez le type de service, la date et attribuez-le à un membre de l\'équipe.' },
         { q: 'Les clients peuvent-ils réserver eux-mêmes ?', a: 'Oui ! Partagez le lien de votre portail de réservation (/book?biz=VOTRE_ID) avec les clients ou intégrez-le à votre site. L\'assistant IA de réservation gère toute la conversation de planification.' },
-        { q: 'Puis-je configurer des contrats récurrents ?', a: 'Les contrats récurrents sont sur notre feuille de route pour le T2 2025. Actuellement, vous pouvez dupliquer les contrats depuis la page de détail.' },
+        { q: 'Puis-je configurer des contrats récurrents ?', a: 'Oui. Dans le détail d\'un contrat, cliquez sur « Rendre récurrent » et choisissez la fréquence (hebdomadaire, bimensuelle, mensuelle, trimestrielle ou annuelle). Les contrats récurrents génèrent automatiquement les prochaines occurrences et peuvent être facturés en lot.' },
       ] : [
         { q: 'How do I create a new job?', a: 'Go to Jobs and click the "New Job" button, or use the AI assistant and say "Create a job for [customer name]". Fill in the service type, date, and assign it to a team member.' },
         { q: 'Can customers book appointments themselves?', a: 'Yes! Share your booking portal link (/book?biz=YOUR_ID) with customers, or embed it on your website. The AI booking assistant handles the entire scheduling conversation.' },
-        { q: 'Can I set recurring jobs?', a: 'Recurring jobs are on our roadmap for Q2 2025. Currently you can duplicate jobs from the job detail page.' },
+        { q: 'Can I set recurring jobs?', a: 'Yes. From the job detail page, click "Make recurring" and choose your frequency (weekly, bi-weekly, monthly, quarterly, or yearly). Recurring jobs auto-generate the next occurrence and can be batch-invoiced.' },
       ],
     },
     {
@@ -40,12 +40,12 @@ export default function SupportPage() {
       icon: CreditCard,
       questions: lang === 'fr' ? [
         { q: 'Comment accepter les paiements en ligne ?', a: 'Connectez votre compte Stripe dans Paramètres → Facturation. Une fois connecté, chaque facture aura un bouton « Payer maintenant » qui dirige les clients vers une page de paiement Stripe sécurisée.' },
-        { q: 'Quelles devises Gestivio prend-il en charge ?', a: 'Actuellement, Gestivio traite les paiements en dollars canadiens (CAD). Le support multi-devises est prévu pour 2025.' },
-        { q: 'Puis-je envoyer des rappels de facture automatiquement ?', a: 'L\'envoi manuel de factures avec courriels de rappel est disponible. Les séquences de rappel automatisées sont sur notre feuille de route.' },
+        { q: 'Quelles devises Gestivio prend-il en charge ?', a: 'Gestivio prend en charge le CAD, l\'USD, l\'EUR et le GBP. La devise de facturation peut être définie par client dans les paramètres du compte client, et les rapports peuvent être consolidés dans votre devise de référence.' },
+        { q: 'Puis-je envoyer des rappels de facture automatiquement ?', a: 'Oui. Dans Paramètres → Facturation, activez les rappels automatiques et configurez la cadence (par exemple : 3 jours avant l\'échéance, le jour de l\'échéance, 7 jours en retard, 14 jours en retard). Chaque rappel peut être personnalisé avec votre propre texte et votre signature.' },
       ] : [
         { q: 'How do I accept online payments?', a: 'Connect your Stripe account in Settings → Billing. Once connected, every invoice will have a "Pay Now" button that sends customers to a secure Stripe checkout page.' },
-        { q: 'What currency does Gestivio support?', a: 'Currently Gestivio processes payments in Canadian dollars (CAD). Multi-currency support is planned for 2025.' },
-        { q: 'Can I send invoice reminders automatically?', a: 'Manual invoice sending with reminder emails is available now. Automated reminder sequences are on our roadmap.' },
+        { q: 'What currency does Gestivio support?', a: 'Gestivio supports CAD, USD, EUR, and GBP. Billing currency can be set per customer in the customer record, and reports can be consolidated in your reporting currency.' },
+        { q: 'Can I send invoice reminders automatically?', a: 'Yes. In Settings → Billing, enable automated reminders and configure the cadence (e.g. 3 days before due, on due date, 7 days overdue, 14 days overdue). Each reminder can be customized with your own copy and signature.' },
       ],
     },
     {
@@ -53,10 +53,10 @@ export default function SupportPage() {
       icon: Users,
       questions: lang === 'fr' ? [
         { q: 'Comment inviter des membres d\'équipe ?', a: 'Allez à Équipe → cliquez sur « Inviter un membre » et saisissez son adresse courriel. Il recevra une invitation à rejoindre votre compte Gestivio.' },
-        { q: 'Puis-je contrôler ce que voient les membres d\'équipe ?', a: 'Le contrôle d\'accès basé sur les rôles est sur notre feuille de route. Actuellement, tous les membres d\'équipe d\'un plan payant peuvent accéder à toutes les fonctionnalités.' },
+        { q: 'Puis-je contrôler ce que voient les membres d\'équipe ?', a: 'Oui. Gestivio offre quatre rôles : Propriétaire (accès complet), Administrateur (tout sauf facturation), Répartiteur (contrats et horaire) et Technicien (uniquement les contrats qui lui sont assignés). Les rôles se gèrent dans Équipe → Membre → Permissions.' },
       ] : [
         { q: 'How do I invite team members?', a: 'Go to Team → click "Invite member" and enter their email address. They\'ll receive an invitation to join your Gestivio account.' },
-        { q: 'Can I control what team members can see?', a: 'Role-based access control is on our roadmap. Currently all team members on a paid plan can access all features.' },
+        { q: 'Can I control what team members can see?', a: 'Yes. Gestivio offers four roles: Owner (full access), Admin (everything except billing), Dispatcher (jobs and schedule), and Technician (only jobs assigned to them). Roles are managed in Team → Member → Permissions.' },
       ],
     },
     {
