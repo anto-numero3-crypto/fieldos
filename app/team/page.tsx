@@ -27,11 +27,17 @@ interface TeamMember {
   is_active: boolean; color: string | null; created_at: string
 }
 
-const ROLE_CFG: Record<string, { label: string; cls: string; icon: typeof Shield }> = {
+const ROLE_CFG_FR: Record<string, { label: string; cls: string; icon: typeof Shield }> = {
   owner:      { label: 'Propriétaire', cls: 'bg-violet-50 text-violet-700 ring-1 ring-violet-100', icon: Star },
   admin:      { label: 'Admin',        cls: 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100', icon: Shield },
   dispatcher: { label: 'Répartiteur', cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100',       icon: Users2 },
   technician: { label: 'Technicien',  cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100', icon: Wrench },
+}
+const ROLE_CFG_EN: Record<string, { label: string; cls: string; icon: typeof Shield }> = {
+  owner:      { label: 'Owner',      cls: 'bg-violet-50 text-violet-700 ring-1 ring-violet-100', icon: Star },
+  admin:      { label: 'Admin',      cls: 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100', icon: Shield },
+  dispatcher: { label: 'Dispatcher', cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100',       icon: Users2 },
+  technician: { label: 'Technician', cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100', icon: Wrench },
 }
 
 const AVATAR_COLORS = ['bg-blue-500','bg-violet-500','bg-emerald-500','bg-amber-500','bg-pink-500','bg-cyan-500','bg-orange-500','bg-teal-500']
@@ -57,7 +63,9 @@ export default function TeamPage() {
   const [role, setRole]     = useState('technician')
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const confirm = useConfirm()
-  const { t } = useLanguage()
+  const { lang, t } = useLanguage()
+  const fr = lang === 'fr'
+  const ROLE_CFG = fr ? ROLE_CFG_FR : ROLE_CFG_EN
 
   const errName  = touched.name  ? validateRequired(name) : ''
   const errEmail = touched.email ? validateEmail(email) : ''
@@ -132,9 +140,9 @@ export default function TeamPage() {
 
   const deleteMember = async (id: string) => {
     const { confirmed } = await confirm({
-      title: 'Retirer ce membre ?',
-      description: 'Ce membre perdra accès à la plateforme.',
-      confirmLabel: 'Retirer',
+      title: fr ? 'Retirer ce membre ?' : 'Remove this member?',
+      description: fr ? 'Ce membre perdra accès à la plateforme.' : 'This member will lose access to the platform.',
+      confirmLabel: fr ? 'Retirer' : 'Remove',
     })
     if (!confirmed) return
     await supabase.from('team_members').delete().eq('id', id)
@@ -150,12 +158,12 @@ export default function TeamPage() {
 
   const AddButton = (
     <button onClick={openAdd} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all">
-      <Plus className="h-4 w-4" /> Ajouter un membre
+      <Plus className="h-4 w-4" /> {fr ? 'Ajouter un membre' : 'Add member'}
     </button>
   )
 
   if (pageLoading) return (
-    <AppLayout title="Équipe">
+    <AppLayout title={fr ? 'Équipe' : 'Team'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[...Array(3)].map((_, i) => <SkeletonCard key={i} className="h-40" />)}
       </div>
@@ -164,7 +172,7 @@ export default function TeamPage() {
 
   if (!plan.loading && !plan.isFeatureAvailable('hasTeamManagement')) {
     return (
-      <AppLayout title="Équipe">
+      <AppLayout title={fr ? 'Équipe' : 'Team'}>
         <div className="p-6 sm:p-10">
           <UpgradePrompt
             variant="overlay"
@@ -186,9 +194,9 @@ export default function TeamPage() {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           {[
-            { label: 'Total membres', value: members.length, icon: Users2, bg: 'bg-indigo-50', color: 'text-indigo-600' },
-            { label: 'Actifs',        value: activeCount,    icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-            { label: 'Techniciens',   value: members.filter((m) => m.role === 'technician').length, icon: Wrench, bg: 'bg-amber-50', color: 'text-amber-600' },
+            { label: fr ? 'Total membres' : 'Total members', value: members.length, icon: Users2, bg: 'bg-indigo-50', color: 'text-indigo-600' },
+            { label: fr ? 'Actifs' : 'Active',               value: activeCount,    icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+            { label: fr ? 'Techniciens' : 'Technicians',     value: members.filter((m) => m.role === 'technician').length, icon: Wrench, bg: 'bg-amber-50', color: 'text-amber-600' },
           ].map((s) => (
             <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${s.bg} mb-2`}><s.icon className={`h-4 w-4 ${s.color}`} /></div>
@@ -202,9 +210,9 @@ export default function TeamPage() {
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
             <EmptyState
               icon={Users2}
-              title="Aucun membre d'équipe"
+              title={fr ? "Aucun membre d'équipe" : 'No team members'}
               description="Invitez vos techniciens pour leur assigner des emplois."
-              actions={[{ label: 'Inviter un membre', onClick: openAdd, variant: 'primary' }]}
+              actions={[{ label: fr ? 'Inviter un membre' : 'Invite a member', onClick: openAdd, variant: 'primary' }]}
             />
           </div>
         ) : (
@@ -235,14 +243,14 @@ export default function TeamPage() {
                           <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(null)} />
                           <div className="absolute right-0 top-full mt-1 z-20 w-44 rounded-xl border border-gray-100 bg-white shadow-lg py-1 slide-up">
                             <button onClick={() => { openEdit(m); setMenuOpen(null) }} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                              <Edit2 className="h-4 w-4" /> Modifier
+                              <Edit2 className="h-4 w-4" /> {fr ? 'Modifier' : 'Edit'}
                             </button>
                             <button onClick={() => toggleActive(m.id, m.is_active)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                              {m.is_active ? '🔴 Désactiver' : '🟢 Activer'}
+                              {m.is_active ? (fr ? '🔴 Désactiver' : '🔴 Deactivate') : (fr ? '🟢 Activer' : '🟢 Activate')}
                             </button>
                             <div className="border-t border-gray-100 mt-1 pt-1">
                               <button onClick={() => deleteMember(m.id)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                                <Trash2 className="h-4 w-4" /> Retirer
+                                <Trash2 className="h-4 w-4" /> {fr ? 'Retirer' : 'Remove'}
                               </button>
                             </div>
                           </div>
@@ -266,7 +274,7 @@ export default function TeamPage() {
                     </div>
                   )}
 
-                  {!m.is_active && <div className="mt-3 rounded-lg bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-400">Inactif</div>}
+                  {!m.is_active && <div className="mt-3 rounded-lg bg-gray-50 px-2.5 py-1.5 text-xs font-medium text-gray-400">{fr ? 'Inactif' : 'Inactive'}</div>}
                 </div>
               )
             })}
@@ -285,16 +293,16 @@ export default function TeamPage() {
           <div className="fixed inset-y-0 right-0 z-40 w-full max-w-md bg-white shadow-2xl slide-over flex flex-col">
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">{editMember ? 'Modifier le membre' : 'Ajouter un membre'}</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Remplissez les informations du membre</p>
+                <h2 className="text-base font-semibold text-gray-900">{editMember ? (fr ? 'Modifier le membre' : 'Edit member') : (fr ? 'Ajouter un membre' : 'Add member')}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Remplissez les informations du membre' : 'Fill in the member info'}</p>
               </div>
               <button type="button" onClick={() => setPanelOpen(false)} className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"><X className="h-5 w-5" /></button>
             </div>
 
             <form onSubmit={saveMember} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nom complet <span className="text-red-500">*</span></label>
-                <input type="text" placeholder="Prénom Nom" value={name}
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Nom complet' : 'Full name'} <span className="text-red-500">*</span></label>
+                <input type="text" placeholder={fr ? 'Prénom Nom' : 'First Last'} value={name}
                   onChange={(e) => setName(e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, name: true }))}
                   required
@@ -302,7 +310,7 @@ export default function TeamPage() {
                 <FieldError message={errName} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Courriel <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Courriel' : 'Email'} <span className="text-red-500">*</span></label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <input type="email" placeholder="alex@company.com" value={email}
@@ -315,7 +323,7 @@ export default function TeamPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Téléphone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Téléphone' : 'Phone'}</label>
                   <input type="tel" placeholder="+1 (514) 000-0000" value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
@@ -323,24 +331,24 @@ export default function TeamPage() {
                   <FieldError message={errPhone} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Taux horaire</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Taux horaire' : 'Hourly rate'}</label>
                   <div className="relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span><input type="number" placeholder="0.00" min={0} step="0.50" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} className="block w-full rounded-xl border border-gray-200 pl-7 pr-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" /></div>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Rôle</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Rôle' : 'Role'}</label>
                 <select value={role} onChange={(e) => setRole(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
-                  <option value="technician">Technicien</option>
-                  <option value="dispatcher">Répartiteur</option>
+                  <option value="technician">{fr ? 'Technicien' : 'Technician'}</option>
+                  <option value="dispatcher">{fr ? 'Répartiteur' : 'Dispatcher'}</option>
                   <option value="admin">Admin</option>
-                  <option value="owner">Propriétaire</option>
+                  <option value="owner">{fr ? 'Propriétaire' : 'Owner'}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Compétences</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Compétences' : 'Skills'}</label>
                 <div className="flex gap-2 mb-2">
-                  <input type="text" placeholder="ex. HVAC, Plomberie" value={skillInput} onChange={(e) => setSkillInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill() } }} className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
-                  <button type="button" onClick={addSkill} className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Ajouter</button>
+                  <input type="text" placeholder={fr ? 'ex. HVAC, Plomberie' : 'e.g. HVAC, Plumbing'} value={skillInput} onChange={(e) => setSkillInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSkill() } }} className="flex-1 rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                  <button type="button" onClick={addSkill} className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">{fr ? 'Ajouter' : 'Add'}</button>
                 </div>
                 {skills.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
@@ -356,7 +364,7 @@ export default function TeamPage() {
             </form>
 
             <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">
-              <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Annuler</button>
+              <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
               <button onClick={saveMember} disabled={loading || formInvalid} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
                 {loading ? 'Enregistrement...' : editMember ? 'Enregistrer' : 'Ajouter'}
               </button>
@@ -364,7 +372,7 @@ export default function TeamPage() {
           </div>
         </>
       )}
-      <MobileFAB onClick={openAdd} label="Ajouter un membre" />
+      <MobileFAB onClick={openAdd} label={fr ? 'Ajouter un membre' : 'Add member'} />
     </AppLayout>
   )
 }
