@@ -39,7 +39,7 @@ export default function CookiesPage() {
       cookies: [
         {
           name: '_ga, _gid',
-          provider: lang === 'fr' ? 'Google Analytics (prévu)' : 'Google Analytics (planned)',
+          provider: 'Google Analytics',
           purpose: lang === 'fr' ? 'Analyses de pages vues et de sessions' : 'Page views and session analytics',
           duration: lang === 'fr' ? '2 ans / 1 jour' : '2 years / 1 day',
         },
@@ -96,7 +96,7 @@ export default function CookiesPage() {
           {lang === 'fr' ? 'Politique sur les témoins' : 'Cookie Policy'}
         </h1>
         <p className="text-sm text-gray-400 mb-12">
-          {lang === 'fr' ? 'Dernière mise à jour : 11 avril 2025' : 'Last updated: April 11, 2025'}
+          {lang === 'fr' ? 'Dernière mise à jour : 1 avril 2026' : 'Last updated: April 1, 2026'}
         </p>
 
         <div className="space-y-8 text-sm text-gray-700 leading-relaxed">
