@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { supabase } from '../supabase'
 import { formatPrice } from '@/lib/pricing'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
@@ -99,8 +101,52 @@ function SaveBar({ saved, error, saving, onSave, fr }: { saved: boolean; error: 
 export default function SettingsPage() {
   const plan = usePlan()
   const confirm = useConfirm()
+  const router = useRouter()
   const { lang, t } = useLanguage()
   const fr = lang === 'fr'
+  const [deletingAccount, setDeletingAccount] = useState(false)
+
+  const handleDeleteAccount = async () => {
+    const { confirmed } = await confirm({
+      title: fr ? 'Supprimer définitivement votre compte ?' : 'Permanently delete your account?',
+      description: fr
+        ? 'Cette action supprimera tous vos clients, contrats, factures, soumissions, services, membres d\'équipe et paramètres. Elle est irréversible.'
+        : 'This will delete all your customers, jobs, invoices, quotes, services, team members, and settings. This action cannot be undone.',
+      confirmLabel: fr ? 'Continuer' : 'Continue',
+    })
+    if (!confirmed) return
+
+    const typed = window.prompt(
+      fr
+        ? 'Tapez SUPPRIMER en majuscules pour confirmer la suppression définitive de votre compte.'
+        : 'Type SUPPRIMER in uppercase to confirm permanent deletion of your account.'
+    )
+    if (typed !== 'SUPPRIMER') {
+      if (typed !== null) toast.error(fr ? 'Confirmation invalide' : 'Invalid confirmation')
+      return
+    }
+
+    setDeletingAccount(true)
+    try {
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation: 'SUPPRIMER' }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || (fr ? 'Échec de la suppression' : 'Deletion failed'))
+        setDeletingAccount(false)
+        return
+      }
+      await supabase.auth.signOut()
+      toast.success(fr ? 'Compte supprimé' : 'Account deleted')
+      router.push('/')
+    } catch {
+      toast.error(fr ? 'Échec de la suppression' : 'Deletion failed')
+      setDeletingAccount(false)
+    }
+  }
   const [tab, setTab]       = useState<Tab>('business')
   const [user, setUser]     = useState<{ id: string; email?: string } | null>(null)
   const [orgId, setOrgId]     = useState<string | null>(null)
@@ -822,9 +868,9 @@ export default function SettingsPage() {
               <p className="text-sm text-gray-400 mb-5">Protégez votre compte avec des mesures de sécurité supplémentaires.</p>
               <div className="space-y-3">
                 {[
-                  { label: 'Authentification à deux facteurs', desc: 'Ajoutez une couche de sécurité supplémentaire à votre compte.', badge: 'Recommandé', btn: 'Activer 2FA' },
-                  { label: 'Sessions actives', desc: 'Voir et révoquer les sessions de connexion actives.', badge: null, btn: 'Gérer les sessions' },
-                  { label: 'Journal d\'audit', desc: 'Consulter toutes les actions effectuées sur votre compte.', badge: null, btn: 'Voir le journal' },
+                  { label: fr ? 'Authentification à deux facteurs' : 'Two-factor authentication', desc: fr ? 'Ajoutez une couche de sécurité supplémentaire à votre compte.' : 'Add an extra layer of security to your account.', badge: fr ? 'Recommandé' : 'Recommended', btn: fr ? 'Activer 2FA' : 'Enable 2FA', href: null as string | null },
+                  { label: fr ? 'Sessions actives' : 'Active sessions', desc: fr ? 'Voir et révoquer les sessions de connexion actives.' : 'View and revoke active login sessions.', badge: null, btn: fr ? 'Gérer les sessions' : 'Manage sessions', href: null },
+                  { label: fr ? 'Journal d\'activité' : 'Activity log', desc: fr ? 'Consulter toutes les actions et notifications récentes sur votre compte.' : 'Review all recent actions and notifications on your account.', badge: null, btn: fr ? 'Voir l\'activité' : 'View activity', href: '/notifications' },
                 ].map((item) => (
                   <div key={item.label} className="flex items-start justify-between rounded-xl border border-gray-100 p-4">
                     <div>
@@ -834,16 +880,32 @@ export default function SettingsPage() {
                       </div>
                       <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
                     </div>
-                    <button className="shrink-0 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">{item.btn}</button>
+                    {item.href ? (
+                      <Link href={item.href} className="shrink-0 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">{item.btn}</Link>
+                    ) : (
+                      <button className="shrink-0 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">{item.btn}</button>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="rounded-2xl border border-red-100 bg-red-50 p-5">
-              <h3 className="text-sm font-semibold text-red-700 mb-1">Zone dangereuse</h3>
-              <p className="text-xs text-red-600 mb-4">Ces actions sont permanentes et irréversibles.</p>
-              <button className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors">Supprimer le compte</button>
+              <h3 className="text-sm font-semibold text-red-700 mb-1">{fr ? 'Zone dangereuse' : 'Danger zone'}</h3>
+              <p className="text-xs text-red-600 mb-4">
+                {fr
+                  ? 'Ces actions sont permanentes et irréversibles. Toutes vos données (clients, contrats, factures, équipe, paramètres) seront supprimées définitivement.'
+                  : 'These actions are permanent and cannot be undone. All your data (customers, jobs, invoices, team, settings) will be deleted permanently.'}
+              </p>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deletingAccount}
+                className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60 transition-colors"
+              >
+                {deletingAccount
+                  ? (fr ? 'Suppression…' : 'Deleting…')
+                  : (fr ? 'Supprimer le compte' : 'Delete account')}
+              </button>
             </div>
           </div>
         )}
