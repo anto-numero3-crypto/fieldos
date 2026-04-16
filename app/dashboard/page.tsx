@@ -1103,13 +1103,13 @@ function TodaysSchedule({
 
 function ScheduleRow({ job, fr, lang }: { job: Job; fr: boolean; lang: 'fr' | 'en' }) {
   const statusColor: Record<string, { border: string; badge: string; label: string }> = {
-    scheduled:        { border: 'border-l-blue-500',    badge: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',           label: fr ? 'Planifié' : 'Scheduled' },
-    in_progress:      { border: 'border-l-indigo-500',  badge: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400',   label: fr ? 'En cours' : 'In progress' },
-    needs_completion: { border: 'border-l-orange-500',  badge: 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400',   label: fr ? 'À compléter' : 'Needs completion' },
-    completed:        { border: 'border-l-emerald-500', badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400', label: fr ? 'Complétée' : 'Completed' },
-    complete:         { border: 'border-l-emerald-500', badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400', label: fr ? 'Complétée' : 'Completed' },
-    invoiced:         { border: 'border-l-teal-500',    badge: 'bg-teal-50 text-teal-700 dark:bg-teal-500/10 dark:text-teal-400',             label: fr ? 'Facturée' : 'Invoiced' },
-    cancelled:        { border: 'border-l-gray-400',    badge: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',               label: fr ? 'Annulée' : 'Cancelled' },
+    scheduled:        { border: 'border-l-blue-500',   badge: 'bg-blue-100 text-blue-900 dark:bg-blue-950/60 dark:text-blue-300',                    label: fr ? 'Planifiée' : 'Scheduled' },
+    in_progress:      { border: 'border-l-green-500',  badge: 'bg-green-100 text-green-900 animate-pulse dark:bg-green-950/60 dark:text-green-300', label: fr ? 'En cours' : 'In progress' },
+    needs_completion: { border: 'border-l-orange-500', badge: 'bg-orange-100 text-orange-900 animate-pulse dark:bg-orange-950/60 dark:text-orange-300', label: fr ? 'À compléter' : 'Needs completion' },
+    completed:        { border: 'border-l-gray-400',   badge: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',                       label: fr ? 'Complétée' : 'Completed' },
+    complete:         { border: 'border-l-gray-400',   badge: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',                       label: fr ? 'Complétée' : 'Completed' },
+    invoiced:         { border: 'border-l-gray-400',   badge: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',                       label: fr ? 'Complétée' : 'Completed' },
+    cancelled:        { border: 'border-l-gray-300',   badge: 'bg-gray-100 text-gray-500 opacity-60 dark:bg-gray-800 dark:text-gray-500',            label: fr ? 'Annulée' : 'Cancelled' },
   }
   const effective = getEffectiveJobStatus(job)
   const s = statusColor[effective] || statusColor.scheduled
@@ -1395,10 +1395,10 @@ function JobsByStatusCard({
   mounted: boolean
 }) {
   const rows = [
-    { key: 'scheduled',   label: fr ? 'Planifié'  : 'Scheduled',   value: stats.scheduled,   color: 'from-blue-500 to-blue-400' },
-    { key: 'in_progress', label: fr ? 'En cours'  : 'In progress', value: stats.in_progress, color: 'from-amber-500 to-amber-400' },
-    { key: 'complete',    label: fr ? 'Terminé'   : 'Complete',    value: stats.complete,    color: 'from-emerald-500 to-emerald-400' },
-    { key: 'cancelled',   label: fr ? 'Annulé'    : 'Cancelled',   value: stats.cancelled,   color: 'from-gray-500 to-gray-400' },
+    { key: 'scheduled',   label: fr ? 'Planifiée' : 'Scheduled',       value: stats.scheduled,   color: 'from-blue-500 to-blue-400' },
+    { key: 'in_progress', label: fr ? 'En cours'   : 'In progress',    value: stats.in_progress, color: 'from-green-500 to-green-400' },
+    { key: 'complete',    label: fr ? 'Complétée'  : 'Completed',      value: stats.complete,    color: 'from-gray-500 to-gray-400' },
+    { key: 'cancelled',   label: fr ? 'Annulée'    : 'Cancelled',      value: stats.cancelled,   color: 'from-gray-400 to-gray-300' },
   ]
   const max = Math.max(1, ...rows.map((r) => r.value))
   return (

@@ -37,21 +37,21 @@ function durationOf(j: Job): number {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  scheduled:        'bg-blue-50 border-blue-400 text-blue-700 dark:bg-blue-950/40 dark:border-blue-500 dark:text-blue-300',
-  in_progress:      'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-950/40 dark:border-indigo-500 dark:text-indigo-300',
-  needs_completion: 'bg-amber-50 border-amber-500 text-amber-800 dark:bg-amber-950/40 dark:border-amber-500 dark:text-amber-300',
-  completed:        'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-500 dark:text-emerald-300',
-  complete:         'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-500 dark:text-emerald-300',
-  invoiced:         'bg-teal-50 border-teal-500 text-teal-700 dark:bg-teal-950/40 dark:border-teal-500 dark:text-teal-300',
-  cancelled:        'bg-gray-50 border-gray-300 text-gray-400 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-500',
+  scheduled:        'bg-blue-100 border-blue-600 text-blue-900 dark:bg-blue-950/60 dark:border-blue-500 dark:text-blue-300',
+  in_progress:      'bg-green-100 border-green-600 text-green-900 dark:bg-green-950/60 dark:border-green-500 dark:text-green-300',
+  needs_completion: 'bg-orange-100 border-orange-600 text-orange-900 dark:bg-orange-950/60 dark:border-orange-500 dark:text-orange-300',
+  completed:        'bg-gray-100 border-gray-400 text-gray-700 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300',
+  complete:         'bg-gray-100 border-gray-400 text-gray-700 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300',
+  invoiced:         'bg-gray-100 border-gray-400 text-gray-700 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300',
+  cancelled:        'bg-gray-100 border-gray-300 text-gray-500 opacity-60 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-500',
 }
 const STATUS_DOT: Record<string, string> = {
   scheduled:        'bg-blue-500',
-  in_progress:      'bg-indigo-500',
-  needs_completion: 'bg-amber-500',
-  completed:        'bg-emerald-500',
-  complete:         'bg-emerald-500',
-  invoiced:         'bg-teal-500',
+  in_progress:      'bg-green-500',
+  needs_completion: 'bg-orange-500',
+  completed:        'bg-gray-400',
+  complete:         'bg-gray-400',
+  invoiced:         'bg-gray-400',
   cancelled:        'bg-gray-400',
 }
 
@@ -364,12 +364,10 @@ export default function SchedulePage() {
             <h3 className="text-sm font-semibold text-gray-900 mb-4">{fr ? 'Légende des statuts' : 'Status legend'}</h3>
             <div className="space-y-3">
               {[
-                { status: 'scheduled',        label: fr ? 'Planifiée'       : 'Scheduled',         desc: fr ? 'Bons de travail à venir'         : 'Upcoming work orders' },
-                { status: 'in_progress',      label: fr ? 'En cours'         : 'In progress',       desc: fr ? 'Interventions actives'           : 'Active jobs' },
-                { status: 'needs_completion', label: fr ? 'À compléter'      : 'Needs completion',  desc: fr ? 'Dépassée, à confirmer terminée'  : 'Past due, confirm completion' },
-                { status: 'completed',        label: fr ? 'Complétée'        : 'Completed',         desc: fr ? 'Complétées avec succès'          : 'Successfully completed' },
-                { status: 'invoiced',         label: fr ? 'Facturée'         : 'Invoiced',          desc: fr ? 'Facture payée'                   : 'Invoice paid' },
-                { status: 'cancelled',        label: fr ? 'Annulée'          : 'Cancelled',         desc: fr ? 'Annulées ou absences'            : 'Cancelled or no-shows' },
+                { status: 'scheduled',        label: fr ? 'Planifiée'       : 'Scheduled',         desc: fr ? 'À venir'                          : 'Upcoming' },
+                { status: 'in_progress',      label: fr ? 'En cours'         : 'In progress',       desc: fr ? 'Active maintenant'                : 'Active now' },
+                { status: 'needs_completion', label: fr ? 'À compléter'      : 'Needs completion',  desc: fr ? 'Dépassée, à confirmer terminée'   : 'Past due, confirm completion' },
+                { status: 'completed',        label: fr ? 'Complétée'        : 'Completed',         desc: fr ? 'Terminée'                         : 'Done' },
               ].map((s) => (
                 <div key={s.status} className="flex items-center gap-3">
                   <div className={`h-8 w-8 shrink-0 rounded-lg border-l-2 ${STATUS_COLOR[s.status]}`} />

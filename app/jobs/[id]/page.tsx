@@ -32,10 +32,13 @@ interface Job {
 interface TeamMember { id: string; name: string; email: string; is_active: boolean }
 
 const STATUS_CFG: Record<string, { cls: string; dotCls: string }> = {
-  scheduled:   { cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100',        dotCls: 'bg-blue-500' },
-  in_progress: { cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',     dotCls: 'bg-amber-500' },
-  complete:    { cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100', dotCls: 'bg-emerald-500' },
-  cancelled:   { cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100',        dotCls: 'bg-gray-400' },
+  scheduled:        { cls: 'bg-blue-100 text-blue-900 ring-1 ring-blue-300',          dotCls: 'bg-blue-500' },
+  in_progress:      { cls: 'bg-green-100 text-green-900 ring-1 ring-green-600 animate-pulse', dotCls: 'bg-green-500' },
+  needs_completion: { cls: 'bg-orange-100 text-orange-900 ring-1 ring-orange-500 animate-pulse', dotCls: 'bg-orange-500' },
+  completed:        { cls: 'bg-gray-100 text-gray-700 ring-1 ring-gray-400',          dotCls: 'bg-gray-400' },
+  complete:         { cls: 'bg-gray-100 text-gray-700 ring-1 ring-gray-400',          dotCls: 'bg-gray-400' },
+  invoiced:         { cls: 'bg-gray-100 text-gray-700 ring-1 ring-gray-400',          dotCls: 'bg-gray-400' },
+  cancelled:        { cls: 'bg-gray-100 text-gray-500 ring-1 ring-gray-300 opacity-60', dotCls: 'bg-gray-400' },
 }
 const PRIORITY_CFG_FR: Record<string, { label: string; cls: string }> = {
   low:    { label: 'Basse priorité',   cls: 'text-gray-500' },

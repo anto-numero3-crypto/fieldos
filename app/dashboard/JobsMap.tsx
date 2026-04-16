@@ -27,10 +27,13 @@ interface Geocoded extends JobMarker {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  scheduled:   '#3b82f6',
-  in_progress: '#f59e0b',
-  complete:    '#10b981',
-  cancelled:   '#9ca3af',
+  scheduled:        '#2563eb',
+  in_progress:      '#16a34a',
+  needs_completion: '#ea580c',
+  completed:        '#6b7280',
+  complete:         '#6b7280',
+  invoiced:         '#6b7280',
+  cancelled:        '#9ca3af',
 }
 
 // In-memory cache so repeated addresses (e.g. between 60s refreshes) don't
