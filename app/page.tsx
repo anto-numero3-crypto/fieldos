@@ -624,9 +624,6 @@ export default function LandingPage() {
               <ul className="space-y-3">
                 {[
                   { label: lang === 'fr' ? 'À propos' : 'About Us', href: '/about' },
-                  { label: lang === 'fr' ? 'Blogue' : 'Blog', href: '/blog' },
-                  { label: lang === 'fr' ? 'Carrières' : 'Careers', href: '/careers' },
-                  { label: 'Press', href: '/press' },
                   { label: lang === 'fr' ? 'Nous contacter' : 'Contact Us', href: '/contact' },
                 ].map((link) => (
                   <li key={link.label}><a href={link.href} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">{link.label}</a></li>

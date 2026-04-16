@@ -14,7 +14,7 @@ export default function MarketingShell({ children }: { children: ReactNode }) {
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/pricing" className="hidden sm:inline text-sm font-medium text-gray-600 hover:text-gray-900">Tarifs</Link>
-            <Link href="/blog" className="hidden sm:inline text-sm font-medium text-gray-600 hover:text-gray-900">Blog</Link>
+            <Link href="/contact" className="hidden sm:inline text-sm font-medium text-gray-600 hover:text-gray-900">Contact</Link>
             <Link href="/about" className="hidden sm:inline text-sm font-medium text-gray-600 hover:text-gray-900">À propos</Link>
             <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">Connexion</Link>
             <Link href="/signup" className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
@@ -42,16 +42,13 @@ export default function MarketingShell({ children }: { children: ReactNode }) {
               <li><Link href="/logiciel-plombier" className="hover:text-gray-900">Plombiers</Link></li>
               <li><Link href="/logiciel-hvac" className="hover:text-gray-900">CVC / HVAC</Link></li>
               <li><Link href="/montreal" className="hover:text-gray-900">Montréal</Link></li>
-              <li><Link href="/blog" className="hover:text-gray-900">Blog</Link></li>
             </ul>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Ressources</p>
             <ul className="space-y-2 text-sm text-gray-600">
-              <li><Link href="/blog" className="hover:text-gray-900">Blog</Link></li>
               <li><Link href="/about" className="hover:text-gray-900">À propos</Link></li>
               <li><Link href="/contact" className="hover:text-gray-900">Contact</Link></li>
-              <li><Link href="/press" className="hover:text-gray-900">Presse</Link></li>
             </ul>
           </div>
           <div>
