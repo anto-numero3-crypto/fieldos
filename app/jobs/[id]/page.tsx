@@ -162,11 +162,16 @@ export default function JobDetailPage() {
     setSaving(false)
   }
 
+  const [completedModalOpen, setCompletedModalOpen] = useState(false)
+
   const changeStatus = async (newStatus: string) => {
     if (!job) return
     await supabase.from('jobs').update({ status: newStatus }).eq('id', id)
     setJob({ ...job, status: newStatus })
     setStatusDropdown(false)
+    if (newStatus === 'completed' || newStatus === 'complete') {
+      setCompletedModalOpen(true)
+    }
   }
 
   const toggleCheckItem = async (itemId: string) => {
@@ -589,6 +594,45 @@ export default function JobDetailPage() {
           </div>
         </div>
       </div>
+
+      {completedModalOpen && (
+        <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true">
+          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setCompletedModalOpen(false)} />
+          <div className="relative w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 pt-6 pb-4 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+                <CheckCircle className="h-7 w-7 text-emerald-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">
+                {fr ? 'Intervention complétée !' : 'Job completed!'}
+              </h3>
+              <p className="text-sm text-gray-500">
+                {fr ? 'Créer une facture pour cette intervention ?' : 'Create an invoice for this job?'}
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-stretch gap-2 border-t border-gray-100 bg-gray-50/60 px-5 py-4">
+              <button
+                type="button"
+                onClick={() => setCompletedModalOpen(false)}
+                className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                {fr ? 'Plus tard' : 'Later'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCompletedModalOpen(false)
+                  const cid = job?.customers?.id || ''
+                  router.push(`/invoices/new?jobId=${encodeURIComponent(String(id))}&customerId=${encodeURIComponent(cid)}`)
+                }}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700"
+              >
+                <FileText className="h-4 w-4" /> {fr ? 'Créer la facture' : 'Create invoice'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   )
 }

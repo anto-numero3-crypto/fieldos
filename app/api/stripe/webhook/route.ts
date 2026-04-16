@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
           // Fetch invoice + customer + owner context first (we need user_id for payments insert)
           const { data: inv, error: invFetchErr } = await supabase
             .from('invoices')
-            .select('id, user_id, invoice_number, amount, customers(name, email)')
+            .select('id, user_id, invoice_number, amount, job_id, customers(name, email)')
             .eq('id', invoiceId)
             .single()
           if (invFetchErr || !inv) {
@@ -123,6 +123,16 @@ export async function POST(req: NextRequest) {
             })
             .eq('id', invoiceId)
           if (invUpErr) console.error(`${LOG} invoice update failed:`, invUpErr)
+
+          // Mark linked job as invoiced so the lifecycle ends cleanly
+          if (inv.job_id) {
+            const { error: jobErr } = await supabase
+              .from('jobs')
+              .update({ status: 'invoiced' })
+              .eq('id', inv.job_id)
+              .eq('user_id', inv.user_id)
+            if (jobErr) console.error(`${LOG} linked job status update failed:`, jobErr)
+          }
 
           const { error: payErr } = await supabase.from('payments').insert({
             invoice_id:               invoiceId,

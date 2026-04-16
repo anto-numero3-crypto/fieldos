@@ -208,6 +208,15 @@ export default function InvoiceDetailPage() {
         })
         if (payErr) console.error('[manual pay] payments insert failed:', payErr)
       }
+
+      // Mark linked job as invoiced (end of lifecycle)
+      if (invoice.job_id) {
+        const { error: jobErr } = await supabase
+          .from('jobs')
+          .update({ status: 'invoiced' })
+          .eq('id', invoice.job_id)
+        if (jobErr) console.error('[manual pay] linked job update failed:', jobErr)
+      }
       toast.success(fr ? 'Paiement enregistré' : 'Payment recorded')
       setPayModalOpen(false)
       await fetchInvoice()

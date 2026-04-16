@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   const { data: inv, error: invErr } = await supabase
     .from('invoices')
-    .select('id, user_id, amount, invoice_number')
+    .select('id, user_id, amount, invoice_number, job_id')
     .eq('id', body.invoice_id)
     .single()
   if (invErr || !inv) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
@@ -41,6 +41,10 @@ export async function POST(req: NextRequest) {
     reference: 'admin-manual',
   })
   if (payErr) console.error('[admin mark-paid] payment insert failed:', payErr)
+
+  if (inv.job_id) {
+    await supabase.from('jobs').update({ status: 'invoiced' }).eq('id', inv.job_id)
+  }
 
   return NextResponse.json({ ok: true, invoice: inv.invoice_number, amount })
 }

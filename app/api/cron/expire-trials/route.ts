@@ -89,6 +89,57 @@ export async function GET(req: NextRequest) {
     promoExpiredCount++
   }
 
+  // ── 3.4 Auto-transition job statuses ──────────────────────────
+  const todayStr = now.toISOString().slice(0, 10)
+  const currentTime = now.toTimeString().slice(0, 8) // HH:MM:SS
+
+  // scheduled → in_progress (scheduled time has started)
+  await supabase
+    .from('jobs')
+    .update({ status: 'in_progress' })
+    .eq('status', 'scheduled')
+    .lte('scheduled_date', todayStr)
+    .lte('start_time', currentTime)
+
+  // in_progress → needs_completion (end_time has passed, or start+1h if no end_time)
+  const { data: inProgress } = await supabase
+    .from('jobs')
+    .select('id, user_id, title, start_time, end_time, scheduled_date')
+    .eq('status', 'in_progress')
+    .lte('scheduled_date', todayStr)
+
+  const toComplete: Array<{ id: string; user_id: string; title: string }> = []
+  for (const j of inProgress || []) {
+    if (!j.start_time) continue
+    let isOver = false
+    if (j.end_time) {
+      isOver = j.end_time <= currentTime || j.scheduled_date < todayStr
+    } else {
+      // No end_time: consider it overdue 1h after start_time
+      const [h, m] = j.start_time.split(':').map(Number)
+      const plusHour = `${String((h + 1) % 24).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}:00`
+      isOver = plusHour <= currentTime || j.scheduled_date < todayStr
+    }
+    if (isOver) toComplete.push({ id: j.id, user_id: j.user_id, title: j.title })
+  }
+  if (toComplete.length) {
+    await supabase
+      .from('jobs')
+      .update({ status: 'needs_completion' })
+      .in('id', toComplete.map((j) => j.id))
+    // In-app notifications for owners
+    await supabase.from('notifications').insert(
+      toComplete.map((j) => ({
+        user_id: j.user_id,
+        type: 'warning',
+        title: `Intervention à compléter — ${j.title}`,
+        body: "L'intervention devrait être terminée. Marquez-la comme complétée.",
+        link: `/jobs/${j.id}`,
+      }))
+    )
+  }
+  const jobTransitionsCount = toComplete.length
+
   // ── 3.5 Mark overdue invoices ─────────────────────────────────
   const nowIso = now.toISOString()
   const { data: overdueRows } = await supabase
@@ -201,5 +252,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ expiredCount, warningCount, promoExpiredCount, reminderCount, overdueCount })
+  return NextResponse.json({ expiredCount, warningCount, promoExpiredCount, reminderCount, overdueCount, jobTransitionsCount })
 }
