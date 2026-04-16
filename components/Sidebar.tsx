@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/app/supabase'
+import { useLanguage } from '@/lib/LanguageContext'
 import {
   LayoutDashboard, Users, Briefcase, FileText, Sparkles, X, LogOut, Wrench,
   Calendar, FileSignature, BarChart3, Settings, Users2,
@@ -12,44 +13,46 @@ import {
 
 interface SidebarProps { open: boolean; onClose: () => void }
 
-const navSections = [
-  {
-    label: 'Opérations',
-    items: [
-      { href: '/dashboard',              label: 'Tableau de bord', icon: LayoutDashboard },
-      { href: '/schedule',               label: 'Calendrier',      icon: Calendar },
-      { href: '/schedule/bookings',      label: 'Réservations',    icon: BookOpen },
-      { href: '/schedule/availability',  label: 'Disponibilités',  icon: Clock },
-      { href: '/jobs',                   label: 'Interventions',   icon: Briefcase },
-      { href: '/quotes',                 label: 'Devis',           icon: FileSignature },
-    ],
-  },
-  {
-    label: 'Finance',
-    items: [
-      { href: '/customers', label: 'Clients',   icon: Users },
-      { href: '/invoices',  label: 'Factures',  icon: FileText },
-    ],
-  },
-  {
-    label: 'Affaires',
-    items: [
-      { href: '/team',     label: 'Équipe',       icon: Users2 },
-      { href: '/reports',  label: 'Rapports',     icon: BarChart3 },
-      { href: '/insights', label: 'Analyses IA',  icon: Lightbulb },
-    ],
-  },
-]
-
-const bottomItems = [
-  { href: '/assistant',           label: 'Assistant IA',   icon: Sparkles },
-  { href: '/customers/campaigns', label: 'Campagnes',      icon: Megaphone },
-  { href: '/schedule/availability', label: 'Portail réserv.', icon: Globe },
-  { href: '/settings',            label: 'Paramètres',     icon: Settings },
-]
-
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname()
+  const { lang } = useLanguage()
+  const fr = lang === 'fr'
+
+  const navSections = [
+    {
+      label: fr ? 'Opérations' : 'Operations',
+      items: [
+        { href: '/dashboard',              label: fr ? 'Tableau de bord' : 'Dashboard',    icon: LayoutDashboard },
+        { href: '/schedule',               label: fr ? 'Calendrier' : 'Schedule',           icon: Calendar },
+        { href: '/schedule/bookings',      label: fr ? 'Réservations' : 'Bookings',         icon: BookOpen },
+        { href: '/schedule/availability',  label: fr ? 'Disponibilités' : 'Availability',   icon: Clock },
+        { href: '/jobs',                   label: fr ? 'Interventions' : 'Jobs',             icon: Briefcase },
+        { href: '/quotes',                 label: fr ? 'Devis' : 'Quotes',                  icon: FileSignature },
+      ],
+    },
+    {
+      label: fr ? 'Finance' : 'Finance',
+      items: [
+        { href: '/customers', label: fr ? 'Clients' : 'Customers',   icon: Users },
+        { href: '/invoices',  label: fr ? 'Factures' : 'Invoices',   icon: FileText },
+      ],
+    },
+    {
+      label: fr ? 'Affaires' : 'Business',
+      items: [
+        { href: '/team',     label: fr ? 'Équipe' : 'Team',             icon: Users2 },
+        { href: '/reports',  label: fr ? 'Rapports' : 'Reports',        icon: BarChart3 },
+        { href: '/insights', label: fr ? 'Analyses IA' : 'AI Insights', icon: Lightbulb },
+      ],
+    },
+  ]
+
+  const bottomItems = [
+    { href: '/assistant',             label: fr ? 'Assistant IA' : 'AI Assistant',      icon: Sparkles },
+    { href: '/customers/campaigns',   label: fr ? 'Campagnes' : 'Campaigns',            icon: Megaphone },
+    { href: '/schedule/availability', label: fr ? 'Portail réserv.' : 'Booking Portal', icon: Globe },
+    { href: '/settings',              label: fr ? 'Paramètres' : 'Settings',            icon: Settings },
+  ]
   const [user, setUser]   = useState<{ email?: string; id?: string } | null>(null)
   const [unread, setUnread] = useState(0)
 
@@ -169,7 +172,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           {/* Bottom nav items */}
           <div>
             <p className="px-3 pb-1.5 text-xs font-semibold text-gray-400 uppercase tracking-widest">
-              More
+              {fr ? 'Plus' : 'More'}
             </p>
             <div className="space-y-0.5">
               {bottomItems.map(({ href, label, icon: Icon }) => {
@@ -221,7 +224,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 <p className="truncate text-xs font-semibold text-gray-900 dark:text-gray-100">{user.email}</p>
                 <div className="flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  <p className="text-xs text-gray-400">Gestionnaire</p>
+                  <p className="text-xs text-gray-400">{fr ? 'Gestionnaire' : 'Manager'}</p>
                 </div>
               </div>
               <ChevronDown className="h-3.5 w-3.5 text-gray-300 shrink-0" />
@@ -232,7 +235,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-150"
           >
             <LogOut className="h-4 w-4 shrink-0" />
-            Se déconnecter
+            {fr ? 'Se déconnecter' : 'Sign out'}
           </button>
         </div>
       </aside>
