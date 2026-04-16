@@ -29,11 +29,11 @@ interface Job {
 }
 interface TeamMember { id: string; name: string; email: string; is_active: boolean }
 
-const STATUS_CFG: Record<string, { label: string; cls: string; dotCls: string }> = {
-  scheduled:   { label: 'Planifié',   cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100',     dotCls: 'bg-blue-500' },
-  in_progress: { label: 'En cours',   cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',  dotCls: 'bg-amber-500' },
-  complete:    { label: 'Terminé',    cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100', dotCls: 'bg-emerald-500' },
-  cancelled:   { label: 'Annulé',     cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100',      dotCls: 'bg-gray-400' },
+const STATUS_CFG: Record<string, { cls: string; dotCls: string }> = {
+  scheduled:   { cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100',        dotCls: 'bg-blue-500' },
+  in_progress: { cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',     dotCls: 'bg-amber-500' },
+  complete:    { cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100', dotCls: 'bg-emerald-500' },
+  cancelled:   { cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100',        dotCls: 'bg-gray-400' },
 }
 const PRIORITY_CFG_FR: Record<string, { label: string; cls: string }> = {
   low:    { label: 'Basse priorité',   cls: 'text-gray-500' },
@@ -294,7 +294,7 @@ export default function JobDetailPage() {
             })}
             {job.status === 'cancelled' && (
               <div className="ml-4 flex items-center gap-1.5 rounded-xl bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-400">
-                <span className="h-2 w-2 rounded-full bg-gray-300" /> Annulé
+                <span className="h-2 w-2 rounded-full bg-gray-300" /> {fr ? 'Annulé' : 'Cancelled'}
               </div>
             )}
           </div>
@@ -311,14 +311,14 @@ export default function JobDetailPage() {
                   <h1 className="text-xl font-bold text-gray-900">{job.title}</h1>
                   {job.source === 'booking' && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 text-indigo-700 px-2.5 py-0.5 text-xs font-semibold">
-                      <Calendar className="h-3 w-3" /> Réservé en ligne
+                      <Calendar className="h-3 w-3" /> {fr ? 'Réservé en ligne' : 'Booked online'}
                     </span>
                   )}
                   {job.source === 'quote' && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 text-violet-700 px-2.5 py-0.5 text-xs font-semibold">
                       <FileText className="h-3 w-3" /> {fr ? 'Créé depuis un devis' : 'Created from quote'}
                       {job.quote_id && (
-                        <Link href={`/quotes`} className="ml-1 underline">voir</Link>
+                        <Link href={`/quotes`} className="ml-1 underline">{fr ? 'voir' : 'view'}</Link>
                       )}
                     </span>
                   )}
@@ -345,6 +345,7 @@ export default function JobDetailPage() {
                           </button>
                         ))}
                       </div>
+                      {/* end of dropdown */}
                     </>
                   )}
                 </div>
@@ -366,15 +367,15 @@ export default function JobDetailPage() {
             <div className="flex items-center gap-2 shrink-0">
               {editMode ? (
                 <>
-                  <button onClick={() => setEditMode(false)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Annuler</button>
+                  <button onClick={() => setEditMode(false)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
                   <button onClick={saveEdit} disabled={saving} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors">
-                    <Save className="h-4 w-4" />{saving ? 'Enregistrement...' : 'Enregistrer'}
+                    <Save className="h-4 w-4" />{saving ? (fr ? 'Enregistrement...' : 'Saving...') : (fr ? 'Enregistrer' : 'Save')}
                   </button>
                 </>
               ) : (
                 <>
                   <button onClick={() => setEditMode(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                    <Edit2 className="h-4 w-4" /> Modifier
+                    <Edit2 className="h-4 w-4" /> {fr ? 'Modifier' : 'Edit'}
                   </button>
                   <button onClick={deleteJob} className="inline-flex items-center gap-1.5 rounded-xl border border-red-100 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
                     <Trash2 className="h-4 w-4" />
@@ -387,7 +388,7 @@ export default function JobDetailPage() {
           {/* Description / edit */}
           {editMode ? (
             <div className="mt-4 space-y-3">
-              <textarea value={eDesc} onChange={(e) => setEDesc(e.target.value)} placeholder="Description..." rows={3} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
+              <textarea value={eDesc} onChange={(e) => setEDesc(e.target.value)} placeholder={fr ? 'Description...' : 'Description...'} rows={3} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Date' : 'Date'}</label>
@@ -445,8 +446,8 @@ export default function JobDetailPage() {
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div>
-                  <h2 className="text-sm font-semibold text-gray-900">Liste de tâches</h2>
-                  {checklist.length > 0 && <p className="text-xs text-gray-400">{doneCount}/{checklist.length} terminée(s)</p>}
+                  <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Liste de tâches' : 'Checklist'}</h2>
+                  {checklist.length > 0 && <p className="text-xs text-gray-400">{doneCount}/{checklist.length} {fr ? 'terminée(s)' : 'done'}</p>}
                 </div>
               </div>
 
@@ -510,7 +511,7 @@ export default function JobDetailPage() {
             {/* Invoice */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
               <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <FileText className="h-4 w-4 text-emerald-500" /> Facture
+                <FileText className="h-4 w-4 text-emerald-500" /> {fr ? 'Facture' : 'Invoice'}
               </h2>
               {invoiceLinked ? (
                 <div className="rounded-xl bg-emerald-50 p-4">
@@ -520,7 +521,7 @@ export default function JobDetailPage() {
                       {invoiceLinked.status}
                     </span>
                   </div>
-                  <Link href={`/invoices/${invoiceLinked.id}`} className="text-xs text-indigo-600 hover:underline">Voir la facture →</Link>
+                  <Link href={`/invoices/${invoiceLinked.id}`} className="text-xs text-indigo-600 hover:underline">{fr ? 'Voir la facture →' : 'View invoice →'}</Link>
                 </div>
               ) : (
                 <div className="text-center py-4">
