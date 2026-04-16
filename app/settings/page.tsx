@@ -895,29 +895,57 @@ export default function SettingsPage() {
         {tab === 'security' && (
           <div className="space-y-4">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Sécurité</h2>
-              <p className="text-sm text-gray-400 mb-5">Protégez votre compte avec des mesures de sécurité supplémentaires.</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Sécurité' : 'Security'}</h2>
+              <p className="text-sm text-gray-400 mb-5">{fr ? 'Protégez votre compte avec des mesures de sécurité supplémentaires.' : 'Protect your account with additional security measures.'}</p>
               <div className="space-y-3">
-                {[
-                  { label: fr ? 'Authentification à deux facteurs' : 'Two-factor authentication', desc: fr ? 'Ajoutez une couche de sécurité supplémentaire à votre compte.' : 'Add an extra layer of security to your account.', badge: fr ? 'Recommandé' : 'Recommended', btn: fr ? 'Activer 2FA' : 'Enable 2FA', href: null as string | null },
-                  { label: fr ? 'Sessions actives' : 'Active sessions', desc: fr ? 'Voir et révoquer les sessions de connexion actives.' : 'View and revoke active login sessions.', badge: null, btn: fr ? 'Gérer les sessions' : 'Manage sessions', href: null },
-                  { label: fr ? 'Journal d\'activité' : 'Activity log', desc: fr ? 'Consulter toutes les actions et notifications récentes sur votre compte.' : 'Review all recent actions and notifications on your account.', badge: null, btn: fr ? 'Voir l\'activité' : 'View activity', href: '/notifications' },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-start justify-between rounded-xl border border-gray-100 p-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-gray-900">{item.label}</p>
-                        {item.badge && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">{item.badge}</span>}
-                      </div>
-                      <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
+                {/* 2FA — not built */}
+                <div className="flex items-start justify-between rounded-xl border border-gray-100 p-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold text-gray-900">{fr ? 'Authentification à deux facteurs' : 'Two-factor authentication'}</p>
+                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">{fr ? 'Recommandé' : 'Recommended'}</span>
                     </div>
-                    {item.href ? (
-                      <Link href={item.href} className="shrink-0 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">{item.btn}</Link>
-                    ) : (
-                      <button className="shrink-0 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">{item.btn}</button>
-                    )}
+                    <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Ajoutez une couche de sécurité supplémentaire à votre compte.' : 'Add an extra layer of security to your account.'}</p>
                   </div>
-                ))}
+                  <span className="shrink-0 rounded-xl bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-400">{fr ? 'Prochainement' : 'Coming soon'}</span>
+                </div>
+
+                {/* Sessions */}
+                <div className="flex items-start justify-between rounded-xl border border-gray-100 p-4">
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900 mb-0.5">{fr ? 'Sessions actives' : 'Active sessions'}</p>
+                    <p className="text-xs text-gray-400">{fr ? 'Vous êtes connecté sur cet appareil.' : 'You are logged in on this device.'}</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      const { confirmed: ok } = await confirm({
+                        title: fr ? 'Déconnecter les autres sessions ?' : 'Sign out other sessions?',
+                        description: fr
+                          ? 'Vous resterez connecté sur cet appareil, mais toutes les autres sessions seront fermées.'
+                          : 'You will stay signed in on this device, but all other sessions will be closed.',
+                        confirmLabel: fr ? 'Déconnecter' : 'Sign out others',
+                      })
+                      if (!ok) return
+                      const { error: err } = await supabase.auth.signOut({ scope: 'others' })
+                      if (err) toast.error(err.message)
+                      else toast.success(fr ? 'Autres sessions déconnectées' : 'Other sessions signed out')
+                    }}
+                    className="shrink-0 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    {fr ? 'Déconnecter les autres' : 'Sign out others'}
+                  </button>
+                </div>
+
+                {/* Activity / Notifications */}
+                <div className="flex items-start justify-between rounded-xl border border-gray-100 p-4">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{fr ? 'Notifications' : 'Notifications'}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Consulter toutes les notifications récentes sur votre compte.' : 'Review all recent notifications on your account.'}</p>
+                  </div>
+                  <Link href="/notifications" className="shrink-0 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                    {fr ? 'Voir les notifications' : 'View notifications'}
+                  </Link>
+                </div>
               </div>
             </div>
 
@@ -1167,28 +1195,37 @@ export default function SettingsPage() {
               <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Services connectés' : 'Connected services'}</h2>
               <p className="text-sm text-gray-400 mb-5">{fr ? 'Gérez les intégrations avec des outils tiers.' : 'Manage third-party integrations.'}</p>
               <div className="space-y-3">
-                {[
-                  { name: 'Stripe Payments', desc: fr ? 'Paiements en ligne par vos clients' : 'Accept online payments from customers', icon: CreditCard },
-                  { name: 'Resend Email', desc: fr ? 'E-mails transactionnels pour factures et rappels' : 'Transactional email for invoices and reminders', icon: Bell },
-                  { name: 'Anthropic Claude', desc: fr ? 'Assistant IA et agent de réservation' : 'AI assistant and booking agent', icon: Sparkles },
-                ].map((intg) => (
-                  <div key={intg.name} className="flex items-center justify-between rounded-xl border border-gray-100 p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100">
-                        <intg.icon className="h-5 w-5 text-emerald-600" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-gray-900">{intg.name}</p>
+                {/* Stripe Connect */}
+                <div className="flex items-center justify-between rounded-xl border border-gray-100 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${connectStatus?.connected ? 'bg-emerald-100' : 'bg-gray-100'}`}>
+                      <CreditCard className={`h-5 w-5 ${connectStatus?.connected ? 'text-emerald-600' : 'text-gray-500'}`} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-gray-900">Stripe Connect</p>
+                        {connectStatus?.connected && (
                           <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
                             <CheckCircle className="h-3 w-3" /> Connecté
                           </span>
-                        </div>
-                        <p className="text-xs text-gray-400">{intg.desc}</p>
+                        )}
                       </div>
+                      <p className="text-xs text-gray-400">
+                        {connectStatus?.connected
+                          ? (fr ? 'Paiements en ligne activés' : 'Online payments enabled')
+                          : (fr ? 'Acceptez les paiements en ligne de vos clients' : 'Accept online payments from customers')}
+                      </p>
                     </div>
                   </div>
-                ))}
+                  {!connectStatus?.connected && (
+                    <button
+                      onClick={() => setTab('billing')}
+                      className="shrink-0 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                    >
+                      {fr ? 'Configurer' : 'Set up'}
+                    </button>
+                  )}
+                </div>
 
                 {/* Google Calendar */}
                 <div className="flex items-center justify-between rounded-xl border border-gray-100 p-4">
