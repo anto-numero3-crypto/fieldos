@@ -31,7 +31,7 @@ const NAV_ITEMS: PaletteItem[] = [
   { id: 'assistant',  label: 'Assistant IA',     icon: Sparkles,         href: '/assistant',  group: 'Pages', keywords: 'ia chat aide' },
   { id: 'book',       label: 'Portail de réservation', icon: Globe,      href: '/schedule/availability', group: 'Pages', keywords: 'reservation public' },
   { id: 'settings',   label: 'Paramètres',       icon: Settings,         href: '/settings',   group: 'Pages', keywords: 'parametres configuration' },
-  { id: 'billing',    label: 'Facturation',      icon: CreditCard,       href: '/billing',    group: 'Pages', keywords: 'abonnement plan' },
+  { id: 'billing',    label: 'Facturation',      icon: CreditCard,       href: '/settings?tab=billing',    group: 'Pages', keywords: 'abonnement plan' },
 ]
 
 export default function CommandPalette() {

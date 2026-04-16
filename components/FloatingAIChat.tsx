@@ -20,7 +20,7 @@ const PAGE_CONTEXT: Record<string, string> = {
   '/team': 'The user is managing their team members.',
   '/reports': 'The user is viewing business analytics and reports.',
   '/settings': 'The user is in the settings section.',
-  '/billing': 'The user is viewing their subscription and billing.',
+  '/settings?tab=billing': 'The user is viewing their subscription and billing.',
 }
 
 const QUICK_PROMPTS = [
@@ -107,7 +107,7 @@ export default function FloatingAIChat() {
   if (!userId && !pathname.startsWith('/dashboard') && !pathname.startsWith('/customers') &&
       !pathname.startsWith('/jobs') && !pathname.startsWith('/invoices') && !pathname.startsWith('/quotes') &&
       !pathname.startsWith('/schedule') && !pathname.startsWith('/team') && !pathname.startsWith('/reports') &&
-      !pathname.startsWith('/settings') && !pathname.startsWith('/billing') && !pathname.startsWith('/assistant')) {
+      !pathname.startsWith('/settings') && !pathname.startsWith('/assistant')) {
     return null
   }
 

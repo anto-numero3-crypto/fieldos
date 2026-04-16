@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/app/supabase'
 import {
   LayoutDashboard, Users, Briefcase, FileText, Sparkles, X, LogOut, Wrench,
-  Calendar, FileSignature, BarChart3, Settings, CreditCard, Users2,
+  Calendar, FileSignature, BarChart3, Settings, Users2,
   Bell, ChevronDown, Globe, Lightbulb, Megaphone, BookOpen, Clock,
 } from 'lucide-react'
 
@@ -46,7 +46,6 @@ const bottomItems = [
   { href: '/customers/campaigns', label: 'Campagnes',      icon: Megaphone },
   { href: '/schedule/availability', label: 'Portail réserv.', icon: Globe },
   { href: '/settings',            label: 'Paramètres',     icon: Settings },
-  { href: '/billing',             label: 'Facturation',    icon: CreditCard },
 ]
 
 export default function Sidebar({ open, onClose }: SidebarProps) {

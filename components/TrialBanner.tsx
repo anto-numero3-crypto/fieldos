@@ -22,7 +22,7 @@ export default function TrialBanner() {
           <p className="flex-1 font-medium">
             Votre essai Pro est terminé. Vous êtes maintenant sur le forfait Starter — certaines fonctionnalités sont restreintes.
           </p>
-          <Link href="/billing" className="rounded-lg bg-white text-red-700 px-3 py-1.5 text-xs font-bold hover:bg-red-50 shrink-0">
+          <Link href="/settings?tab=billing" className="rounded-lg bg-white text-red-700 px-3 py-1.5 text-xs font-bold hover:bg-red-50 shrink-0">
             Restaurer Pro
           </Link>
         </div>
@@ -47,7 +47,7 @@ export default function TrialBanner() {
             ? `🎉 Essai Pro — ${days} jour${days > 1 ? 's' : ''} restant${days > 1 ? 's' : ''}. Ajoutez un moyen de paiement pour conserver vos fonctionnalités Pro.`
             : "Votre essai Pro se termine aujourd'hui. Ajoutez un moyen de paiement pour ne pas perdre l'accès."}
         </p>
-        <Link href="/billing" className="rounded-lg bg-white/20 hover:bg-white/30 px-3 py-1.5 text-xs font-bold shrink-0">
+        <Link href="/settings?tab=billing" className="rounded-lg bg-white/20 hover:bg-white/30 px-3 py-1.5 text-xs font-bold shrink-0">
           Ajouter un paiement
         </Link>
         <button

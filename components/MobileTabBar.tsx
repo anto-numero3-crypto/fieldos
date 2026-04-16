@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/app/supabase'
-import { LayoutDashboard, Briefcase, Users, FileText, MoreHorizontal, X, BarChart3, Calendar, Settings, Sparkles, Globe, CreditCard, Lightbulb, Megaphone } from 'lucide-react'
+import { LayoutDashboard, Briefcase, Users, FileText, MoreHorizontal, X, BarChart3, Calendar, Settings, Sparkles, Globe, Lightbulb, Megaphone } from 'lucide-react'
 
 const mainTabs = [
   { href: '/dashboard',  icon: LayoutDashboard, label: 'Accueil' },
@@ -21,7 +21,6 @@ const moreItems = [
   { href: '/assistant',           icon: Sparkles,   label: 'Assistant IA' },
   { href: '/schedule/availability', icon: Globe, label: 'Réservation' },
   { href: '/settings',            icon: Settings,   label: 'Paramètres' },
-  { href: '/billing',             icon: CreditCard, label: 'Facturation' },
 ]
 
 export default function MobileTabBar() {
