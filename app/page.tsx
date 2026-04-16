@@ -601,24 +601,7 @@ export default function LandingPage() {
               <p className="text-xs text-gray-400">{lang === 'fr' ? 'Fait au Québec, Canada' : 'Made in Québec, Canada'}</p>
             </div>
 
-            {/* Col 2 — Product */}
-            <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">{lang === 'fr' ? 'Produit' : 'Product'}</h4>
-              <ul className="space-y-3">
-                {[
-                  { label: lang === 'fr' ? 'Fonctionnalités' : 'Features', href: '#features' },
-                  { label: lang === 'fr' ? 'Tarification' : 'Pricing', href: '#pricing' },
-                  { label: lang === 'fr' ? 'Assistant IA' : 'AI Assistant', href: '/login' },
-                  { label: lang === 'fr' ? 'Portail de réservation' : 'Booking Portal', href: '/signup' },
-                  { label: lang === 'fr' ? 'Intégrations' : 'Integrations', href: '#features' },
-                  { label: lang === 'fr' ? 'Nouveautés' : 'Changelog', href: '/changelog' },
-                ].map((link) => (
-                  <li key={link.label}><a href={link.href} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">{link.label}</a></li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Col 3 — Company */}
+            {/* Col 2 — Company */}
             <div>
               <h4 className="text-sm font-semibold text-gray-900 mb-4">{lang === 'fr' ? 'Entreprise' : 'Company'}</h4>
               <ul className="space-y-3">
