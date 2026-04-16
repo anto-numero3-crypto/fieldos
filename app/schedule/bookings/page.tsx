@@ -39,33 +39,35 @@ interface Booking {
   created_at: string
 }
 
-const STATUS_CFG: Record<string, { label: string; bg: string; text: string; icon: React.ElementType }> = {
-  pending:   { label: 'En attente',  bg: 'bg-amber-50',   text: 'text-amber-700',   icon: Clock },
-  confirmed: { label: 'Confirmé',    bg: 'bg-blue-50',    text: 'text-blue-700',    icon: CheckCircle },
-  declined:  { label: 'Refusé',      bg: 'bg-gray-100',   text: 'text-gray-600',    icon: XCircle },
-  cancelled: { label: 'Annulé',      bg: 'bg-gray-100',   text: 'text-gray-600',    icon: XCircle },
-  completed: { label: 'Terminé',     bg: 'bg-emerald-50', text: 'text-emerald-700', icon: Check },
-  no_show:   { label: 'Absent',      bg: 'bg-red-50',     text: 'text-red-600',     icon: AlertCircle },
+const STATUS_CFG: Record<string, { bg: string; text: string; icon: React.ElementType }> = {
+  pending:   { bg: 'bg-amber-50',   text: 'text-amber-700',   icon: Clock },
+  confirmed: { bg: 'bg-blue-50',    text: 'text-blue-700',    icon: CheckCircle },
+  declined:  { bg: 'bg-gray-100',   text: 'text-gray-600',    icon: XCircle },
+  cancelled: { bg: 'bg-gray-100',   text: 'text-gray-600',    icon: XCircle },
+  completed: { bg: 'bg-emerald-50', text: 'text-emerald-700', icon: Check },
+  no_show:   { bg: 'bg-red-50',     text: 'text-red-600',     icon: AlertCircle },
 }
 
-function fmtDate(d: string) {
-  return new Date(d + 'T12:00:00').toLocaleDateString('fr-CA', { weekday: 'short', month: 'short', day: 'numeric' })
+function fmtDate(d: string, fr: boolean) {
+  return new Date(d + 'T12:00:00').toLocaleDateString(fr ? 'fr-CA' : 'en-CA', { weekday: 'short', month: 'short', day: 'numeric' })
 }
 function fmtTime(t: string) {
   const [h, m] = t.split(':').map(Number)
   return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`
 }
-function timeAgo(ts: string) {
+function timeAgo(ts: string, fr: boolean) {
   const diff = Date.now() - new Date(ts).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `il y a ${mins} min`
+  if (mins < 60) return fr ? `il y a ${mins} min` : `${mins} min ago`
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `il y a ${hrs}h`
-  return `il y a ${Math.floor(hrs / 24)}j`
+  if (hrs < 24) return fr ? `il y a ${hrs}h` : `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  return fr ? `il y a ${days}j` : `${days}d ago`
 }
 
 export default function BookingsPage() {
   const { lang, t } = useLanguage()
+  const fr = lang === 'fr'
   const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
   const [userId, setUserId] = useState<string | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
@@ -131,11 +133,16 @@ export default function BookingsPage() {
       })
       const data = await res.json()
       if (data.success) {
-        const labels: Record<string, string> = {
+        const labels: Record<string, string> = fr ? {
           confirm: 'Réservation confirmée !',
           decline: 'Réservation refusée.',
           cancel:  'Réservation annulée.',
           complete: 'Marqué comme terminé.',
+        } : {
+          confirm: 'Booking confirmed!',
+          decline: 'Booking declined.',
+          cancel:  'Booking cancelled.',
+          complete: 'Marked as completed.',
         }
         toast.success(labels[action] || t.success.updated)
         load(userId, statusFilter)
@@ -171,7 +178,7 @@ export default function BookingsPage() {
   const cancellationRate = totalDone > 0 ? Math.round((cancelledCount / totalDone) * 100) : 0
 
   if (loading) return (
-    <AppLayout title="Réservations">
+    <AppLayout title={fr ? 'Réservations' : 'Bookings'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-4">
         <div className="grid gap-4 sm:grid-cols-4">
           {[...Array(4)].map((_, i) => <SkeletonKPICard key={i} />)}
@@ -182,28 +189,28 @@ export default function BookingsPage() {
   )
 
   return (
-    <AppLayout title="Réservations">
+    <AppLayout title={fr ? 'Réservations' : 'Bookings'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Réservations</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Gérez les demandes de rendez-vous de vos clients</p>
+            <h1 className="text-2xl font-bold text-gray-900">{fr ? 'Réservations' : 'Bookings'}</h1>
+            <p className="text-sm text-gray-500 mt-0.5">{fr ? 'Gérez les demandes de rendez-vous de vos clients' : 'Manage booking requests from your customers'}</p>
           </div>
           <Link href="/schedule/availability"
             className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-            <Calendar className="h-4 w-4" /> Disponibilités
+            <Calendar className="h-4 w-4" /> {fr ? 'Disponibilités' : 'Availability'}
           </Link>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            { label: 'En attente', value: pending.length, color: 'text-amber-600', badge: pending.length > 0 },
-            { label: 'Confirmés aujourd\'hui', value: confirmedToday, color: 'text-blue-600' },
-            { label: 'Terminés', value: completedWeek, color: 'text-emerald-600' },
-            { label: 'Taux d\'annulation', value: `${cancellationRate}%`, color: 'text-gray-600' },
+            { label: fr ? 'En attente' : 'Pending', value: pending.length, color: 'text-amber-600', badge: pending.length > 0 },
+            { label: fr ? "Confirmés aujourd'hui" : 'Confirmed today', value: confirmedToday, color: 'text-blue-600' },
+            { label: fr ? 'Terminés' : 'Completed', value: completedWeek, color: 'text-emerald-600' },
+            { label: fr ? "Taux d'annulation" : 'Cancel rate', value: `${cancellationRate}%`, color: 'text-gray-600' },
           ].map((s) => (
             <div key={s.label} className="rounded-2xl border border-gray-100 bg-white shadow-sm px-4 py-3">
               <p className="text-xs text-gray-400 mb-0.5">{s.label}</p>
@@ -220,7 +227,7 @@ export default function BookingsPage() {
           <div className="space-y-3">
             <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
               <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-100 text-amber-700 text-xs font-bold">{pending.length}</span>
-              En attente de confirmation
+              {fr ? 'En attente de confirmation' : 'Awaiting confirmation'}
             </h2>
             {pending.map((b) => (
               <div key={b.id} className="rounded-2xl border border-amber-100 bg-white shadow-sm p-5">
@@ -234,10 +241,10 @@ export default function BookingsPage() {
                         <p className="font-semibold text-gray-900">{b.customer_name}</p>
                         <p className="text-sm text-indigo-600 font-medium">{b.service_name}</p>
                       </div>
-                      <span className="text-xs text-gray-400 shrink-0">{timeAgo(b.created_at)}</span>
+                      <span className="text-xs text-gray-400 shrink-0">{timeAgo(b.created_at, fr)}</span>
                     </div>
                     <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
-                      <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {fmtDate(b.requested_date)} à {fmtTime(b.requested_time)}</span>
+                      <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> {fmtDate(b.requested_date, fr)} {fr ? 'à' : 'at'} {fmtTime(b.requested_time)}</span>
                       <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> {b.customer_email}</span>
                       {b.customer_phone && <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> {b.customer_phone}</span>}
                     </div>
@@ -256,33 +263,33 @@ export default function BookingsPage() {
                     className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 transition-all shadow-sm"
                   >
                     {actioning === b.id ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Check className="h-4 w-4" />}
-                    Accepter
+                    {fr ? 'Accepter' : 'Accept'}
                   </button>
                   <button
                     onClick={() => setDecliningId(b.id)}
                     disabled={actioning === b.id}
                     className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-100 disabled:opacity-60 transition-all"
                   >
-                    <X className="h-4 w-4" /> Refuser
+                    <X className="h-4 w-4" /> {fr ? 'Refuser' : 'Decline'}
                   </button>
                 </div>
 
                 {/* Decline reason modal */}
                 {decliningId === b.id && (
                   <div className="mt-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
-                    <p className="text-xs font-medium text-gray-600 mb-2">Raison du refus (optionnel)</p>
+                    <p className="text-xs font-medium text-gray-600 mb-2">{fr ? 'Raison du refus (optionnel)' : 'Decline reason (optional)'}</p>
                     <textarea
                       rows={2}
                       value={declineReason}
                       onChange={(e) => setDeclineReason(e.target.value)}
-                      placeholder="ex. Créneau non disponible, service non offert dans votre secteur…"
+                      placeholder={fr ? 'ex. Créneau non disponible, service non offert dans votre secteur…' : 'e.g. Slot not available, service not offered in your area…'}
                       className="block w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm focus:border-red-300 focus:outline-none resize-none mb-2"
                     />
                     <div className="flex gap-2">
                       <button onClick={() => doAction(b.id, 'decline', declineReason)}
-                        className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition-colors">Confirmer le refus</button>
+                        className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition-colors">{fr ? 'Confirmer le refus' : 'Confirm decline'}</button>
                       <button onClick={() => setDecliningId(null)}
-                        className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors">Annuler</button>
+                        className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
                     </div>
                   </div>
                 )}
@@ -296,8 +303,8 @@ export default function BookingsPage() {
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
             <EmptyState
               icon={Clock}
-              title="Aucune réservation en attente"
-              description="Vous recevrez une notification quand un client réservera en ligne."
+              title={fr ? 'Aucune réservation en attente' : 'No pending bookings'}
+              description={fr ? "Vous recevrez une notification quand un client réservera en ligne." : 'You will be notified when a customer books online.'}
             />
           </div>
         )}
@@ -305,13 +312,13 @@ export default function BookingsPage() {
         {/* ── All Bookings ── */}
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
           <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-900">Toutes les réservations</h2>
+            <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Toutes les réservations' : 'All bookings'}</h2>
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
                 <input
                   type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Rechercher…"
+                  placeholder={fr ? 'Rechercher…' : 'Search…'}
                   className="h-8 w-36 pl-8 pr-2 rounded-lg border border-gray-200 bg-gray-50 text-xs focus:border-indigo-500 focus:outline-none focus:w-48 transition-all"
                 />
               </div>
@@ -336,7 +343,7 @@ export default function BookingsPage() {
 
           {filtered.length === 0 ? (
             <div className="px-6 py-12 text-center text-sm text-gray-400">
-              Aucune réservation{search ? ' correspondant à votre recherche' : ''}.
+              {fr ? `Aucune réservation${search ? ' correspondant à votre recherche' : ''}.` : `No bookings${search ? ' matching your search' : ''}.`}
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
@@ -357,36 +364,36 @@ export default function BookingsPage() {
                       </div>
                       <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                         <span className="text-xs text-indigo-600">{b.service_name}</span>
-                        <span className="text-xs text-gray-400">{fmtDate(b.requested_date)} · {fmtTime(b.requested_time)}</span>
+                        <span className="text-xs text-gray-400">{fmtDate(b.requested_date, fr)} · {fmtTime(b.requested_time)}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       {b.status === 'pending' && (
                         <>
-                          <button onClick={() => openAccept(b)} title="Accepter"
+                          <button onClick={() => openAccept(b)} title={fr ? 'Accepter' : 'Accept'}
                             className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50 transition-colors">
                             <Check className="h-4 w-4" />
                           </button>
-                          <button onClick={() => setDecliningId(b.id)} title="Refuser"
+                          <button onClick={() => setDecliningId(b.id)} title={fr ? 'Refuser' : 'Decline'}
                             className="rounded-lg p-1.5 text-red-500 hover:bg-red-50 transition-colors">
                             <X className="h-4 w-4" />
                           </button>
                         </>
                       )}
                       {b.status === 'confirmed' && (
-                        <button onClick={() => doAction(b.id, 'complete')} title="Marquer terminé"
+                        <button onClick={() => doAction(b.id, 'complete')} title={fr ? 'Marquer terminé' : 'Mark completed'}
                           className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors">
                           <CheckCircle className="h-4 w-4" />
                         </button>
                       )}
                       {b.converted_to_job_id && (
-                        <Link href={`/jobs/${b.converted_to_job_id}`} title="Voir le travail"
+                        <Link href={`/jobs/${b.converted_to_job_id}`} title={fr ? 'Voir le travail' : 'View job'}
                           className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors">
                           <Briefcase className="h-4 w-4" />
                         </Link>
                       )}
                       <a href={`/booking/cancel/${b.token}`} target="_blank" rel="noopener noreferrer"
-                        title="Page publique" className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors">
+                        title={fr ? 'Page publique' : 'Public page'} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors">
                         <ExternalLink className="h-4 w-4" />
                       </a>
                     </div>
@@ -407,18 +414,18 @@ export default function BookingsPage() {
         {acceptingBooking && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setAcceptingBooking(null)}>
             <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">Accepter et assigner</h3>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Accepter et assigner' : 'Accept and assign'}</h3>
               <p className="text-xs text-gray-500 mb-4">
                 {acceptingBooking.customer_name} · {acceptingBooking.service_name}<br />
-                {fmtDate(acceptingBooking.requested_date)} à {fmtTime(acceptingBooking.requested_time)}
+                {fmtDate(acceptingBooking.requested_date, fr)} {fr ? 'à' : 'at'} {fmtTime(acceptingBooking.requested_time)}
               </p>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">Assigner à</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">{fr ? 'Assigner à' : 'Assign to'}</label>
               <select
                 value={assignTo}
                 onChange={(e) => setAssignTo(e.target.value)}
                 className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-4"
               >
-                <option value="">Non assigné</option>
+                <option value="">{fr ? 'Non assigné' : 'Unassigned'}</option>
                 {team.map((m) => (
                   <option key={m.id} value={m.id}>{m.name}</option>
                 ))}
@@ -426,11 +433,11 @@ export default function BookingsPage() {
               <div className="flex gap-2">
                 <button onClick={submitAccept}
                   className="flex-1 rounded-xl bg-emerald-600 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors">
-                  Confirmer la réservation
+                  {fr ? 'Confirmer la réservation' : 'Confirm booking'}
                 </button>
                 <button onClick={() => setAcceptingBooking(null)}
                   className="flex-1 rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                  Annuler
+                  {fr ? 'Annuler' : 'Cancel'}
                 </button>
               </div>
             </div>
@@ -441,15 +448,15 @@ export default function BookingsPage() {
         {decliningId && !pending.find((b) => b.id === decliningId) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setDecliningId(null)}>
             <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-base font-semibold text-gray-900 mb-3">Refuser la réservation</h3>
+              <h3 className="text-base font-semibold text-gray-900 mb-3">{fr ? 'Refuser la réservation' : 'Decline the booking'}</h3>
               <textarea rows={3} value={declineReason} onChange={(e) => setDeclineReason(e.target.value)}
-                placeholder="Raison du refus (optionnel)…"
+                placeholder={fr ? 'Raison du refus (optionnel)…' : 'Decline reason (optional)…'}
                 className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-red-300 focus:outline-none resize-none mb-3" />
               <div className="flex gap-2">
                 <button onClick={() => doAction(decliningId, 'decline', declineReason)}
-                  className="flex-1 rounded-xl bg-red-600 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors">Refuser</button>
+                  className="flex-1 rounded-xl bg-red-600 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors">{fr ? 'Refuser' : 'Decline'}</button>
                 <button onClick={() => setDecliningId(null)}
-                  className="flex-1 rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">Annuler</button>
+                  className="flex-1 rounded-xl border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
               </div>
             </div>
           </div>
