@@ -8,6 +8,7 @@ import { SkeletonText, SkeletonCard } from '@/components/ui/skeleton'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtMoney, fmtDate } from '@/lib/format'
+import { getInvoiceDisplayStatus } from '@/lib/invoice-status'
 import { writeAuditLog } from '@/lib/audit'
 import { toast } from 'sonner'
 import {
@@ -45,10 +46,12 @@ interface Invoice {
 }
 
 const STATUS_CFG: Record<string, { className: string; icon: React.ElementType }> = {
-  unpaid:  { className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',   icon: Clock },
-  sent:    { className: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',       icon: Send },
-  paid:    { className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', icon: CheckCircle },
-  overdue: { className: 'bg-red-50 text-red-700 ring-1 ring-red-200',         icon: AlertCircle },
+  unpaid:    { className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',   icon: Clock },
+  sent:      { className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',   icon: Send },
+  paid:      { className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', icon: CheckCircle },
+  overdue:   { className: 'bg-red-50 text-red-700 ring-1 ring-red-200 animate-pulse', icon: AlertCircle },
+  draft:     { className: 'bg-gray-100 text-gray-600 ring-1 ring-gray-200', icon: Clock },
+  cancelled: { className: 'bg-gray-100 text-gray-500 ring-1 ring-gray-200 line-through', icon: Clock },
 }
 
 export default function InvoiceDetailPage() {
@@ -297,7 +300,8 @@ export default function InvoiceDetailPage() {
     </AppLayout>
   )
 
-  const cfg = STATUS_CFG[invoice.status]
+  const displayStatus = getInvoiceDisplayStatus(invoice)
+  const cfg = STATUS_CFG[displayStatus] || STATUS_CFG.unpaid
   const StatusIcon = cfg?.icon || Clock
 
   const lineItemSubtotal = lineItems.reduce((s, li) => s + li.qty * li.unit_price, 0)
@@ -385,7 +389,7 @@ export default function InvoiceDetailPage() {
               ) : (
                 <div className="px-6 py-4 flex items-center gap-6 bg-gray-50 border-b border-gray-100">
                   <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${cfg?.className}`}>
-                    <StatusIcon className="h-3.5 w-3.5" /> {tStatus(invoice.status)}
+                    <StatusIcon className="h-3.5 w-3.5" /> {tStatus(displayStatus)}
                   </span>
                   {invoice.due_date && (
                     <span className="flex items-center gap-1.5 text-sm text-gray-500">
@@ -595,7 +599,7 @@ export default function InvoiceDetailPage() {
                     {sending ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" /> : <Send className="h-4 w-4 text-gray-400" />}
                     {fr ? 'Envoyer la facture par courriel' : 'Send invoice by email'}
                   </button>
-                  {invoice.status === 'overdue' && (
+                  {displayStatus === 'overdue' && (
                     <button
                       onClick={() => sendInvoiceEmail('payment_reminder')}
                       disabled={sending}

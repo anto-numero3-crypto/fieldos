@@ -50,6 +50,7 @@ import { Skeleton, SkeletonKPICard } from '@/components/ui/skeleton'
 import { useTheme } from '@/components/ThemeProvider'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtMoney } from '@/lib/format'
+import { getInvoiceDisplayStatus } from '@/lib/invoice-status'
 import { supabase } from '@/app/supabase'
 
 // ───── Lazy load the map (leaflet needs window) ─────
@@ -310,10 +311,10 @@ export default function DashboardPage() {
 
   // KPI 4 — unpaid + overdue
   const { unpaidTotal, unpaidCount, overdueInvoices } = useMemo(() => {
-    const unpaid = invoices.filter((i) => i.status === 'unpaid' || i.status === 'overdue' || i.status === 'sent')
+    const unpaid = invoices.filter((i) => { const d = getInvoiceDisplayStatus(i); return d === 'unpaid' || d === 'sent' || d === 'overdue' })
     const sum = unpaid.reduce((acc, i) => acc + toNum(i.amount), 0)
     const overdue = invoices
-      .filter((i) => (i.status === 'unpaid' || i.status === 'overdue') && i.due_date && new Date(i.due_date) < today)
+      .filter((i) => getInvoiceDisplayStatus(i) === 'overdue')
       .sort((a, b) => (a.due_date || '').localeCompare(b.due_date || ''))
     return { unpaidTotal: sum, unpaidCount: unpaid.length, overdueInvoices: overdue }
   }, [invoices, today])
@@ -322,10 +323,11 @@ export default function DashboardPage() {
   const invoiceBreakdown = useMemo(() => {
     const buckets = { paid: 0, unpaid: 0, overdue: 0, draft: 0 }
     for (const inv of invoices) {
-      if (inv.status === 'paid') buckets.paid++
-      else if (inv.status === 'overdue') buckets.overdue++
-      else if (inv.status === 'draft') buckets.draft++
-      else if (inv.status === 'unpaid' || inv.status === 'sent') buckets.unpaid++
+      const d = getInvoiceDisplayStatus(inv)
+      if (d === 'paid') buckets.paid++
+      else if (d === 'overdue') buckets.overdue++
+      else if (d === 'draft') buckets.draft++
+      else if (d === 'unpaid' || d === 'sent') buckets.unpaid++
     }
     return buckets
   }, [invoices])
@@ -435,7 +437,7 @@ export default function DashboardPage() {
           at: inv.paid_at,
         })
       }
-      if ((inv.status === 'unpaid' || inv.status === 'overdue') && inv.due_date && new Date(inv.due_date) < today) {
+      if (getInvoiceDisplayStatus(inv) === 'overdue') {
         const name = inv.customers?.name || (fr ? 'un client' : 'a customer')
         out.push({
           id: `inv-over-${inv.id}`,
@@ -444,7 +446,7 @@ export default function DashboardPage() {
             ? `Facture ${inv.invoice_number || ''} en retard — ${name}`
             : `Invoice ${inv.invoice_number || ''} overdue — ${name}`,
           href: `/invoices`,
-          at: inv.due_date,
+          at: inv.due_date || inv.created_at,
         })
       }
     }

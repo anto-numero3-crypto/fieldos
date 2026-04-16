@@ -10,12 +10,13 @@ import EmptyState from '@/components/EmptyState'
 import { SkeletonText, SkeletonListRow } from '@/components/ui/skeleton'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtMoney, fmtDate } from '@/lib/format'
+import { getInvoiceDisplayStatus } from '@/lib/invoice-status'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { FileText, Plus, X, DollarSign, Calendar, User, Briefcase, Clock, Hash, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react'
 
 interface Invoice {
-  id: string; amount: number; status: string; due_date: string | null
+  id: string; amount: number; status: string; due_date: string | null; paid_at: string | null
   created_at: string; invoice_number?: string
   customers: { name: string } | null; jobs: { title: string } | null
 }
@@ -28,8 +29,11 @@ export default function InvoicesPage() {
 
   const statusConfig: Record<string, { label: string; className: string }> = {
     unpaid: { label: l.unpaid, className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100' },
+    sent: { label: l.unpaid, className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100' },
     paid: { label: l.paid, className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
-    overdue: { label: l.overdue, className: 'bg-red-50 text-red-700 ring-1 ring-red-100' },
+    overdue: { label: l.overdue, className: 'bg-red-50 text-red-700 ring-1 ring-red-200 animate-pulse' },
+    draft: { label: 'Brouillon', className: 'bg-gray-100 text-gray-600 ring-1 ring-gray-200' },
+    cancelled: { label: 'Annulée', className: 'bg-gray-100 text-gray-500 ring-1 ring-gray-200 line-through' },
   }
 
   const [user, setUser] = useState<{ id: string } | null>(null)
@@ -92,17 +96,17 @@ export default function InvoicesPage() {
   }
 
   const filtered = useMemo(
-    () => activeFilter === 'all' ? invoices : invoices.filter(i => i.status === activeFilter),
+    () => activeFilter === 'all' ? invoices : invoices.filter(i => getInvoiceDisplayStatus(i) === activeFilter),
     [invoices, activeFilter]
   )
   const { page, setPage, range, pageSize, reset: resetPage } = usePagination(filtered.length)
   const paged = useMemo(() => filtered.slice(range.from, range.to), [filtered, range.from, range.to])
   useEffect(() => { resetPage() }, [activeFilter, resetPage])
   const totalAll = invoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0)
-  const totalPaid = invoices.filter(i => i.status === 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
-  const totalUnpaid = invoices.filter(i => i.status === 'unpaid').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
-  const totalOverdue = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
-  const countByStatus = (s: string) => invoices.filter(i => i.status === s).length
+  const totalPaid = invoices.filter(i => getInvoiceDisplayStatus(i) === 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+  const totalUnpaid = invoices.filter(i => { const d = getInvoiceDisplayStatus(i); return d === 'unpaid' || d === 'sent' }).reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+  const totalOverdue = invoices.filter(i => getInvoiceDisplayStatus(i) === 'overdue').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+  const countByStatus = (s: string) => invoices.filter(i => getInvoiceDisplayStatus(i) === s).length
   const fmt = (n: number) => fmtMoney(n, lang)
 
   const statusFilters = [
@@ -187,7 +191,7 @@ export default function InvoicesPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {paged.map((inv) => {
-                    const cfg = statusConfig[inv.status]
+                    const cfg = statusConfig[getInvoiceDisplayStatus(inv)]
                     return (
                       <tr key={inv.id} className="hover:bg-gray-50 transition-colors group cursor-pointer" onClick={() => window.location.href = `/invoices/${inv.id}`}>
                         <td className="px-6 py-4 whitespace-nowrap">

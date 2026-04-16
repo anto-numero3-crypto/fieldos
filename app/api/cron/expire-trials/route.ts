@@ -89,6 +89,17 @@ export async function GET(req: NextRequest) {
     promoExpiredCount++
   }
 
+  // ── 3.5 Mark overdue invoices ─────────────────────────────────
+  const nowIso = now.toISOString()
+  const { data: overdueRows } = await supabase
+    .from('invoices')
+    .update({ status: 'overdue' })
+    .in('status', ['unpaid', 'sent'])
+    .lt('due_date', nowIso)
+    .is('paid_at', null)
+    .select('id')
+  const overdueCount = overdueRows?.length || 0
+
   // ── 4. Send 24h reminder for assigned jobs tomorrow ────────────
   let reminderCount = 0
   if (process.env.RESEND_API_KEY) {
@@ -190,5 +201,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ expiredCount, warningCount, promoExpiredCount, reminderCount })
+  return NextResponse.json({ expiredCount, warningCount, promoExpiredCount, reminderCount, overdueCount })
 }
