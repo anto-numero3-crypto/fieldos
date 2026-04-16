@@ -98,30 +98,28 @@ interface BusinessGeocodeResult {
   displayName: string
 }
 
-// Dedicated business geocoder — its own localStorage key (v2) so stale bad
-// hits from the shared job cache don't pollute the HQ pin. Returns the
-// display_name so the popup can show what Nominatim actually matched.
-const BUSINESS_LS_KEY = 'gestivio-business-geocode-v2'
-
+// Business geocoder: no local cache. Results are persisted to the
+// organizations row via /api/org/update-location so future loads skip
+// Nominatim entirely. That avoids stale/bad cache entries on clients.
 async function geocodeBusiness(query: string): Promise<BusinessGeocodeResult | null> {
-  const key = query.trim().toLowerCase()
+  const key = query.trim()
   if (!key) return null
-  // Read per-query cache from localStorage
-  if (typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem(BUSINESS_LS_KEY)
-      if (raw) {
-        const map = JSON.parse(raw) as Record<string, BusinessGeocodeResult>
-        if (map[key]) return map[key]
-      }
-    } catch { /* ignore */ }
-  }
   try {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=ca&addressdetails=1`
-    const res = await fetch(url, { headers: { 'Accept': 'application/json' } })
-    if (!res.ok) return null
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}` +
+      `&format=json&limit=1&countrycodes=ca&addressdetails=1&accept-language=fr`
+    const res = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+        // Nominatim requires a descriptive User-Agent
+        'User-Agent': 'Gestivio/1.0 (support@gestivio.ca)',
+      },
+    })
+    if (!res.ok) {
+      console.warn('[business marker] nominatim non-ok:', res.status)
+      return null
+    }
     const rows = (await res.json()) as Array<{ lat: string; lon: string; display_name: string }>
-    console.log('[business marker] full result:', JSON.stringify(rows, null, 2))
+    console.log('[business marker] nominatim result:', JSON.stringify(rows, null, 2))
     if (!rows.length) return null
     const first = rows[0]
     const lat = parseFloat(first.lat)
@@ -130,19 +128,22 @@ async function geocodeBusiness(query: string): Promise<BusinessGeocodeResult | n
       console.warn('[business marker] result outside Canada bounds:', { lat, lng })
       return null
     }
-    const result: BusinessGeocodeResult = { lat, lng, displayName: first.display_name }
-    if (typeof window !== 'undefined') {
-      try {
-        const raw = localStorage.getItem(BUSINESS_LS_KEY)
-        const map = raw ? JSON.parse(raw) as Record<string, BusinessGeocodeResult> : {}
-        map[key] = result
-        localStorage.setItem(BUSINESS_LS_KEY, JSON.stringify(map))
-      } catch { /* ignore */ }
-    }
-    return result
+    return { lat, lng, displayName: first.display_name }
   } catch (err) {
     console.error('[business marker] geocode error:', err)
     return null
+  }
+}
+
+async function persistLocation(lat: number, lng: number) {
+  try {
+    await fetch('/api/org/update-location', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ location_lat: lat, location_lng: lng }),
+    })
+  } catch (err) {
+    console.error('[business marker] failed to persist coords:', err)
   }
 }
 
@@ -252,17 +253,23 @@ export default function JobsMap({ jobs }: Props) {
       const addressLabel = [org.address, org.city, org.state, org.zip].filter((p) => p && String(p).trim()).join(', ')
         || [org.city, org.state].filter(Boolean).join(', ')
 
-      // 0. Manual coords override — skip geocoding entirely
-      if (Number.isFinite(org.location_lat) && Number.isFinite(org.location_lng)) {
-        console.log('[business marker] using manual coordinates:', org.location_lat, org.location_lng)
+      // 0. Saved coords in DB (either manual entry or previously persisted geocode result)
+      //    Validate they're in Canada; if not, treat as stale and re-geocode.
+      const savedLat = Number(org.location_lat)
+      const savedLng = Number(org.location_lng)
+      if (Number.isFinite(savedLat) && Number.isFinite(savedLng) && isCanadianCoord(savedLat, savedLng)) {
+        console.log('[business marker] using saved coords from DB:', savedLat, savedLng)
         setBusiness({
           name: org.name || 'Gestivio',
           address: addressLabel,
-          lat: org.location_lat as number,
-          lng: org.location_lng as number,
+          lat: savedLat,
+          lng: savedLng,
           matchedAddress: null,
         })
         return
+      }
+      if (Number.isFinite(savedLat) && Number.isFinite(savedLng)) {
+        console.warn('[business marker] saved coords outside Canada — will re-geocode:', savedLat, savedLng)
       }
 
       if (!org.address?.trim() && !org.city?.trim()) {
@@ -271,9 +278,9 @@ export default function JobsMap({ jobs }: Props) {
         return
       }
 
-      const parts = [org.address, org.city, org.state, org.zip, 'Canada'].filter((p) => p && String(p).trim())
+      const parts = [org.address, org.city, org.state, 'Canada'].filter((p) => p && String(p).trim())
       const fullAddress = parts.join(', ')
-      console.log('[business marker] address:', fullAddress)
+      console.log('[business marker] geocoding:', fullAddress)
 
       // 1. Full address with 'Canada' appended
       let result = fullAddress ? await geocodeBusiness(fullAddress) : null
@@ -289,16 +296,13 @@ export default function JobsMap({ jobs }: Props) {
       if (cancelled) return
 
       if (!result) {
-        console.warn('[business marker] geocoding failed at every level — using Montreal fallback')
-        setBusiness({
-          name: org.name || 'Gestivio',
-          address: addressLabel,
-          lat: 45.5017,
-          lng: -73.5673,
-          matchedAddress: null,
-        })
+        console.warn('[business marker] geocoding failed at every level — no marker')
+        setBusinessMissing(true)
         return
       }
+
+      // Persist to DB so we never geocode this business again
+      persistLocation(result.lat, result.lng)
 
       setBusiness({
         name: org.name || 'Gestivio',
