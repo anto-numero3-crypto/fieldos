@@ -63,12 +63,27 @@ function decodeIdTokenEmail(idToken?: string): string | null {
 
 export async function getValidAccessToken(orgId: string): Promise<string | null> {
   const supabase = adminClient()
-  const { data: org } = await supabase
+  const { data: org, error } = await supabase
     .from('organizations')
     .select('google_calendar_access_token, google_calendar_refresh_token, google_calendar_token_expiry, google_calendar_connected')
     .eq('id', orgId)
     .single()
-  if (!org || !org.google_calendar_connected || !org.google_calendar_refresh_token) return null
+  if (error) {
+    console.error('[google-calendar] org fetch failed:', error)
+    return null
+  }
+  if (!org) {
+    console.warn(`[google-calendar] org ${orgId} not found`)
+    return null
+  }
+  if (!org.google_calendar_connected) {
+    console.log(`[google-calendar] org ${orgId} not connected`)
+    return null
+  }
+  if (!org.google_calendar_refresh_token) {
+    console.error(`[google-calendar] org ${orgId} has no refresh token — connect flow likely failed`)
+    return null
+  }
 
   const expiry = org.google_calendar_token_expiry ? new Date(org.google_calendar_token_expiry).getTime() : 0
   const buffer = 60_000
@@ -76,6 +91,7 @@ export async function getValidAccessToken(orgId: string): Promise<string | null>
     return org.google_calendar_access_token
   }
 
+  console.log(`[google-calendar] refreshing access token for org ${orgId}`)
   const body = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!,
     client_secret: process.env.GOOGLE_CLIENT_SECRET!,
@@ -88,18 +104,19 @@ export async function getValidAccessToken(orgId: string): Promise<string | null>
     body,
   })
   if (!res.ok) {
-    console.error('[google-calendar] refresh failed:', await res.text())
+    console.error(`[google-calendar] refresh failed (${res.status}):`, await res.text())
     return null
   }
   const tok = await res.json() as { access_token: string; expires_in: number }
   const newExpiry = new Date(Date.now() + tok.expires_in * 1000).toISOString()
-  await supabase
+  const { error: upErr } = await supabase
     .from('organizations')
     .update({
       google_calendar_access_token: tok.access_token,
       google_calendar_token_expiry: newExpiry,
     })
     .eq('id', orgId)
+  if (upErr) console.error('[google-calendar] failed to save refreshed token:', upErr)
   return tok.access_token
 }
 
@@ -167,26 +184,37 @@ function buildEventPayload(job: JobLike, timezone: string) {
 
 export async function createCalendarEvent(orgId: string, job: JobLike, timezone: string) {
   const token = await getValidAccessToken(orgId)
-  if (!token) return null
+  if (!token) {
+    console.error(`[google-calendar] createEvent: no access token for org ${orgId}`)
+    return null
+  }
   const payload = buildEventPayload(job, timezone)
-  if (!payload) return null
+  if (!payload) {
+    console.log(`[google-calendar] createEvent: job ${job.id} has no scheduled_date, skipping`)
+    return null
+  }
+  console.log(`[google-calendar] creating event for job ${job.id}:`, JSON.stringify(payload))
   const res = await fetch(CALENDAR_API, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
   if (!res.ok) {
-    console.error('[google-calendar] create event failed:', await res.text())
+    console.error(`[google-calendar] create event failed (${res.status}):`, await res.text())
     return null
   }
   const data = await res.json() as { id: string }
+  console.log(`[google-calendar] created event ${data.id}`)
   return data.id
 }
 
 export async function updateCalendarEvent(orgId: string, job: JobLike, timezone: string) {
   if (!job.google_event_id) return null
   const token = await getValidAccessToken(orgId)
-  if (!token) return null
+  if (!token) {
+    console.error(`[google-calendar] updateEvent: no access token for org ${orgId}`)
+    return null
+  }
   const payload = buildEventPayload(job, timezone)
   if (!payload) return null
   const res = await fetch(`${CALENDAR_API}/${encodeURIComponent(job.google_event_id)}`, {
@@ -195,7 +223,7 @@ export async function updateCalendarEvent(orgId: string, job: JobLike, timezone:
     body: JSON.stringify(payload),
   })
   if (!res.ok) {
-    console.error('[google-calendar] update event failed:', await res.text())
+    console.error(`[google-calendar] update event failed (${res.status}):`, await res.text())
     return null
   }
   return job.google_event_id

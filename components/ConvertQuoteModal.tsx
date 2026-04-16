@@ -92,7 +92,9 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobId: job.id, action: 'upsert' }),
-      }).catch(() => {})
+      })
+        .then(async (r) => console.log('[gcal sync quote->job]', r.status, await r.json().catch(() => null)))
+        .catch((err) => console.error('[gcal sync quote->job] failed:', err))
 
       const { error: qErr } = await supabase
         .from('quotes')

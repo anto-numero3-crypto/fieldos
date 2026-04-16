@@ -2,21 +2,43 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminClient, getAuthedUser, UNAUTHORIZED } from '@/lib/supabase-server'
 import { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from '@/lib/google-calendar'
 
+const LOG = '[gcal sync-job]'
+
 export async function POST(req: NextRequest) {
   const user = await getAuthedUser(req)
-  if (!user) return UNAUTHORIZED()
+  if (!user) {
+    console.warn(`${LOG} unauthenticated request`)
+    return UNAUTHORIZED()
+  }
 
   const body = await req.json().catch(() => null) as { jobId?: string; action?: 'upsert' | 'delete'; googleEventId?: string } | null
-  if (!body || !body.action) return NextResponse.json({ error: 'Missing action' }, { status: 400 })
+  if (!body || !body.action) {
+    console.warn(`${LOG} missing action`, body)
+    return NextResponse.json({ error: 'Missing action' }, { status: 400 })
+  }
+  console.log(`${LOG} incoming`, { userId: user.id, action: body.action, jobId: body.jobId })
 
   const supabase = adminClient()
-  const { data: org } = await supabase
+  const { data: org, error: orgErr } = await supabase
     .from('organizations')
-    .select('id, timezone, google_calendar_connected')
+    .select('id, timezone, google_calendar_connected, google_calendar_refresh_token')
     .eq('owner_user_id', user.id)
     .single()
-  if (!org || !org.google_calendar_connected) {
+  if (orgErr) {
+    console.error(`${LOG} org lookup failed:`, orgErr)
+    return NextResponse.json({ error: 'Organization not found', detail: orgErr.message }, { status: 404 })
+  }
+  if (!org) {
+    console.warn(`${LOG} no organization for user ${user.id}`)
+    return NextResponse.json({ ok: true, skipped: 'no_org' })
+  }
+  if (!org.google_calendar_connected) {
+    console.log(`${LOG} org ${org.id} not connected to Google Calendar — skipping`)
     return NextResponse.json({ ok: true, skipped: 'not_connected' })
+  }
+  if (!org.google_calendar_refresh_token) {
+    console.error(`${LOG} org ${org.id} marked connected but no refresh token — re-auth needed`)
+    return NextResponse.json({ ok: false, error: 'missing_refresh_token' }, { status: 500 })
   }
   const timezone = org.timezone || 'America/Toronto'
 
@@ -31,9 +53,13 @@ export async function POST(req: NextRequest) {
         .maybeSingle()
       if (job && job.user_id === user.id) eventId = job.google_event_id || undefined
     }
-    if (!eventId) return NextResponse.json({ ok: true, skipped: 'no_event' })
-    await deleteCalendarEvent(org.id, eventId)
-    return NextResponse.json({ ok: true })
+    if (!eventId) {
+      console.log(`${LOG} delete skipped — no event id`)
+      return NextResponse.json({ ok: true, skipped: 'no_event' })
+    }
+    const ok = await deleteCalendarEvent(org.id, eventId)
+    console.log(`${LOG} delete event ${eventId} ok=${ok}`)
+    return NextResponse.json({ ok })
   }
 
   if (!body.jobId) return NextResponse.json({ error: 'Missing jobId' }, { status: 400 })
@@ -44,15 +70,34 @@ export async function POST(req: NextRequest) {
     .eq('id', body.jobId)
     .eq('user_id', user.id)
     .maybeSingle()
-  if (jobErr || !job) return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+  if (jobErr) {
+    console.error(`${LOG} job fetch failed:`, jobErr)
+    return NextResponse.json({ error: 'Job fetch failed', detail: jobErr.message }, { status: 500 })
+  }
+  if (!job) {
+    console.warn(`${LOG} job ${body.jobId} not found for user ${user.id}`)
+    return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+  }
+  if (!job.scheduled_date) {
+    console.log(`${LOG} job ${job.id} has no scheduled_date — skipping`)
+    return NextResponse.json({ ok: true, skipped: 'no_date' })
+  }
 
   if (job.google_event_id) {
-    await updateCalendarEvent(org.id, job, timezone)
-    return NextResponse.json({ ok: true, action: 'updated', eventId: job.google_event_id })
+    const id = await updateCalendarEvent(org.id, job, timezone)
+    console.log(`${LOG} updated event ${id ?? '(failed)'} for job ${job.id}`)
+    return NextResponse.json({ ok: !!id, action: 'updated', eventId: id })
   }
   const eventId = await createCalendarEvent(org.id, job, timezone)
-  if (eventId) {
-    await supabase.from('jobs').update({ google_event_id: eventId }).eq('id', job.id)
+  if (!eventId) {
+    console.error(`${LOG} createCalendarEvent returned null for job ${job.id}`)
+    return NextResponse.json({ ok: false, error: 'create_failed' }, { status: 500 })
   }
-  return NextResponse.json({ ok: true, action: 'created', eventId })
+  const { error: saveErr } = await supabase.from('jobs').update({ google_event_id: eventId }).eq('id', job.id)
+  if (saveErr) {
+    console.error(`${LOG} failed to save google_event_id on job ${job.id} — column missing?`, saveErr)
+  } else {
+    console.log(`${LOG} created event ${eventId} for job ${job.id}`)
+  }
+  return NextResponse.json({ ok: true, action: 'created', eventId, savedEventId: !saveErr })
 }

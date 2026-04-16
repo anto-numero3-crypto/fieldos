@@ -160,7 +160,9 @@ export default function JobDetailPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobId: id, action: 'upsert' }),
-      }).catch(() => {})
+      })
+        .then(async (r) => console.log('[gcal sync update]', r.status, await r.json().catch(() => null)))
+        .catch((err) => console.error('[gcal sync update] failed:', err))
     }
     setSaving(false)
   }
@@ -214,7 +216,9 @@ export default function JobDetailPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobId: id, action: 'delete' }),
-    }).catch(() => {})
+    })
+      .then(async (r) => console.log('[gcal sync delete]', r.status, await r.json().catch(() => null)))
+      .catch((err) => console.error('[gcal sync delete] failed:', err))
     await supabase.from('jobs').delete().eq('id', id)
     router.push('/jobs')
   }

@@ -126,7 +126,9 @@ export default function JobsPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ jobId: inserted.id, action: 'upsert' }),
-        }).catch(() => {})
+        })
+          .then(async (r) => console.log('[gcal sync insert]', r.status, await r.json().catch(() => null)))
+          .catch((err) => console.error('[gcal sync insert] failed:', err))
       }
       toast.success(t.success.created)
       setTitle(''); setDesc(''); setCustId(''); setDate(''); setStatus('scheduled'); setPriority('normal'); setStartTime(''); setEndTime('')
@@ -147,7 +149,9 @@ export default function JobsPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jobId: id, action: 'delete' }),
-    }).catch(() => {})
+    })
+      .then(async (r) => console.log('[gcal sync delete]', r.status, await r.json().catch(() => null)))
+      .catch((err) => console.error('[gcal sync delete] failed:', err))
     await supabase.from('jobs').delete().eq('id', id)
     setJobs((prev) => prev.filter((j) => j.id !== id))
     setMenuOpen(null)
