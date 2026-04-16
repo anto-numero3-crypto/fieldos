@@ -6,6 +6,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtTime } from '@/lib/format'
+import { JOB_COLORS } from '@/lib/status-colors'
 
 // Default location: Montreal (centre-ville)
 const DEFAULT_CENTER: [number, number] = [45.5017, -73.5673]
@@ -27,13 +28,13 @@ interface Geocoded extends JobMarker {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  scheduled:        '#2563eb',
-  in_progress:      '#16a34a',
-  needs_completion: '#ea580c',
-  completed:        '#6b7280',
-  complete:         '#6b7280',
-  invoiced:         '#6b7280',
-  cancelled:        '#9ca3af',
+  scheduled:        JOB_COLORS.scheduled.hex,
+  in_progress:      JOB_COLORS.in_progress.hex,
+  needs_completion: JOB_COLORS.needs_completion.hex,
+  completed:        JOB_COLORS.completed.hex,
+  complete:         JOB_COLORS.completed.hex,
+  invoiced:         JOB_COLORS.invoiced.hex,
+  cancelled:        JOB_COLORS.cancelled.hex,
 }
 
 // In-memory cache so repeated addresses (e.g. between 60s refreshes) don't

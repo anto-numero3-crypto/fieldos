@@ -53,6 +53,8 @@ import { fmtMoney } from '@/lib/format'
 import { formatTime } from '@/lib/format-time'
 import { getInvoiceDisplayStatus } from '@/lib/invoice-status'
 import { getEffectiveJobStatus } from '@/lib/job-status'
+import { JOB_COLORS, INVOICE_COLORS } from '@/lib/status-colors'
+import PeriodSelector from '@/components/PeriodSelector'
 import { supabase } from '@/app/supabase'
 
 // ───── Lazy load the map (leaflet needs window) ─────
@@ -321,10 +323,31 @@ export default function DashboardPage() {
     return { unpaidTotal: sum, unpaidCount: unpaid.length, overdueInvoices: overdue }
   }, [invoices, today])
 
-  // Invoice status breakdown (Row 4 donut)
+  // Invoice status breakdown — period-filtered (Row 4 donut)
+  const [invoicesPeriod, setInvoicesPeriod] = useState<'month' | 'quarter' | 'year'>('month')
+  const invoicesRange = useMemo(() => {
+    const now = new Date()
+    const start = new Date(now); start.setHours(0, 0, 0, 0)
+    const end = new Date(now); end.setHours(23, 59, 59, 999)
+    if (invoicesPeriod === 'month') {
+      start.setDate(1)
+      end.setMonth(start.getMonth() + 1, 0); end.setHours(23, 59, 59, 999)
+    } else if (invoicesPeriod === 'quarter') {
+      start.setMonth(start.getMonth() - 2, 1)
+    } else {
+      start.setMonth(0, 1)
+    }
+    return { start, end }
+  }, [invoicesPeriod])
+
   const invoiceBreakdown = useMemo(() => {
     const buckets = { paid: 0, unpaid: 0, overdue: 0, draft: 0 }
+    const { start, end } = invoicesRange
     for (const inv of invoices) {
+      const ref = inv.created_at || inv.due_date
+      if (!ref) continue
+      const t = new Date(ref).getTime()
+      if (t < start.getTime() || t > end.getTime()) continue
       const d = getInvoiceDisplayStatus(inv)
       if (d === 'paid') buckets.paid++
       else if (d === 'overdue') buckets.overdue++
@@ -332,7 +355,7 @@ export default function DashboardPage() {
       else if (d === 'unpaid' || d === 'sent') buckets.unpaid++
     }
     return buckets
-  }, [invoices])
+  }, [invoices, invoicesRange])
 
   const invoiceBreakdownTotal =
     invoiceBreakdown.paid + invoiceBreakdown.unpaid + invoiceBreakdown.overdue + invoiceBreakdown.draft
@@ -354,18 +377,44 @@ export default function DashboardPage() {
       .slice(0, 5)
   }, [invoices, fr])
 
-  // Jobs by status (Row 4 card 3)
+  // Jobs by status — period-filtered (Row 4 card 3)
+  const [jobsPeriod, setJobsPeriod] = useState<'week' | 'month' | 'quarter'>('week')
+  const jobsRange = useMemo(() => {
+    const now = new Date()
+    const start = new Date(now); start.setHours(0, 0, 0, 0)
+    const end = new Date(now); end.setHours(23, 59, 59, 999)
+    if (jobsPeriod === 'week') {
+      // Monday → Sunday
+      const dow = start.getDay()
+      const diff = dow === 0 ? -6 : 1 - dow
+      start.setDate(start.getDate() + diff)
+      end.setTime(start.getTime()); end.setDate(end.getDate() + 6); end.setHours(23, 59, 59, 999)
+    } else if (jobsPeriod === 'month') {
+      start.setDate(1)
+      end.setMonth(start.getMonth() + 1, 0); end.setHours(23, 59, 59, 999)
+    } else {
+      // rolling 3 months
+      start.setMonth(start.getMonth() - 2, 1)
+      end.setTime(Date.now()); end.setHours(23, 59, 59, 999)
+    }
+    return { start, end }
+  }, [jobsPeriod])
+
   const jobsByStatus = useMemo(() => {
-    const b = { scheduled: 0, in_progress: 0, complete: 0, cancelled: 0 }
+    const b = { scheduled: 0, in_progress: 0, needs_completion: 0, completed: 0 }
+    const { start, end } = jobsRange
     for (const j of jobs) {
+      if (!j.scheduled_date) continue
+      const d = new Date(j.scheduled_date.slice(0, 10) + 'T00:00:00')
+      if (d < start || d > end) continue
       const s = getEffectiveJobStatus(j)
       if (s === 'scheduled') b.scheduled++
-      else if (s === 'in_progress' || s === 'needs_completion') b.in_progress++
-      else if (s === 'complete' || s === 'completed' || s === 'invoiced') b.complete++
-      else if (s === 'cancelled') b.cancelled++
+      else if (s === 'in_progress') b.in_progress++
+      else if (s === 'needs_completion') b.needs_completion++
+      else if (s === 'complete' || s === 'completed' || s === 'invoiced') b.completed++
     }
     return b
-  }, [jobs])
+  }, [jobs, jobsRange])
 
   // Pending bookings (Row 5)
   const pendingBookings = useMemo(
@@ -674,9 +723,20 @@ export default function DashboardPage() {
             total={invoiceBreakdownTotal}
             isDark={isDark}
             loading={loading}
+            period={invoicesPeriod}
+            onPeriod={setInvoicesPeriod}
+            range={invoicesRange}
           />
           <TopCustomersCard fr={fr} lang={lang} customers={topCustomers} loading={loading} />
-          <JobsByStatusCard fr={fr} stats={jobsByStatus} loading={loading} mounted={mounted} />
+          <JobsByStatusCard
+            fr={fr}
+            stats={jobsByStatus}
+            loading={loading}
+            mounted={mounted}
+            period={jobsPeriod}
+            onPeriod={setJobsPeriod}
+            range={jobsRange}
+          />
         </section>
 
         {/* ══════ ROW 5 — Pending bookings + Overdue invoices ══════ */}
@@ -1212,29 +1272,49 @@ function LegendDot({ color, label }: { color: string; label: string }) {
 
 // ────────── Invoice breakdown donut ──────────
 function InvoiceBreakdownCard({
-  fr, breakdown, total, isDark, loading,
+  fr, breakdown, total, isDark, loading, period, onPeriod, range,
 }: {
   fr: boolean
   breakdown: { paid: number; unpaid: number; overdue: number; draft: number }
   total: number
   isDark: boolean
   loading: boolean
+  period: 'month' | 'quarter' | 'year'
+  onPeriod: (v: 'month' | 'quarter' | 'year') => void
+  range: { start: Date; end: Date }
 }) {
   const data = [
-    { key: 'paid',    label: fr ? 'Payées' : 'Paid',       value: breakdown.paid,    color: '#10b981' },
-    { key: 'unpaid',  label: fr ? 'Impayées' : 'Unpaid',   value: breakdown.unpaid,  color: '#3b82f6' },
-    { key: 'overdue', label: fr ? 'En retard' : 'Overdue', value: breakdown.overdue, color: '#ef4444' },
-    { key: 'draft',   label: fr ? 'Brouillon' : 'Draft',   value: breakdown.draft,   color: '#9ca3af' },
+    { key: 'paid',    label: fr ? INVOICE_COLORS.paid.label.fr    : INVOICE_COLORS.paid.label.en,    value: breakdown.paid,    color: INVOICE_COLORS.paid.hex },
+    { key: 'unpaid',  label: fr ? INVOICE_COLORS.unpaid.label.fr  : INVOICE_COLORS.unpaid.label.en,  value: breakdown.unpaid,  color: INVOICE_COLORS.unpaid.hex },
+    { key: 'overdue', label: fr ? INVOICE_COLORS.overdue.label.fr : INVOICE_COLORS.overdue.label.en, value: breakdown.overdue, color: INVOICE_COLORS.overdue.hex },
+    { key: 'draft',   label: fr ? INVOICE_COLORS.draft.label.fr   : INVOICE_COLORS.draft.label.en,   value: breakdown.draft,   color: INVOICE_COLORS.draft.hex },
   ]
   const hasData = total > 0
+  const rangeLabel = (() => {
+    const s = range.start, e = range.end
+    const fmt = fr ? 'fr-CA' : 'en-CA'
+    if (period === 'month') return s.toLocaleDateString(fmt, { month: 'long', year: 'numeric' })
+    return `${s.toLocaleDateString(fmt, { month: 'short', day: 'numeric' })} — ${e.toLocaleDateString(fmt, { month: 'short', day: 'numeric', year: 'numeric' })}`
+  })()
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-5">
-      <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-        {fr ? 'Répartition des factures' : 'Invoice breakdown'}
-      </h2>
-      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-        {fr ? 'Par statut' : 'By status'}
-      </p>
+      <div className="flex items-start justify-between gap-3 mb-1">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            {fr ? 'Factures ce mois' : 'Invoices this month'}
+          </h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{rangeLabel}</p>
+        </div>
+        <PeriodSelector
+          selected={period}
+          onChange={(v) => onPeriod(v as 'month' | 'quarter' | 'year')}
+          periods={[
+            { value: 'month',   label: { fr: 'Ce mois', en: 'This month' } },
+            { value: 'quarter', label: { fr: '3 mois',  en: '3 months' } },
+            { value: 'year',    label: { fr: 'Année',   en: 'Year' } },
+          ]}
+        />
+      </div>
 
       <div className="mt-2 grid grid-cols-[1fr_auto] items-center gap-4">
         <div className="h-44 relative">
@@ -1376,28 +1456,49 @@ function TopCustomersCard({
 
 // ────────── Jobs by status (animated bars) ──────────
 function JobsByStatusCard({
-  fr, stats, loading, mounted,
+  fr, stats, loading, mounted, period, onPeriod, range,
 }: {
   fr: boolean
-  stats: { scheduled: number; in_progress: number; complete: number; cancelled: number }
+  stats: { scheduled: number; in_progress: number; needs_completion: number; completed: number }
   loading: boolean
   mounted: boolean
+  period: 'week' | 'month' | 'quarter'
+  onPeriod: (v: 'week' | 'month' | 'quarter') => void
+  range: { start: Date; end: Date }
 }) {
   const rows = [
-    { key: 'scheduled',   label: fr ? 'Planifiée' : 'Scheduled',       value: stats.scheduled,   color: 'from-blue-500 to-blue-400' },
-    { key: 'in_progress', label: fr ? 'En cours'   : 'In progress',    value: stats.in_progress, color: 'from-green-500 to-green-400' },
-    { key: 'complete',    label: fr ? 'Complétée'  : 'Completed',      value: stats.complete,    color: 'from-gray-500 to-gray-400' },
-    { key: 'cancelled',   label: fr ? 'Annulée'    : 'Cancelled',      value: stats.cancelled,   color: 'from-gray-400 to-gray-300' },
+    { key: 'scheduled',        label: fr ? JOB_COLORS.scheduled.label.fr        : JOB_COLORS.scheduled.label.en,        value: stats.scheduled,        color: JOB_COLORS.scheduled.hex },
+    { key: 'in_progress',      label: fr ? JOB_COLORS.in_progress.label.fr      : JOB_COLORS.in_progress.label.en,      value: stats.in_progress,      color: JOB_COLORS.in_progress.hex },
+    { key: 'needs_completion', label: fr ? JOB_COLORS.needs_completion.label.fr : JOB_COLORS.needs_completion.label.en, value: stats.needs_completion, color: JOB_COLORS.needs_completion.hex },
+    { key: 'completed',        label: fr ? JOB_COLORS.completed.label.fr        : JOB_COLORS.completed.label.en,        value: stats.completed,        color: JOB_COLORS.completed.hex },
   ]
   const max = Math.max(1, ...rows.map((r) => r.value))
+  const rangeLabel = (() => {
+    const s = range.start, e = range.end
+    const fmt = fr ? 'fr-CA' : 'en-CA'
+    if (period === 'week') return `${s.toLocaleDateString(fmt, { day: 'numeric', month: 'short' })} — ${e.toLocaleDateString(fmt, { day: 'numeric', month: 'short', year: 'numeric' })}`
+    if (period === 'month') return s.toLocaleDateString(fmt, { month: 'long', year: 'numeric' })
+    return `${s.toLocaleDateString(fmt, { month: 'short', day: 'numeric' })} — ${e.toLocaleDateString(fmt, { month: 'short', day: 'numeric', year: 'numeric' })}`
+  })()
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-5">
-      <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-        {fr ? 'Interventions par statut' : 'Jobs by status'}
-      </h2>
-      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-        {fr ? 'Tous les temps' : 'All-time'}
-      </p>
+      <div className="flex items-start justify-between gap-3 mb-1">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            {fr ? 'Interventions cette semaine' : 'Jobs this week'}
+          </h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{rangeLabel}</p>
+        </div>
+        <PeriodSelector
+          selected={period}
+          onChange={(v) => onPeriod(v as 'week' | 'month' | 'quarter')}
+          periods={[
+            { value: 'week',    label: { fr: 'Cette semaine', en: 'This week' } },
+            { value: 'month',   label: { fr: 'Ce mois',        en: 'This month' } },
+            { value: 'quarter', label: { fr: '3 mois',         en: '3 months' } },
+          ]}
+        />
+      </div>
 
       <div className="mt-4 space-y-3">
         {loading ? (
@@ -1418,8 +1519,8 @@ function JobsByStatusCard({
                 </div>
                 <div className="mt-1.5 h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
                   <div
-                    className={`h-full rounded-full bg-gradient-to-r ${r.color} transition-all duration-700 ease-out`}
-                    style={{ width: target, transitionDelay: `${idx * 80}ms` }}
+                    className="h-full rounded-full transition-all duration-700 ease-out"
+                    style={{ width: target, transitionDelay: `${idx * 80}ms`, backgroundColor: r.color }}
                   />
                 </div>
               </div>
