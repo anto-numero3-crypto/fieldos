@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtDate } from '@/lib/format'
-import { getEffectiveJobStatus } from '@/lib/job-status'
+import { getEffectiveJobStatus, jobStatusLabel } from '@/lib/job-status'
 import {
   ChevronLeft, ChevronRight, Plus, Calendar, User, Clock, Briefcase,
 } from 'lucide-react'
@@ -37,13 +37,22 @@ function durationOf(j: Job): number {
 }
 
 const STATUS_COLOR: Record<string, string> = {
-  scheduled:   'bg-blue-50 border-blue-300 text-blue-700',
-  in_progress: 'bg-amber-50 border-amber-300 text-amber-700',
-  complete:    'bg-emerald-50 border-emerald-300 text-emerald-700',
-  cancelled:   'bg-gray-50 border-gray-200 text-gray-400',
+  scheduled:        'bg-blue-50 border-blue-400 text-blue-700 dark:bg-blue-950/40 dark:border-blue-500 dark:text-blue-300',
+  in_progress:      'bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-950/40 dark:border-indigo-500 dark:text-indigo-300',
+  needs_completion: 'bg-amber-50 border-amber-500 text-amber-800 dark:bg-amber-950/40 dark:border-amber-500 dark:text-amber-300',
+  completed:        'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-500 dark:text-emerald-300',
+  complete:         'bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-500 dark:text-emerald-300',
+  invoiced:         'bg-teal-50 border-teal-500 text-teal-700 dark:bg-teal-950/40 dark:border-teal-500 dark:text-teal-300',
+  cancelled:        'bg-gray-50 border-gray-300 text-gray-400 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-500',
 }
 const STATUS_DOT: Record<string, string> = {
-  scheduled: 'bg-blue-500', in_progress: 'bg-amber-500', complete: 'bg-emerald-500', cancelled: 'bg-gray-400',
+  scheduled:        'bg-blue-500',
+  in_progress:      'bg-indigo-500',
+  needs_completion: 'bg-amber-500',
+  completed:        'bg-emerald-500',
+  complete:         'bg-emerald-500',
+  invoiced:         'bg-teal-500',
+  cancelled:        'bg-gray-400',
 }
 
 const DAYS_FR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
@@ -340,7 +349,7 @@ export default function SchedulePage() {
                           </div>
                         </div>
                         <span className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[getEffectiveJobStatus(job)] || ''}`}>
-                          {getEffectiveJobStatus(job).replace('_', ' ')}
+                          {jobStatusLabel(getEffectiveJobStatus(job), fr)}
                         </span>
                       </Link>
                     </li>
@@ -355,10 +364,12 @@ export default function SchedulePage() {
             <h3 className="text-sm font-semibold text-gray-900 mb-4">{fr ? 'Légende des statuts' : 'Status legend'}</h3>
             <div className="space-y-3">
               {[
-                { status: 'scheduled',   label: fr ? 'Planifié'   : 'Scheduled',   desc: fr ? 'Bons de travail à venir' : 'Upcoming work orders' },
-                { status: 'in_progress', label: fr ? 'En cours'   : 'In progress', desc: fr ? 'Interventions actives' : 'Active jobs' },
-                { status: 'complete',    label: fr ? 'Terminé'    : 'Complete',    desc: fr ? 'Complétées avec succès' : 'Successfully completed' },
-                { status: 'cancelled',   label: fr ? 'Annulé'     : 'Cancelled',   desc: fr ? 'Annulées ou absences' : 'Cancelled or no-shows' },
+                { status: 'scheduled',        label: fr ? 'Planifiée'       : 'Scheduled',         desc: fr ? 'Bons de travail à venir'         : 'Upcoming work orders' },
+                { status: 'in_progress',      label: fr ? 'En cours'         : 'In progress',       desc: fr ? 'Interventions actives'           : 'Active jobs' },
+                { status: 'needs_completion', label: fr ? 'À compléter'      : 'Needs completion',  desc: fr ? 'Dépassée, à confirmer terminée'  : 'Past due, confirm completion' },
+                { status: 'completed',        label: fr ? 'Complétée'        : 'Completed',         desc: fr ? 'Complétées avec succès'          : 'Successfully completed' },
+                { status: 'invoiced',         label: fr ? 'Facturée'         : 'Invoiced',          desc: fr ? 'Facture payée'                   : 'Invoice paid' },
+                { status: 'cancelled',        label: fr ? 'Annulée'          : 'Cancelled',         desc: fr ? 'Annulées ou absences'            : 'Cancelled or no-shows' },
               ].map((s) => (
                 <div key={s.status} className="flex items-center gap-3">
                   <div className={`h-8 w-8 shrink-0 rounded-lg border-l-2 ${STATUS_COLOR[s.status]}`} />
