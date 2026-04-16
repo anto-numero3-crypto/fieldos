@@ -197,19 +197,7 @@ export default function JobsMap({ jobs }: Props) {
   const [isDark, setIsDark] = useState(false)
   const [business, setBusiness] = useState<Business | null>(null)
   const [businessMissing, setBusinessMissing] = useState(false)
-  const [businessReloadKey, setBusinessReloadKey] = useState(0)
   const abortRef = useRef(false)
-
-  // Settings page dispatches this when address/coords change — force re-fetch.
-  useEffect(() => {
-    const onChange = () => {
-      setBusiness(null)
-      setBusinessMissing(false)
-      setBusinessReloadKey((k) => k + 1)
-    }
-    window.addEventListener('gestivio:business-updated', onChange)
-    return () => window.removeEventListener('gestivio:business-updated', onChange)
-  }, [])
 
   useEffect(() => {
     const read = () => setIsDark(document.documentElement.classList.contains('dark'))
@@ -232,6 +220,11 @@ export default function JobsMap({ jobs }: Props) {
         .maybeSingle()
       if (cancelled) return
       console.log('[business] FULL ORG ROW:', JSON.stringify(org, null, 2), 'error:', error)
+      console.log('[map render] org from DB:', {
+        address: org?.address,
+        location_lat: org?.location_lat,
+        location_lng: org?.location_lng,
+      })
 
       if (!org) { setBusinessMissing(true); return }
 
@@ -320,8 +313,7 @@ export default function JobsMap({ jobs }: Props) {
       })
     })()
     return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [businessReloadKey])
+  }, [])
 
   useEffect(() => {
     loadCacheFromStorage()

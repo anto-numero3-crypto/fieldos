@@ -392,15 +392,20 @@ export default function SettingsPage() {
     }
     if (nextSlug) payload.slug = nextSlug
 
-    const { data: saved, error: err } = orgId
-      ? await supabase.from('organizations').update(payload).eq('id', orgId).select('id, slug').single()
-      : await supabase.from('organizations').insert(payload).select('id, slug').single()
+    // Route through the service-role API so RLS can't block writes to
+    // location_lat/lng (anon policies blocked these writes silently before).
+    const res = await fetch('/api/settings/save-business', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const data = await res.json().catch(() => ({})) as { ok?: boolean; error?: string; org?: { id: string; slug: string | null } }
 
-    if (err) {
-      toast.error(err.message)
+    if (!res.ok || !data.ok) {
+      toast.error(data.error || (fr ? 'Échec de la sauvegarde' : 'Save failed'))
     } else {
-      if (saved?.id) setOrgId(saved.id)
-      if (saved?.slug) setOrgSlug(saved.slug)
+      if (data.org?.id) setOrgId(data.org.id)
+      if (data.org?.slug) setOrgSlug(data.org.slug)
       // Re-baseline snapshots so subsequent saves correctly detect changes.
       setOriginalAddress({ address: bizAddress, city: bizCity, state: bizState, zip: bizZip })
       const newLat = payload.location_lat == null ? '' : String(payload.location_lat)
@@ -408,10 +413,6 @@ export default function SettingsPage() {
       setLocationLat(newLat)
       setLocationLng(newLng)
       setOriginalCoords({ lat: newLat, lng: newLng })
-      // Notify the dashboard map to re-fetch the business row + re-geocode if coords were cleared.
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('gestivio:business-updated'))
-      }
       toast.success(t.success.saved)
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
