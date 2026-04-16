@@ -1,11 +1,13 @@
-export type PlanName = 'starter' | 'pro' | 'business'
+export type PlanName = 'demarrage' | 'pro' | 'croissance'
 export type PlanStatus = 'trial' | 'active' | 'past_due' | 'cancelled' | 'expired'
 
 export interface PlanLimits {
+  // Hard limits (Infinity = unlimited)
   maxUsers: number
-  maxCustomers: number        // Infinity = unlimited
+  maxCustomers: number
   maxJobsPerMonth: number
   maxAIMessages: number
+  // Feature flags
   hasTeamManagement: boolean
   hasBookingPortal: boolean
   hasCustomBranding: boolean
@@ -17,17 +19,24 @@ export interface PlanLimits {
   hasSMS: boolean
   hasAdvancedAutomation: boolean
   hasQuickBooksExport: boolean
+  // Tier-gated features from the 2026 pricing redesign
+  csvExport: boolean
+  multiDayJobs: boolean
+  fullReports: boolean
+  completionNotifications: boolean
   showGestivioBranding: boolean
 }
 
+// Canonical plan limits keyed by the new 2026 names.
+// `demarrage` (Starter) / `pro` / `croissance` (Growth).
 export const PLAN_LIMITS: Record<PlanName, PlanLimits> = {
-  starter: {
+  demarrage: {
     maxUsers: 1,
     maxCustomers: 50,
-    maxJobsPerMonth: 30,
-    maxAIMessages: 20,
+    maxJobsPerMonth: 25,
+    maxAIMessages: 30,
     hasTeamManagement: false,
-    hasBookingPortal: false,
+    hasBookingPortal: true,
     hasCustomBranding: false,
     hasAnalytics: false,
     hasAutomatedReminders: false,
@@ -37,6 +46,10 @@ export const PLAN_LIMITS: Record<PlanName, PlanLimits> = {
     hasSMS: false,
     hasAdvancedAutomation: false,
     hasQuickBooksExport: false,
+    csvExport: false,
+    multiDayJobs: false,
+    fullReports: false,
+    completionNotifications: false,
     showGestivioBranding: true,
   },
   pro: {
@@ -55,9 +68,13 @@ export const PLAN_LIMITS: Record<PlanName, PlanLimits> = {
     hasSMS: false,
     hasAdvancedAutomation: false,
     hasQuickBooksExport: false,
+    csvExport: true,
+    multiDayJobs: true,
+    fullReports: true,
+    completionNotifications: true,
     showGestivioBranding: false,
   },
-  business: {
+  croissance: {
     maxUsers: 15,
     maxCustomers: Infinity,
     maxJobsPerMonth: Infinity,
@@ -73,18 +90,35 @@ export const PLAN_LIMITS: Record<PlanName, PlanLimits> = {
     hasSMS: true,
     hasAdvancedAutomation: true,
     hasQuickBooksExport: true,
+    csvExport: true,
+    multiDayJobs: true,
+    fullReports: true,
+    completionNotifications: true,
     showGestivioBranding: false,
   },
 }
 
+// Pricing for the 3 tiers (monthly + 10%-off annual).
+// `annualTotal` is what Stripe charges up-front on the yearly plan.
 export const PLAN_PRICING = {
-  starter:  { monthly: 49,  annual: 39,  label: 'Starter',  tagline: 'Pour démarrer' },
-  pro:      { monthly: 99,  annual: 79,  label: 'Pro',      tagline: 'Tout ce dont vous avez besoin' },
-  business: { monthly: 179, annual: 143, label: 'Business', tagline: 'Pour les entreprises établies' },
+  demarrage:  { monthly: 39,  annual: 35,  annualTotal: 420,  label: 'Démarrage', labelEn: 'Starter', tagline: "Pour lancer votre activité",             taglineEn: 'To get your business started' },
+  pro:        { monthly: 79,  annual: 71,  annualTotal: 852,  label: 'Pro',        labelEn: 'Pro',     tagline: "Tout ce qu'il vous faut pour grandir",  taglineEn: 'Everything you need to grow' },
+  croissance: { monthly: 149, annual: 134, annualTotal: 1608, label: 'Croissance', labelEn: 'Growth',  tagline: 'Pour les entreprises établies',         taglineEn: 'For established businesses' },
 } as const
 
+// Normalize legacy plan names ('starter'/'basic' → 'demarrage',
+// 'business'/'studio' → 'croissance') so older data keeps working
+// while the DB migration runs.
+export function normalizePlan(plan: string | null | undefined): PlanName {
+  if (!plan) return 'demarrage'
+  const p = String(plan).toLowerCase()
+  if (p === 'pro') return 'pro'
+  if (p === 'croissance' || p === 'business' || p === 'studio') return 'croissance'
+  return 'demarrage' // starter, basic, demarrage, unknown
+}
+
 export function getPlanLimits(plan: string | null | undefined): PlanLimits {
-  return PLAN_LIMITS[(plan as PlanName)] || PLAN_LIMITS.starter
+  return PLAN_LIMITS[normalizePlan(plan)]
 }
 
 export type FeatureFlag =
@@ -99,6 +133,10 @@ export type FeatureFlag =
   | 'hasSMS'
   | 'hasAdvancedAutomation'
   | 'hasQuickBooksExport'
+  | 'csvExport'
+  | 'multiDayJobs'
+  | 'fullReports'
+  | 'completionNotifications'
 
 export function isFeatureAvailable(plan: string | null | undefined, feature: FeatureFlag): boolean {
   return getPlanLimits(plan)[feature] === true
@@ -107,7 +145,7 @@ export function isFeatureAvailable(plan: string | null | undefined, feature: Fea
 // First plan (in priority order) that unlocks a given feature.
 export function requiredPlanFor(feature: FeatureFlag): PlanName {
   if (PLAN_LIMITS.pro[feature]) return 'pro'
-  return 'business'
+  return 'croissance'
 }
 
 export function daysUntil(date: string | Date | null | undefined): number {
