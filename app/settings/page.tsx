@@ -21,7 +21,7 @@ import {
   ExternalLink, Loader2, DollarSign, Plus, Trash2, Clock,
 } from 'lucide-react'
 
-type Tab = 'business' | 'services' | 'booking' | 'notifications' | 'security' | 'integrations' | 'billing'
+type Tab = 'business' | 'services' | 'booking' | 'notifications' | 'account' | 'integrations' | 'billing'
 
 interface Service {
   id: string
@@ -253,7 +253,7 @@ export default function SettingsPage() {
       // Handle Stripe Connect / tab return URL params
       const params = new URLSearchParams(window.location.search)
       const urlTab = params.get('tab')
-      if (urlTab === 'billing' || urlTab === 'services' || urlTab === 'booking' || urlTab === 'notifications' || urlTab === 'security' || urlTab === 'integrations') {
+      if (urlTab === 'billing' || urlTab === 'services' || urlTab === 'booking' || urlTab === 'notifications' || urlTab === 'account' || urlTab === 'integrations') {
         setTab(urlTab as Tab)
       }
       if (params.get('connected') === 'true') {
@@ -515,7 +515,7 @@ export default function SettingsPage() {
     { key: 'booking',       label: fr ? 'Portail de réservation' : 'Booking portal', icon: Sparkles },
     { key: 'billing',       label: fr ? 'Facturation' : 'Billing',                icon: DollarSign },
     { key: 'notifications', label: fr ? 'Notifications' : 'Notifications',        icon: Bell },
-    { key: 'security',      label: fr ? 'Sécurité' : 'Security',                  icon: Shield },
+    { key: 'account',       label: fr ? 'Compte' : 'Account',                      icon: Shield },
     { key: 'integrations',  label: fr ? 'Intégrations' : 'Integrations',          icon: Globe },
   ]
 
@@ -891,25 +891,13 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {/* Security */}
-        {tab === 'security' && (
+        {/* Account */}
+        {tab === 'account' && (
           <div className="space-y-4">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Sécurité' : 'Security'}</h2>
-              <p className="text-sm text-gray-400 mb-5">{fr ? 'Protégez votre compte avec des mesures de sécurité supplémentaires.' : 'Protect your account with additional security measures.'}</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Compte' : 'Account'}</h2>
+              <p className="text-sm text-gray-400 mb-5">{fr ? 'Gérez vos sessions et paramètres de compte.' : 'Manage your sessions and account settings.'}</p>
               <div className="space-y-3">
-                {/* 2FA — not built */}
-                <div className="flex items-start justify-between rounded-xl border border-gray-100 p-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-gray-900">{fr ? 'Authentification à deux facteurs' : 'Two-factor authentication'}</p>
-                      <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">{fr ? 'Recommandé' : 'Recommended'}</span>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Ajoutez une couche de sécurité supplémentaire à votre compte.' : 'Add an extra layer of security to your account.'}</p>
-                  </div>
-                  <span className="shrink-0 rounded-xl bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-400">{fr ? 'Prochainement' : 'Coming soon'}</span>
-                </div>
-
                 {/* Sessions */}
                 <div className="flex items-start justify-between rounded-xl border border-gray-100 p-4">
                   <div className="flex-1">
@@ -953,8 +941,8 @@ export default function SettingsPage() {
               <h3 className="text-sm font-semibold text-red-700 mb-1">{fr ? 'Zone dangereuse' : 'Danger zone'}</h3>
               <p className="text-xs text-red-600 mb-4">
                 {fr
-                  ? 'Ces actions sont permanentes et irréversibles. Toutes vos données (clients, contrats, factures, équipe, paramètres) seront supprimées définitivement.'
-                  : 'These actions are permanent and cannot be undone. All your data (customers, jobs, invoices, team, settings) will be deleted permanently.'}
+                  ? 'Cette action est irréversible. Toutes vos données seront définitivement supprimées.'
+                  : 'This action is irreversible. All your data will be permanently deleted.'}
               </p>
               <button
                 onClick={handleDeleteAccount}
