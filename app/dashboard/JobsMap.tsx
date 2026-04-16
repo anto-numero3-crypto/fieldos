@@ -92,47 +92,20 @@ function isCanadianCoord(lat: number, lng: number): boolean {
   return lat >= 42 && lat <= 83 && lng >= -141 && lng <= -52
 }
 
-interface BusinessGeocodeResult {
-  lat: number
-  lng: number
-  displayName: string
-}
-
-// Business geocoder: no local cache. Results are persisted to the
-// organizations row via /api/org/update-location so future loads skip
-// Nominatim entirely. That avoids stale/bad cache entries on clients.
-async function geocodeBusiness(query: string): Promise<BusinessGeocodeResult | null> {
-  const key = query.trim()
-  if (!key) return null
-  try {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}` +
-      `&format=json&limit=1&countrycodes=ca&addressdetails=1&accept-language=fr`
-    const res = await fetch(url, {
-      headers: {
-        'Accept': 'application/json',
-        // Nominatim requires a descriptive User-Agent
-        'User-Agent': 'Gestivio/1.0 (support@gestivio.ca)',
-      },
-    })
-    if (!res.ok) {
-      console.warn('[business marker] nominatim non-ok:', res.status)
-      return null
-    }
-    const rows = (await res.json()) as Array<{ lat: string; lon: string; display_name: string }>
-    console.log('[business marker] nominatim result:', JSON.stringify(rows, null, 2))
-    if (!rows.length) return null
-    const first = rows[0]
-    const lat = parseFloat(first.lat)
-    const lng = parseFloat(first.lon)
-    if (!Number.isFinite(lat) || !Number.isFinite(lng) || !isCanadianCoord(lat, lng)) {
-      console.warn('[business marker] result outside Canada bounds:', { lat, lng })
-      return null
-    }
-    return { lat, lng, displayName: first.display_name }
-  } catch (err) {
-    console.error('[business marker] geocode error:', err)
-    return null
-  }
+// Business geocoder — calls the SAME geocode() function used for job
+// addresses (which is known to work). We add only a Canadian bounds
+// sanity check on top, plus verbose logging.
+async function geocodeBusiness(query: string): Promise<{ lat: number; lng: number } | null> {
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`
+  console.log('[business geocode] input:', query)
+  console.log('[business geocode] nominatim url:', url)
+  const coords = await geocode(query)
+  console.log('[business geocode] parsed coords:', coords)
+  if (!coords) { console.warn('[business geocode] no result'); return null }
+  const valid = isCanadianCoord(coords.lat, coords.lng)
+  console.log('[business geocode] validation passed:', valid)
+  if (!valid) return null
+  return coords
 }
 
 async function persistLocation(lat: number, lng: number) {
@@ -242,11 +215,11 @@ export default function JobsMap({ jobs }: Props) {
       if (!auth.user) return
       const { data: org, error } = await supabase
         .from('organizations')
-        .select('name, address, city, state, zip, location_lat, location_lng')
+        .select('*')
         .eq('owner_user_id', auth.user.id)
         .maybeSingle()
       if (cancelled) return
-      console.log('[business marker] org:', org, 'error:', error)
+      console.log('[business] FULL ORG ROW:', JSON.stringify(org, null, 2), 'error:', error)
 
       if (!org) { setBusinessMissing(true); return }
 
@@ -278,38 +251,41 @@ export default function JobsMap({ jobs }: Props) {
         return
       }
 
-      const parts = [org.address, org.city, org.state, 'Canada'].filter((p) => p && String(p).trim())
-      const fullAddress = parts.join(', ')
-      console.log('[business marker] geocoding:', fullAddress)
+      // Build address string the same way a user would type it.
+      // No trailing ", Canada" — jobs don't add it and they work.
+      const fullAddress = [org.address, org.city, org.state, org.zip]
+        .filter((p) => p && String(p).trim())
+        .join(', ')
+      console.log('[business geocode] fullAddress:', fullAddress)
 
-      // 1. Full address with 'Canada' appended
-      let result = fullAddress ? await geocodeBusiness(fullAddress) : null
-      console.log('[business marker] full-address result:', result)
+      // 1. Full address
+      let coords = fullAddress ? await geocodeBusiness(fullAddress) : null
 
-      // 2. Fallback: city + province + Canada
-      if (!result && org.city) {
-        const cityQuery = `${org.city}, ${org.state || 'Quebec'}, Canada`
-        result = await geocodeBusiness(cityQuery)
-        console.log('[business marker] city-only fallback:', cityQuery, result)
+      // 2. Fallback: city + province only
+      if (!coords && org.city) {
+        const cityQuery = `${org.city}, ${org.state || 'Quebec'}`
+        console.log('[business geocode] trying city fallback:', cityQuery)
+        coords = await geocodeBusiness(cityQuery)
       }
 
       if (cancelled) return
 
-      if (!result) {
-        console.warn('[business marker] geocoding failed at every level — no marker')
+      if (!coords) {
+        console.warn('[business marker] geocoding failed at every level — no marker rendered')
         setBusinessMissing(true)
         return
       }
 
       // Persist to DB so we never geocode this business again
-      persistLocation(result.lat, result.lng)
+      console.log('[business geocode] saving to DB:', coords.lat, coords.lng)
+      persistLocation(coords.lat, coords.lng)
 
       setBusiness({
         name: org.name || 'Gestivio',
         address: addressLabel,
-        lat: result.lat,
-        lng: result.lng,
-        matchedAddress: result.displayName,
+        lat: coords.lat,
+        lng: coords.lng,
+        matchedAddress: null,
       })
     })()
     return () => { cancelled = true }
