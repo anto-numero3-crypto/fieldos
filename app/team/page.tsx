@@ -176,9 +176,11 @@ export default function TeamPage() {
         <div className="p-6 sm:p-10">
           <UpgradePrompt
             variant="overlay"
-            feature="Gestion d'équipe"
+            feature={fr ? "Gestion d'équipe" : 'Team management'}
             requiredPlan="pro"
-            description="Invitez jusqu'à 5 techniciens, assignez-leur des interventions et suivez leurs performances en temps réel avec le forfait Pro."
+            description={fr
+              ? "Invitez jusqu'à 5 techniciens, assignez-leur des interventions et suivez leurs performances en temps réel avec le forfait Pro."
+              : 'Invite up to 5 technicians, assign them jobs, and track their performance in real time with the Pro plan.'}
           />
         </div>
       </AppLayout>
@@ -188,7 +190,7 @@ export default function TeamPage() {
   const activeCount = members.filter((m) => m.is_active).length
 
   return (
-    <AppLayout title="Équipe" actions={AddButton}>
+    <AppLayout title={fr ? 'Équipe' : 'Team'} actions={AddButton}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         {/* Stats */}
@@ -211,7 +213,7 @@ export default function TeamPage() {
             <EmptyState
               icon={Users2}
               title={fr ? "Aucun membre d'équipe" : 'No team members'}
-              description="Invitez vos techniciens pour leur assigner des emplois."
+              description={fr ? 'Invitez vos techniciens pour leur assigner des emplois.' : 'Invite your technicians so you can assign them jobs.'}
               actions={[{ label: fr ? 'Inviter un membre' : 'Invite a member', onClick: openAdd, variant: 'primary' }]}
             />
           </div>
@@ -366,7 +368,7 @@ export default function TeamPage() {
             <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">
               <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
               <button onClick={saveMember} disabled={loading || formInvalid} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
-                {loading ? 'Enregistrement...' : editMember ? 'Enregistrer' : 'Ajouter'}
+                {loading ? (fr ? 'Enregistrement...' : 'Saving...') : editMember ? (fr ? 'Enregistrer' : 'Save') : (fr ? 'Ajouter' : 'Add')}
               </button>
             </div>
           </div>
