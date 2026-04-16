@@ -87,6 +87,65 @@ async function geocode(address: string): Promise<{ lat: number; lng: number } | 
   }
 }
 
+// Canada bounding box: lat 42→83, lng -141→-52
+function isCanadianCoord(lat: number, lng: number): boolean {
+  return lat >= 42 && lat <= 83 && lng >= -141 && lng <= -52
+}
+
+interface BusinessGeocodeResult {
+  lat: number
+  lng: number
+  displayName: string
+}
+
+// Dedicated business geocoder — its own localStorage key (v2) so stale bad
+// hits from the shared job cache don't pollute the HQ pin. Returns the
+// display_name so the popup can show what Nominatim actually matched.
+const BUSINESS_LS_KEY = 'gestivio-business-geocode-v2'
+
+async function geocodeBusiness(query: string): Promise<BusinessGeocodeResult | null> {
+  const key = query.trim().toLowerCase()
+  if (!key) return null
+  // Read per-query cache from localStorage
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(BUSINESS_LS_KEY)
+      if (raw) {
+        const map = JSON.parse(raw) as Record<string, BusinessGeocodeResult>
+        if (map[key]) return map[key]
+      }
+    } catch { /* ignore */ }
+  }
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=ca&addressdetails=1`
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' } })
+    if (!res.ok) return null
+    const rows = (await res.json()) as Array<{ lat: string; lon: string; display_name: string }>
+    console.log('[business marker] full result:', JSON.stringify(rows, null, 2))
+    if (!rows.length) return null
+    const first = rows[0]
+    const lat = parseFloat(first.lat)
+    const lng = parseFloat(first.lon)
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || !isCanadianCoord(lat, lng)) {
+      console.warn('[business marker] result outside Canada bounds:', { lat, lng })
+      return null
+    }
+    const result: BusinessGeocodeResult = { lat, lng, displayName: first.display_name }
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(BUSINESS_LS_KEY)
+        const map = raw ? JSON.parse(raw) as Record<string, BusinessGeocodeResult> : {}
+        map[key] = result
+        localStorage.setItem(BUSINESS_LS_KEY, JSON.stringify(map))
+      } catch { /* ignore */ }
+    }
+    return result
+  } catch (err) {
+    console.error('[business marker] geocode error:', err)
+    return null
+  }
+}
+
 function makeBusinessIcon() {
   const html = `
     <div style="width:24px;height:24px;border-radius:5px;background:#000000;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;">
@@ -153,6 +212,7 @@ interface Business {
   address: string
   lat: number
   lng: number
+  matchedAddress: string | null
 }
 
 export default function JobsMap({ jobs }: Props) {
@@ -181,46 +241,71 @@ export default function JobsMap({ jobs }: Props) {
       if (!auth.user) return
       const { data: org, error } = await supabase
         .from('organizations')
-        .select('name, address, city, state, zip')
+        .select('name, address, city, state, zip, location_lat, location_lng')
         .eq('owner_user_id', auth.user.id)
         .maybeSingle()
       if (cancelled) return
       console.log('[business marker] org:', org, 'error:', error)
 
-      if (!org || (!org.address?.trim() && !org.city?.trim())) {
+      if (!org) { setBusinessMissing(true); return }
+
+      const addressLabel = [org.address, org.city, org.state, org.zip].filter((p) => p && String(p).trim()).join(', ')
+        || [org.city, org.state].filter(Boolean).join(', ')
+
+      // 0. Manual coords override — skip geocoding entirely
+      if (Number.isFinite(org.location_lat) && Number.isFinite(org.location_lng)) {
+        console.log('[business marker] using manual coordinates:', org.location_lat, org.location_lng)
+        setBusiness({
+          name: org.name || 'Gestivio',
+          address: addressLabel,
+          lat: org.location_lat as number,
+          lng: org.location_lng as number,
+          matchedAddress: null,
+        })
+        return
+      }
+
+      if (!org.address?.trim() && !org.city?.trim()) {
         console.warn('[business marker] no address/city on organization — prompting user')
         setBusinessMissing(true)
         return
       }
 
-      const parts = [org.address, org.city, org.state, org.zip].filter((p) => p && String(p).trim())
+      const parts = [org.address, org.city, org.state, org.zip, 'Canada'].filter((p) => p && String(p).trim())
       const fullAddress = parts.join(', ')
       console.log('[business marker] address:', fullAddress)
-      loadCacheFromStorage()
 
-      // 1. Full address
-      let coords = fullAddress ? await geocode(fullAddress) : null
-      console.log('[business marker] full-address geocode:', coords)
+      // 1. Full address with 'Canada' appended
+      let result = fullAddress ? await geocodeBusiness(fullAddress) : null
+      console.log('[business marker] full-address result:', result)
 
-      // 2. Fallback: city + province
-      if (!coords && org.city) {
+      // 2. Fallback: city + province + Canada
+      if (!result && org.city) {
         const cityQuery = `${org.city}, ${org.state || 'Quebec'}, Canada`
-        coords = await geocode(cityQuery)
-        console.log('[business marker] city-only fallback:', cityQuery, coords)
-      }
-
-      // 3. Last resort: Montreal (so we still show a marker rather than vanishing silently)
-      if (!coords) {
-        console.warn('[business marker] geocoding failed — using Montreal fallback')
-        coords = { lat: 45.5017, lng: -73.5673 }
+        result = await geocodeBusiness(cityQuery)
+        console.log('[business marker] city-only fallback:', cityQuery, result)
       }
 
       if (cancelled) return
+
+      if (!result) {
+        console.warn('[business marker] geocoding failed at every level — using Montreal fallback')
+        setBusiness({
+          name: org.name || 'Gestivio',
+          address: addressLabel,
+          lat: 45.5017,
+          lng: -73.5673,
+          matchedAddress: null,
+        })
+        return
+      }
+
       setBusiness({
         name: org.name || 'Gestivio',
-        address: fullAddress || [org.city, org.state].filter(Boolean).join(', '),
-        lat: coords.lat,
-        lng: coords.lng,
+        address: addressLabel,
+        lat: result.lat,
+        lng: result.lng,
+        matchedAddress: result.displayName,
       })
     })()
     return () => { cancelled = true }
@@ -279,6 +364,11 @@ export default function JobsMap({ jobs }: Props) {
               <div className="text-xs space-y-1 min-w-[180px]">
                 <div className="font-semibold text-gray-900">{business.name}</div>
                 <div className="text-gray-600">{business.address}</div>
+                {business.matchedAddress && (
+                  <div className="text-gray-400 text-[11px] leading-snug pt-1 border-t border-gray-100">
+                    {fr ? 'Localisé à :' : 'Located at:'} {business.matchedAddress}
+                  </div>
+                )}
                 <a href="/settings" className="inline-block mt-1 text-indigo-600 hover:underline">
                   {fr ? "Modifier l'adresse" : 'Edit address'}
                 </a>

@@ -204,6 +204,8 @@ export default function SettingsPage() {
   const [bizTaxNum, setBizTaxNum]   = useState('')
   const [currency, setCurrency]     = useState('CAD')
   const [timezone, setTimezone]     = useState('America/Toronto')
+  const [locationLat, setLocationLat] = useState('')
+  const [locationLng, setLocationLng] = useState('')
 
   // Booking portal / AI agent
   const [agentName, setAgentName]   = useState('Alex')
@@ -293,6 +295,8 @@ export default function SettingsPage() {
         if (org.tax_number)      setBizTaxNum(org.tax_number)
         if (org.currency)        setCurrency(org.currency)
         if (org.timezone)        setTimezone(org.timezone)
+        if (org.location_lat != null) setLocationLat(String(org.location_lat))
+        if (org.location_lng != null) setLocationLng(String(org.location_lng))
         if (org.ai_agent_name)   setAgentName(org.ai_agent_name)
         if (org.ai_agent_greeting) setAgentGreeting(org.ai_agent_greeting)
         if (org.service_types)   setAgentServices(Array.isArray(org.service_types) ? org.service_types.join(', ') : '')
@@ -354,6 +358,8 @@ export default function SettingsPage() {
       ai_agent_name: agentName,
       ai_agent_greeting: agentGreeting,
       service_types: agentServices ? agentServices.split(',').map((s) => s.trim()).filter(Boolean) : [],
+      location_lat: locationLat.trim() === '' ? null : parseFloat(locationLat),
+      location_lng: locationLng.trim() === '' ? null : parseFloat(locationLng),
     }
     if (nextSlug) payload.slug = nextSlug
 
@@ -612,6 +618,19 @@ export default function SettingsPage() {
                     <option value="Europe/London">London (GMT)</option>
                     <option value="Europe/Paris">Paris (CET)</option>
                   </select>
+                </div>
+              </div>
+
+              <div className="mt-5 border-t border-gray-100 pt-5">
+                <p className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Coordonnées manuelles (optionnel)' : 'Manual coordinates (optional)'}</p>
+                <p className="text-xs text-gray-500 mb-3">
+                  {fr
+                    ? "Utilisez ces champs si votre adresse n'est pas trouvée correctement sur la carte. Trouvez vos coordonnées sur Google Maps (clic droit sur votre emplacement → copiez lat, lng)."
+                    : "Use these fields if your address isn't located correctly on the map. Find your coordinates on Google Maps (right-click your location → copy lat, lng)."}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <InputRow label={fr ? 'Latitude' : 'Latitude'} value={locationLat} onChange={setLocationLat} placeholder="45.5017" />
+                  <InputRow label={fr ? 'Longitude' : 'Longitude'} value={locationLng} onChange={setLocationLng} placeholder="-73.5673" />
                 </div>
               </div>
             </div>
