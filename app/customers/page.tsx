@@ -220,7 +220,7 @@ export default function CustomersPage() {
   )
 
   if (pageLoading) return (
-    <AppLayout title="Clients">
+    <AppLayout title={fr ? 'Clients' : 'Customers'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-3">
         <SkeletonText className="h-10 w-64 mb-3" />
         {[...Array(5)].map((_, i) => <SkeletonListRow key={i} />)}
@@ -231,17 +231,17 @@ export default function CustomersPage() {
   const totalLTV = customers.reduce((s, c) => s + (c.lifetime_value || 0), 0)
 
   return (
-    <AppLayout title="Clients" actions={AddButton}>
+    <AppLayout title={fr ? 'Clients' : 'Customers'} actions={AddButton}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         {/* Stats row */}
         {plan.plan === 'starter' && (
           <div className="mb-4 rounded-xl border border-gray-100 bg-white px-4 py-3 flex items-center gap-3 text-sm">
-            <span className="font-semibold text-gray-900">{plan.customerCount}/{plan.limits.maxCustomers} clients</span>
+            <span className="font-semibold text-gray-900">{plan.customerCount}/{plan.limits.maxCustomers} {fr ? 'clients' : 'customers'}</span>
             <span className="text-gray-400">·</span>
-            <span className="text-gray-500 flex-1 min-w-0 truncate">Forfait Starter</span>
+            <span className="text-gray-500 flex-1 min-w-0 truncate">{fr ? 'Forfait Starter' : 'Starter plan'}</span>
             {plan.isAtCustomerLimit && (
-              <UpgradePrompt variant="inline" feature="Clients illimités" requiredPlan="pro" />
+              <UpgradePrompt variant="inline" feature={fr ? 'Clients illimités' : 'Unlimited customers'} requiredPlan="pro" />
             )}
           </div>
         )}
@@ -273,7 +273,7 @@ export default function CustomersPage() {
               className="block w-full rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm"
             />
           </div>
-          <p className="text-sm text-gray-500 shrink-0">{filtered.length} of {customers.length}</p>
+          <p className="text-sm text-gray-500 shrink-0">{filtered.length} {fr ? 'sur' : 'of'} {customers.length}</p>
         </div>
 
         {customers.length === 0 ? (
@@ -497,7 +497,7 @@ export default function CustomersPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Notes' : 'Notes'}</label>
                 <textarea
                   placeholder={fr ? 'Notes internes sur ce client...' : 'Internal notes about this customer...'}
                   value={notes}
