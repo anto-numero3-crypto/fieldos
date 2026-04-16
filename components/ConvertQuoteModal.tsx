@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { X, Briefcase, Loader2 } from 'lucide-react'
 import { supabase } from '@/app/supabase'
+import { useLanguage } from '@/lib/LanguageContext'
 
 interface QuoteForConversion {
   id: string
@@ -24,6 +25,8 @@ interface Props {
 
 export default function ConvertQuoteModal({ open, quote, onClose, onConverted }: Props) {
   const router = useRouter()
+  const { lang } = useLanguage()
+  const fr = lang === 'fr'
   const [date, setDate]      = useState('')
   const [time, setTime]      = useState('')
   const [techId, setTechId]  = useState('')
@@ -64,16 +67,16 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
   if (!open || !quote) return null
 
   const submit = async () => {
-    if (!date) { toast.error('Date requise'); return }
+    if (!date) { toast.error(fr ? 'Date requise' : 'Date required'); return }
     setSubmitting(true)
     try {
       const { data: auth } = await supabase.auth.getUser()
-      if (!auth.user) { toast.error('Session expirée'); return }
+      if (!auth.user) { toast.error(fr ? 'Session expirée' : 'Session expired'); return }
 
       const { data: job, error: jobErr } = await supabase.from('jobs').insert({
         user_id: auth.user.id,
         customer_id: quote.customer_id || null,
-        title: quote.title || 'Emploi (depuis devis)',
+        title: quote.title || (fr ? 'Emploi (depuis devis)' : 'Job (from quote)'),
         description: quote.notes || null,
         scheduled_date: date,
         start_time: time || null,
@@ -84,7 +87,7 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
       }).select('id').single()
 
       if (jobErr || !job) {
-        toast.error(jobErr?.message || 'Échec de la création de l\'emploi')
+        toast.error(jobErr?.message || (fr ? "Échec de la création de l'emploi" : 'Failed to create job'))
         return
       }
 
@@ -105,7 +108,7 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
         console.error('[convert] quote status update failed:', qErr)
       }
 
-      toast.success('Emploi créé avec succès')
+      toast.success(fr ? 'Emploi créé avec succès' : 'Job created successfully')
       onConverted?.(job.id)
       onClose()
       router.push(`/jobs/${job.id}`)
@@ -123,19 +126,19 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
               <Briefcase className="h-4 w-4" />
             </div>
-            <h3 className="text-base font-semibold text-gray-900">Convertir en emploi</h3>
+            <h3 className="text-base font-semibold text-gray-900">{fr ? 'Convertir en emploi' : 'Convert to job'}</h3>
           </div>
           <button onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"><X className="h-4 w-4" /></button>
         </div>
 
         <div className="p-5 space-y-4">
           <div className="rounded-xl bg-gray-50 px-3 py-2 text-xs text-gray-600">
-            Devis : <span className="font-medium text-gray-900">{quote.title || quote.id.slice(0, 8)}</span>
+            {fr ? 'Devis' : 'Quote'} : <span className="font-medium text-gray-900">{quote.title || quote.id.slice(0, 8)}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Date de l&apos;emploi *</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? "Date de l'emploi *" : 'Job date *'}</label>
               <input
                 type="date"
                 value={date}
@@ -145,7 +148,7 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Heure de début</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Heure de début' : 'Start time'}</label>
               <input
                 type="time"
                 value={time}
@@ -157,13 +160,13 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
 
           {team.length > 0 && (
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Technicien (optionnel)</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Technicien (optionnel)' : 'Technician (optional)'}</label>
               <select
                 value={techId}
                 onChange={(e) => setTechId(e.target.value)}
                 className="block w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               >
-                <option value="">Non assigné</option>
+                <option value="">{fr ? 'Non assigné' : 'Unassigned'}</option>
                 {team.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
             </div>
@@ -177,7 +180,7 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
             disabled={submitting}
             className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
           >
-            Annuler
+            {fr ? 'Annuler' : 'Cancel'}
           </button>
           <button
             type="button"
@@ -186,7 +189,7 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
             className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
           >
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {submitting ? 'Création…' : 'Créer l\'emploi'}
+            {submitting ? (fr ? 'Création…' : 'Creating…') : (fr ? "Créer l'emploi" : 'Create job')}
           </button>
         </div>
       </div>
