@@ -22,6 +22,7 @@ interface Job {
   id: string; title: string; description: string | null; status: string
   priority: string | null; scheduled_date: string | null; start_time: string | null
   end_time: string | null; service_address: string | null; internal_notes: string | null
+  is_multi_day: boolean | null; end_date: string | null; progress_percent: number | null
   checklist: ChecklistItem[] | null; created_at: string
   source: string | null
   quote_id?: string | null
@@ -79,6 +80,9 @@ export default function JobDetailPage() {
   const [eAddr, setEAddr]     = useState('')
   const [eNotes, setENotes]   = useState('')
   const [ePriority, setEPriority] = useState('normal')
+  const [eMultiDay, setEMultiDay] = useState(false)
+  const [eEndDate, setEEndDate] = useState('')
+  const [eProgress, setEProgress] = useState(0)
 
   useEffect(() => {
     const init = async () => {
@@ -95,6 +99,7 @@ export default function JobDetailPage() {
       setETitle(j.title); setEDesc(j.description || ''); setEDate(j.scheduled_date || '')
       setEStart(j.start_time || ''); setEEnd(j.end_time || ''); setEAddr(j.service_address || '')
       setENotes(j.internal_notes || ''); setEPriority(j.priority || 'normal')
+      setEMultiDay(!!j.is_multi_day); setEEndDate(j.end_date || ''); setEProgress(j.progress_percent ?? 0)
 
       // Load linked invoice
       const { data: inv } = await supabase.from('invoices').select('id, amount, status').eq('job_id', id).single()
@@ -138,11 +143,15 @@ export default function JobDetailPage() {
       title: eTitle, description: eDesc || null, scheduled_date: eDate || null,
       start_time: eStart || null, end_time: eEnd || null,
       service_address: eAddr || null, internal_notes: eNotes || null, priority: ePriority,
+      is_multi_day: eMultiDay, end_date: eMultiDay ? (eEndDate || null) : null,
+      progress_percent: eMultiDay ? Math.max(0, Math.min(100, eProgress)) : 0,
     }).eq('id', id)
     if (!error) {
       setJob({ ...job, title: eTitle, description: eDesc || null, scheduled_date: eDate || null,
         start_time: eStart || null, end_time: eEnd || null, service_address: eAddr || null,
-        internal_notes: eNotes || null, priority: ePriority })
+        internal_notes: eNotes || null, priority: ePriority,
+        is_multi_day: eMultiDay, end_date: eMultiDay ? (eEndDate || null) : null,
+        progress_percent: eMultiDay ? Math.max(0, Math.min(100, eProgress)) : 0 })
       setEditMode(false)
       fetch('/api/integrations/google/sync-job', {
         method: 'POST',
@@ -417,6 +426,36 @@ export default function JobDetailPage() {
                 </div>
               </div>
               <input value={eAddr} onChange={(e) => setEAddr(e.target.value)} placeholder={fr ? "Adresse d'intervention..." : 'Service address...'} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" checked={eMultiDay} onChange={(e) => setEMultiDay(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                {fr ? 'Intervention sur plusieurs jours' : 'Multi-day job'}
+              </label>
+              {eMultiDay && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Date de fin' : 'End date'}</label>
+                    <input
+                      type="date"
+                      value={eEndDate}
+                      min={eDate || undefined}
+                      onChange={(e) => setEEndDate(e.target.value)}
+                      className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Progression' : 'Progress'} — {eProgress}%</label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={eProgress}
+                      onChange={(e) => setEProgress(parseInt(e.target.value, 10))}
+                      className="block w-full"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="mt-4 space-y-3">
@@ -426,6 +465,47 @@ export default function JobDetailPage() {
                   <MapPin className="h-4 w-4 text-gray-300 shrink-0" />{job.service_address}
                 </p>
               )}
+              {job.is_multi_day && job.end_date && (
+                <p className="flex items-center gap-1.5 text-sm text-gray-500">
+                  <Calendar className="h-4 w-4 text-gray-300 shrink-0" />
+                  {fmtDate(job.scheduled_date || '')} — {fmtDate(job.end_date)}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Multi-day progress — visible when in_progress */}
+          {job.is_multi_day && (effStatus === 'in_progress') && (
+            <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-gray-900">{fr ? 'Progression du travail' : 'Work progress'}</h3>
+                <span className="text-sm font-bold text-indigo-600 tabular-nums">{job.progress_percent ?? 0}%</span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden mb-3">
+                <div className="h-full rounded-full bg-indigo-600 transition-all duration-300" style={{ width: `${Math.max(0, Math.min(100, job.progress_percent ?? 0))}%` }} />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={job.progress_percent ?? 0}
+                  onChange={async (e) => {
+                    const pct = parseInt(e.target.value, 10)
+                    setJob({ ...job, progress_percent: pct })
+                    await supabase.from('jobs').update({ progress_percent: pct }).eq('id', id)
+                    if (pct === 100) {
+                      const { confirmed } = await confirm({
+                        title: fr ? 'Marquer comme complétée ?' : 'Mark as completed?',
+                        description: fr ? 'La progression est à 100%. Voulez-vous marquer cette intervention comme complétée ?' : 'Progress is at 100%. Mark this job as completed?',
+                        confirmLabel: fr ? 'Marquer complétée' : 'Mark completed',
+                      })
+                      if (confirmed) await changeStatus('completed')
+                    }
+                  }}
+                  className="flex-1"
+                />
+              </div>
             </div>
           )}
 

@@ -26,6 +26,7 @@ interface Job {
   id: string; title: string; description: string | null; status: string
   priority: string | null; scheduled_date: string | null; created_at: string
   start_time: string | null; end_time: string | null
+  is_multi_day: boolean | null; end_date: string | null; progress_percent: number | null
   customers: { name: string } | null
 }
 interface Customer { id: string; name: string }
@@ -75,6 +76,9 @@ export default function JobsPage() {
   const [description, setDesc]  = useState('')
   const [customerId, setCustId] = useState('')
   const [scheduledDate, setDate] = useState('')
+  const [isMultiDay, setIsMultiDay] = useState(false)
+  const [endDate, setEndDateVal] = useState('')
+  const [progressPct, setProgressPct] = useState(0)
   const [status, setStatus]     = useState('scheduled')
   const [priority, setPriority] = useState('normal')
   const [startTime, setStartTime] = useState('')
@@ -124,6 +128,8 @@ export default function JobsPage() {
       user_id: user!.id, customer_id: customerId || null,
       title: title.trim(), description: description.trim() || null,
       scheduled_date: scheduledDate || null, status, priority,
+      is_multi_day: isMultiDay, end_date: isMultiDay ? (endDate || null) : null,
+      progress_percent: isMultiDay ? Math.max(0, Math.min(100, progressPct)) : 0,
       start_time: startTime || null, end_time: endTime || null,
     }).select('id').single()
     if (error) { toast.error(error.message) }
@@ -140,7 +146,7 @@ export default function JobsPage() {
         console.warn('[gcal sync insert] insert succeeded but returned no id — RLS on implicit SELECT?')
       }
       toast.success(t.success.created)
-      setTitle(''); setDesc(''); setCustId(''); setDate(''); setStatus('scheduled'); setPriority('normal'); setStartTime(''); setEndTime('')
+      setTitle(''); setDesc(''); setCustId(''); setDate(''); setStatus('scheduled'); setPriority('normal'); setStartTime(''); setEndTime(''); setIsMultiDay(false); setEndDateVal(''); setProgressPct(0)
       await fetchJobs(user!.id)
       setPanelOpen(false)
     }
@@ -291,8 +297,21 @@ export default function JobsPage() {
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500">
                           {job.scheduled_date ? (
-                            <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-gray-300" />{fmtDate(job.scheduled_date, lang)}</span>
+                            <span className="flex items-center gap-1.5">
+                              <Calendar className="h-3.5 w-3.5 text-gray-300" />
+                              {job.is_multi_day && job.end_date
+                                ? `${fmtDate(job.scheduled_date, lang)} — ${fmtDate(job.end_date, lang)}`
+                                : fmtDate(job.scheduled_date, lang)}
+                            </span>
                           ) : <span className="text-gray-300">—</span>}
+                          {job.is_multi_day && effStatus === 'in_progress' && (
+                            <div className="mt-1 flex items-center gap-2">
+                              <div className="h-1 w-20 rounded-full bg-gray-200 overflow-hidden">
+                                <div className="h-full bg-indigo-500" style={{ width: `${Math.max(0, Math.min(100, job.progress_percent ?? 0))}%` }} />
+                              </div>
+                              <span className="text-xs text-gray-500">{job.progress_percent ?? 0}%</span>
+                            </div>
+                          )}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scls || ''}`}>{tStatus(effStatus)}</span>
@@ -422,6 +441,23 @@ export default function JobsPage() {
                   <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                 </div>
               </div>
+
+              <label className="flex items-center gap-2 text-sm text-gray-700">
+                <input type="checkbox" checked={isMultiDay} onChange={(e) => setIsMultiDay(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                {fr ? 'Intervention sur plusieurs jours' : 'Multi-day job'}
+              </label>
+              {isMultiDay && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Date de fin' : 'End date'}</label>
+                    <input type="date" value={endDate} min={scheduledDate || undefined} onChange={(e) => setEndDateVal(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Progression' : 'Progress'} — {progressPct}%</label>
+                    <input type="range" min={0} max={100} value={progressPct} onChange={(e) => setProgressPct(parseInt(e.target.value, 10))} className="block w-full mt-3" />
+                  </div>
+                </div>
+              )}
 
             </form>
 

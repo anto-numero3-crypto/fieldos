@@ -140,6 +140,103 @@ export async function GET(req: NextRequest) {
   }
   const jobTransitionsCount = toComplete.length
 
+  // ── 3.45 Send "is this completed?" email to owner ─────────────
+  let completionEmailsSent = 0
+  if (process.env.RESEND_API_KEY) {
+    const { Resend } = await import('resend')
+    const { signJobToken } = await import('@/app/api/jobs/[id]/mark-complete/route')
+    const resend2 = new Resend(process.env.RESEND_API_KEY)
+
+    // Candidates: single-day jobs whose end has passed + buffer, or multi-day jobs past end_date,
+    // that haven't been notified yet, and are still in an active status.
+    const nowTs = now
+    const buffer30 = new Date(nowTs.getTime() - 30 * 60 * 1000).toISOString().slice(0, 10) // not quite right but we filter in JS
+    void buffer30
+    const { data: candidates } = await supabase
+      .from('jobs')
+      .select('id, user_id, title, scheduled_date, start_time, end_time, is_multi_day, end_date, completion_notified_at, customers(name)')
+      .not('status', 'in', '("completed","invoiced","cancelled")')
+      .is('completion_notified_at', null)
+      .lte('scheduled_date', todayStr)
+
+    for (const j of candidates || []) {
+      let shouldNotify = false
+      if (j.is_multi_day && j.end_date) {
+        shouldNotify = j.end_date < todayStr
+      } else if (j.scheduled_date < todayStr) {
+        shouldNotify = true
+      } else if (j.scheduled_date === todayStr) {
+        if (j.end_time) {
+          // end_time + 30 min < now
+          const [eh, em] = j.end_time.split(':').map(Number)
+          const endPlus30 = new Date(nowTs); endPlus30.setHours(eh, (em || 0) + 30, 0, 0)
+          // We want to compare against a reference now; the above 'endPlus30' is reference "job end + 30m"
+          const [nh, nm] = currentTime.split(':').map(Number)
+          const nowMinutes = nh * 60 + nm
+          const endPlusMinutes = eh * 60 + (em || 0) + 30
+          shouldNotify = nowMinutes >= endPlusMinutes
+        } else if (j.start_time) {
+          const [sh, sm] = j.start_time.split(':').map(Number)
+          const [nh, nm] = currentTime.split(':').map(Number)
+          const nowMinutes = nh * 60 + nm
+          const startPlus90 = sh * 60 + (sm || 0) + 90
+          shouldNotify = nowMinutes >= startPlus90
+        }
+      }
+      if (!shouldNotify) continue
+
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('name, email')
+        .eq('owner_user_id', j.user_id)
+        .maybeSingle()
+      if (!org?.email) continue
+
+      const bizName = org.name || 'Gestivio'
+      const customerName = (j.customers as unknown as { name?: string } | null)?.name || ''
+      const title = j.title || 'Intervention'
+      const token = signJobToken(j.id)
+      const completeLink = `https://gestivio.ca/api/jobs/${j.id}/mark-complete?token=${token}`
+      const jobLink = `https://gestivio.ca/jobs/${j.id}`
+      const dateLabel = j.scheduled_date ? new Date(j.scheduled_date + 'T00:00:00').toLocaleDateString('fr-CA', { weekday: 'long', month: 'long', day: 'numeric' }) : ''
+      const timeLabel = j.start_time ? j.start_time.slice(0, 5) : ''
+
+      try {
+        await resend2.emails.send({
+          from: `${bizName} <noreply@gestivio.ca>`,
+          to: org.email,
+          subject: `Intervention terminée ? — ${title}`,
+          html: `<div style="font-family:-apple-system,Segoe UI,sans-serif;max-width:560px;margin:0 auto;color:#111827">
+            <div style="background:#f59e0b;padding:28px 36px;border-radius:12px 12px 0 0">
+              <h1 style="color:white;margin:0;font-size:20px">Intervention terminée ?</h1>
+              <p style="color:#fef3c7;margin:6px 0 0;font-size:14px">${bizName}</p>
+            </div>
+            <div style="background:#f9fafb;padding:32px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+              <p style="margin:0 0 12px">Bonjour,</p>
+              <p style="margin:0 0 16px">Cette intervention devrait être terminée :</p>
+              <div style="background:white;border:1px solid #e5e7eb;border-radius:10px;padding:18px;margin-bottom:20px">
+                <p style="margin:0;font-weight:700;font-size:16px">${title}</p>
+                ${customerName ? `<p style="margin:6px 0 0;color:#6b7280">Client : ${customerName}</p>` : ''}
+                ${dateLabel ? `<p style="margin:6px 0 0;color:#6b7280">Date : ${dateLabel}${timeLabel ? ' · ' + timeLabel : ''}</p>` : ''}
+              </div>
+              <p style="margin:0 0 16px;font-size:15px"><strong>Cette intervention est-elle terminée ?</strong></p>
+              <div>
+                <a href="${completeLink}" style="display:inline-block;background:#10b981;color:white;padding:12px 22px;border-radius:10px;font-weight:600;text-decoration:none;margin-right:8px;margin-bottom:8px">Oui, c'est terminé</a>
+                <a href="${jobLink}" style="display:inline-block;background:white;color:#374151;border:1px solid #d1d5db;padding:11px 22px;border-radius:10px;font-weight:600;text-decoration:none">Non, reprogrammer</a>
+              </div>
+              <hr style="border:0;border-top:1px solid #e5e7eb;margin:24px 0"/>
+              <p style="font-size:12px;color:#9ca3af;margin:0">${bizName}</p>
+            </div>
+          </div>`,
+        })
+        await supabase.from('jobs').update({ completion_notified_at: new Date().toISOString() }).eq('id', j.id)
+        completionEmailsSent++
+      } catch (err) {
+        console.error(`[cron] completion email failed for job ${j.id}:`, err)
+      }
+    }
+  }
+
   // ── 3.5 Mark overdue invoices ─────────────────────────────────
   const nowIso = now.toISOString()
   const { data: overdueRows } = await supabase
@@ -252,5 +349,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ expiredCount, warningCount, promoExpiredCount, reminderCount, overdueCount, jobTransitionsCount })
+  return NextResponse.json({ expiredCount, warningCount, promoExpiredCount, reminderCount, overdueCount, jobTransitionsCount, completionEmailsSent })
 }

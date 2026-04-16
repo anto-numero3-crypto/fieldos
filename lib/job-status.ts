@@ -19,27 +19,49 @@ export function getEffectiveJobStatus(job: {
   scheduled_date: string | null
   start_time: string | null
   end_time: string | null
+  is_multi_day?: boolean | null
+  end_date?: string | null
 }): string {
   const s = job.status || 'scheduled'
+  // Rule 1: final statuses are never overridden
   if (s === 'completed' || s === 'complete' || s === 'invoiced' || s === 'cancelled') return s
+  // Rule 2: no date → as-is
   if (!job.scheduled_date) return s
 
-  const dateStr = job.scheduled_date.slice(0, 10)
-  // Normalize Supabase TIME strings ("HH:MM", "HH:MM:SS", or with fractional/tz)
-  // to plain HH:MM. Without a tz suffix the Date constructor parses as LOCAL time,
-  // which matches how the user reads their clock.
-  const startTime = job.start_time ? job.start_time.slice(0, 5) : '00:00'
-  const endTime = job.end_time ? job.end_time.slice(0, 5) : null
-
   const now = new Date()
-  const jobStart = new Date(`${dateStr}T${startTime}:00`)
-  const jobEnd = endTime
-    ? new Date(`${dateStr}T${endTime}:00`)
+  const dateOnly = job.scheduled_date.slice(0, 10)
+
+  // Rule 3: multi-day job
+  if (job.is_multi_day && job.end_date) {
+    const startDate = new Date(`${dateOnly}T00:00:00`)
+    const endDate = new Date(`${job.end_date.slice(0, 10)}T23:59:59`)
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return s
+    if (now < startDate) return 'scheduled'
+    if (now <= endDate) return 'in_progress'
+    return 'needs_completion'
+  }
+
+  // Rule 4: single-day with no start_time (all-day job)
+  if (!job.start_time) {
+    const dayStart = new Date(`${dateOnly}T00:00:00`)
+    const dayEnd = new Date(`${dateOnly}T23:59:59`)
+    if (isNaN(dayStart.getTime())) return s
+    if (now < dayStart) return 'scheduled'
+    if (now <= dayEnd) return 'in_progress'
+    return 'needs_completion'
+  }
+
+  // Rule 5: single-day with start_time
+  const startHHMM = job.start_time.slice(0, 5)
+  const jobStart = new Date(`${dateOnly}T${startHHMM}:00`)
+  const jobEnd = job.end_time
+    ? new Date(`${dateOnly}T${job.end_time.slice(0, 5)}:00`)
     : new Date(jobStart.getTime() + 60 * 60 * 1000)
 
-  if (now.getTime() > jobEnd.getTime()) return 'needs_completion'
-  if (now.getTime() > jobStart.getTime()) return 'in_progress'
-  return s
+  if (isNaN(jobStart.getTime()) || isNaN(jobEnd.getTime())) return s
+  if (now < jobStart) return 'scheduled'
+  if (now <= jobEnd) return 'in_progress'
+  return 'needs_completion'
 }
 
 export function jobStatusLabel(status: string, fr: boolean): string {
