@@ -105,8 +105,8 @@ interface Booking {
   customer_phone: string | null
   customer_email: string | null
   service_name: string | null
-  preferred_date: string | null
-  preferred_time: string | null
+  requested_date: string | null
+  requested_time: string | null
   status: 'pending' | 'accepted' | 'declined' | string
   notes: string | null
   created_at: string
@@ -210,8 +210,8 @@ export default function DashboardPage() {
         .order('created_at', { ascending: false })
         .limit(2000),
       supabase
-        .from('bookings')
-        .select('id, customer_name, customer_phone, customer_email, service_name, preferred_date, preferred_time, status, notes, created_at')
+        .from('booking_requests')
+        .select('id, customer_name, customer_phone, customer_email, service_name, requested_date, requested_time, status, notes, created_at')
         .eq('user_id', uid)
         .order('created_at', { ascending: false })
         .limit(200),
@@ -1609,8 +1609,8 @@ function PendingBookingsCard({
                           {b.customer_name || (fr ? 'Client' : 'Customer')}
                         </span>
                         <span className="text-xs text-gray-400 shrink-0 tabular-nums">
-                          {fmtPrefDate(b.preferred_date)}
-                          {b.preferred_time ? ` · ${b.preferred_time}` : ''}
+                          {fmtPrefDate(b.requested_date)}
+                          {b.requested_time ? ` · ${b.requested_time}` : ''}
                         </span>
                       </div>
                       <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 truncate">

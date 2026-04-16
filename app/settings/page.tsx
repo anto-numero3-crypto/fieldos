@@ -394,12 +394,14 @@ export default function SettingsPage() {
 
     // Route through the service-role API so RLS can't block writes to
     // location_lat/lng (anon policies blocked these writes silently before).
+    console.log('[settings save] starting save... payload.location_lat =', payload.location_lat, 'location_lng =', payload.location_lng)
     const res = await fetch('/api/settings/save-business', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
-    const data = await res.json().catch(() => ({})) as { ok?: boolean; error?: string; org?: { id: string; slug: string | null } }
+    const data = await res.json().catch(() => ({})) as { ok?: boolean; error?: string; org?: { id: string; slug: string | null; location_lat: number | null; location_lng: number | null } }
+    console.log('[settings save] API response:', res.status, data)
 
     if (!res.ok || !data.ok) {
       toast.error(data.error || (fr ? 'Échec de la sauvegarde' : 'Save failed'))

@@ -8,6 +8,13 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null) as Record<string, unknown> | null
   if (!body) return NextResponse.json({ error: 'Missing body' }, { status: 400 })
 
+  console.log('[save-business] user:', user.id)
+  console.log('[save-business] incoming body:', JSON.stringify(body))
+  console.log('[save-business] location_lat =', body.location_lat, 'location_lng =', body.location_lng)
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('[save-business] SUPABASE_SERVICE_ROLE_KEY missing — will fall back to anon and RLS will likely block writes')
+  }
+
   const supabase = adminClient()
 
   // Look up or create org
@@ -45,8 +52,9 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await query.select('id, slug, address, city, location_lat, location_lng').single()
   if (error) {
-    console.error('[settings save-business] db error:', error)
+    console.error('[save-business] db error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+  console.log('[save-business] update result:', JSON.stringify(data))
   return NextResponse.json({ ok: true, org: data })
 }
