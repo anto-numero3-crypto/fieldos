@@ -291,7 +291,7 @@ export default function InvoicesPage() {
           </div>
         </>
       )}
-      <MobileFAB href="/invoices/new" label="Nouvelle facture" />
+      <MobileFAB href="/invoices/new" label={l.newBtn} />
     </AppLayout>
   )
 }
