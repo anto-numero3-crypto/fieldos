@@ -26,7 +26,8 @@ interface Invoice {
 interface Job { id: string; status: string; created_at: string; updated_at: string | null; customers: { name: string } | null }
 interface Customer { id: string; name: string; created_at: string }
 
-const MONTHS_SHORT = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc']
+const MONTHS_SHORT_FR = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc']
+const MONTHS_SHORT_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 type Period = '7d' | '30d' | '90d' | 'ytd' | 'all'
 
@@ -55,16 +56,20 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 
 function ReportsGate({ children }: { children: React.ReactNode }) {
   const plan = usePlan()
+  const { lang } = useLanguage()
+  const fr = lang === 'fr'
   if (plan.loading) return <>{children}</>
   if (!plan.isFeatureAvailable('hasAnalytics')) {
     return (
-      <AppLayout title="Rapports">
+      <AppLayout title={fr ? 'Rapports' : 'Reports'}>
         <div className="p-6 sm:p-10">
           <UpgradePrompt
             variant="overlay"
-            feature="Rapports et analyses"
+            feature={fr ? 'Rapports et analyses' : 'Reports and analytics'}
             requiredPlan="pro"
-            description="Suivez vos revenus, vos interventions et vos clients les plus fidèles avec des tableaux de bord complets — disponibles dès le forfait Pro."
+            description={fr
+              ? 'Suivez vos revenus, vos interventions et vos clients les plus fidèles avec des tableaux de bord complets — disponibles dès le forfait Pro.'
+              : 'Track revenue, jobs, and your most loyal customers with complete dashboards — available from the Pro plan.'}
           />
         </div>
       </AppLayout>
@@ -75,6 +80,8 @@ function ReportsGate({ children }: { children: React.ReactNode }) {
 
 function ReportsPageInner() {
   const { lang } = useLanguage()
+  const fr = lang === 'fr'
+  const MONTHS_SHORT = fr ? MONTHS_SHORT_FR : MONTHS_SHORT_EN
   const [period, setPeriod]     = useState<Period>('90d')
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [jobs, setJobs]         = useState<Job[]>([])
@@ -171,7 +178,7 @@ function ReportsPageInner() {
       if (inv.status !== 'paid') continue
       const items = Array.isArray(inv.line_items) ? inv.line_items : []
       for (const li of items) {
-        const name = (li.description || 'Sans description').trim().slice(0, 60)
+        const name = (li.description || (fr ? 'Sans description' : 'No description')).trim().slice(0, 60)
         const total = (Number(li.qty) || 1) * (Number(li.unit_price) || 0)
         map.set(name, (map.get(name) || 0) + total)
       }
@@ -209,10 +216,10 @@ function ReportsPageInner() {
     const counts: Record<string, number> = { scheduled: 0, in_progress: 0, complete: 0, cancelled: 0 }
     filteredJobs.forEach((j) => { counts[j.status] = (counts[j.status] || 0) + 1 })
     return [
-      { name: 'Planifié',   value: counts.scheduled,   color: '#3b82f6' },
-      { name: 'En cours',   value: counts.in_progress, color: '#f59e0b' },
-      { name: 'Terminé',    value: counts.complete,    color: '#10b981' },
-      { name: 'Annulé',     value: counts.cancelled,   color: '#d1d5db' },
+      { name: fr ? 'Planifié' : 'Scheduled',     value: counts.scheduled,   color: '#3b82f6' },
+      { name: fr ? 'En cours' : 'In progress',   value: counts.in_progress, color: '#f59e0b' },
+      { name: fr ? 'Terminé' : 'Complete',       value: counts.complete,    color: '#10b981' },
+      { name: fr ? 'Annulé' : 'Cancelled',       value: counts.cancelled,   color: '#d1d5db' },
     ].filter((d) => d.value > 0)
   }
 
@@ -220,7 +227,7 @@ function ReportsPageInner() {
   const topCustomers = () => {
     const map: Record<string, { name: string; revenue: number; invoices: number }> = {}
     filteredInvoices.forEach((inv) => {
-      const name = inv.customers?.name || 'Unknown'
+      const name = inv.customers?.name || (fr ? 'Inconnu' : 'Unknown')
       if (!map[name]) map[name] = { name, revenue: 0, invoices: 0 }
       map[name].revenue += parseFloat(String(inv.amount))
       map[name].invoices++
@@ -266,31 +273,33 @@ function ReportsPageInner() {
 
   const exportCSV = () => {
     const rows: string[][] = []
-    const periodLabel = period === '7d' ? '7 jours' : period === '30d' ? '30 jours' : period === '90d' ? '90 jours' : period === 'ytd' ? 'Cette année' : 'Tout'
-    rows.push(['=== RAPPORT GESTIVIO ==='])
-    rows.push([`Période: ${periodLabel}`])
+    const periodLabel = fr
+      ? (period === '7d' ? '7 jours' : period === '30d' ? '30 jours' : period === '90d' ? '90 jours' : period === 'ytd' ? 'Cette année' : 'Tout')
+      : (period === '7d' ? '7 days' : period === '30d' ? '30 days' : period === '90d' ? '90 days' : period === 'ytd' ? 'Year to date' : 'All')
+    rows.push([fr ? '=== RAPPORT GESTIVIO ===' : '=== GESTIVIO REPORT ==='])
+    rows.push([fr ? `Période: ${periodLabel}` : `Period: ${periodLabel}`])
     rows.push([`${fmtDate(new Date().toISOString().slice(0,10), lang)}`])
     rows.push([])
 
     // Revenue summary
-    rows.push(['=== RÉSUMÉ DES REVENUS ==='])
-    rows.push(['Métrique', 'Valeur'])
-    rows.push(['Revenus totaux', fmt(filteredInvoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0))])
-    rows.push(['Encaissé', fmt(filteredInvoices.filter((i) => i.status === 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0))])
-    rows.push(['Impayés', fmt(filteredInvoices.filter((i) => i.status !== 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0))])
-    rows.push(['Taux de recouvrement', `${collectionRatePct}%`])
-    rows.push(['Délai moyen de paiement (j)', String(avgDSO)])
-    rows.push(['Valeur moyenne de facture', fmt(avgInvoiceValue)])
-    rows.push(['Nb interventions', String(filteredJobs.length)])
-    rows.push(['Nb nouveaux clients', String(filteredCustomers.length)])
+    rows.push([fr ? '=== RÉSUMÉ DES REVENUS ===' : '=== REVENUE SUMMARY ==='])
+    rows.push([fr ? 'Métrique' : 'Metric', fr ? 'Valeur' : 'Value'])
+    rows.push([fr ? 'Revenus totaux' : 'Total revenue', fmt(filteredInvoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0))])
+    rows.push([fr ? 'Encaissé' : 'Collected', fmt(filteredInvoices.filter((i) => i.status === 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0))])
+    rows.push([fr ? 'Impayés' : 'Unpaid', fmt(filteredInvoices.filter((i) => i.status !== 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0))])
+    rows.push([fr ? 'Taux de recouvrement' : 'Collection rate', `${collectionRatePct}%`])
+    rows.push([fr ? 'Délai moyen de paiement (j)' : 'Average payment time (days)', String(avgDSO)])
+    rows.push([fr ? 'Valeur moyenne de facture' : 'Average invoice value', fmt(avgInvoiceValue)])
+    rows.push([fr ? 'Nb interventions' : 'Jobs count', String(filteredJobs.length)])
+    rows.push([fr ? 'Nb nouveaux clients' : 'New customers count', String(filteredCustomers.length)])
     rows.push([])
 
     // Invoices detail
-    rows.push(['=== FACTURES ==='])
-    rows.push(['Client', 'Montant', 'Statut', 'Date'])
+    rows.push([fr ? '=== FACTURES ===' : '=== INVOICES ==='])
+    rows.push([fr ? 'Client' : 'Customer', fr ? 'Montant' : 'Amount', fr ? 'Statut' : 'Status', 'Date'])
     filteredInvoices.forEach((inv) => {
       rows.push([
-        inv.customers?.name || 'Inconnu',
+        inv.customers?.name || (fr ? 'Inconnu' : 'Unknown'),
         fmt(parseFloat(String(inv.amount))),
         inv.status,
         fmtDate(inv.created_at, lang),
@@ -299,11 +308,11 @@ function ReportsPageInner() {
     rows.push([])
 
     // Jobs detail
-    rows.push(['=== INTERVENTIONS ==='])
-    rows.push(['Client', 'Statut', 'Date'])
+    rows.push([fr ? '=== INTERVENTIONS ===' : '=== JOBS ==='])
+    rows.push([fr ? 'Client' : 'Customer', fr ? 'Statut' : 'Status', 'Date'])
     filteredJobs.forEach((j) => {
       rows.push([
-        j.customers?.name || 'Inconnu',
+        j.customers?.name || (fr ? 'Inconnu' : 'Unknown'),
         j.status,
         fmtDate(j.created_at, lang),
       ])
@@ -314,7 +323,7 @@ function ReportsPageInner() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `rapport-gestivio-${new Date().toISOString().split('T')[0]}.csv`
+    a.download = `${fr ? 'rapport' : 'report'}-gestivio-${new Date().toISOString().split('T')[0]}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -339,7 +348,7 @@ function ReportsPageInner() {
   const revenueChange = prevRevenue > 0 ? ((totalRevenue - prevRevenue) / prevRevenue * 100).toFixed(0) : null
 
   if (loading) return (
-    <AppLayout title="Rapports">
+    <AppLayout title={fr ? 'Rapports' : 'Reports'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
         <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
           {[...Array(4)].map((_, i) => <SkeletonKPICard key={i} />)}
@@ -355,13 +364,13 @@ function ReportsPageInner() {
 
   if (invoices.length === 0 && jobs.length === 0) {
     return (
-      <AppLayout title="Rapports">
+      <AppLayout title={fr ? 'Rapports' : 'Reports'}>
         <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
             <EmptyState
               icon={BarChart3}
-              title="Pas encore de données"
-              description="Les rapports apparaîtront une fois que vous aurez des factures et emplois."
+              title={fr ? 'Pas encore de données' : 'No data yet'}
+              description={fr ? 'Les rapports apparaîtront une fois que vous aurez des factures et emplois.' : 'Reports will appear once you have invoices and jobs.'}
             />
           </div>
         </div>
@@ -369,14 +378,18 @@ function ReportsPageInner() {
     )
   }
 
+  const periodOptions: [Period, string][] = fr
+    ? [['7d', '7 jours'], ['30d', '30 jours'], ['90d', '90 jours'], ['ytd', "Cette année"], ['all', 'Tout']]
+    : [['7d', '7 days'], ['30d', '30 days'], ['90d', '90 days'], ['ytd', 'Year to date'], ['all', 'All']]
+
   return (
-    <AppLayout title="Rapports">
+    <AppLayout title={fr ? 'Rapports' : 'Reports'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
 
         {/* Period selector */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 flex-wrap">
-            {([['7d', '7 jours'], ['30d', '30 jours'], ['90d', '90 jours'], ['ytd', "Cette année"], ['all', 'Tout']] as [Period, string][]).map(([key, label]) => (
+            {periodOptions.map(([key, label]) => (
               <button
                 key={key}
                 onClick={() => setPeriod(key)}
@@ -390,7 +403,7 @@ function ReportsPageInner() {
             onClick={exportCSV}
             className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
           >
-            <Download className="h-4 w-4" /> Exporter CSV
+            <Download className="h-4 w-4" /> {fr ? 'Exporter CSV' : 'Export CSV'}
           </button>
         </div>
 
@@ -398,25 +411,27 @@ function ReportsPageInner() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             {
-              label: 'Revenus totaux', value: fmt(totalRevenue),
+              label: fr ? 'Revenus totaux' : 'Total revenue', value: fmt(totalRevenue),
               icon: DollarSign, bg: 'bg-emerald-50', color: 'text-emerald-600',
-              change: revenueChange ? `${revenueChange > '0' ? '+' : ''}${revenueChange}% vs période précédente` : null,
+              change: revenueChange ? `${revenueChange > '0' ? '+' : ''}${revenueChange}% ${fr ? 'vs période précédente' : 'vs previous period'}` : null,
               up: revenueChange ? parseInt(revenueChange) >= 0 : null,
             },
             {
-              label: 'Encaissé', value: fmt(collectedRev),
+              label: fr ? 'Encaissé' : 'Collected', value: fmt(collectedRev),
               icon: TrendingUp, bg: 'bg-indigo-50', color: 'text-indigo-600',
-              change: `${totalRevenue > 0 ? (collectedRev / totalRevenue * 100).toFixed(0) : 0}% taux de recouvrement`, up: null,
+              change: `${totalRevenue > 0 ? (collectedRev / totalRevenue * 100).toFixed(0) : 0}% ${fr ? 'taux de recouvrement' : 'collection rate'}`, up: null,
             },
             {
-              label: 'Impayés', value: fmt(outstandingRev),
+              label: fr ? 'Impayés' : 'Unpaid', value: fmt(outstandingRev),
               icon: DollarSign, bg: 'bg-amber-50', color: 'text-amber-600',
-              change: `${filteredInvoices.filter((i) => i.status !== 'paid').length} factures non payées`, up: null,
+              change: fr
+                ? `${filteredInvoices.filter((i) => i.status !== 'paid').length} factures non payées`
+                : `${filteredInvoices.filter((i) => i.status !== 'paid').length} unpaid invoices`, up: null,
             },
             {
-              label: 'Interventions créées', value: filteredJobs.length,
+              label: fr ? 'Interventions créées' : 'Jobs created', value: filteredJobs.length,
               icon: Briefcase, bg: 'bg-violet-50', color: 'text-violet-600',
-              change: `${completionRate}% taux de complétion`, up: null,
+              change: `${completionRate}% ${fr ? 'taux de complétion' : 'completion rate'}`, up: null,
             },
           ].map((card) => (
             <div key={card.label} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
@@ -440,8 +455,8 @@ function ReportsPageInner() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Revenue trend */}
           <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Tendance des revenus</h2>
-            <p className="text-xs text-gray-400 mb-5">Montant total facturé par mois</p>
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Tendance des revenus' : 'Revenue trend'}</h2>
+            <p className="text-xs text-gray-400 mb-5">{fr ? 'Montant total facturé par mois' : 'Total invoiced amount per month'}</p>
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={revenueByMonth()}>
                 <defs>
@@ -461,8 +476,8 @@ function ReportsPageInner() {
 
           {/* Job status pie */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Statut des interventions</h2>
-            <p className="text-xs text-gray-400 mb-4">Répartition pour la période</p>
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Statut des interventions' : 'Job status'}</h2>
+            <p className="text-xs text-gray-400 mb-4">{fr ? 'Répartition pour la période' : 'Breakdown for the period'}</p>
             {jobStatusDist().length > 0 ? (
               <>
                 <ResponsiveContainer width="100%" height={140}>
@@ -470,7 +485,7 @@ function ReportsPageInner() {
                     <Pie data={jobStatusDist()} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">
                       {jobStatusDist().map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
                     </Pie>
-                    <Tooltip formatter={(val, name) => [`${val} jobs`, name]} />
+                    <Tooltip formatter={(val, name) => [`${val} ${fr ? 'interventions' : 'jobs'}`, name]} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="mt-3 space-y-2">
@@ -483,7 +498,7 @@ function ReportsPageInner() {
                 </div>
               </>
             ) : (
-              <div className="flex items-center justify-center h-32 text-gray-400 text-sm">Aucune donnée pour cette période</div>
+              <div className="flex items-center justify-center h-32 text-gray-400 text-sm">{fr ? 'Aucune donnée pour cette période' : 'No data for this period'}</div>
             )}
           </div>
         </div>
@@ -491,8 +506,8 @@ function ReportsPageInner() {
         {/* Jobs per month + AR aging */}
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Emplois terminés par mois</h2>
-            <p className="text-xs text-gray-400 mb-5">12 derniers mois · status = Terminé (par updated_at)</p>
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Emplois terminés par mois' : 'Completed jobs per month'}</h2>
+            <p className="text-xs text-gray-400 mb-5">{fr ? '12 derniers mois · status = Terminé (par updated_at)' : 'Last 12 months · status = Complete (by updated_at)'}</p>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={completedJobsByMonth()} barSize={24}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -506,8 +521,8 @@ function ReportsPageInner() {
 
           {/* AR aging */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Vieillissement des créances</h2>
-            <p className="text-xs text-gray-400 mb-4">Factures impayées par ancienneté (jours)</p>
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Vieillissement des créances' : 'AR aging'}</h2>
+            <p className="text-xs text-gray-400 mb-4">{fr ? 'Factures impayées par ancienneté (jours)' : 'Unpaid invoices by age (days)'}</p>
             <div className="space-y-3">
               {arAging().map(({ bucket, amount }) => {
                 const isOverdue = bucket !== 'current'
@@ -515,7 +530,7 @@ function ReportsPageInner() {
                   <div key={bucket} className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm">
                       <span className={`h-2 w-2 rounded-full ${bucket === 'current' ? 'bg-blue-400' : bucket === '1-30' ? 'bg-amber-400' : bucket === '31-60' ? 'bg-orange-500' : 'bg-red-500'}`} />
-                      <span className="text-gray-600">{bucket === 'current' ? 'Courant' : `${bucket} jours`}</span>
+                      <span className="text-gray-600">{bucket === 'current' ? (fr ? 'Courant' : 'Current') : `${bucket} ${fr ? 'jours' : 'days'}`}</span>
                     </div>
                     <span className={`text-sm font-semibold ${isOverdue && amount > 0 ? 'text-red-600' : 'text-gray-900'}`}>{fmt(amount)}</span>
                   </div>
@@ -528,34 +543,34 @@ function ReportsPageInner() {
         {/* Key metrics strip */}
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-xs font-medium text-gray-500">Taux de recouvrement</p>
+            <p className="text-xs font-medium text-gray-500">{fr ? 'Taux de recouvrement' : 'Collection rate'}</p>
             <p className="text-2xl font-bold text-gray-900 tabular-nums mt-1">{collectionRatePct}%</p>
-            <p className="text-xs text-gray-400 mt-1">{paidInvoices.length} payées sur {filteredInvoices.length}</p>
+            <p className="text-xs text-gray-400 mt-1">{paidInvoices.length} {fr ? 'payées sur' : 'paid of'} {filteredInvoices.length}</p>
           </div>
           <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-xs font-medium text-gray-500">Délai moyen de paiement</p>
-            <p className="text-2xl font-bold text-gray-900 tabular-nums mt-1">{avgDSO} <span className="text-base font-medium text-gray-500">jours</span></p>
-            <p className="text-xs text-gray-400 mt-1">Création → paiement</p>
+            <p className="text-xs font-medium text-gray-500">{fr ? 'Délai moyen de paiement' : 'Average payment time'}</p>
+            <p className="text-2xl font-bold text-gray-900 tabular-nums mt-1">{avgDSO} <span className="text-base font-medium text-gray-500">{fr ? 'jours' : 'days'}</span></p>
+            <p className="text-xs text-gray-400 mt-1">{fr ? 'Création → paiement' : 'Created → paid'}</p>
           </div>
           <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-xs font-medium text-gray-500">Valeur moyenne</p>
+            <p className="text-xs font-medium text-gray-500">{fr ? 'Valeur moyenne' : 'Average value'}</p>
             <p className="text-2xl font-bold text-gray-900 tabular-nums mt-1">{fmt(avgInvoiceValue)}</p>
-            <p className="text-xs text-gray-400 mt-1">Par facture payée</p>
+            <p className="text-xs text-gray-400 mt-1">{fr ? 'Par facture payée' : 'Per paid invoice'}</p>
           </div>
           <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <p className="text-xs font-medium text-gray-500">Nouveaux clients</p>
+            <p className="text-xs font-medium text-gray-500">{fr ? 'Nouveaux clients' : 'New customers'}</p>
             <p className="text-2xl font-bold text-gray-900 tabular-nums mt-1">{filteredCustomers.length}</p>
-            <p className="text-xs text-gray-400 mt-1">Sur la période</p>
+            <p className="text-xs text-gray-400 mt-1">{fr ? 'Sur la période' : 'Over the period'}</p>
           </div>
         </div>
 
         {/* Revenue by service + New customers per month */}
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Revenus par service</h2>
-            <p className="text-xs text-gray-400 mb-5">Top 5 · factures payées</p>
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Revenus par service' : 'Revenue by service'}</h2>
+            <p className="text-xs text-gray-400 mb-5">{fr ? 'Top 5 · factures payées' : 'Top 5 · paid invoices'}</p>
             {revenueByService().length === 0 ? (
-              <div className="flex items-center justify-center h-32 text-gray-400 text-sm">Aucune facture payée pour le moment</div>
+              <div className="flex items-center justify-center h-32 text-gray-400 text-sm">{fr ? 'Aucune facture payée pour le moment' : 'No paid invoices yet'}</div>
             ) : (
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={revenueByService()} layout="vertical" barSize={18} margin={{ left: 24 }}>
@@ -570,8 +585,8 @@ function ReportsPageInner() {
           </div>
 
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">Nouveaux clients par mois</h2>
-            <p className="text-xs text-gray-400 mb-5">12 derniers mois</p>
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Nouveaux clients par mois' : 'New customers per month'}</h2>
+            <p className="text-xs text-gray-400 mb-5">{fr ? '12 derniers mois' : 'Last 12 months'}</p>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={newCustomersByMonth()} barSize={20}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -587,13 +602,13 @@ function ReportsPageInner() {
         {/* Top customers */}
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-900">Top 10 clients par revenu</h2>
+            <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Top 10 clients par revenu' : 'Top 10 customers by revenue'}</h2>
           </div>
           {topCustomers().length === 0 ? (
-            <div className="flex items-center justify-center py-10 text-gray-400 text-sm">Aucune donnée de revenus pour cette période</div>
+            <div className="flex items-center justify-center py-10 text-gray-400 text-sm">{fr ? 'Aucune donnée de revenus pour cette période' : 'No revenue data for this period'}</div>
           ) : (
             <table className="min-w-full">
-              <thead><tr className="bg-gray-50">{['Client', 'Factures', 'Revenus', '% du total'].map((c) => <th key={c} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{c}</th>)}</tr></thead>
+              <thead><tr className="bg-gray-50">{(fr ? ['Client', 'Factures', 'Revenus', '% du total'] : ['Customer', 'Invoices', 'Revenue', '% of total']).map((c) => <th key={c} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{c}</th>)}</tr></thead>
               <tbody className="divide-y divide-gray-50">
                 {topCustomers().map((c, i) => (
                   <tr key={c.name} className="hover:bg-gray-50 transition-colors">
