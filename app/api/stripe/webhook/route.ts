@@ -1,17 +1,23 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendPlanEmail } from '@/lib/plan-emails'
 import { PLAN_PRICING } from '@/lib/plan-limits'
+
+const LOG = '[stripe webhook]'
 
 export async function POST(req: NextRequest) {
   if (!process.env.STRIPE_SECRET_KEY) {
     return NextResponse.json({ error: 'Stripe not configured' }, { status: 503 })
   }
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2026-03-25.dahlia' })
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error(`${LOG} SUPABASE_SERVICE_ROLE_KEY missing — webhook writes will be blocked by RLS`)
+  }
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 
   const body = await req.text()
@@ -63,34 +69,121 @@ export async function POST(req: NextRequest) {
         } else if (invoiceId) {
           // Client paying a business invoice
           const amountPaid = (session.amount_total || 0) / 100
-          await supabase
-            .from('invoices')
-            .update({ status: 'paid', paid_at: new Date().toISOString(), payment_method: 'stripe' })
-            .eq('id', invoiceId)
+          const paidAt = new Date().toISOString()
+          const paymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : null
+          console.log(`${LOG} invoice payment completed: invoice=${invoiceId} amount=${amountPaid} pi=${paymentIntentId}`)
 
-          await supabase.from('payments').insert({
-            invoice_id:               invoiceId,
-            amount:                   amountPaid,
-            payment_method:           'stripe',
-            stripe_payment_intent_id: session.payment_intent as string,
-            paid_at:                  new Date().toISOString(),
-          })
-
-          // Notify business owner
-          const { data: inv } = await supabase
+          // Fetch invoice + customer + owner context first (we need user_id for payments insert)
+          const { data: inv, error: invFetchErr } = await supabase
             .from('invoices')
-            .select('user_id, invoice_number, customers(name)')
+            .select('id, user_id, invoice_number, amount, customers(name, email)')
             .eq('id', invoiceId)
             .single()
-          if (inv?.user_id) {
-            const custName = (inv.customers as unknown as { name: string } | null)?.name || 'Client'
-            await supabase.from('notifications').insert({
-              user_id: inv.user_id,
-              type:    'success',
-              title:   `Paiement reçu — ${inv.invoice_number || invoiceId.slice(0, 8)}`,
-              body:    `${custName} a payé $${amountPaid.toFixed(2)}.`,
-              link:    `/invoices/${invoiceId}`,
+          if (invFetchErr || !inv) {
+            console.error(`${LOG} invoice lookup failed:`, invFetchErr)
+            break
+          }
+
+          const { error: invUpErr } = await supabase
+            .from('invoices')
+            .update({
+              status: 'paid',
+              paid_at: paidAt,
+              payment_method: 'stripe',
+              stripe_payment_intent_id: paymentIntentId,
             })
+            .eq('id', invoiceId)
+          if (invUpErr) console.error(`${LOG} invoice update failed:`, invUpErr)
+
+          const { error: payErr } = await supabase.from('payments').insert({
+            invoice_id:               invoiceId,
+            user_id:                  inv.user_id,
+            amount:                   amountPaid,
+            payment_method:           'stripe',
+            payment_date:             paidAt,
+            stripe_payment_intent_id: paymentIntentId,
+            reference:                session.id,
+          })
+          if (payErr) console.error(`${LOG} payments insert failed:`, payErr)
+
+          const customer = inv.customers as unknown as { name?: string; email?: string } | null
+          const custName = customer?.name || 'Client'
+          const amountLabel = amountPaid.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 2 })
+
+          // In-app notification
+          await supabase.from('notifications').insert({
+            user_id: inv.user_id,
+            type:    'success',
+            title:   `Paiement reçu — ${inv.invoice_number || invoiceId.slice(0, 8)}`,
+            body:    `${custName} a payé ${amountLabel}.`,
+            link:    `/invoices/${invoiceId}`,
+          })
+
+          // Emails (non-fatal)
+          if (process.env.RESEND_API_KEY) {
+            try {
+              const resend = new Resend(process.env.RESEND_API_KEY)
+              const { data: org } = await supabase
+                .from('organizations')
+                .select('name, email')
+                .eq('owner_user_id', inv.user_id)
+                .maybeSingle()
+              const bizName = org?.name || 'Gestivio'
+              const invoiceLabel = inv.invoice_number || invoiceId.slice(0, 8)
+
+              // Customer receipt
+              if (customer?.email) {
+                await resend.emails.send({
+                  from: `${bizName} <noreply@gestivio.ca>`,
+                  to: customer.email,
+                  subject: `Reçu de paiement — Facture ${invoiceLabel}`,
+                  html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#111827">
+                    <div style="background:#059669;padding:24px 32px;border-radius:12px 12px 0 0">
+                      <h1 style="color:white;margin:0;font-size:20px">Paiement confirmé — ${bizName}</h1>
+                    </div>
+                    <div style="background:#f9fafb;padding:32px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+                      <p>Bonjour ${custName},</p>
+                      <p>Nous avons bien reçu votre paiement.</p>
+                      <div style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin:20px 0">
+                        <table style="width:100%;border-collapse:collapse">
+                          <tr><td style="padding:6px 0;color:#6b7280">Facture</td><td style="padding:6px 0;font-weight:600;text-align:right">${invoiceLabel}</td></tr>
+                          <tr><td style="padding:6px 0;color:#6b7280">Montant payé</td><td style="padding:6px 0;font-weight:700;text-align:right;color:#059669">${amountLabel}</td></tr>
+                          <tr><td style="padding:6px 0;color:#6b7280">Date</td><td style="padding:6px 0;font-weight:600;text-align:right">${new Date(paidAt).toLocaleDateString('fr-CA')}</td></tr>
+                          <tr><td style="padding:6px 0;color:#6b7280">Méthode</td><td style="padding:6px 0;font-weight:600;text-align:right">Carte (Stripe)</td></tr>
+                        </table>
+                      </div>
+                      <p style="color:#6b7280;font-size:13px">Merci de votre paiement. ${bizName}</p>
+                    </div>
+                  </div>`,
+                })
+              }
+
+              // Owner notification
+              if (org?.email) {
+                await resend.emails.send({
+                  from: `Gestivio <noreply@gestivio.ca>`,
+                  to: org.email,
+                  subject: `Paiement reçu — ${amountLabel} de ${custName}`,
+                  html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#111827">
+                    <div style="background:#4f46e5;padding:24px 32px;border-radius:12px 12px 0 0">
+                      <h1 style="color:white;margin:0;font-size:20px">Paiement reçu</h1>
+                    </div>
+                    <div style="background:#f9fafb;padding:32px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+                      <p>Bonjour,</p>
+                      <p><strong>${custName}</strong> a payé la facture <strong>${invoiceLabel}</strong>.</p>
+                      <div style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin:20px 0">
+                        <table style="width:100%;border-collapse:collapse">
+                          <tr><td style="padding:6px 0;color:#6b7280">Montant</td><td style="padding:6px 0;font-weight:700;text-align:right;color:#059669">${amountLabel}</td></tr>
+                          <tr><td style="padding:6px 0;color:#6b7280">Date</td><td style="padding:6px 0;font-weight:600;text-align:right">${new Date(paidAt).toLocaleDateString('fr-CA')}</td></tr>
+                        </table>
+                      </div>
+                    </div>
+                  </div>`,
+                })
+              }
+            } catch (emailErr) {
+              console.error(`${LOG} email send failed:`, emailErr)
+            }
           }
         }
         break
