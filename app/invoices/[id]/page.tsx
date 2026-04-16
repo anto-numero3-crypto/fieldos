@@ -164,9 +164,53 @@ export default function InvoiceDetailPage() {
     router.push('/invoices')
   }
 
-  const markPaid = async () => {
-    await supabase.from('invoices').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', id)
-    fetchInvoice()
+  const [payModalOpen, setPayModalOpen] = useState(false)
+  const [payAmount, setPayAmount] = useState('')
+  const [payMethod, setPayMethod] = useState<'stripe' | 'transfer' | 'cash' | 'cheque' | 'interac'>('stripe')
+  const [payDate, setPayDate] = useState(new Date().toISOString().slice(0, 10))
+  const [paySaving, setPaySaving] = useState(false)
+
+  const openPayModal = () => {
+    setPayAmount(String(invoice?.amount ?? ''))
+    setPayMethod('stripe')
+    setPayDate(new Date().toISOString().slice(0, 10))
+    setPayModalOpen(true)
+  }
+
+  const submitManualPayment = async () => {
+    if (!invoice) return
+    const amount = parseFloat(payAmount)
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast.error(fr ? 'Montant invalide' : 'Invalid amount')
+      return
+    }
+    setPaySaving(true)
+    try {
+      const paidAtIso = new Date(payDate + 'T12:00:00').toISOString()
+      const { error: invErr } = await supabase
+        .from('invoices')
+        .update({ status: 'paid', paid_at: paidAtIso, payment_method: payMethod })
+        .eq('id', invoice.id)
+      if (invErr) { toast.error(invErr.message); return }
+
+      const { data: auth } = await supabase.auth.getUser()
+      if (auth.user) {
+        const { error: payErr } = await supabase.from('payments').insert({
+          invoice_id: invoice.id,
+          user_id: auth.user.id,
+          amount,
+          payment_method: payMethod,
+          payment_date: paidAtIso,
+          reference: 'manual',
+        })
+        if (payErr) console.error('[manual pay] payments insert failed:', payErr)
+      }
+      toast.success(fr ? 'Paiement enregistré' : 'Payment recorded')
+      setPayModalOpen(false)
+      await fetchInvoice()
+    } finally {
+      setPaySaving(false)
+    }
   }
 
   const fmtCAD = (n: number) => fmtMoney(n, lang)
@@ -297,10 +341,10 @@ export default function InvoiceDetailPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   {!editing && invoice.status !== 'paid' && (
                     <button
-                      onClick={markPaid}
+                      onClick={openPayModal}
                       className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-all shadow-sm"
                     >
-                      <CheckCircle className="h-4 w-4" /> {fr ? 'Marquer payée' : 'Mark as paid'}
+                      <CheckCircle className="h-4 w-4" /> {fr ? 'Marquer comme payée' : 'Mark as paid'}
                     </button>
                   )}
                   {!editing ? (
@@ -572,6 +616,76 @@ export default function InvoiceDetailPage() {
           </div>
         </div>
       </div>
+
+      {payModalOpen && (
+        <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true">
+          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => !paySaving && setPayModalOpen(false)} />
+          <div className="relative w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                  <CheckCircle className="h-4 w-4" />
+                </div>
+                <h3 className="text-base font-semibold text-gray-900">{fr ? 'Marquer comme payée' : 'Mark as paid'}</h3>
+              </div>
+              <button onClick={() => !paySaving && setPayModalOpen(false)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Montant' : 'Amount'}</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={payAmount}
+                  onChange={(e) => setPayAmount(e.target.value)}
+                  className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Méthode de paiement' : 'Payment method'}</label>
+                <select
+                  value={payMethod}
+                  onChange={(e) => setPayMethod(e.target.value as typeof payMethod)}
+                  className="block w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                >
+                  <option value="stripe">Stripe</option>
+                  <option value="transfer">{fr ? 'Virement' : 'Transfer'}</option>
+                  <option value="cash">{fr ? 'Comptant' : 'Cash'}</option>
+                  <option value="cheque">{fr ? 'Chèque' : 'Cheque'}</option>
+                  <option value="interac">Interac</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Date du paiement' : 'Payment date'}</label>
+                <input
+                  type="date"
+                  value={payDate}
+                  onChange={(e) => setPayDate(e.target.value)}
+                  className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-5 py-3">
+              <button
+                type="button"
+                onClick={() => setPayModalOpen(false)}
+                disabled={paySaving}
+                className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+              >
+                {fr ? 'Annuler' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={submitManualPayment}
+                disabled={paySaving}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+              >
+                <CheckCircle className="h-4 w-4" /> {paySaving ? (fr ? 'Enregistrement...' : 'Saving...') : (fr ? 'Enregistrer' : 'Save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   )
 }
