@@ -50,6 +50,7 @@ import { Skeleton, SkeletonKPICard } from '@/components/ui/skeleton'
 import { useTheme } from '@/components/ThemeProvider'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtMoney } from '@/lib/format'
+import { formatTime } from '@/lib/format-time'
 import { getInvoiceDisplayStatus } from '@/lib/invoice-status'
 import { getEffectiveJobStatus } from '@/lib/job-status'
 import { supabase } from '@/app/supabase'
@@ -1114,19 +1115,7 @@ function ScheduleRow({ job, fr, lang }: { job: Job; fr: boolean; lang: 'fr' | 'e
   const effective = getEffectiveJobStatus(job)
   const s = statusColor[effective] || statusColor.scheduled
 
-  const formatTimeStr = (t: string | null): string => {
-    if (!t) return fr ? '—' : '—'
-    // t is either HH:MM or HH:MM:SS
-    const m = t.match(/^(\d{2}):(\d{2})/)
-    if (!m) return t
-    const h = Number(m[1]); const min = m[2]
-    if (lang === 'en') {
-      const ampm = h >= 12 ? 'PM' : 'AM'
-      const hh = h % 12 || 12
-      return `${hh}:${min} ${ampm}`
-    }
-    return `${m[1]}h${min}`
-  }
+  const formatTimeStr = (t: string | null): string => t ? formatTime(t, lang) : '—'
 
   return (
     <li>

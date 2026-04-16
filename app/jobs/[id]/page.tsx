@@ -11,6 +11,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 import { toast } from 'sonner'
 import { fmtMoney, fmtDate as fmtDateLib } from '@/lib/format'
 import { getEffectiveJobStatus } from '@/lib/job-status'
+import { formatTimeRange } from '@/lib/format-time'
 import {
   ArrowLeft, User, Calendar, Clock, Flag, Edit2, Save, CheckSquare,
   Square, Plus, Trash2, FileText, DollarSign, AlertCircle, CheckCircle,
@@ -377,7 +378,7 @@ export default function JobDetailPage() {
                   <span className="text-sm text-gray-500 flex items-center gap-1.5">
                     <Calendar className="h-4 w-4 text-gray-300" />
                     {fmtDate(job.scheduled_date)}
-                    {job.start_time && ` · ${job.start_time}${job.end_time ? ' – ' + job.end_time : ''}`}
+                    {job.start_time && ` · ${formatTimeRange(job.start_time, job.end_time, lang)}`}
                   </span>
                 )}
               </div>
@@ -667,7 +668,7 @@ export default function JobDetailPage() {
                 {job.start_time && (
                   <div className="flex justify-between">
                     <dt className="text-gray-500">{fr ? 'Heure' : 'Time'}</dt>
-                    <dd className="font-medium text-gray-900 text-xs">{job.start_time}{job.end_time ? ` – ${job.end_time}` : ''}</dd>
+                    <dd className="font-medium text-gray-900 text-xs">{formatTimeRange(job.start_time, job.end_time, lang)}</dd>
                   </div>
                 )}
                 <div className="flex justify-between">
