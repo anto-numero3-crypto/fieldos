@@ -74,6 +74,7 @@ const impactColors: Record<string, string> = {
 
 export default function InsightsPage() {
   const { lang } = useLanguage()
+  const fr = lang === 'fr'
   const fmt = (n: number) => fmtMoney(n, lang)
   const [loading, setLoading]               = useState(true)
   const [generating, setGenerating]         = useState(false)
@@ -150,11 +151,16 @@ export default function InsightsPage() {
         .sort((a, b) => b.days - a.days)
       const mostOverdueInvoice = overdueInvoices[0] || null
 
+      const isFr = lang === 'fr'
       const revTrend = revenueLastWeek > 0
         ? revenueThisWeek >= revenueLastWeek
-          ? `Revenue is up ${((revenueThisWeek - revenueLastWeek) / revenueLastWeek * 100).toFixed(0)}% vs last week — great momentum.`
-          : `Revenue dipped ${((revenueLastWeek - revenueThisWeek) / revenueLastWeek * 100).toFixed(0)}% vs last week. Consider following up on outstanding invoices.`
-        : 'Start invoicing completed jobs to build your revenue baseline.'
+          ? (isFr
+              ? `Les revenus sont en hausse de ${((revenueThisWeek - revenueLastWeek) / revenueLastWeek * 100).toFixed(0)}% vs la semaine dernière — excellente dynamique.`
+              : `Revenue is up ${((revenueThisWeek - revenueLastWeek) / revenueLastWeek * 100).toFixed(0)}% vs last week — great momentum.`)
+          : (isFr
+              ? `Les revenus ont baissé de ${((revenueLastWeek - revenueThisWeek) / revenueLastWeek * 100).toFixed(0)}% vs la semaine dernière. Pensez à relancer les factures impayées.`
+              : `Revenue dipped ${((revenueLastWeek - revenueThisWeek) / revenueLastWeek * 100).toFixed(0)}% vs last week. Consider following up on outstanding invoices.`)
+        : (isFr ? 'Commencez à facturer les interventions terminées pour établir votre référence de revenus.' : 'Start invoicing completed jobs to build your revenue baseline.')
 
       setSummary({
         revenueThisWeek, revenueLastWeek, jobsCompleted, jobsScheduled,
@@ -178,10 +184,14 @@ export default function InsightsPage() {
           id: 'churn',
           type: 'churn',
           impact: churnRisk.length >= 5 ? 'High' : 'Medium',
-          title: `${churnRisk.length} customer${churnRisk.length > 1 ? 's' : ''} haven't booked in 60+ days`,
-          description: `${churnRisk.slice(0, 3).map((c) => c.name).join(', ')}${churnRisk.length > 3 ? ` and ${churnRisk.length - 3} more` : ''} are at risk of churning. A targeted re-engagement campaign could recover significant revenue.`,
+          title: isFr
+            ? `${churnRisk.length} client${churnRisk.length > 1 ? 's' : ''} n'${churnRisk.length > 1 ? 'ont' : 'a'} pas réservé depuis 60+ jours`
+            : `${churnRisk.length} customer${churnRisk.length > 1 ? 's' : ''} haven't booked in 60+ days`,
+          description: isFr
+            ? `${churnRisk.slice(0, 3).map((c) => c.name).join(', ')}${churnRisk.length > 3 ? ` et ${churnRisk.length - 3} de plus` : ''} risquent de vous quitter. Une campagne de réengagement ciblée pourrait récupérer des revenus importants.`
+            : `${churnRisk.slice(0, 3).map((c) => c.name).join(', ')}${churnRisk.length > 3 ? ` and ${churnRisk.length - 3} more` : ''} are at risk of churning. A targeted re-engagement campaign could recover significant revenue.`,
           estimatedRevenue: churnRisk.length * 250,
-          action: 'Launch re-engagement campaign',
+          action: isFr ? 'Lancer une campagne de réengagement' : 'Launch re-engagement campaign',
           actionHref: '/customers/campaigns',
           icon: Users,
           color: 'text-red-600',
@@ -197,10 +207,12 @@ export default function InsightsPage() {
           id: 'overdue',
           type: 'revenue',
           impact: overdueTotal > 2000 ? 'High' : 'Medium',
-          title: `${fmt(overdueTotal)} in overdue invoices`,
-          description: `You have ${overdueInvoices.length} overdue invoice${overdueInvoices.length > 1 ? 's' : ''}. The oldest is ${mostOverdueInvoice?.days || 0} days past due. Sending automated reminders can improve collection rates by up to 30%.`,
+          title: isFr ? `${fmt(overdueTotal)} en factures en retard` : `${fmt(overdueTotal)} in overdue invoices`,
+          description: isFr
+            ? `Vous avez ${overdueInvoices.length} facture${overdueInvoices.length > 1 ? 's' : ''} en retard. La plus ancienne a ${mostOverdueInvoice?.days || 0} jours de retard. L'envoi de rappels automatisés peut améliorer les taux de recouvrement jusqu'à 30%.`
+            : `You have ${overdueInvoices.length} overdue invoice${overdueInvoices.length > 1 ? 's' : ''}. The oldest is ${mostOverdueInvoice?.days || 0} days past due. Sending automated reminders can improve collection rates by up to 30%.`,
           estimatedRevenue: overdueTotal,
-          action: 'View overdue invoices',
+          action: isFr ? 'Voir les factures en retard' : 'View overdue invoices',
           actionHref: '/invoices',
           icon: DollarSign,
           color: 'text-amber-600',
@@ -217,10 +229,14 @@ export default function InsightsPage() {
           id: 'uninvoiced',
           type: 'revenue',
           impact: 'High',
-          title: `${uninvoiced.length} completed jobs may not be invoiced`,
-          description: `There are ${uninvoiced.length} completed jobs where the customer has no recent invoice. Review these jobs and send invoices to capture revenue before it slips.`,
+          title: isFr
+            ? `${uninvoiced.length} interventions terminées pourraient ne pas être facturées`
+            : `${uninvoiced.length} completed jobs may not be invoiced`,
+          description: isFr
+            ? `Il y a ${uninvoiced.length} interventions terminées dont le client n'a pas de facture récente. Examinez-les et envoyez des factures pour capturer les revenus avant qu'ils ne vous échappent.`
+            : `There are ${uninvoiced.length} completed jobs where the customer has no recent invoice. Review these jobs and send invoices to capture revenue before it slips.`,
           estimatedRevenue: uninvoiced.length * 300,
-          action: 'Create invoices',
+          action: isFr ? 'Créer des factures' : 'Create invoices',
           actionHref: '/invoices',
           icon: Briefcase,
           color: 'text-indigo-600',
@@ -238,10 +254,14 @@ export default function InsightsPage() {
             id: 'concentration',
             type: 'customer',
             impact: 'Medium',
-            title: `${sortedRevCustomers[0][0]} represents ${(topShare * 100).toFixed(0)}% of your revenue`,
-            description: `High customer concentration is a business risk. If this customer reduces spending, your revenue could drop significantly. Focus on growing other customer segments to diversify.`,
+            title: isFr
+              ? `${sortedRevCustomers[0][0]} représente ${(topShare * 100).toFixed(0)}% de vos revenus`
+              : `${sortedRevCustomers[0][0]} represents ${(topShare * 100).toFixed(0)}% of your revenue`,
+            description: isFr
+              ? `Une concentration élevée de clients est un risque pour l'entreprise. Si ce client réduit ses dépenses, vos revenus pourraient chuter fortement. Concentrez-vous sur la croissance d'autres segments pour diversifier.`
+              : `High customer concentration is a business risk. If this customer reduces spending, your revenue could drop significantly. Focus on growing other customer segments to diversify.`,
             estimatedRevenue: null,
-            action: 'View customer details',
+            action: isFr ? 'Voir les détails du client' : 'View customer details',
             actionHref: '/customers',
             icon: Target,
             color: 'text-violet-600',
@@ -262,10 +282,14 @@ export default function InsightsPage() {
             id: 'payment-time',
             type: 'operations',
             impact: 'Medium',
-            title: `Average invoice payment takes ~${Math.round(avgDays)} days`,
-            description: `Offering a 2% early payment discount for invoices paid within 7 days can significantly speed up cash flow. At your current volume, this could free up ${fmt(totalRevenue * 0.15)} in working capital per month.`,
+            title: isFr
+              ? `Le paiement moyen des factures prend environ ${Math.round(avgDays)} jours`
+              : `Average invoice payment takes ~${Math.round(avgDays)} days`,
+            description: isFr
+              ? `Offrir un rabais de 2% pour un paiement anticipé (sous 7 jours) peut accélérer votre trésorerie. À votre volume actuel, cela pourrait libérer ${fmt(totalRevenue * 0.15)} de fonds de roulement par mois.`
+              : `Offering a 2% early payment discount for invoices paid within 7 days can significantly speed up cash flow. At your current volume, this could free up ${fmt(totalRevenue * 0.15)} in working capital per month.`,
             estimatedRevenue: Math.round(totalRevenue * 0.05),
-            action: 'Update invoice settings',
+            action: isFr ? 'Mettre à jour les paramètres de facturation' : 'Update invoice settings',
             actionHref: '/settings',
             icon: Clock,
             color: 'text-cyan-600',
@@ -284,10 +308,14 @@ export default function InsightsPage() {
             id: 'completion',
             type: 'operations',
             impact: 'Medium',
-            title: `Job completion rate is ${(rate * 100).toFixed(0)}% — below target`,
-            description: `Your job completion rate is below the 70% industry benchmark. Review cancelled and stalled jobs to identify patterns. Common causes: unclear scope, parts availability, or scheduling conflicts.`,
+            title: isFr
+              ? `Taux de complétion des interventions : ${(rate * 100).toFixed(0)}% — en dessous de la cible`
+              : `Job completion rate is ${(rate * 100).toFixed(0)}% — below target`,
+            description: isFr
+              ? `Votre taux de complétion est inférieur au seuil de 70% du secteur. Examinez les interventions annulées et bloquées pour identifier les schémas. Causes fréquentes : portée floue, disponibilité des pièces ou conflits d'horaire.`
+              : `Your job completion rate is below the 70% industry benchmark. Review cancelled and stalled jobs to identify patterns. Common causes: unclear scope, parts availability, or scheduling conflicts.`,
             estimatedRevenue: null,
-            action: 'Review all jobs',
+            action: isFr ? 'Voir toutes les interventions' : 'Review all jobs',
             actionHref: '/jobs',
             icon: Activity,
             color: 'text-orange-600',
@@ -302,10 +330,14 @@ export default function InsightsPage() {
           id: 'momentum',
           type: 'revenue',
           impact: 'Low',
-          title: `Revenue grew ${((revenueThisWeek - revenueLastWeek) / revenueLastWeek * 100).toFixed(0)}% this week`,
-          description: `You're on a strong growth trajectory. This is a great time to consider increasing prices by 5–10% for new customers, or introducing a premium service tier.`,
+          title: isFr
+            ? `Les revenus ont augmenté de ${((revenueThisWeek - revenueLastWeek) / revenueLastWeek * 100).toFixed(0)}% cette semaine`
+            : `Revenue grew ${((revenueThisWeek - revenueLastWeek) / revenueLastWeek * 100).toFixed(0)}% this week`,
+          description: isFr
+            ? `Vous êtes sur une belle trajectoire de croissance. C'est le bon moment pour envisager une hausse de prix de 5 à 10% pour les nouveaux clients, ou pour introduire un palier de service premium.`
+            : `You're on a strong growth trajectory. This is a great time to consider increasing prices by 5–10% for new customers, or introducing a premium service tier.`,
           estimatedRevenue: Math.round(revenueThisWeek * 0.08),
-          action: 'Review pricing',
+          action: isFr ? 'Revoir les tarifs' : 'Review pricing',
           actionHref: '/settings',
           icon: TrendingUp,
           color: 'text-emerald-600',
@@ -322,7 +354,7 @@ export default function InsightsPage() {
       setGenerating(false)
       setLoading(false)
     }
-  }, [])
+  }, [lang])
 
   useEffect(() => { analyze() }, [analyze])
 
@@ -354,13 +386,13 @@ export default function InsightsPage() {
   )
   if (hasNoData) {
     return (
-      <AppLayout title="AI Insights">
+      <AppLayout title={fr ? 'Insights IA' : 'AI Insights'}>
         <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
             <EmptyState
               icon={Lightbulb}
-              title="Pas encore d'analyses"
-              description="Revenez après quelques semaines d'utilisation."
+              title={fr ? "Pas encore d'analyses" : 'No insights yet'}
+              description={fr ? "Revenez après quelques semaines d'utilisation." : 'Come back after a few weeks of use.'}
             />
           </div>
         </div>
@@ -369,7 +401,7 @@ export default function InsightsPage() {
   }
 
   return (
-    <AppLayout title="AI Insights">
+    <AppLayout title={fr ? 'Insights IA' : 'AI Insights'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
 
         {/* Header */}
@@ -379,11 +411,11 @@ export default function InsightsPage() {
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 shadow-sm">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Business Intelligence</h2>
+              <h2 className="text-xl font-bold text-gray-900">{fr ? "Intelligence d'affaires" : 'Business Intelligence'}</h2>
             </div>
             {lastUpdated && (
               <p className="text-xs text-gray-400 ml-10">
-                Last analyzed {lastUpdated.toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })}
+                {fr ? 'Dernière analyse' : 'Last analyzed'} {lastUpdated.toLocaleTimeString(fr ? 'fr-CA' : 'en', { hour: '2-digit', minute: '2-digit' })}
               </p>
             )}
           </div>
@@ -393,7 +425,7 @@ export default function InsightsPage() {
             className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-all"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${generating ? 'animate-spin' : ''}`} />
-            {generating ? 'Analyzing…' : 'Refresh'}
+            {generating ? (fr ? 'Analyse…' : 'Analyzing…') : (fr ? 'Actualiser' : 'Refresh')}
           </button>
         </div>
 
@@ -402,49 +434,53 @@ export default function InsightsPage() {
           <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-violet-50 p-6">
             <div className="flex items-center gap-2 mb-4">
               <Star className="h-4 w-4 text-indigo-600" />
-              <h3 className="text-sm font-semibold text-indigo-900">Weekly Business Summary</h3>
+              <h3 className="text-sm font-semibold text-indigo-900">{fr ? "Résumé hebdomadaire de l'entreprise" : 'Weekly Business Summary'}</h3>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
               <div className="rounded-xl bg-white/70 p-3">
-                <p className="text-xs text-gray-500 mb-0.5">Revenue this week</p>
+                <p className="text-xs text-gray-500 mb-0.5">{fr ? 'Revenus cette semaine' : 'Revenue this week'}</p>
                 <p className="text-lg font-bold text-gray-900">{fmt(summary.revenueThisWeek)}</p>
                 {revChange !== null && (
                   <p className={`text-xs font-medium flex items-center gap-0.5 mt-0.5 ${revChange >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                     {revChange >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                    {revChange >= 0 ? '+' : ''}{revChange.toFixed(0)}% vs last week
+                    {revChange >= 0 ? '+' : ''}{revChange.toFixed(0)}% {fr ? 'vs semaine dernière' : 'vs last week'}
                   </p>
                 )}
               </div>
               <div className="rounded-xl bg-white/70 p-3">
-                <p className="text-xs text-gray-500 mb-0.5">Jobs completed</p>
+                <p className="text-xs text-gray-500 mb-0.5">{fr ? 'Interventions terminées' : 'Jobs completed'}</p>
                 <p className="text-lg font-bold text-gray-900">{summary.jobsCompleted}</p>
-                <p className="text-xs text-gray-400">{summary.jobsScheduled} scheduled</p>
+                <p className="text-xs text-gray-400">{summary.jobsScheduled} {fr ? 'planifiées' : 'scheduled'}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-3">
-                <p className="text-xs text-gray-500 mb-0.5">Top service</p>
+                <p className="text-xs text-gray-500 mb-0.5">{fr ? 'Service populaire' : 'Top service'}</p>
                 <p className="text-sm font-bold text-gray-900 truncate">{summary.topService || '—'}</p>
-                <p className="text-xs text-gray-400">Most frequent</p>
+                <p className="text-xs text-gray-400">{fr ? 'Le plus fréquent' : 'Most frequent'}</p>
               </div>
               <div className="rounded-xl bg-white/70 p-3">
-                <p className="text-xs text-gray-500 mb-0.5">Top customer</p>
+                <p className="text-xs text-gray-500 mb-0.5">{fr ? 'Meilleur client' : 'Top customer'}</p>
                 <p className="text-sm font-bold text-gray-900 truncate">{summary.topCustomer || '—'}</p>
-                <p className="text-xs text-gray-400">By revenue</p>
+                <p className="text-xs text-gray-400">{fr ? 'Par revenus' : 'By revenue'}</p>
               </div>
             </div>
             {summary.mostOverdueInvoice && (
               <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 mb-4 flex items-center gap-3">
                 <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
                 <p className="text-sm text-red-700">
-                  Invoice #{summary.mostOverdueInvoice.number} is <strong>{summary.mostOverdueInvoice.days} days overdue</strong> for {fmt(summary.mostOverdueInvoice.amount)}
+                  {fr ? (
+                    <>La facture n°{summary.mostOverdueInvoice.number} est <strong>en retard de {summary.mostOverdueInvoice.days} jours</strong> pour {fmt(summary.mostOverdueInvoice.amount)}</>
+                  ) : (
+                    <>Invoice #{summary.mostOverdueInvoice.number} is <strong>{summary.mostOverdueInvoice.days} days overdue</strong> for {fmt(summary.mostOverdueInvoice.amount)}</>
+                  )}
                 </p>
                 <a href="/invoices" className="ml-auto text-xs font-semibold text-red-600 hover:text-red-800 whitespace-nowrap">
-                  Review →
+                  {fr ? 'Revoir →' : 'Review →'}
                 </a>
               </div>
             )}
             <div className="rounded-xl bg-white/70 px-4 py-3 flex items-start gap-3">
               <Zap className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
-              <p className="text-sm text-indigo-900"><strong>Recommended action:</strong> {summary.recommendation}</p>
+              <p className="text-sm text-indigo-900"><strong>{fr ? 'Action recommandée :' : 'Recommended action:'}</strong> {summary.recommendation}</p>
             </div>
           </div>
         )}
@@ -453,19 +489,19 @@ export default function InsightsPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-gray-900">
-              Recommendations
+              {fr ? 'Recommandations' : 'Recommendations'}
               {recommendations.length > 0 && (
                 <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">{recommendations.length}</span>
               )}
             </h3>
-            <span className="text-xs text-gray-400">Sorted by impact</span>
+            <span className="text-xs text-gray-400">{fr ? "Triées par impact" : 'Sorted by impact'}</span>
           </div>
 
           {recommendations.length === 0 ? (
             <div className="rounded-2xl border border-gray-100 bg-white p-10 text-center">
               <CheckCircle className="h-10 w-10 text-emerald-400 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-gray-900 mb-1">Everything looks great!</p>
-              <p className="text-sm text-gray-400">No critical recommendations right now. Keep up the great work.</p>
+              <p className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Tout semble parfait !' : 'Everything looks great!'}</p>
+              <p className="text-sm text-gray-400">{fr ? "Aucune recommandation critique pour le moment. Continuez votre excellent travail." : 'No critical recommendations right now. Keep up the great work.'}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -478,12 +514,14 @@ export default function InsightsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${impactColors[rec.impact]}`}>
-                          {rec.impact} Impact
+                          {fr
+                            ? (rec.impact === 'High' ? 'Impact élevé' : rec.impact === 'Medium' ? 'Impact moyen' : 'Impact faible')
+                            : `${rec.impact} Impact`}
                         </span>
                         {rec.estimatedRevenue && (
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
                             <DollarSign className="h-2.5 w-2.5" />
-                            ~{fmt(rec.estimatedRevenue)} opportunity
+                            ~{fmt(rec.estimatedRevenue)} {fr ? "d'opportunité" : 'opportunity'}
                           </span>
                         )}
                       </div>
@@ -507,19 +545,25 @@ export default function InsightsPage() {
         <div className="rounded-2xl border border-gray-100 bg-white p-6">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-4 w-4 text-violet-500" />
-            <h3 className="text-sm font-semibold text-gray-900">Ask about your business</h3>
+            <h3 className="text-sm font-semibold text-gray-900">{fr ? 'Interrogez votre entreprise' : 'Ask about your business'}</h3>
           </div>
           <p className="text-sm text-gray-500 mb-4">
-            Use the AI Assistant in the bottom-right corner to ask specific questions about your data —
-            "What was my best month?", "Which customer owes the most?", "How many jobs did I complete last quarter?"
+            {fr
+              ? `Utilisez l'Assistant IA en bas à droite pour poser des questions précises sur vos données — « Quel a été mon meilleur mois ? », « Quel client doit le plus ? », « Combien d'interventions ai-je réalisées au dernier trimestre ? »`
+              : `Use the AI Assistant in the bottom-right corner to ask specific questions about your data — "What was my best month?", "Which customer owes the most?", "How many jobs did I complete last quarter?"`}
           </p>
           <div className="flex flex-wrap gap-2">
-            {[
+            {(fr ? [
+              'Quels sont mes revenus ce mois-ci ?',
+              'Quels clients sont en retard ?',
+              "Combien d'interventions cette semaine ?",
+              'Qui est mon meilleur client ?',
+            ] : [
               'What is my revenue this month?',
               'Which customers are overdue?',
               'How many jobs this week?',
               'Who is my best customer?',
-            ].map((q) => (
+            ]).map((q) => (
               <button
                 key={q}
                 onClick={() => {
