@@ -72,8 +72,21 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     window.location.href = '/login'
   }
 
-  const isActive = (href: string) =>
-    href === '/dashboard' ? pathname === href : pathname.startsWith(href)
+  const allHrefs = [
+    ...navSections.flatMap((s) => s.items.map((i) => i.href)),
+    ...bottomItems.map((i) => i.href),
+  ]
+
+  const isActive = (href: string) => {
+    if (pathname === href) return true
+    if (pathname.startsWith(href + '/')) {
+      const moreSpecific = allHrefs.some(
+        (h) => h !== href && h.startsWith(href + '/') && pathname.startsWith(h)
+      )
+      return !moreSpecific
+    }
+    return false
+  }
 
   return (
     <>
