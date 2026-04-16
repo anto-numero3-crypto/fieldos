@@ -5,7 +5,15 @@ import { supabase } from '../supabase'
 import { toast } from 'sonner'
 import { useLanguage } from '@/lib/LanguageContext'
 import { PLAN_PRICING } from '@/lib/plan-limits'
-import { Wrench, Check, Loader2, Sparkles } from 'lucide-react'
+import { Wrench, Check, Loader2, Sparkles, Tag, X } from 'lucide-react'
+
+interface ValidPromo {
+  code: string
+  code_type: string
+  discount_percent: number | null
+  description: string | null
+  is_free_access: boolean
+}
 
 export default function SubscribePage() {
   const { lang } = useLanguage()
@@ -13,6 +21,11 @@ export default function SubscribePage() {
   const [cycle, setCycle] = useState<'monthly' | 'annual'>('monthly')
   const [loading, setLoading] = useState<string | null>(null)
   const [email, setEmail] = useState<string | null>(null)
+  const [promoInput, setPromoInput] = useState('')
+  const [promoError, setPromoError] = useState<string | null>(null)
+  const [promoValid, setPromoValid] = useState<ValidPromo | null>(null)
+  const [promoLoading, setPromoLoading] = useState(false)
+  const [redeeming, setRedeeming] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -21,13 +34,57 @@ export default function SubscribePage() {
     })
   }, [])
 
+  const applyPromo = async () => {
+    setPromoError(null)
+    if (!promoInput.trim()) return
+    setPromoLoading(true)
+    try {
+      const res = await fetch('/api/promo/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoInput }),
+      })
+      const data = await res.json() as ValidPromo & { valid: boolean; error?: string }
+      if (!data.valid) {
+        setPromoError(fr ? 'Code invalide ou expiré' : 'Invalid or expired code')
+        setPromoValid(null)
+        return
+      }
+      setPromoValid(data)
+      if (data.is_free_access) {
+        setRedeeming(true)
+        const r = await fetch('/api/promo/redeem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: data.code }),
+        })
+        const rd = await r.json()
+        if (!r.ok) {
+          setPromoError(rd.error || (fr ? "Impossible d'appliquer le code" : 'Unable to apply code'))
+          setPromoValid(null)
+          setRedeeming(false)
+          return
+        }
+        toast.success(fr ? 'Code appliqué — Accès gratuit activé !' : 'Code applied — Free access activated!')
+        setTimeout(() => { window.location.href = '/dashboard?subscribed=true' }, 1500)
+      }
+    } catch (err) {
+      console.error('[promo validate]', err)
+      setPromoError(fr ? 'Erreur de validation' : 'Validation error')
+    } finally {
+      setPromoLoading(false)
+    }
+  }
+
+  const clearPromo = () => { setPromoValid(null); setPromoInput(''); setPromoError(null) }
+
   const choose = async (planId: 'starter' | 'pro' | 'business') => {
     setLoading(planId)
     try {
       const res = await fetch('/api/stripe/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId, cycle }),
+        body: JSON.stringify({ planId, cycle, promoCode: promoValid && !promoValid.is_free_access ? promoValid.code : undefined }),
       })
       const data = await res.json()
       if (!res.ok || !data.url) {
@@ -79,6 +136,44 @@ export default function SubscribePage() {
           </p>
         </div>
 
+        <div className="max-w-md mx-auto mb-8">
+          {redeeming ? (
+            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-center">
+              <p className="text-sm font-semibold text-emerald-800">
+                {fr ? 'Accès gratuit activé ! Redirection en cours…' : 'Free access activated! Redirecting…'}
+              </p>
+            </div>
+          ) : promoValid && !promoValid.is_free_access ? (
+            <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2">
+              <Tag className="h-4 w-4 text-emerald-700" />
+              <p className="flex-1 text-sm text-emerald-800">
+                <span className="font-semibold">{promoValid.code}</span> — {fr ? `−${promoValid.discount_percent}% sur votre premier paiement` : `−${promoValid.discount_percent}% on first payment`}
+              </p>
+              <button onClick={clearPromo} className="text-emerald-700 hover:text-emerald-900"><X className="h-4 w-4" /></button>
+            </div>
+          ) : (
+            <div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={promoInput}
+                  onChange={(e) => { setPromoInput(e.target.value); setPromoError(null) }}
+                  placeholder={fr ? 'Code promo (facultatif)' : 'Promo code (optional)'}
+                  className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                />
+                <button
+                  onClick={applyPromo}
+                  disabled={promoLoading || !promoInput.trim()}
+                  className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-60"
+                >
+                  {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (fr ? 'Appliquer' : 'Apply')}
+                </button>
+              </div>
+              {promoError && <p className="mt-2 text-xs text-red-600">{promoError}</p>}
+            </div>
+          )}
+        </div>
+
         <div className="flex items-center justify-center gap-1 mb-8">
           <div className="bg-white rounded-xl p-1 shadow-sm border border-gray-200">
             <button
@@ -114,10 +209,21 @@ export default function SubscribePage() {
                 <h3 className="text-lg font-bold text-gray-900 mb-1">{p.label}</h3>
                 <p className="text-sm text-gray-500 mb-4">{p.tagline}</p>
                 <div className="mb-5">
-                  <span className="text-4xl font-bold text-gray-900">${price}</span>
-                  <span className="text-sm text-gray-500">{fr ? ' / mois' : ' / mo'}</span>
-                  {cycle === 'annual' && (
-                    <p className="text-xs text-gray-400 mt-1">{fr ? 'Facturé annuellement' : 'Billed annually'}</p>
+                  {promoValid && !promoValid.is_free_access && promoValid.discount_percent ? (
+                    <>
+                      <span className="text-sm text-gray-400 line-through mr-2">${price}</span>
+                      <span className="text-4xl font-bold text-emerald-600">${Math.round(price * (1 - promoValid.discount_percent / 100))}</span>
+                      <span className="text-sm text-gray-500">{fr ? ' / mois' : ' / mo'}</span>
+                      <p className="text-xs text-emerald-600 mt-1">{fr ? `Économie de ${promoValid.discount_percent}%` : `${promoValid.discount_percent}% off`}</p>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-4xl font-bold text-gray-900">${price}</span>
+                      <span className="text-sm text-gray-500">{fr ? ' / mois' : ' / mo'}</span>
+                      {cycle === 'annual' && (
+                        <p className="text-xs text-gray-400 mt-1">{fr ? 'Facturé annuellement' : 'Billed annually'}</p>
+                      )}
+                    </>
                   )}
                 </div>
                 <ul className="space-y-2 mb-6">

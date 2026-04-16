@@ -22,9 +22,10 @@ export async function POST(req: NextRequest) {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2026-03-25.dahlia' })
     const supabase = adminClient()
 
-    const body = await req.json().catch(() => null) as { planId?: string; cycle?: 'monthly' | 'annual' } | null
+    const body = await req.json().catch(() => null) as { planId?: string; cycle?: 'monthly' | 'annual'; promoCode?: string } | null
     const planId = body?.planId
     const cycle = body?.cycle === 'annual' ? 'annual' : 'monthly'
+    const promoCode = body?.promoCode?.trim() || null
     if (!planId || !['starter', 'pro', 'business'].includes(planId)) {
       return NextResponse.json({ error: 'Invalid planId' }, { status: 400 })
     }
@@ -48,17 +49,35 @@ export async function POST(req: NextRequest) {
     }
 
     const origin = req.headers.get('origin') || 'https://gestivio.ca'
-    const session = await stripe.checkout.sessions.create({
+
+    // Try to resolve a matching Stripe promotion code when a db-validated code was passed
+    let stripePromotionId: string | undefined
+    if (promoCode) {
+      try {
+        const list = await stripe.promotionCodes.list({ code: promoCode, active: true, limit: 1 })
+        if (list.data[0]) stripePromotionId = list.data[0].id
+      } catch (err) {
+        console.warn('[stripe subscribe] promotion code lookup failed:', err)
+      }
+    }
+
+    const params: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
       mode: 'subscription',
       payment_method_collection: 'always',
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/dashboard?subscribed=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/subscribe`,
-      metadata: { userId: user.id, planId, cycle },
-      subscription_data: { metadata: { userId: user.id, planId, cycle } },
-      allow_promotion_codes: true,
-    })
+      metadata: { userId: user.id, planId, cycle, promo_code: promoCode || '' },
+      subscription_data: { metadata: { userId: user.id, planId, cycle, promo_code: promoCode || '' } },
+    }
+    if (stripePromotionId) {
+      params.discounts = [{ promotion_code: stripePromotionId }]
+    } else {
+      params.allow_promotion_codes = true
+    }
+
+    const session = await stripe.checkout.sessions.create(params)
 
     return NextResponse.json({ url: session.url })
   } catch (err) {
