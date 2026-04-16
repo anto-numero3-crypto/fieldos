@@ -60,6 +60,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
   const [cmdOpen, setCmdOpen]           = useState(false)
   const { theme, toggleTheme }          = useTheme()
   const { lang, setLang }               = useLanguage()
+  const fr = lang === 'fr'
 
   // Keep browser tab title in sync
   useEffect(() => {
@@ -88,7 +89,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
           if (n.title) {
             toast(n.title, {
               description: n.body,
-              action: n.link ? { label: 'Voir', onClick: () => { window.location.href = n.link! } } : undefined,
+              action: n.link ? { label: fr ? 'Voir' : 'View', onClick: () => { window.location.href = n.link! } } : undefined,
             })
           }
         })
@@ -128,10 +129,16 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
 
   const timeAgo = (date: string) => {
     const secs = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
-    if (secs < 60) return "à l'instant"
-    if (secs < 3600) return `il y a ${Math.floor(secs / 60)} min`
-    if (secs < 86400) return `il y a ${Math.floor(secs / 3600)} h`
-    return `il y a ${Math.floor(secs / 86400)} j`
+    if (fr) {
+      if (secs < 60) return "à l'instant"
+      if (secs < 3600) return `il y a ${Math.floor(secs / 60)} min`
+      if (secs < 86400) return `il y a ${Math.floor(secs / 3600)} h`
+      return `il y a ${Math.floor(secs / 86400)} j`
+    }
+    if (secs < 60) return 'just now'
+    if (secs < 3600) return `${Math.floor(secs / 60)} min ago`
+    if (secs < 86400) return `${Math.floor(secs / 3600)} h ago`
+    return `${Math.floor(secs / 86400)} d ago`
   }
 
   return (
@@ -159,7 +166,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
               onKeyDown={(e) => { if (e.key === 'Enter') setCmdOpen(true) }}
             >
               <Search className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate">Rechercher ou commande…</span>
+              <span className="truncate">{fr ? 'Rechercher ou commande…' : 'Search or command…'}</span>
               <kbd className="ml-auto shrink-0 hidden md:flex items-center gap-0.5 rounded bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-1.5 py-0.5 text-[10px] font-mono text-gray-400">⌘K</kbd>
             </button>
 
@@ -182,7 +189,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
               type="button"
               onClick={toggleTheme}
               className="p-2 rounded-xl text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={theme === 'dark' ? (fr ? 'Passer au mode clair' : 'Switch to light mode') : (fr ? 'Passer au mode sombre' : 'Switch to dark mode')}
             >
               {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
             </button>
@@ -209,16 +216,16 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
                   <div className="absolute right-0 top-full mt-2 z-30 w-[380px] max-w-[calc(100vw-1rem)] rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 shadow-xl overflow-hidden">
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
                       <div>
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                        {unread > 0 && <p className="text-xs text-gray-400">{unread} non lue{unread > 1 ? 's' : ''}</p>}
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Notifications' : 'Notifications'}</h3>
+                        {unread > 0 && <p className="text-xs text-gray-400">{fr ? `${unread} non lue${unread > 1 ? 's' : ''}` : `${unread} unread`}</p>}
                       </div>
                       <div className="flex items-center gap-2">
                         {unread > 0 && (
                           <button onClick={markAllRead} className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
-                            Tout marquer comme lu
+                            {fr ? 'Tout marquer comme lu' : 'Mark all as read'}
                           </button>
                         )}
-                        <button onClick={() => setNotifOpen(false)} aria-label="Fermer" className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                        <button onClick={() => setNotifOpen(false)} aria-label={fr ? 'Fermer' : 'Close'} className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">
                           <X className="h-4 w-4" />
                         </button>
                       </div>
@@ -230,8 +237,8 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
                           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50">
                             <Bell className="h-6 w-6 text-indigo-300" />
                           </div>
-                          <p className="text-sm font-medium text-gray-700">Aucune notification</p>
-                          <p className="text-xs text-gray-400 mt-1">Les alertes apparaîtront ici</p>
+                          <p className="text-sm font-medium text-gray-700">{fr ? 'Aucune notification' : 'No notifications'}</p>
+                          <p className="text-xs text-gray-400 mt-1">{fr ? 'Les alertes apparaîtront ici' : 'Alerts will appear here'}</p>
                         </div>
                       ) : notifications.map((n) => {
                         const cfg = notifIcon(n.type)
@@ -257,7 +264,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
 
                     <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 text-center">
                       <Link href="/notifications" onClick={() => setNotifOpen(false)} className="text-xs font-medium text-indigo-600 hover:text-indigo-700">
-                        Voir toutes les notifications →
+                        {fr ? 'Voir toutes les notifications →' : 'View all notifications →'}
                       </Link>
                     </div>
                   </div>
