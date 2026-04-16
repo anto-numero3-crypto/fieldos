@@ -251,11 +251,21 @@ export default function JobsMap({ jobs }: Props) {
         return
       }
 
-      // Build address string the same way a user would type it.
-      // No trailing ", Canada" — jobs don't add it and they work.
-      const fullAddress = [org.address, org.city, org.state, org.zip]
-        .filter((p) => p && String(p).trim())
-        .join(', ')
+      // If the address field already contains a full address (e.g. was typed
+      // or pasted as "5920 Rue Desaulniers, Montréal, Québec, H1N 1V8, Canada"),
+      // use it as-is. Otherwise join the structured parts.
+      const addressAlreadyFull =
+        !!org.address &&
+        org.address.includes(',') &&
+        !!org.city &&
+        org.address.toLowerCase().includes(String(org.city).toLowerCase())
+
+      const fullAddress = addressAlreadyFull
+        ? String(org.address).trim()
+        : [org.address, org.city, org.state, org.zip]
+            .filter((p) => p && String(p).trim())
+            .join(', ')
+      console.log('[business geocode] addressAlreadyFull:', addressAlreadyFull)
       console.log('[business geocode] fullAddress:', fullAddress)
 
       // 1. Full address
