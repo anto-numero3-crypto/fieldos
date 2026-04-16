@@ -50,26 +50,28 @@ interface OverdueInvoice {
   invoice_number?: string; token?: string
 }
 
-const statusConfig: Record<string, { label: string; className: string }> = {
-  scheduled:   { label: 'Planifié',    className: 'bg-blue-50 text-blue-700' },
-  in_progress: { label: 'En cours',    className: 'bg-amber-50 text-amber-700' },
-  complete:    { label: 'Terminé',     className: 'bg-emerald-50 text-emerald-700' },
-  cancelled:   { label: 'Annulé',      className: 'bg-gray-50 text-gray-500' },
-  unpaid:      { label: 'Non payé',    className: 'bg-amber-50 text-amber-700' },
-  paid:        { label: 'Payé',        className: 'bg-emerald-50 text-emerald-700' },
-  overdue:     { label: 'En retard',   className: 'bg-red-50 text-red-700' },
+const statusClass: Record<string, string> = {
+  scheduled:   'bg-blue-50 text-blue-700',
+  in_progress: 'bg-amber-50 text-amber-700',
+  complete:    'bg-emerald-50 text-emerald-700',
+  cancelled:   'bg-gray-50 text-gray-500',
+  unpaid:      'bg-amber-50 text-amber-700',
+  paid:        'bg-emerald-50 text-emerald-700',
+  overdue:     'bg-red-50 text-red-700',
 }
 
 // Build the last 12 months' revenue from PAID invoices (using paid_at).
-// FR month abbreviations on the X-axis. $0 bars for months with no data.
+// Month abbreviations on the X-axis. $0 bars for months with no data.
 const FR_MONTHS = ['Janv', 'Févr', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc']
-function buildMonthlyRevenue(invoices: Invoice[]) {
+const EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+function buildMonthlyRevenue(invoices: Invoice[], fr: boolean) {
+  const labels = fr ? FR_MONTHS : EN_MONTHS
   const months: { key: string; label: string; revenue: number }[] = []
   const now = new Date()
   for (let i = 11; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    months.push({ key, label: FR_MONTHS[d.getMonth()], revenue: 0 })
+    months.push({ key, label: labels[d.getMonth()], revenue: 0 })
   }
   const idx = new Map(months.map((m, i) => [m.key, i]))
   for (const inv of invoices) {
@@ -84,15 +86,15 @@ function buildMonthlyRevenue(invoices: Invoice[]) {
   return months.map((m) => ({ month: m.label, revenue: m.revenue }))
 }
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, fr: boolean): string {
   const ms = Date.now() - new Date(iso).getTime()
   const m = Math.floor(ms / 60000)
-  if (m < 1) return "à l'instant"
-  if (m < 60) return `il y a ${m} min`
+  if (m < 1) return fr ? "à l'instant" : 'just now'
+  if (m < 60) return fr ? `il y a ${m} min` : `${m} min ago`
   const h = Math.floor(m / 60)
-  if (h < 24) return `il y a ${h} h`
+  if (h < 24) return fr ? `il y a ${h} h` : `${h} h ago`
   const d = Math.floor(h / 24)
-  return `il y a ${d} j`
+  return fr ? `il y a ${d} j` : `${d} d ago`
 }
 
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
@@ -124,6 +126,7 @@ export default function Dashboard() {
   const [loading, setLoading]               = useState(true)
   const [reminderSending, setReminderSending] = useState<string | null>(null)
   const { lang, t } = useLanguage()
+  const fr = lang === 'fr'
   const tStatus = (key: string) => (t.status as Record<string, string>)[key] || key
 
   const init = useCallback(async () => {
@@ -204,27 +207,29 @@ export default function Dashboard() {
 
     setRecentJobs(allJobs.slice(0, 6))
     setRecentInvoices(allInvoices.slice(0, 6))
-    setChartData(buildMonthlyRevenue(allInvoices))
+    setChartData(buildMonthlyRevenue(allInvoices, lang === 'fr'))
 
     // ── Activity feed: merge bookings, paid invoices, completed jobs, new customers
+    const isFr = lang === 'fr'
     const items: ActivityItem[] = []
     for (const b of (bookings as Array<{ id: string; customer_name: string; status: string; created_at: string }> | null) || []) {
       if (b.status === 'pending' || b.status === 'confirmed') {
-        items.push({ id: `b-${b.id}`, kind: 'booking', text: `Nouvelle réservation de ${b.customer_name}`, href: '/schedule/bookings', at: b.created_at })
+        items.push({ id: `b-${b.id}`, kind: 'booking', text: isFr ? `Nouvelle réservation de ${b.customer_name}` : `New booking from ${b.customer_name}`, href: '/schedule/bookings', at: b.created_at })
       }
     }
     for (const inv of allInvoices) {
       if (inv.status === 'paid' && inv.paid_at) {
-        items.push({ id: `i-${inv.id}`, kind: 'invoice_paid', text: `Facture payée par ${inv.customers?.name || 'client'} — $${parseFloat(String(inv.amount)).toFixed(2)}`, href: `/invoices/${inv.id}`, at: inv.paid_at })
+        const customer = inv.customers?.name || (isFr ? 'client' : 'customer')
+        items.push({ id: `i-${inv.id}`, kind: 'invoice_paid', text: isFr ? `Facture payée par ${customer} — $${parseFloat(String(inv.amount)).toFixed(2)}` : `Invoice paid by ${customer} — $${parseFloat(String(inv.amount)).toFixed(2)}`, href: `/invoices/${inv.id}`, at: inv.paid_at })
       }
     }
     for (const j of allJobs) {
       if (j.status === 'complete') {
-        items.push({ id: `j-${j.id}`, kind: 'job_complete', text: `Emploi complété — ${j.customers?.name || j.title}`, href: `/jobs/${j.id}`, at: j.scheduled_date || '' })
+        items.push({ id: `j-${j.id}`, kind: 'job_complete', text: isFr ? `Emploi complété — ${j.customers?.name || j.title}` : `Job completed — ${j.customers?.name || j.title}`, href: `/jobs/${j.id}`, at: j.scheduled_date || '' })
       }
     }
     for (const c of (recentNewCustomers as Array<{ id: string; name: string; created_at: string }> | null) || []) {
-      items.push({ id: `c-${c.id}`, kind: 'new_customer', text: `Nouveau client — ${c.name}`, href: `/customers/${c.id}`, at: c.created_at })
+      items.push({ id: `c-${c.id}`, kind: 'new_customer', text: isFr ? `Nouveau client — ${c.name}` : `New customer — ${c.name}`, href: `/customers/${c.id}`, at: c.created_at })
     }
     items.sort((a, b) => (b.at || '').localeCompare(a.at || ''))
     setActivity(items.slice(0, 10))
@@ -238,7 +243,7 @@ export default function Dashboard() {
     setOverdueList(overdue)
 
     setLoading(false)
-  }, [])
+  }, [lang])
 
   useEffect(() => {
     init()
@@ -284,7 +289,9 @@ export default function Dashboard() {
     }
   }
   const hour       = new Date().getHours()
-  const greeting   = hour < 12 ? 'Bonjour' : hour < 17 ? 'Bon après-midi' : 'Bonsoir'
+  const greeting   = fr
+    ? (hour < 12 ? 'Bonjour' : hour < 17 ? 'Bon après-midi' : 'Bonsoir')
+    : (hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening')
   const name       = user?.email?.split('@')[0] || ''
   const revenueΔ   = stats.revenueLastMonth > 0 ? ((stats.revenueThisMonth - stats.revenueLastMonth) / stats.revenueLastMonth) * 100 : null
   const collectionRate = stats.totalInvoiced > 0 ? (stats.paidAmount / stats.totalInvoiced) * 100 : 0
@@ -321,18 +328,22 @@ export default function Dashboard() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">{greeting}, {name} 👋</h1>
             <p className="mt-1 text-sm text-gray-500">
               {stats.overdueCount > 0
-                ? `⚠️ Vous avez ${stats.overdueCount} facture${stats.overdueCount > 1 ? 's' : ''} en retard qui nécessite${stats.overdueCount > 1 ? 'nt' : ''} votre attention.`
+                ? (fr
+                    ? `⚠️ Vous avez ${stats.overdueCount} facture${stats.overdueCount > 1 ? 's' : ''} en retard qui nécessite${stats.overdueCount > 1 ? 'nt' : ''} votre attention.`
+                    : `⚠️ You have ${stats.overdueCount} overdue invoice${stats.overdueCount > 1 ? 's' : ''} requiring your attention.`)
                 : stats.activeJobs > 0
-                ? `Vous avez ${stats.activeJobs} intervention${stats.activeJobs > 1 ? 's' : ''} en cours.`
-                : `Voici un aperçu de votre activité aujourd'hui.`}
+                ? (fr
+                    ? `Vous avez ${stats.activeJobs} intervention${stats.activeJobs > 1 ? 's' : ''} en cours.`
+                    : `You have ${stats.activeJobs} active job${stats.activeJobs > 1 ? 's' : ''}.`)
+                : (fr ? `Voici un aperçu de votre activité aujourd'hui.` : `Here's an overview of your activity today.`)}
             </p>
           </div>
           <div className="hidden sm:flex items-center gap-2 shrink-0">
             <Link href="/jobs" className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
-              <Plus className="h-4 w-4" /> Nouvelle intervention
+              <Plus className="h-4 w-4" /> {fr ? 'Nouvelle intervention' : 'New job'}
             </Link>
             <Link href="/invoices" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm transition-colors">
-              <Plus className="h-4 w-4" /> Nouvelle facture
+              <Plus className="h-4 w-4" /> {fr ? 'Nouvelle facture' : 'New invoice'}
             </Link>
           </div>
         </div>
@@ -344,15 +355,19 @@ export default function Dashboard() {
             <div className="flex-1 min-w-0">
               <p className={`text-sm font-semibold ${stats.overdueCount > 0 ? 'text-red-800' : 'text-amber-800'}`}>
                 {stats.overdueCount > 0
-                  ? `${stats.overdueCount} facture${stats.overdueCount > 1 ? 's' : ''} en retard — ${fmt(stats.unpaidAmount)} impayé${stats.unpaidAmount > 1 ? 's' : ''}`
-                  : `${stats.unpaidCount} facture${stats.unpaidCount > 1 ? 's' : ''} en attente de paiement — ${fmt(stats.unpaidAmount)}`}
+                  ? (fr
+                      ? `${stats.overdueCount} facture${stats.overdueCount > 1 ? 's' : ''} en retard — ${fmt(stats.unpaidAmount)} impayé${stats.unpaidAmount > 1 ? 's' : ''}`
+                      : `${stats.overdueCount} overdue invoice${stats.overdueCount > 1 ? 's' : ''} — ${fmt(stats.unpaidAmount)} unpaid`)
+                  : (fr
+                      ? `${stats.unpaidCount} facture${stats.unpaidCount > 1 ? 's' : ''} en attente de paiement — ${fmt(stats.unpaidAmount)}`
+                      : `${stats.unpaidCount} invoice${stats.unpaidCount > 1 ? 's' : ''} pending payment — ${fmt(stats.unpaidAmount)}`)}
               </p>
               <p className={`text-xs mt-0.5 ${stats.overdueCount > 0 ? 'text-red-600' : 'text-amber-600'}`}>
-                Envoyez des rappels pour être payé plus vite
+                {fr ? 'Envoyez des rappels pour être payé plus vite' : 'Send reminders to get paid faster'}
               </p>
             </div>
             <Link href="/invoices" className={`shrink-0 text-xs font-semibold hover:underline ${stats.overdueCount > 0 ? 'text-red-700' : 'text-amber-700'}`}>
-              Voir les factures →
+              {fr ? 'Voir les factures →' : 'View invoices →'}
             </Link>
           </div>
         )}
@@ -361,46 +376,54 @@ export default function Dashboard() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {[
             {
-              title: 'Revenus ce mois',
+              title: fr ? 'Revenus ce mois' : 'Revenue this month',
               value: fmt(stats.revenueThisMonth),
               icon: DollarSign, href: '/invoices',
               iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600',
               sub: revenueΔ !== null
-                ? `${revenueΔ >= 0 ? '↑' : '↓'} ${Math.abs(revenueΔ).toFixed(0)}% vs mois dernier`
-                : `${fmt(stats.paidAmount)} total encaissé`,
+                ? (fr
+                    ? `${revenueΔ >= 0 ? '↑' : '↓'} ${Math.abs(revenueΔ).toFixed(0)}% vs mois dernier`
+                    : `${revenueΔ >= 0 ? '↑' : '↓'} ${Math.abs(revenueΔ).toFixed(0)}% vs last month`)
+                : (fr ? `${fmt(stats.paidAmount)} total encaissé` : `${fmt(stats.paidAmount)} total collected`),
               subColor: revenueΔ !== null ? (revenueΔ >= 0 ? 'text-emerald-600' : 'text-red-500') : 'text-gray-400',
               highlight: false,
               badge: null as string | null,
             },
             {
-              title: "Emplois aujourd'hui",
+              title: fr ? "Emplois aujourd'hui" : "Today's jobs",
               value: stats.jobsToday.toString(),
               icon: Briefcase, href: '/jobs',
               iconBg: 'bg-blue-100', iconColor: 'text-blue-600',
-              sub: `${stats.jobsThisMonth} ce mois · ${stats.activeJobs} actives`,
+              sub: fr
+                ? `${stats.jobsThisMonth} ce mois · ${stats.activeJobs} actives`
+                : `${stats.jobsThisMonth} this month · ${stats.activeJobs} active`,
               subColor: 'text-gray-400',
               highlight: false,
               badge: null,
             },
             {
-              title: 'Réservations en attente',
+              title: fr ? 'Réservations en attente' : 'Pending bookings',
               value: stats.pendingBookings.toString(),
               icon: Calendar, href: '/schedule/bookings',
               iconBg: stats.pendingBookings > 0 ? 'bg-red-100' : 'bg-indigo-100',
               iconColor: stats.pendingBookings > 0 ? 'text-red-600' : 'text-indigo-600',
-              sub: stats.pendingBookings > 0 ? 'À traiter rapidement' : 'Tout est à jour',
+              sub: stats.pendingBookings > 0
+                ? (fr ? 'À traiter rapidement' : 'Needs attention')
+                : (fr ? 'Tout est à jour' : 'All caught up'),
               subColor: stats.pendingBookings > 0 ? 'text-red-500' : 'text-gray-400',
               highlight: stats.pendingBookings > 0,
               badge: stats.pendingBookings > 0 ? String(stats.pendingBookings) : null,
             },
             {
-              title: 'Factures impayées',
+              title: fr ? 'Factures impayées' : 'Unpaid invoices',
               value: fmt(stats.unpaidAmount),
               icon: stats.overdueCount > 0 ? AlertCircle : Clock,
               href: '/invoices',
               iconBg: stats.overdueCount > 0 ? 'bg-red-100' : 'bg-amber-100',
               iconColor: stats.overdueCount > 0 ? 'text-red-600' : 'text-amber-600',
-              sub: stats.overdueCount > 0 ? `${stats.overdueCount} en retard` : `${stats.unpaidCount} non payées`,
+              sub: stats.overdueCount > 0
+                ? (fr ? `${stats.overdueCount} en retard` : `${stats.overdueCount} overdue`)
+                : (fr ? `${stats.unpaidCount} non payées` : `${stats.unpaidCount} unpaid`),
               subColor: stats.overdueCount > 0 ? 'text-red-500' : 'text-amber-500',
               highlight: stats.overdueCount > 0,
               badge: null,
@@ -438,8 +461,8 @@ export default function Dashboard() {
           <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between mb-6">
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Revenus</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Encaissés · 12 derniers mois</p>
+                <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Revenus' : 'Revenue'}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Encaissés · 12 derniers mois' : 'Collected · Last 12 months'}</p>
               </div>
               {revenueΔ !== null && (
                 <div className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold ${revenueΔ >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}`}>
@@ -467,8 +490,8 @@ export default function Dashboard() {
               <div className="flex items-center justify-center h-44 rounded-xl bg-gray-50">
                 <div className="text-center">
                   <TrendingUp className="h-10 w-10 text-gray-200 mx-auto mb-2" />
-                  <p className="text-sm text-gray-400">Le graphique apparaîtra une fois que vous aurez des factures payées</p>
-                  <Link href="/invoices" className="mt-2 inline-block text-xs font-medium text-indigo-600 hover:underline">Créer une facture →</Link>
+                  <p className="text-sm text-gray-400">{fr ? 'Le graphique apparaîtra une fois que vous aurez des factures payées' : 'The chart will appear once you have paid invoices'}</p>
+                  <Link href="/invoices" className="mt-2 inline-block text-xs font-medium text-indigo-600 hover:underline">{fr ? 'Créer une facture →' : 'Create an invoice →'}</Link>
                 </div>
               </div>
             )}
@@ -478,14 +501,14 @@ export default function Dashboard() {
           <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col gap-5">
             <div>
               <h2 className="text-sm font-semibold text-gray-900">Performance</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Depuis le début</p>
+              <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Depuis le début' : 'All time'}</p>
             </div>
 
             <div className="space-y-4">
               {[
-                { label: 'Taux de complétion', value: completionRate, color: 'bg-emerald-500', icon: Target },
-                { label: 'Taux de recouvrement', value: collectionRate, color: 'bg-indigo-500', icon: CheckCircle },
-                { label: 'Charge active', value: stats.totalJobs > 0 ? (stats.activeJobs / stats.totalJobs) * 100 : 0, color: 'bg-blue-400', icon: Activity },
+                { label: fr ? 'Taux de complétion' : 'Completion rate', value: completionRate, color: 'bg-emerald-500', icon: Target },
+                { label: fr ? 'Taux de recouvrement' : 'Collection rate', value: collectionRate, color: 'bg-indigo-500', icon: CheckCircle },
+                { label: fr ? 'Charge active' : 'Active workload', value: stats.totalJobs > 0 ? (stats.activeJobs / stats.totalJobs) * 100 : 0, color: 'bg-blue-400', icon: Activity },
               ].map((row) => (
                 <div key={row.label}>
                   <div className="flex items-center justify-between mb-1.5">
@@ -504,11 +527,11 @@ export default function Dashboard() {
             <div className="mt-auto border-t border-gray-100 pt-4 grid grid-cols-2 gap-3">
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{stats.totalJobs}</p>
-                <p className="text-xs text-gray-400">Total interventions</p>
+                <p className="text-xs text-gray-400">{fr ? 'Total interventions' : 'Total jobs'}</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">{stats.customers}</p>
-                <p className="text-xs text-gray-400">Clients</p>
+                <p className="text-xs text-gray-400">{fr ? 'Clients' : 'Customers'}</p>
               </div>
             </div>
           </div>
@@ -520,11 +543,11 @@ export default function Dashboard() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-indigo-100">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-indigo-600" />
-                <h2 className="text-sm font-semibold text-indigo-900">Planning du jour</h2>
+                <h2 className="text-sm font-semibold text-indigo-900">{fr ? 'Planning du jour' : "Today's schedule"}</h2>
                 <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">{todayJobs.length}</span>
               </div>
               <Link href="/schedule" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                Calendrier complet <ArrowRight className="h-3 w-3" />
+                {fr ? 'Calendrier complet' : 'Full calendar'} <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
             <div className="divide-y divide-indigo-100">
@@ -538,11 +561,11 @@ export default function Dashboard() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-gray-900 truncate">{job.title}</p>
                     <p className="text-xs text-gray-500 truncate">
-                      {job.customers?.name || 'Sans client'}
+                      {job.customers?.name || (fr ? 'Sans client' : 'No customer')}
                       {job.service_address ? ` · ${job.service_address}` : ''}
                     </p>
                   </div>
-                  <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[job.status]?.className || ''}`}>
+                  <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusClass[job.status] || ''}`}>
                     {tStatus(job.status)}
                   </span>
                 </Link>
@@ -553,16 +576,16 @@ export default function Dashboard() {
 
         {/* Quick actions */}
         <div>
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Actions rapides</h2>
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">{fr ? 'Actions rapides' : 'Quick actions'}</h2>
           <div className="flex flex-wrap gap-2">
             {[
-              { label: 'Nouveau client',      href: '/customers', color: 'hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700', icon: Users },
-              { label: 'Nouvelle intervention', href: '/jobs',    color: 'hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700', icon: Briefcase },
-              { label: 'Nouveau devis',        href: '/quotes',   color: 'hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700', icon: FileText },
-              { label: 'Nouvelle facture',     href: '/invoices', color: 'hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700', icon: DollarSign },
-              { label: 'Calendrier',           href: '/schedule', color: 'hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700', icon: Calendar },
-              { label: 'Rapports',             href: '/reports',  color: 'hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700', icon: TrendingUp },
-              { label: 'Demander à l\'IA',     href: '/assistant', color: 'hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700', icon: Sparkles },
+              { label: fr ? 'Nouveau client' : 'New customer',       href: '/customers', color: 'hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700', icon: Users },
+              { label: fr ? 'Nouvelle intervention' : 'New job',     href: '/jobs',    color: 'hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700', icon: Briefcase },
+              { label: fr ? 'Nouveau devis' : 'New quote',           href: '/quotes',   color: 'hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700', icon: FileText },
+              { label: fr ? 'Nouvelle facture' : 'New invoice',      href: '/invoices', color: 'hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700', icon: DollarSign },
+              { label: fr ? 'Calendrier' : 'Calendar',               href: '/schedule', color: 'hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700', icon: Calendar },
+              { label: fr ? 'Rapports' : 'Reports',                  href: '/reports',  color: 'hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700', icon: TrendingUp },
+              { label: fr ? "Demander à l'IA" : 'Ask AI',            href: '/assistant', color: 'hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700', icon: Sparkles },
             ].map((action) => (
               <Link
                 key={action.label}
@@ -580,9 +603,9 @@ export default function Dashboard() {
           {/* Recent jobs */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">Interventions récentes</h2>
+              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Interventions récentes' : 'Recent jobs'}</h2>
               <Link href="/jobs" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                Voir tout <ArrowRight className="h-3 w-3" />
+                {fr ? 'Voir tout' : 'View all'} <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
             {recentJobs.length === 0 ? (
@@ -590,10 +613,10 @@ export default function Dashboard() {
                 <div className="h-12 w-12 rounded-2xl bg-violet-50 flex items-center justify-center mb-3">
                   <Briefcase className="h-6 w-6 text-violet-300" />
                 </div>
-                <p className="text-sm font-medium text-gray-700 mb-1">Aucune intervention</p>
-                <p className="text-xs text-gray-400 mb-3">Créez votre premier bon de travail pour démarrer</p>
+                <p className="text-sm font-medium text-gray-700 mb-1">{fr ? 'Aucune intervention' : 'No jobs yet'}</p>
+                <p className="text-xs text-gray-400 mb-3">{fr ? 'Créez votre premier bon de travail pour démarrer' : 'Create your first job to get started'}</p>
                 <Link href="/jobs" className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700">
-                  <Plus className="h-3.5 w-3.5" /> Créer une intervention
+                  <Plus className="h-3.5 w-3.5" /> {fr ? 'Créer une intervention' : 'Create a job'}
                 </Link>
               </div>
             ) : (
@@ -607,11 +630,11 @@ export default function Dashboard() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium text-gray-900">{job.title}</p>
                         <p className="text-xs text-gray-400">
-                          {job.customers?.name || 'Sans client'}
+                          {job.customers?.name || (fr ? 'Sans client' : 'No customer')}
                           {job.scheduled_date ? ` · ${fmtDate(job.scheduled_date, lang)}` : ''}
                         </p>
                       </div>
-                      <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[job.status]?.className || ''}`}>
+                      <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusClass[job.status] || ''}`}>
                         {tStatus(job.status)}
                       </span>
                     </Link>
@@ -624,9 +647,9 @@ export default function Dashboard() {
           {/* Recent invoices */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">Factures récentes</h2>
+              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Factures récentes' : 'Recent invoices'}</h2>
               <Link href="/invoices" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                Voir tout <ArrowRight className="h-3 w-3" />
+                {fr ? 'Voir tout' : 'View all'} <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
             {recentInvoices.length === 0 ? (
@@ -634,10 +657,10 @@ export default function Dashboard() {
                 <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center mb-3">
                   <FileText className="h-6 w-6 text-emerald-300" />
                 </div>
-                <p className="text-sm font-medium text-gray-700 mb-1">Aucune facture</p>
-                <p className="text-xs text-gray-400 mb-3">Créez une facture pour commencer à être payé</p>
+                <p className="text-sm font-medium text-gray-700 mb-1">{fr ? 'Aucune facture' : 'No invoices yet'}</p>
+                <p className="text-xs text-gray-400 mb-3">{fr ? 'Créez une facture pour commencer à être payé' : 'Create an invoice to start getting paid'}</p>
                 <Link href="/invoices" className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700">
-                  <Plus className="h-3.5 w-3.5" /> Créer une facture
+                  <Plus className="h-3.5 w-3.5" /> {fr ? 'Créer une facture' : 'Create an invoice'}
                 </Link>
               </div>
             ) : (
@@ -654,11 +677,11 @@ export default function Dashboard() {
                           {inv.invoice_number && <span className="text-xs text-gray-400">{inv.invoice_number}</span>}
                         </div>
                         <p className="text-xs text-gray-400">
-                          {inv.customers?.name || 'Sans client'}
+                          {inv.customers?.name || (fr ? 'Sans client' : 'No customer')}
                           {inv.due_date ? ` · ${fmtDate(inv.due_date, lang)}` : ''}
                         </p>
                       </div>
-                      <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusConfig[inv.status]?.className || ''}`}>
+                      <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusClass[inv.status] || ''}`}>
                         {tStatus(inv.status)}
                       </span>
                     </Link>
@@ -674,11 +697,11 @@ export default function Dashboard() {
           {/* Activity feed */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">Activité récente</h2>
-              <span className="text-xs text-gray-400">{activity.length} événements</span>
+              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Activité récente' : 'Recent activity'}</h2>
+              <span className="text-xs text-gray-400">{activity.length} {fr ? 'événements' : 'events'}</span>
             </div>
             {activity.length === 0 ? (
-              <div className="py-10 text-center text-sm text-gray-400">Aucune activité récente.</div>
+              <div className="py-10 text-center text-sm text-gray-400">{fr ? 'Aucune activité récente.' : 'No recent activity.'}</div>
             ) : (
               <ul className="divide-y divide-gray-50">
                 {activity.map((it) => {
@@ -693,7 +716,7 @@ export default function Dashboard() {
                           <cfg.Icon className={`h-4 w-4 ${cfg.fg}`} />
                         </div>
                         <p className="text-sm text-gray-700 flex-1 truncate">{it.text}</p>
-                        <span className="text-xs text-gray-400 shrink-0">{it.at ? timeAgo(it.at) : ''}</span>
+                        <span className="text-xs text-gray-400 shrink-0">{it.at ? timeAgo(it.at, fr) : ''}</span>
                       </Link>
                     </li>
                   )
@@ -705,15 +728,15 @@ export default function Dashboard() {
           {/* Overdue invoices */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">Factures en retard</h2>
+              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Factures en retard' : 'Overdue invoices'}</h2>
               <Link href="/invoices" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                Voir tout <ArrowRight className="h-3 w-3" />
+                {fr ? 'Voir tout' : 'View all'} <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
             {overdueList.length === 0 ? (
               <div className="py-10 text-center text-sm text-gray-400">
                 <CheckCircle className="h-6 w-6 text-emerald-300 mx-auto mb-2" />
-                Aucune facture en retard
+                {fr ? 'Aucune facture en retard' : 'No overdue invoices'}
               </div>
             ) : (
               <ul className="divide-y divide-gray-50">
@@ -727,8 +750,8 @@ export default function Dashboard() {
                         <AlertCircle className="h-4 w-4 text-red-600" />
                       </div>
                       <Link href={`/invoices/${inv.id}`} className="flex-1 min-w-0 hover:opacity-80">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{inv.customers?.name || 'Sans client'}</p>
-                        <p className="text-xs text-gray-500">{fmt2(inv.amount)}{days > 0 ? ` · ${days} j de retard` : ''}</p>
+                        <p className="text-sm font-semibold text-gray-900 truncate">{inv.customers?.name || (fr ? 'Sans client' : 'No customer')}</p>
+                        <p className="text-xs text-gray-500">{fmt2(inv.amount)}{days > 0 ? (fr ? ` · ${days} j de retard` : ` · ${days} d late`) : ''}</p>
                       </Link>
                       {inv.customers?.email && (
                         <button
@@ -736,7 +759,7 @@ export default function Dashboard() {
                           disabled={reminderSending === inv.id}
                           className="shrink-0 text-xs font-semibold text-indigo-600 hover:text-indigo-700 disabled:opacity-60"
                         >
-                          {reminderSending === inv.id ? 'Envoi…' : 'Envoyer un rappel'}
+                          {reminderSending === inv.id ? (fr ? 'Envoi…' : 'Sending…') : (fr ? 'Envoyer un rappel' : 'Send reminder')}
                         </button>
                       )}
                     </li>
@@ -752,8 +775,8 @@ export default function Dashboard() {
           <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Revenus mensuels</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Revenus encaissés par mois</p>
+                <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Revenus mensuels' : 'Monthly revenue'}</h2>
+                <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Revenus encaissés par mois' : 'Revenue collected by month'}</p>
               </div>
               <Zap className="h-4 w-4 text-amber-500" />
             </div>
@@ -775,19 +798,25 @@ export default function Dashboard() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="h-5 w-5 text-indigo-200" />
-                <span className="text-sm font-semibold text-indigo-100">AI Business Insights</span>
+                <span className="text-sm font-semibold text-indigo-100">{fr ? 'Insights IA pour votre entreprise' : 'AI Business Insights'}</span>
               </div>
               <p className="text-base font-semibold mb-1">
                 {stats.overdueCount > 0
-                  ? `${stats.overdueCount} overdue invoice${stats.overdueCount > 1 ? 's' : ''} — want AI to draft payment reminders?`
+                  ? (fr
+                      ? `${stats.overdueCount} facture${stats.overdueCount > 1 ? 's' : ''} en retard — voulez-vous que l'IA rédige des rappels de paiement ?`
+                      : `${stats.overdueCount} overdue invoice${stats.overdueCount > 1 ? 's' : ''} — want AI to draft payment reminders?`)
                   : stats.unpaidCount > 0
-                  ? `${stats.unpaidCount} invoice${stats.unpaidCount > 1 ? 's' : ''} pending. Ask AI to analyze your cash flow.`
-                  : `Your business is running smoothly. Ask AI for insights or to create records.`}
+                  ? (fr
+                      ? `${stats.unpaidCount} facture${stats.unpaidCount > 1 ? 's' : ''} en attente. Demandez à l'IA d'analyser votre trésorerie.`
+                      : `${stats.unpaidCount} invoice${stats.unpaidCount > 1 ? 's' : ''} pending. Ask AI to analyze your cash flow.`)
+                  : (fr
+                      ? `Votre entreprise fonctionne parfaitement. Demandez des insights ou créez des enregistrements avec l'IA.`
+                      : `Your business is running smoothly. Ask AI for insights or to create records.`)}
               </p>
-              <p className="text-sm text-indigo-200">Your AI assistant has real-time access to all your business data.</p>
+              <p className="text-sm text-indigo-200">{fr ? "Votre assistant IA a accès en temps réel à toutes vos données d'entreprise." : 'Your AI assistant has real-time access to all your business data.'}</p>
             </div>
             <Link href="/assistant" className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-white/20 hover:bg-white/30 px-4 py-2.5 text-sm font-semibold text-white transition-colors">
-              Ask AI <ArrowRight className="h-4 w-4" />
+              {fr ? "Demander à l'IA" : 'Ask AI'} <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
