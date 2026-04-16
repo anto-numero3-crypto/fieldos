@@ -593,11 +593,6 @@ export default function LandingPage() {
                   ? "La façon plus intelligente de gérer votre entreprise de services."
                   : 'The smarter way to run your field service business.'}
               </p>
-              <div className="flex items-center gap-2 mb-4">
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-600 transition-colors" title="LinkedIn"><Building2 className="h-4 w-4" /></a>
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-sky-100 hover:text-sky-500 transition-colors" title="Twitter / X"><MessageSquare className="h-4 w-4" /></a>
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-blue-100 hover:text-blue-700 transition-colors" title="Facebook"><Users className="h-4 w-4" /></a>
-              </div>
               <p className="text-xs text-gray-400">{lang === 'fr' ? 'Fait au Québec, Canada' : 'Made in Québec, Canada'}</p>
             </div>
 
