@@ -145,20 +145,30 @@ type JobLike = {
   customers?: { name?: string | null; phone?: string | null; email?: string | null } | null
 }
 
+function normalizeTime(t: string): string {
+  const parts = t.split(':')
+  const h = (parts[0] || '00').padStart(2, '0')
+  const m = (parts[1] || '00').padStart(2, '0')
+  const s = (parts[2] || '00').padStart(2, '0').slice(0, 2)
+  return `${h}:${m}:${s}`
+}
+
 function buildEventPayload(job: JobLike, timezone: string) {
   if (!job.scheduled_date) return null
-  const start = job.start_time
-    ? { dateTime: `${job.scheduled_date}T${job.start_time}:00`, timeZone: timezone }
+  const startTime = job.start_time ? normalizeTime(job.start_time) : null
+  const endTimeRaw = job.end_time ? normalizeTime(job.end_time) : null
+  const start = startTime
+    ? { dateTime: `${job.scheduled_date}T${startTime}`, timeZone: timezone }
     : { date: job.scheduled_date }
   let end: typeof start
-  if (job.start_time) {
-    if (job.end_time) {
-      end = { dateTime: `${job.scheduled_date}T${job.end_time}:00`, timeZone: timezone }
+  if (startTime) {
+    if (endTimeRaw) {
+      end = { dateTime: `${job.scheduled_date}T${endTimeRaw}`, timeZone: timezone }
     } else {
-      const [h, m] = job.start_time.split(':').map(Number)
+      const [h, m] = startTime.split(':').map(Number)
       const endH = (h + 1) % 24
-      const endTime = `${String(endH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`
-      end = { dateTime: `${job.scheduled_date}T${endTime}:00`, timeZone: timezone }
+      const endTime = `${String(endH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}:00`
+      end = { dateTime: `${job.scheduled_date}T${endTime}`, timeZone: timezone }
     }
   } else {
     const d = new Date(job.scheduled_date)
@@ -182,16 +192,31 @@ function buildEventPayload(job: JobLike, timezone: string) {
   }
 }
 
-export async function createCalendarEvent(orgId: string, job: JobLike, timezone: string) {
+export type CalendarResult =
+  | { ok: true; eventId: string }
+  | { ok: false; reason: 'no_token' | 'no_date' | 'api_error'; status?: number; body?: unknown; message?: string }
+
+async function parseGoogleError(res: Response) {
+  const text = await res.text()
+  try {
+    const parsed = JSON.parse(text)
+    const msg = parsed?.error?.message || parsed?.error_description || text
+    return { body: parsed, message: msg as string }
+  } catch {
+    return { body: text, message: text }
+  }
+}
+
+export async function createCalendarEvent(orgId: string, job: JobLike, timezone: string): Promise<CalendarResult> {
   const token = await getValidAccessToken(orgId)
   if (!token) {
     console.error(`[google-calendar] createEvent: no access token for org ${orgId}`)
-    return null
+    return { ok: false, reason: 'no_token' }
   }
   const payload = buildEventPayload(job, timezone)
   if (!payload) {
     console.log(`[google-calendar] createEvent: job ${job.id} has no scheduled_date, skipping`)
-    return null
+    return { ok: false, reason: 'no_date' }
   }
   console.log(`[google-calendar] creating event for job ${job.id}:`, JSON.stringify(payload))
   const res = await fetch(CALENDAR_API, {
@@ -200,33 +225,35 @@ export async function createCalendarEvent(orgId: string, job: JobLike, timezone:
     body: JSON.stringify(payload),
   })
   if (!res.ok) {
-    console.error(`[google-calendar] create event failed (${res.status}):`, await res.text())
-    return null
+    const err = await parseGoogleError(res)
+    console.error(`[google-calendar] create event failed (${res.status}):`, err.message, err.body)
+    return { ok: false, reason: 'api_error', status: res.status, body: err.body, message: err.message }
   }
   const data = await res.json() as { id: string }
   console.log(`[google-calendar] created event ${data.id}`)
-  return data.id
+  return { ok: true, eventId: data.id }
 }
 
-export async function updateCalendarEvent(orgId: string, job: JobLike, timezone: string) {
-  if (!job.google_event_id) return null
+export async function updateCalendarEvent(orgId: string, job: JobLike, timezone: string): Promise<CalendarResult> {
+  if (!job.google_event_id) return { ok: false, reason: 'no_date' }
   const token = await getValidAccessToken(orgId)
   if (!token) {
     console.error(`[google-calendar] updateEvent: no access token for org ${orgId}`)
-    return null
+    return { ok: false, reason: 'no_token' }
   }
   const payload = buildEventPayload(job, timezone)
-  if (!payload) return null
+  if (!payload) return { ok: false, reason: 'no_date' }
   const res = await fetch(`${CALENDAR_API}/${encodeURIComponent(job.google_event_id)}`, {
     method: 'PATCH',
     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
   if (!res.ok) {
-    console.error(`[google-calendar] update event failed (${res.status}):`, await res.text())
-    return null
+    const err = await parseGoogleError(res)
+    console.error(`[google-calendar] update event failed (${res.status}):`, err.message, err.body)
+    return { ok: false, reason: 'api_error', status: res.status, body: err.body, message: err.message }
   }
-  return job.google_event_id
+  return { ok: true, eventId: job.google_event_id }
 }
 
 export async function deleteCalendarEvent(orgId: string, eventId: string) {

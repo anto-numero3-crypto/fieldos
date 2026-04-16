@@ -84,20 +84,23 @@ export async function POST(req: NextRequest) {
   }
 
   if (job.google_event_id) {
-    const id = await updateCalendarEvent(org.id, job, timezone)
-    console.log(`${LOG} updated event ${id ?? '(failed)'} for job ${job.id}`)
-    return NextResponse.json({ ok: !!id, action: 'updated', eventId: id })
+    const result = await updateCalendarEvent(org.id, job, timezone)
+    if (!result.ok) {
+      return NextResponse.json({ action: 'update_failed', ...result }, { status: 500 })
+    }
+    console.log(`${LOG} updated event ${result.eventId} for job ${job.id}`)
+    return NextResponse.json({ ok: true, action: 'updated', eventId: result.eventId })
   }
-  const eventId = await createCalendarEvent(org.id, job, timezone)
-  if (!eventId) {
-    console.error(`${LOG} createCalendarEvent returned null for job ${job.id}`)
-    return NextResponse.json({ ok: false, error: 'create_failed' }, { status: 500 })
+  const result = await createCalendarEvent(org.id, job, timezone)
+  if (!result.ok) {
+    console.error(`${LOG} create failed for job ${job.id}:`, result)
+    return NextResponse.json({ action: 'create_failed', ...result }, { status: 500 })
   }
-  const { error: saveErr } = await supabase.from('jobs').update({ google_event_id: eventId }).eq('id', job.id)
+  const { error: saveErr } = await supabase.from('jobs').update({ google_event_id: result.eventId }).eq('id', job.id)
   if (saveErr) {
     console.error(`${LOG} failed to save google_event_id on job ${job.id} — column missing?`, saveErr)
   } else {
-    console.log(`${LOG} created event ${eventId} for job ${job.id}`)
+    console.log(`${LOG} created event ${result.eventId} for job ${job.id}`)
   }
-  return NextResponse.json({ ok: true, action: 'created', eventId, savedEventId: !saveErr })
+  return NextResponse.json({ ok: true, action: 'created', eventId: result.eventId, savedEventId: !saveErr })
 }
