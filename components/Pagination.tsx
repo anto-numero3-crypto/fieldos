@@ -2,6 +2,7 @@
 
 import { memo, useCallback, useMemo } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useLanguage } from '@/lib/LanguageContext'
 
 interface Props {
   page: number
@@ -13,6 +14,8 @@ interface Props {
 export const PAGE_SIZE = 25
 
 function PaginationImpl({ page, pageSize, total, onPageChange }: Props) {
+  const { lang } = useLanguage()
+  const fr = lang === 'fr'
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const start = total === 0 ? 0 : (page - 1) * pageSize + 1
   const end   = Math.min(page * pageSize, total)
@@ -35,9 +38,9 @@ function PaginationImpl({ page, pageSize, total, onPageChange }: Props) {
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-gray-100 bg-white">
       <p className="text-xs text-gray-500">
-        Affichage de <span className="font-semibold text-gray-700">{start}</span>
-        {' '}à <span className="font-semibold text-gray-700">{end}</span>
-        {' '}sur <span className="font-semibold text-gray-700">{total}</span> résultats
+        {fr ? 'Affichage de' : 'Showing'} <span className="font-semibold text-gray-700">{start}</span>
+        {' '}{fr ? 'à' : 'to'} <span className="font-semibold text-gray-700">{end}</span>
+        {' '}{fr ? 'sur' : 'of'} <span className="font-semibold text-gray-700">{total}</span> {fr ? 'résultats' : 'results'}
       </p>
       <nav className="flex items-center gap-1">
         <button
@@ -45,9 +48,9 @@ function PaginationImpl({ page, pageSize, total, onPageChange }: Props) {
           onClick={prev}
           disabled={page === 1}
           className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-          aria-label="Page précédente"
+          aria-label={fr ? 'Page précédente' : 'Previous page'}
         >
-          <ChevronLeft className="h-3.5 w-3.5" /> Précédent
+          <ChevronLeft className="h-3.5 w-3.5" /> {fr ? 'Précédent' : 'Previous'}
         </button>
         {pages.map((p) => (
           <button
@@ -69,9 +72,9 @@ function PaginationImpl({ page, pageSize, total, onPageChange }: Props) {
           onClick={next}
           disabled={page >= totalPages}
           className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
-          aria-label="Page suivante"
+          aria-label={fr ? 'Page suivante' : 'Next page'}
         >
-          Suivant <ChevronRight className="h-3.5 w-3.5" />
+          {fr ? 'Suivant' : 'Next'} <ChevronRight className="h-3.5 w-3.5" />
         </button>
       </nav>
     </div>
