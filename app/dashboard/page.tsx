@@ -1244,10 +1244,11 @@ function MapCard({
             {fr ? 'Interventions d\'aujourd\'hui géolocalisées' : "Today's jobs, geolocated"}
           </p>
         </div>
-        <div className="flex items-center gap-3 text-[11px]">
-          <LegendDot color="#3b82f6" label={fr ? 'Planifié' : 'Scheduled'} />
-          <LegendDot color="#f59e0b" label={fr ? 'En cours' : 'In progress'} />
-          <LegendDot color="#10b981" label={fr ? 'Terminé' : 'Complete'} />
+        <div className="flex items-center gap-3 text-[11px] flex-wrap">
+          <LegendDot color={JOB_COLORS.scheduled.hex}        label={fr ? JOB_COLORS.scheduled.label.fr        : JOB_COLORS.scheduled.label.en} />
+          <LegendDot color={JOB_COLORS.in_progress.hex}      label={fr ? JOB_COLORS.in_progress.label.fr      : JOB_COLORS.in_progress.label.en} />
+          <LegendDot color={JOB_COLORS.needs_completion.hex} label={fr ? JOB_COLORS.needs_completion.label.fr : JOB_COLORS.needs_completion.label.en} />
+          <LegendDot color={JOB_COLORS.completed.hex}        label={fr ? JOB_COLORS.completed.label.fr        : JOB_COLORS.completed.label.en} />
         </div>
       </div>
       <div className="p-4">
