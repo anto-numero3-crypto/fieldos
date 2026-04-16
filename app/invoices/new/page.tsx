@@ -27,21 +27,27 @@ interface LineItem {
 interface Customer { id: string; name: string; email: string | null; phone: string | null; address: string | null }
 interface Job { id: string; title: string }
 
-const UNITS = ['unité', 'heure', 'jour', 'pi²', 'm²', 'forfait', 'visite', 'mois']
-const DUE_DATE_OPTIONS = [
-  { label: 'Dû à la réception', days: 0 },
-  { label: 'Net 7 jours',  days: 7 },
-  { label: 'Net 15 jours', days: 15 },
-  { label: 'Net 30 jours', days: 30 },
-  { label: 'Net 45 jours', days: 45 },
-  { label: 'Net 60 jours', days: 60 },
-  { label: 'Personnalisé', days: -1 },
-]
+function getUnits(fr: boolean) {
+  return fr
+    ? ['unité', 'heure', 'jour', 'pi²', 'm²', 'forfait', 'visite', 'mois']
+    : ['unit', 'hour', 'day', 'sq.ft', 'sq.m', 'flat', 'visit', 'month']
+}
+function getDueDateOptions(fr: boolean) {
+  return [
+    { label: fr ? 'Dû à la réception' : 'Due on receipt', days: 0 },
+    { label: fr ? 'Net 7 jours'  : 'Net 7 days',  days: 7 },
+    { label: fr ? 'Net 15 jours' : 'Net 15 days', days: 15 },
+    { label: fr ? 'Net 30 jours' : 'Net 30 days', days: 30 },
+    { label: fr ? 'Net 45 jours' : 'Net 45 days', days: 45 },
+    { label: fr ? 'Net 60 jours' : 'Net 60 days', days: 60 },
+    { label: fr ? 'Personnalisé' : 'Custom', days: -1 },
+  ]
+}
 
 const uid = () => Math.random().toString(36).slice(2, 9)
 
-const newLine = (): LineItem => ({
-  id: uid(), description: '', qty: 1, unit: 'unité', unit_price: 0, taxable: true,
+const newLine = (fr: boolean): LineItem => ({
+  id: uid(), description: '', qty: 1, unit: fr ? 'unité' : 'unit', unit_price: 0, taxable: true,
 })
 
 export default function NewInvoicePage() {
@@ -49,6 +55,8 @@ export default function NewInvoicePage() {
   const searchParams = useSearchParams()
   const { lang, t } = useLanguage()
   const fr = lang === 'fr'
+  const UNITS = getUnits(fr)
+  const DUE_DATE_OPTIONS = getDueDateOptions(fr)
 
   const [user, setUser] = useState<{ id: string } | null>(null)
   const [orgName, setOrgName] = useState('')
@@ -67,7 +75,7 @@ export default function NewInvoicePage() {
   const [customDueDate, setCustomDueDate] = useState(false)
 
   // Line items
-  const [lines, setLines] = useState<LineItem[]>([newLine()])
+  const [lines, setLines] = useState<LineItem[]>([newLine(fr)])
 
   // Tax
   const [taxEnabled, setTaxEnabled] = useState(true)
@@ -85,7 +93,7 @@ export default function NewInvoicePage() {
   // Notes
   const [clientNotes, setClientNotes] = useState('')
   const [internalNotes, setInternalNotes] = useState('')
-  const [terms, setTerms] = useState('Paiement dû dans 30 jours.')
+  const [terms, setTerms] = useState(fr ? 'Paiement dû dans 30 jours.' : 'Payment due within 30 days.')
 
   const [saving, setSaving] = useState(false)
   const [sending, setSending] = useState(false)
@@ -125,7 +133,7 @@ export default function NewInvoicePage() {
           id: uid(),
           description: job.title,
           qty: 1,
-          unit: 'forfait',
+          unit: fr ? 'forfait' : 'flat',
           unit_price: 0,
           taxable: true,
         }])
@@ -162,14 +170,14 @@ export default function NewInvoicePage() {
 
   // Validation
   const [showErrors, setShowErrors] = useState(false)
-  const errCustomer  = !customerId ? 'Sélectionnez un client' : ''
+  const errCustomer  = !customerId ? (fr ? 'Sélectionnez un client' : 'Select a customer') : ''
   const linesValid   = lines.every((l) => l.description.trim() && !validateAmount(l.unit_price) && Number(l.qty) > 0)
-  const errLines     = !linesValid ? 'Chaque ligne doit avoir une description, une quantité et un prix valide' : ''
+  const errLines     = !linesValid ? (fr ? 'Chaque ligne doit avoir une description, une quantité et un prix valide' : 'Each line must have a description, quantity, and valid price') : ''
   const formInvalid  = !!errCustomer || !linesValid
 
   const fmt = (n: number) => fmtMoney(n, lang)
 
-  const addLine  = () => setLines([...lines, newLine()])
+  const addLine  = () => setLines([...lines, newLine(fr)])
   const removeLine = (id: string) => setLines(lines.filter((l) => l.id !== id))
   const updateLine = <K extends keyof LineItem>(id: string, key: K, val: LineItem[K]) =>
     setLines(lines.map((l) => l.id === id ? { ...l, [key]: val } : l))
@@ -239,13 +247,13 @@ export default function NewInvoicePage() {
   const selectedCustomer = customers.find((c) => c.id === customerId)
 
   return (
-    <AppLayout title="Nouvelle facture">
+    <AppLayout title={fr ? 'Nouvelle facture' : 'New invoice'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto pb-32">
 
         {/* Back */}
         <div className="flex items-center gap-3 mb-6">
           <Link href="/invoices" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Factures
+            <ArrowLeft className="h-4 w-4" /> {fr ? 'Factures' : 'Invoices'}
           </Link>
           <span className="text-gray-300">/</span>
           <span className="text-sm font-semibold text-gray-900">{fr ? 'Nouvelle facture' : 'New invoice'}</span>
@@ -268,7 +276,7 @@ export default function NewInvoicePage() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5" /> Date d&apos;émission
+                  <Calendar className="h-3.5 w-3.5" /> {fr ? "Date d'émission" : 'Issue date'}
                 </label>
                 <input
                   type="date"
@@ -279,7 +287,7 @@ export default function NewInvoicePage() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5" /> Date d&apos;échéance
+                  <Calendar className="h-3.5 w-3.5" /> {fr ? "Date d'échéance" : 'Due date'}
                 </label>
                 {!customDueDate ? (
                   <div className="flex gap-2">
@@ -308,7 +316,7 @@ export default function NewInvoicePage() {
           {/* Customer + Job */}
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
             <h2 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <User className="h-4 w-4 text-gray-400" /> Client
+              <User className="h-4 w-4 text-gray-400" /> {fr ? 'Client' : 'Customer'}
             </h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
@@ -354,7 +362,7 @@ export default function NewInvoicePage() {
             <div className="px-6 py-4 border-b border-gray-100">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-gray-400" /> Lignes de facturation
+                  <FileText className="h-4 w-4 text-gray-400" /> {fr ? 'Lignes de facturation' : 'Line items'}
                 </h2>
               </div>
               {showErrors && errLines && (
@@ -365,7 +373,7 @@ export default function NewInvoicePage() {
             {/* Column headers */}
             <div className="hidden sm:grid grid-cols-[1fr_80px_100px_120px_100px_40px] gap-3 px-6 py-2.5 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
               <span>{fr ? 'Description' : 'Description'}</span>
-              <span className="text-center">Qté</span>
+              <span className="text-center">{fr ? 'Qté' : 'Qty'}</span>
               <span className="text-center">{fr ? 'Unité' : 'Unit'}</span>
               <span className="text-right">{fr ? 'Prix unit.' : 'Unit price'}</span>
               <span className="text-right">{fr ? 'Taxable' : 'Taxable'}</span>
@@ -376,7 +384,7 @@ export default function NewInvoicePage() {
               {lines.map((line, i) => (
                 <div key={line.id} className="grid sm:grid-cols-[1fr_80px_100px_120px_100px_40px] gap-3 px-6 py-3 items-center">
                   <input
-                    placeholder={`Description de l'item ${i + 1}`}
+                    placeholder={fr ? `Description de l'item ${i + 1}` : `Item ${i + 1} description`}
                     value={line.description}
                     onChange={(e) => updateLine(line.id, 'description', e.target.value)}
                     className="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
@@ -434,7 +442,7 @@ export default function NewInvoicePage() {
                 onClick={addLine}
                 className="flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
               >
-                <Plus className="h-4 w-4" /> Ajouter une ligne
+                <Plus className="h-4 w-4" /> {fr ? 'Ajouter une ligne' : 'Add a line'}
               </button>
             </div>
           </div>
