@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtDate } from '@/lib/format'
+import { getEffectiveJobStatus } from '@/lib/job-status'
 import {
   ChevronLeft, ChevronRight, Plus, Calendar, User, Clock, Briefcase,
 } from 'lucide-react'
@@ -291,7 +292,7 @@ export default function SchedulePage() {
                       }}
                       onDragEnd={() => { setDraggingId(null); setDropTarget(null) }}
                       title={fr ? 'Glisser-déposer pour reprogrammer' : 'Drag and drop to reschedule'}
-                      className={`block rounded-lg border-l-2 px-2 py-1.5 text-xs transition-all hover:shadow-sm cursor-grab active:cursor-grabbing ${draggingId === job.id ? 'opacity-50' : ''} ${STATUS_COLOR[job.status] || 'bg-gray-50 border-gray-200 text-gray-600'}`}
+                      className={`block rounded-lg border-l-2 px-2 py-1.5 text-xs transition-all hover:shadow-sm cursor-grab active:cursor-grabbing ${draggingId === job.id ? 'opacity-50' : ''} ${STATUS_COLOR[getEffectiveJobStatus(job)] || 'bg-gray-50 border-gray-200 text-gray-600'}`}
                     >
                       <p className="font-semibold truncate">{job.title}</p>
                       {job.customers && <p className="text-xs opacity-70 truncate">{job.customers.name}</p>}
@@ -321,7 +322,7 @@ export default function SchedulePage() {
             ) : (
               <ul className="divide-y divide-gray-50">
                 {upcoming.map((job) => {
-                  const dot = STATUS_DOT[job.status] || 'bg-gray-400'
+                  const dot = STATUS_DOT[getEffectiveJobStatus(job)] || 'bg-gray-400'
                   return (
                     <li key={job.id}>
                       <Link href={`/jobs/${job.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
@@ -338,8 +339,8 @@ export default function SchedulePage() {
                             )}
                           </div>
                         </div>
-                        <span className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[job.status] || ''}`}>
-                          {job.status.replace('_', ' ')}
+                        <span className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_COLOR[getEffectiveJobStatus(job)] || ''}`}>
+                          {getEffectiveJobStatus(job).replace('_', ' ')}
                         </span>
                       </Link>
                     </li>

@@ -51,6 +51,7 @@ import { useTheme } from '@/components/ThemeProvider'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtMoney } from '@/lib/format'
 import { getInvoiceDisplayStatus } from '@/lib/invoice-status'
+import { getEffectiveJobStatus } from '@/lib/job-status'
 import { supabase } from '@/app/supabase'
 
 // ───── Lazy load the map (leaflet needs window) ─────
@@ -295,7 +296,7 @@ export default function DashboardPage() {
 
   // KPI 2 — active jobs, and how many are scheduled today
   const { activeJobs, jobsToday, todaysJobs } = useMemo(() => {
-    const active = jobs.filter((j) => j.status === 'scheduled' || j.status === 'in_progress')
+    const active = jobs.filter((j) => { const s = getEffectiveJobStatus(j); return s === 'scheduled' || s === 'in_progress' || s === 'needs_completion' })
     const todays = jobs
       .filter((j) => j.scheduled_date === todayStr)
       .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
@@ -356,10 +357,11 @@ export default function DashboardPage() {
   const jobsByStatus = useMemo(() => {
     const b = { scheduled: 0, in_progress: 0, complete: 0, cancelled: 0 }
     for (const j of jobs) {
-      if (j.status === 'scheduled') b.scheduled++
-      else if (j.status === 'in_progress') b.in_progress++
-      else if (j.status === 'complete') b.complete++
-      else if (j.status === 'cancelled') b.cancelled++
+      const s = getEffectiveJobStatus(j)
+      if (s === 'scheduled') b.scheduled++
+      else if (s === 'in_progress' || s === 'needs_completion') b.in_progress++
+      else if (s === 'complete' || s === 'completed' || s === 'invoiced') b.complete++
+      else if (s === 'cancelled') b.cancelled++
     }
     return b
   }, [jobs])
@@ -452,7 +454,8 @@ export default function DashboardPage() {
     }
 
     for (const j of jobs) {
-      if (j.status === 'complete') {
+      const je = getEffectiveJobStatus(j)
+      if (je === 'complete' || je === 'completed' || je === 'invoiced') {
         const name = j.customers?.name || (fr ? 'un client' : 'a customer')
         out.push({
           id: `job-${j.id}`,
@@ -540,7 +543,7 @@ export default function DashboardPage() {
     .map((j) => ({
       id: j.id,
       title: j.title || '',
-      status: j.status,
+      status: getEffectiveJobStatus(j),
       service_address: j.service_address,
       customer_name: j.customers?.name || null,
       start_time: j.start_time || null,
@@ -1100,12 +1103,16 @@ function TodaysSchedule({
 
 function ScheduleRow({ job, fr, lang }: { job: Job; fr: boolean; lang: 'fr' | 'en' }) {
   const statusColor: Record<string, { border: string; badge: string; label: string }> = {
-    scheduled:   { border: 'border-l-blue-500',    badge: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',           label: fr ? 'Planifié' : 'Scheduled' },
-    in_progress: { border: 'border-l-amber-500',   badge: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400',       label: fr ? 'En cours' : 'In progress' },
-    complete:    { border: 'border-l-emerald-500', badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400', label: fr ? 'Terminé' : 'Complete' },
-    cancelled:   { border: 'border-l-gray-400',    badge: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',               label: fr ? 'Annulé' : 'Cancelled' },
+    scheduled:        { border: 'border-l-blue-500',    badge: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',           label: fr ? 'Planifié' : 'Scheduled' },
+    in_progress:      { border: 'border-l-indigo-500',  badge: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400',   label: fr ? 'En cours' : 'In progress' },
+    needs_completion: { border: 'border-l-orange-500',  badge: 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-400',   label: fr ? 'À compléter' : 'Needs completion' },
+    completed:        { border: 'border-l-emerald-500', badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400', label: fr ? 'Complétée' : 'Completed' },
+    complete:         { border: 'border-l-emerald-500', badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400', label: fr ? 'Complétée' : 'Completed' },
+    invoiced:         { border: 'border-l-teal-500',    badge: 'bg-teal-50 text-teal-700 dark:bg-teal-500/10 dark:text-teal-400',             label: fr ? 'Facturée' : 'Invoiced' },
+    cancelled:        { border: 'border-l-gray-400',    badge: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',               label: fr ? 'Annulée' : 'Cancelled' },
   }
-  const s = statusColor[job.status] || statusColor.scheduled
+  const effective = getEffectiveJobStatus(job)
+  const s = statusColor[effective] || statusColor.scheduled
 
   const formatTimeStr = (t: string | null): string => {
     if (!t) return fr ? '—' : '—'

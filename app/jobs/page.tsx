@@ -16,6 +16,7 @@ import { useConfirm } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtDate } from '@/lib/format'
+import { getEffectiveJobStatus } from '@/lib/job-status'
 import {
   Briefcase, Plus, X, Calendar, User, CheckCircle,
   Search, ChevronRight, MoreHorizontal, Trash2, Clock, Zap, Flag,
@@ -24,6 +25,7 @@ import {
 interface Job {
   id: string; title: string; description: string | null; status: string
   priority: string | null; scheduled_date: string | null; created_at: string
+  start_time: string | null; end_time: string | null
   customers: { name: string } | null
 }
 interface Customer { id: string; name: string }
@@ -171,7 +173,7 @@ export default function JobsPage() {
   }
 
   const filtered = useMemo(() => jobs.filter((j) => {
-    const matchesFilter = activeFilter === 'all' || j.status === activeFilter
+    const matchesFilter = activeFilter === 'all' || getEffectiveJobStatus(j) === activeFilter
     const q = search.toLowerCase()
     const matchesSearch = !q || j.title.toLowerCase().includes(q) ||
       (j.description || '').toLowerCase().includes(q) ||
@@ -183,7 +185,7 @@ export default function JobsPage() {
   const paged = useMemo(() => filtered.slice(range.from, range.to), [filtered, range.from, range.to])
   useEffect(() => { resetPage() }, [activeFilter, search, resetPage])
 
-  const countByStatus = (s: string) => jobs.filter((j) => j.status === s).length
+  const countByStatus = (s: string) => jobs.filter((j) => getEffectiveJobStatus(j) === s).length
 
   const AddButton = (
     <button onClick={openAddJob} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all">
@@ -272,7 +274,8 @@ export default function JobsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {paged.map((job) => {
-                    const scls = STATUS_CLS[job.status]
+                    const effStatus = getEffectiveJobStatus(job)
+                    const scls = STATUS_CLS[effStatus]
                     const pcfg = PRIORITY_CFG[job.priority || 'normal']
                     return (
                       <tr key={job.id} className="hover:bg-gray-50 transition-colors group">
@@ -292,7 +295,7 @@ export default function JobsPage() {
                           ) : <span className="text-gray-300">—</span>}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scls || ''}`}>{tStatus(job.status)}</span>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scls || ''}`}>{tStatus(effStatus)}</span>
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -328,7 +331,8 @@ export default function JobsPage() {
 
             <div className="md:hidden divide-y divide-gray-100">
               {filtered.map((job) => {
-                const scls = STATUS_CLS[job.status]
+                const effStatus = getEffectiveJobStatus(job)
+                const scls = STATUS_CLS[effStatus]
                 const pcfg = PRIORITY_CFG[job.priority || 'normal']
                 return (
                   <Link key={job.id} href={`/jobs/${job.id}`} className="block p-4 hover:bg-gray-50 transition-colors">
@@ -339,7 +343,7 @@ export default function JobsPage() {
                         {job.scheduled_date && <p className="flex items-center gap-1 text-xs text-gray-400"><Calendar className="h-3 w-3" />{fmtDate(job.scheduled_date, lang)}</p>}
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scls || ''}`}>{tStatus(job.status)}</span>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scls || ''}`}>{tStatus(effStatus)}</span>
                         <span className={`text-xs font-medium ${pcfg.cls}`}>{pcfg.icon} {pcfg.label}</span>
                       </div>
                     </div>

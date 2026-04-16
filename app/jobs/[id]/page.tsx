@@ -10,6 +10,7 @@ import { useConfirm } from '@/components/ui/confirm-dialog'
 import { useLanguage } from '@/lib/LanguageContext'
 import { toast } from 'sonner'
 import { fmtMoney, fmtDate as fmtDateLib } from '@/lib/format'
+import { getEffectiveJobStatus } from '@/lib/job-status'
 import {
   ArrowLeft, User, Calendar, Clock, Flag, Edit2, Save, CheckSquare,
   Square, Plus, Trash2, FileText, DollarSign, AlertCircle, CheckCircle,
@@ -245,7 +246,8 @@ export default function JobDetailPage() {
 
   if (!job) return null
 
-  const scfg    = STATUS_CFG[job.status]
+  const effStatus = getEffectiveJobStatus(job)
+  const scfg    = STATUS_CFG[effStatus]
   const pcfg    = PRIORITY_CFG[job.priority || 'normal']
   const checklist = job.checklist || []
   const doneCount = checklist.filter((c) => c.done).length
@@ -273,11 +275,11 @@ export default function JobDetailPage() {
               { key: 'invoiced', label: fr ? 'Facturé' : 'Invoiced', dot: 'bg-indigo-500' },
             ].map((step, i) => {
               const statuses = ['scheduled', 'in_progress', 'complete', 'invoiced']
-              const currentIdx = statuses.indexOf(job.status === 'cancelled' ? 'scheduled' : (invoiceLinked ? 'invoiced' : job.status))
+              const currentIdx = statuses.indexOf(effStatus === 'cancelled' ? 'scheduled' : (invoiceLinked ? 'invoiced' : (effStatus === 'needs_completion' ? 'in_progress' : (effStatus === 'completed' ? 'complete' : effStatus))))
               const stepIdx = statuses.indexOf(step.key)
               const isDone   = stepIdx < currentIdx
               const isCurrent = stepIdx === currentIdx
-              const isCancelled = job.status === 'cancelled'
+              const isCancelled = effStatus === 'cancelled'
               return (
                 <div key={step.key} className="flex items-center">
                   {i > 0 && <div className={`h-0.5 w-8 sm:w-12 ${isDone ? 'bg-indigo-400' : 'bg-gray-200'}`} />}
@@ -297,7 +299,7 @@ export default function JobDetailPage() {
                 </div>
               )
             })}
-            {job.status === 'cancelled' && (
+            {effStatus === 'cancelled' && (
               <div className="ml-4 flex items-center gap-1.5 rounded-xl bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-400">
                 <span className="h-2 w-2 rounded-full bg-gray-300" /> {fr ? 'Annulé' : 'Cancelled'}
               </div>
@@ -338,7 +340,7 @@ export default function JobDetailPage() {
                     className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold cursor-pointer hover:opacity-80 transition-opacity ${scfg?.cls || ''}`}
                   >
                     <span className={`h-2 w-2 rounded-full ${scfg?.dotCls}`} />
-                    {tStatus(job.status)}
+                    {tStatus(effStatus)}
                   </button>
                   {statusDropdown && (
                     <>
@@ -567,7 +569,7 @@ export default function JobDetailPage() {
               <dl className="space-y-2.5 text-sm">
                 <div className="flex justify-between">
                   <dt className="text-gray-500">{fr ? 'Statut' : 'Status'}</dt>
-                  <dd><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scfg?.cls}`}>{tStatus(job.status)}</span></dd>
+                  <dd><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scfg?.cls}`}>{tStatus(effStatus)}</span></dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-gray-500">{fr ? 'Priorité' : 'Priority'}</dt>

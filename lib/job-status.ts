@@ -14,6 +14,33 @@ export const JOB_STATUS_CLS: Record<string, string> = {
   cancelled:        'bg-gray-100 text-gray-500 ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700',
 }
 
+export function getEffectiveJobStatus(job: {
+  status: string | null | undefined
+  scheduled_date: string | null
+  start_time: string | null
+  end_time: string | null
+}): string {
+  const s = job.status || 'scheduled'
+  if (s === 'completed' || s === 'complete' || s === 'invoiced' || s === 'cancelled') return s
+  if (!job.scheduled_date) return s
+
+  const now = new Date()
+  const startStr = job.start_time
+    ? `${job.scheduled_date}T${job.start_time}`
+    : `${job.scheduled_date}T00:00:00`
+  const jobStart = new Date(startStr)
+  const jobEnd = job.end_time ? new Date(`${job.scheduled_date}T${job.end_time}`) : null
+
+  if (jobEnd && now > jobEnd) return 'needs_completion'
+  if (!jobEnd && s === 'in_progress') {
+    // in_progress with no end_time — flip to needs_completion 1h past start
+    const plusHour = new Date(jobStart.getTime() + 60 * 60 * 1000)
+    if (now > plusHour) return 'needs_completion'
+  }
+  if (now > jobStart) return 'in_progress'
+  return s
+}
+
 export function jobStatusLabel(status: string, fr: boolean): string {
   const labels: Record<string, { fr: string; en: string }> = {
     scheduled:        { fr: 'Planifiée',     en: 'Scheduled' },
