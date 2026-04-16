@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { supabase } from '../supabase'
+import { toast } from 'sonner'
 import AppLayout from '@/components/AppLayout'
 import { SkeletonText, SkeletonChart, SkeletonKPICard, SkeletonListRow } from '@/components/ui/skeleton'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -248,6 +249,17 @@ export default function Dashboard() {
   useEffect(() => {
     init()
   }, [init])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('subscribed') === 'true') {
+      toast.success(lang === 'fr' ? 'Bienvenue ! Votre abonnement est actif.' : 'Welcome! Your subscription is now active.')
+      const url = new URL(window.location.href)
+      url.searchParams.delete('subscribed')
+      url.searchParams.delete('session_id')
+      window.history.replaceState({}, '', url.toString())
+    }
+  }, [lang])
 
   useEffect(() => {
     if (!user) return

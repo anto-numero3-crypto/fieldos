@@ -992,6 +992,21 @@ export default function SettingsPage() {
                     </p>
                   )}
                 </div>
+                {plan.status === 'active' && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch('/api/stripe/customer-portal', { method: 'POST' })
+                        const data = await res.json()
+                        if (!res.ok || !data.url) { toast.error(data.error || (fr ? 'Erreur' : 'Error')); return }
+                        window.location.href = data.url
+                      } catch { toast.error(fr ? 'Erreur' : 'Error') }
+                    }}
+                    className="shrink-0 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    {fr ? "Gérer l'abonnement" : 'Manage subscription'}
+                  </button>
+                )}
               </div>
 
               {/* Usage */}
