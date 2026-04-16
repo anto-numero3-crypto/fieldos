@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useRef, useState, createContext, useContext, useCallback } from 'react'
 import { AlertTriangle, X } from 'lucide-react'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export interface ConfirmOptions {
   title: string
@@ -25,6 +26,8 @@ interface ActiveDialog extends ConfirmOptions {
 
 // Provider — mount once, near the root layout.
 export function ConfirmProvider({ children }: { children: ReactNode }) {
+  const { lang } = useLanguage()
+  const fr = lang === 'fr'
   const [active, setActive] = useState<ActiveDialog | null>(null)
   const [promptValue, setPromptValue] = useState('')
   const confirmBtnRef = useRef<HTMLButtonElement>(null)
@@ -98,7 +101,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
             <button
               type="button"
               onClick={() => close(false)}
-              aria-label="Fermer"
+              aria-label={fr ? 'Fermer' : 'Close'}
               className="absolute right-3 top-3 rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
             >
               <X className="h-4 w-4" />
@@ -139,7 +142,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                 onClick={() => close(false)}
                 className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
               >
-                {active.cancelLabel || 'Annuler'}
+                {active.cancelLabel || (fr ? 'Annuler' : 'Cancel')}
               </button>
               <button
                 ref={confirmBtnRef}
@@ -151,7 +154,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                     : 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500/40'
                 }`}
               >
-                {active.confirmLabel || 'Confirmer'}
+                {active.confirmLabel || (fr ? 'Confirmer' : 'Confirm')}
               </button>
             </div>
           </div>
