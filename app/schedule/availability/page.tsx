@@ -13,7 +13,8 @@ import {
   Trash2, Plus, Info, ChevronLeft, ChevronRight
 } from 'lucide-react'
 
-const DAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
+const DAYS_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
+const DAYS_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const TIME_OPTIONS: string[] = []
 for (let h = 6; h <= 22; h++) {
   for (const m of [0, 30]) {
@@ -55,7 +56,7 @@ interface AvailSettings {
   cancellation_policy: string
 }
 
-const DEFAULT_SCHEDULE: DaySchedule[] = DAYS.map((_, i) => ({
+const DEFAULT_SCHEDULE: DaySchedule[] = DAYS_FR.map((_, i) => ({
   day_of_week: i,
   is_available: i >= 1 && i <= 5,
   start_time: '09:00',
@@ -79,6 +80,7 @@ const DEFAULT_SETTINGS: AvailSettings = {
 function AvailabilityPageInner() {
   const { lang, t } = useLanguage()
   const fr = lang === 'fr'
+  const DAYS = fr ? DAYS_FR : DAYS_EN
   const [userId, setUserId] = useState<string | null>(null)
   const [orgSlug, setOrgSlug] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -246,7 +248,7 @@ function AvailabilityPageInner() {
             className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 shadow-sm transition-all"
           >
             {saving ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : null}
-            {saving ? 'Sauvegarde…' : 'Sauvegarder'}
+            {saving ? (fr ? 'Sauvegarde…' : 'Saving…') : (fr ? 'Sauvegarder' : 'Save')}
           </button>
         </div>
 
@@ -267,7 +269,7 @@ function AvailabilityPageInner() {
                   type="button"
                   role="switch"
                   aria-checked={day.is_available}
-                  aria-label={`Activer ${DAYS[day.day_of_week]}`}
+                  aria-label={fr ? `Activer ${DAYS[day.day_of_week]}` : `Toggle ${DAYS[day.day_of_week]}`}
                   onClick={() => setDay(day.day_of_week, 'is_available', !day.is_available)}
                   className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${day.is_available ? 'bg-indigo-600' : 'bg-gray-200'}`}
                 >
@@ -337,22 +339,22 @@ function AvailabilityPageInner() {
                 <label className="block text-xs font-medium text-gray-500 mb-1.5">{fr ? 'Préavis minimum' : 'Minimum notice'}</label>
                 <select value={settings.minimum_notice_hours} onChange={(e) => setSetting('minimum_notice_hours', Number(e.target.value))}
                   className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                  <option value={1}>1 heure</option>
-                  <option value={2}>2 heures</option>
-                  <option value={4}>4 heures</option>
-                  <option value={24}>24 heures</option>
-                  <option value={48}>48 heures</option>
+                  <option value={1}>{fr ? '1 heure' : '1 hour'}</option>
+                  <option value={2}>{fr ? '2 heures' : '2 hours'}</option>
+                  <option value={4}>{fr ? '4 heures' : '4 hours'}</option>
+                  <option value={24}>{fr ? '24 heures' : '24 hours'}</option>
+                  <option value={48}>{fr ? '48 heures' : '48 hours'}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1.5">{fr ? "Réservation max. à l'avance" : 'Max advance booking'}</label>
                 <select value={settings.advance_booking_days} onChange={(e) => setSetting('advance_booking_days', Number(e.target.value))}
                   className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                  <option value={7}>1 semaine</option>
-                  <option value={14}>2 semaines</option>
-                  <option value={30}>1 mois</option>
-                  <option value={60}>2 mois</option>
-                  <option value={90}>3 mois</option>
+                  <option value={7}>{fr ? '1 semaine' : '1 week'}</option>
+                  <option value={14}>{fr ? '2 semaines' : '2 weeks'}</option>
+                  <option value={30}>{fr ? '1 mois' : '1 month'}</option>
+                  <option value={60}>{fr ? '2 mois' : '2 months'}</option>
+                  <option value={90}>{fr ? '3 mois' : '3 months'}</option>
                 </select>
               </div>
               <div>
@@ -361,20 +363,20 @@ function AvailabilityPageInner() {
                   className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                   <option value={30}>30 minutes</option>
                   <option value={45}>45 minutes</option>
-                  <option value={60}>1 heure</option>
-                  <option value={90}>1h 30</option>
-                  <option value={120}>2 heures</option>
+                  <option value={60}>{fr ? '1 heure' : '1 hour'}</option>
+                  <option value={90}>{fr ? '1h 30' : '1h 30'}</option>
+                  <option value={120}>{fr ? '2 heures' : '2 hours'}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1.5">{fr ? 'Tampon entre rendez-vous' : 'Buffer between bookings'}</label>
                 <select value={settings.buffer_minutes} onChange={(e) => setSetting('buffer_minutes', Number(e.target.value))}
                   className="block w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                  <option value={0}>Aucun</option>
+                  <option value={0}>{fr ? 'Aucun' : 'None'}</option>
                   <option value={15}>15 minutes</option>
                   <option value={30}>30 minutes</option>
                   <option value={45}>45 minutes</option>
-                  <option value={60}>1 heure</option>
+                  <option value={60}>{fr ? '1 heure' : '1 hour'}</option>
                 </select>
               </div>
               <div>
@@ -404,7 +406,7 @@ function AvailabilityPageInner() {
               onClick={() => setAddingOverride(true)}
               className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3 py-1.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
             >
-              <Plus className="h-4 w-4" /> Ajouter
+              <Plus className="h-4 w-4" /> {fr ? 'Ajouter' : 'Add'}
             </button>
           </div>
 
@@ -435,7 +437,7 @@ function AvailabilityPageInner() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Fin</label>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Fin' : 'End'}</label>
                       <select value={overrideEnd} onChange={(e) => setOverrideEnd(e.target.value)}
                         className="block w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none">
                         {TIME_OPTIONS.filter((t) => t > overrideStart).map((t) => <option key={t} value={t}>{fmtTime(t)}</option>)}
@@ -460,7 +462,7 @@ function AvailabilityPageInner() {
           {overrides.length === 0 && !addingOverride ? (
             <div className="px-6 py-8 text-center text-sm text-gray-400 flex flex-col items-center gap-2">
               <Info className="h-5 w-5 text-gray-300" />
-              Aucune exception. Ajoutez des congés ou des horaires spéciaux.
+              {fr ? 'Aucune exception. Ajoutez des congés ou des horaires spéciaux.' : 'No overrides. Add days off or special hours.'}
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
@@ -471,7 +473,7 @@ function AvailabilityPageInner() {
                       {fmtDate(o.date, lang)}
                     </span>
                     <span className={`ml-2 text-xs font-medium px-1.5 py-0.5 rounded-full ${o.is_available ? 'bg-blue-50 text-blue-700' : 'bg-red-50 text-red-600'}`}>
-                      {o.is_available ? `${fmtTime(o.start_time || '09:00')} – ${fmtTime(o.end_time || '17:00')}` : 'Indisponible'}
+                      {o.is_available ? `${fmtTime(o.start_time || '09:00')} – ${fmtTime(o.end_time || '17:00')}` : (fr ? 'Indisponible' : 'Unavailable')}
                     </span>
                     {o.reason && <span className="ml-1.5 text-xs text-gray-400">{o.reason}</span>}
                   </div>
@@ -560,7 +562,7 @@ function AvailabilityPageInner() {
                       className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-all border ${copied ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'}`}
                     >
                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                      {copied ? 'Copié !' : 'Copier'}
+                      {copied ? (fr ? 'Copié !' : 'Copied!') : (fr ? 'Copier' : 'Copy')}
                     </button>
                     <a
                       href={bookingUrl}
@@ -568,7 +570,7 @@ function AvailabilityPageInner() {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
                     >
-                      <ExternalLink className="h-4 w-4" /> Ouvrir
+                      <ExternalLink className="h-4 w-4" /> {fr ? 'Ouvrir' : 'Open'}
                     </a>
                   </div>
                 </div>
@@ -576,7 +578,7 @@ function AvailabilityPageInner() {
                 {/* Embed option 1 — button */}
                 {(() => {
                   const buttonSnippet = `<a href="${bookingUrl}" target="_blank" style="background:${settings.booking_page_color};color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-family:sans-serif;font-size:15px;font-weight:600;display:inline-block">
-  Réserver un rendez-vous
+  ${fr ? 'Réserver un rendez-vous' : 'Book an appointment'}
 </a>`
                   const isCopied = copiedSnippet === 'button'
                   return (
@@ -597,7 +599,7 @@ function AvailabilityPageInner() {
                           className={`absolute top-2 right-2 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-all ${isCopied ? 'bg-emerald-500 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 border border-gray-700'}`}
                         >
                           {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                          {isCopied ? 'Copié' : 'Copier'}
+                          {isCopied ? (fr ? 'Copié' : 'Copied') : (fr ? 'Copier' : 'Copy')}
                         </button>
                       </div>
                     </div>
@@ -626,7 +628,7 @@ function AvailabilityPageInner() {
                           className={`absolute top-2 right-2 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-all ${isCopied ? 'bg-emerald-500 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700 border border-gray-700'}`}
                         >
                           {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                          {isCopied ? 'Copié' : 'Copier'}
+                          {isCopied ? (fr ? 'Copié' : 'Copied') : (fr ? 'Copier' : 'Copy')}
                         </button>
                       </div>
                     </div>
@@ -636,7 +638,7 @@ function AvailabilityPageInner() {
             ) : (
               <div className="flex items-center gap-2 rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-700">
                 <Info className="h-4 w-4 shrink-0" />
-                Configurez le nom de votre entreprise dans les paramètres pour générer votre lien de réservation.
+                {fr ? 'Configurez le nom de votre entreprise dans les paramètres pour générer votre lien de réservation.' : 'Set up your company name in settings to generate your booking link.'}
               </div>
             )}
           </div>
@@ -657,9 +659,9 @@ export default function AvailabilityPage() {
         <div className="p-6 sm:p-10">
           <UpgradePrompt
             variant="overlay"
-            feature="Portail de réservation en ligne"
+            feature={fr ? 'Portail de réservation en ligne' : 'Online booking portal'}
             requiredPlan="pro"
-            description="Laissez vos clients réserver en ligne 24/7 via votre propre lien de réservation — disponible dès le forfait Pro."
+            description={fr ? 'Laissez vos clients réserver en ligne 24/7 via votre propre lien de réservation — disponible dès le forfait Pro.' : 'Let your clients book online 24/7 via your own booking link — available from the Pro plan.'}
           />
         </div>
       </AppLayout>
