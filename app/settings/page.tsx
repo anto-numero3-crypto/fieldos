@@ -206,6 +206,10 @@ export default function SettingsPage() {
   const [timezone, setTimezone]     = useState('America/Toronto')
   const [locationLat, setLocationLat] = useState('')
   const [locationLng, setLocationLng] = useState('')
+  // Snapshots of what was loaded from the DB — used to detect if the user
+  // actually changed an address field or overrode the manual coords.
+  const [originalAddress, setOriginalAddress] = useState({ address: '', city: '', state: '', zip: '' })
+  const [originalCoords, setOriginalCoords]   = useState<{ lat: string; lng: string }>({ lat: '', lng: '' })
 
   // Booking portal / AI agent
   const [agentName, setAgentName]   = useState('Alex')
@@ -297,6 +301,16 @@ export default function SettingsPage() {
         if (org.timezone)        setTimezone(org.timezone)
         if (org.location_lat != null) setLocationLat(String(org.location_lat))
         if (org.location_lng != null) setLocationLng(String(org.location_lng))
+        setOriginalAddress({
+          address: org.address || '',
+          city: org.city || '',
+          state: org.state || '',
+          zip: org.zip || '',
+        })
+        setOriginalCoords({
+          lat: org.location_lat != null ? String(org.location_lat) : '',
+          lng: org.location_lng != null ? String(org.location_lng) : '',
+        })
         if (org.ai_agent_name)   setAgentName(org.ai_agent_name)
         if (org.ai_agent_greeting) setAgentGreeting(org.ai_agent_greeting)
         if (org.service_types)   setAgentServices(Array.isArray(org.service_types) ? org.service_types.join(', ') : '')
@@ -361,6 +375,21 @@ export default function SettingsPage() {
       location_lat: locationLat.trim() === '' ? null : parseFloat(locationLat),
       location_lng: locationLng.trim() === '' ? null : parseFloat(locationLng),
     }
+
+    // If address changed AND the user didn't manually override the coords
+    // this session, null the saved coords so the map re-geocodes on next load.
+    const addressChanged =
+      bizAddress !== originalAddress.address ||
+      bizCity !== originalAddress.city ||
+      bizState !== originalAddress.state ||
+      bizZip !== originalAddress.zip
+    const coordsManuallyEdited =
+      locationLat !== originalCoords.lat ||
+      locationLng !== originalCoords.lng
+    if (addressChanged && !coordsManuallyEdited) {
+      payload.location_lat = null
+      payload.location_lng = null
+    }
     if (nextSlug) payload.slug = nextSlug
 
     const { data: saved, error: err } = orgId
@@ -372,6 +401,13 @@ export default function SettingsPage() {
     } else {
       if (saved?.id) setOrgId(saved.id)
       if (saved?.slug) setOrgSlug(saved.slug)
+      // Re-baseline snapshots so subsequent saves correctly detect changes.
+      setOriginalAddress({ address: bizAddress, city: bizCity, state: bizState, zip: bizZip })
+      const newLat = payload.location_lat == null ? '' : String(payload.location_lat)
+      const newLng = payload.location_lng == null ? '' : String(payload.location_lng)
+      setLocationLat(newLat)
+      setLocationLng(newLng)
+      setOriginalCoords({ lat: newLat, lng: newLng })
       toast.success(t.success.saved)
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
