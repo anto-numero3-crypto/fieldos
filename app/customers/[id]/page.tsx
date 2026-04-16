@@ -35,43 +35,33 @@ interface Booking {
   source: string | null; created_at: string
 }
 
-const STATUS = {
-  scheduled:   { label: 'Planifié',   cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
-  in_progress: { label: 'En cours',   cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100' },
-  complete:    { label: 'Terminé',    cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
-  cancelled:   { label: 'Annulé',     cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100' },
-  unpaid:      { label: 'Non payé',   cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100' },
-  paid:        { label: 'Payé',       cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
-  overdue:     { label: 'En retard',  cls: 'bg-red-50 text-red-700 ring-1 ring-red-100' },
+const STATUS_CLASS: Record<string, string> = {
+  scheduled:   'bg-blue-50 text-blue-700 ring-1 ring-blue-100',
+  in_progress: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',
+  complete:    'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
+  cancelled:   'bg-gray-50 text-gray-500 ring-1 ring-gray-100',
+  unpaid:      'bg-amber-50 text-amber-700 ring-1 ring-amber-100',
+  paid:        'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
+  overdue:     'bg-red-50 text-red-700 ring-1 ring-red-100',
 }
 
-const TAB_LABELS: Record<string, string> = {
-  overview: 'Aperçu',
-  jobs: 'Emplois',
-  invoices: 'Factures',
-  quotes: 'Devis',
-  bookings: 'Réservations',
-  notes: 'Notes',
+const BOOKING_STATUS_CLASS: Record<string, string> = {
+  pending:        'bg-amber-50 text-amber-700 ring-1 ring-amber-100',
+  confirmed:      'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
+  declined:       'bg-gray-50 text-gray-500 ring-1 ring-gray-100',
+  cancelled:      'bg-gray-50 text-gray-500 ring-1 ring-gray-100',
+  completed:      'bg-blue-50 text-blue-700 ring-1 ring-blue-100',
+  no_show:        'bg-gray-50 text-gray-500 ring-1 ring-gray-100',
+  custom_request: 'bg-violet-50 text-violet-700 ring-1 ring-violet-100',
 }
 
-const BOOKING_STATUS: Record<string, { label: string; cls: string }> = {
-  pending:    { label: 'En attente',  cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100' },
-  confirmed:  { label: 'Confirmée',   cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
-  declined:   { label: 'Refusée',     cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100' },
-  cancelled:  { label: 'Annulée',     cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100' },
-  completed:  { label: 'Terminée',    cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
-  no_show:    { label: 'Absence',     cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100' },
-  custom_request: { label: 'Demande', cls: 'bg-violet-50 text-violet-700 ring-1 ring-violet-100' },
+const QUOTE_STATUS_CLASS: Record<string, string> = {
+  draft:    'bg-gray-50 text-gray-600 ring-1 ring-gray-100',
+  sent:     'bg-blue-50 text-blue-700 ring-1 ring-blue-100',
+  accepted: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
+  declined: 'bg-red-50 text-red-700 ring-1 ring-red-100',
+  expired:  'bg-amber-50 text-amber-700 ring-1 ring-amber-100',
 }
-
-const QUOTE_STATUS: Record<string, { label: string; cls: string }> = {
-  draft:    { label: 'Brouillon', cls: 'bg-gray-50 text-gray-600 ring-1 ring-gray-100' },
-  sent:     { label: 'Envoyé',    cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
-  accepted: { label: 'Accepté',   cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
-  declined: { label: 'Refusé',    cls: 'bg-red-50 text-red-700 ring-1 ring-red-100' },
-  expired:  { label: 'Expiré',    cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100' },
-}
-type StatusKey = keyof typeof STATUS
 
 const AVATAR_COLORS = ['bg-blue-500','bg-violet-500','bg-emerald-500','bg-amber-500','bg-pink-500','bg-cyan-500']
 const initials  = (n: string) => n.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
@@ -86,6 +76,15 @@ export default function CustomerDetailPage() {
   const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
   const fmt     = (n: number) => fmtMoney(n, lang)
   const fmtDate = (d: string) => fmtDateLib(d, lang)
+
+  const TAB_LABELS: Record<string, string> = {
+    overview: fr ? 'Aperçu' : 'Overview',
+    jobs: fr ? 'Emplois' : 'Jobs',
+    invoices: fr ? 'Factures' : 'Invoices',
+    quotes: fr ? 'Devis' : 'Quotes',
+    bookings: fr ? 'Réservations' : 'Bookings',
+    notes: fr ? 'Notes' : 'Notes',
+  }
 
   const [customer, setCustomer] = useState<Customer | null>(null)
   const [jobs, setJobs]         = useState<Job[]>([])
@@ -216,7 +215,7 @@ export default function CustomerDetailPage() {
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6">
           <Link href="/customers" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Clients
+            <ArrowLeft className="h-4 w-4" /> {fr ? 'Clients' : 'Customers'}
           </Link>
           <span className="text-gray-300">/</span>
           <span className="text-sm font-medium text-gray-900">{customer.name}</span>
@@ -233,11 +232,11 @@ export default function CustomerDetailPage() {
               <div className="flex-1 space-y-3">
                 <input value={eName} onChange={(e) => setEName(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-base font-semibold text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 <div className="grid grid-cols-2 gap-3">
-                  <input value={eEmail} onChange={(e) => setEEmail(e.target.value)} placeholder="Email" type="email" className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-                  <input value={ePhone} onChange={(e) => setEPhone(e.target.value)} placeholder="Téléphone" type="tel" className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                  <input value={eEmail} onChange={(e) => setEEmail(e.target.value)} placeholder={fr ? 'Courriel' : 'Email'} type="email" className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                  <input value={ePhone} onChange={(e) => setEPhone(e.target.value)} placeholder={fr ? 'Téléphone' : 'Phone'} type="tel" className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
-                <input value={eAddress} onChange={(e) => setEAddress(e.target.value)} placeholder="Adresse" className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-                <textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} placeholder="Notes internes..." rows={2} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
+                <input value={eAddress} onChange={(e) => setEAddress(e.target.value)} placeholder={fr ? 'Adresse' : 'Address'} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                <textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} placeholder={fr ? 'Notes internes...' : 'Internal notes...'} rows={2} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               </div>
             ) : (
               <div className="flex-1 min-w-0">
@@ -256,7 +255,7 @@ export default function CustomerDetailPage() {
                     ))}
                   </div>
                 )}
-                <p className="mt-1 text-xs text-gray-400">Client depuis le {fmtDate(customer.created_at)}</p>
+                <p className="mt-1 text-xs text-gray-400">{fr ? 'Client depuis le' : 'Customer since'} {fmtDate(customer.created_at)}</p>
               </div>
             )}
 
@@ -284,10 +283,10 @@ export default function CustomerDetailPage() {
           {/* KPIs */}
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { label: 'Interventions', value: jobs.length, sub: `${completedJobs} terminée(s)`, icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
-              { label: 'Facturé', value: fmt(totalInvoiced), sub: `${invoices.length} facture(s)`, icon: FileText, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-              { label: 'Payé', value: fmt(totalPaid), sub: `${invoices.filter((i) => i.status === 'paid').length} payée(s)`, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-              { label: 'Solde impayé', value: fmt(totalUnpaid), sub: `${unpaidCount} en attente`, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+              { label: fr ? 'Interventions' : 'Jobs', value: jobs.length, sub: fr ? `${completedJobs} terminée(s)` : `${completedJobs} completed`, icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
+              { label: fr ? 'Facturé' : 'Invoiced', value: fmt(totalInvoiced), sub: fr ? `${invoices.length} facture(s)` : `${invoices.length} invoice(s)`, icon: FileText, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+              { label: fr ? 'Payé' : 'Paid', value: fmt(totalPaid), sub: fr ? `${invoices.filter((i) => i.status === 'paid').length} payée(s)` : `${invoices.filter((i) => i.status === 'paid').length} paid`, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+              { label: fr ? 'Solde impayé' : 'Unpaid balance', value: fmt(totalUnpaid), sub: fr ? `${unpaidCount} en attente` : `${unpaidCount} pending`, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
             ].map((k) => (
               <div key={k.label} className={`rounded-xl p-3 ${k.bg}`}>
                 <k.icon className={`h-5 w-5 ${k.color} mb-1`} />
@@ -301,17 +300,17 @@ export default function CustomerDetailPage() {
           {/* Quick actions */}
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href={`/jobs?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
-              <Briefcase className="h-3.5 w-3.5 text-violet-500" /> Nouvel emploi
+              <Briefcase className="h-3.5 w-3.5 text-violet-500" /> {fr ? 'Nouvel emploi' : 'New job'}
             </Link>
             <Link href={`/invoices/new?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
-              <DollarSign className="h-3.5 w-3.5 text-emerald-500" /> Nouvelle facture
+              <DollarSign className="h-3.5 w-3.5 text-emerald-500" /> {fr ? 'Nouvelle facture' : 'New invoice'}
             </Link>
             <Link href={`/quotes?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
-              <FileText className="h-3.5 w-3.5 text-indigo-500" /> Nouveau devis
+              <FileText className="h-3.5 w-3.5 text-indigo-500" /> {fr ? 'Nouveau devis' : 'New quote'}
             </Link>
             {customer.email && (
               <a href={`mailto:${customer.email}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
-                <Mail className="h-3.5 w-3.5 text-blue-500" /> Envoyer un message
+                <Mail className="h-3.5 w-3.5 text-blue-500" /> {fr ? 'Envoyer un message' : 'Send message'}
               </a>
             )}
           </div>
@@ -340,10 +339,10 @@ export default function CustomerDetailPage() {
         {/* Tab content */}
         {tab === 'overview' && (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6 space-y-4">
-            <h2 className="text-sm font-semibold text-gray-900">Aperçu du client</h2>
+            <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Aperçu du client' : 'Customer overview'}</h2>
             {customer.notes ? (
               <div className="rounded-xl bg-amber-50 border border-amber-100 p-4">
-                <p className="text-xs font-semibold text-amber-700 mb-1 flex items-center gap-1.5"><StickyNote className="h-3.5 w-3.5" /> Notes internes</p>
+                <p className="text-xs font-semibold text-amber-700 mb-1 flex items-center gap-1.5"><StickyNote className="h-3.5 w-3.5" /> {fr ? 'Notes internes' : 'Internal notes'}</p>
                 <p className="text-sm text-amber-900 whitespace-pre-wrap">{customer.notes}</p>
               </div>
             ) : (
@@ -353,8 +352,8 @@ export default function CustomerDetailPage() {
               </div>
             )}
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><p className="text-xs text-gray-500 mb-0.5">Client depuis</p><p className="font-medium text-gray-900">{fmtDate(customer.created_at)}</p></div>
-              <div><p className="text-xs text-gray-500 mb-0.5">Valeur cumulative totale</p><p className="font-semibold text-emerald-700">{fmt(totalInvoiced)}</p></div>
+              <div><p className="text-xs text-gray-500 mb-0.5">{fr ? 'Client depuis' : 'Customer since'}</p><p className="font-medium text-gray-900">{fmtDate(customer.created_at)}</p></div>
+              <div><p className="text-xs text-gray-500 mb-0.5">{fr ? 'Valeur cumulative totale' : 'Total lifetime value'}</p><p className="font-semibold text-emerald-700">{fmt(totalInvoiced)}</p></div>
             </div>
           </div>
         )}
@@ -362,9 +361,9 @@ export default function CustomerDetailPage() {
         {tab === 'jobs' && (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">Emplois ({jobs.length})</h2>
+              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Emplois' : 'Jobs'} ({jobs.length})</h2>
               <Link href={`/jobs?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
-                <Plus className="h-3.5 w-3.5" /> Nouvel emploi
+                <Plus className="h-3.5 w-3.5" /> {fr ? 'Nouvel emploi' : 'New job'}
               </Link>
             </div>
             {jobs.length === 0 ? (
@@ -375,7 +374,6 @@ export default function CustomerDetailPage() {
             ) : (
               <ul className="divide-y divide-gray-50">
                 {jobs.map((j) => {
-                  const s = STATUS[j.status as StatusKey]
                   return (
                     <li key={j.id}>
                       <Link href={`/jobs/${j.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
@@ -389,7 +387,7 @@ export default function CustomerDetailPage() {
                             {j.scheduled_date ? fmtDate(j.scheduled_date) : fmtDate(j.created_at)}
                           </p>
                         </div>
-                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s?.cls || ''}`}>{tStatus(j.status)}</span>
+                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASS[j.status] || ''}`}>{tStatus(j.status)}</span>
                       </Link>
                     </li>
                   )
@@ -403,15 +401,15 @@ export default function CustomerDetailPage() {
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Factures ({invoices.length})</h2>
+                <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Factures' : 'Invoices'} ({invoices.length})</h2>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Facturé : <span className="font-medium text-gray-700">{fmt(totalInvoiced)}</span> ·
-                  Payé : <span className="font-medium text-emerald-700">{fmt(totalPaid)}</span> ·
-                  Impayé : <span className="font-medium text-amber-700">{fmt(totalUnpaid)}</span>
+                  {fr ? 'Facturé' : 'Invoiced'} : <span className="font-medium text-gray-700">{fmt(totalInvoiced)}</span> ·
+                  {fr ? ' Payé' : ' Paid'} : <span className="font-medium text-emerald-700">{fmt(totalPaid)}</span> ·
+                  {fr ? ' Impayé' : ' Unpaid'} : <span className="font-medium text-amber-700">{fmt(totalUnpaid)}</span>
                 </p>
               </div>
               <Link href={`/invoices/new?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
-                <Plus className="h-3.5 w-3.5" /> Nouvelle facture
+                <Plus className="h-3.5 w-3.5" /> {fr ? 'Nouvelle facture' : 'New invoice'}
               </Link>
             </div>
             {invoices.length === 0 ? (
@@ -422,7 +420,6 @@ export default function CustomerDetailPage() {
             ) : (
               <ul className="divide-y divide-gray-50">
                 {invoices.map((inv) => {
-                  const s = STATUS[inv.status as StatusKey]
                   return (
                     <li key={inv.id}>
                       <Link href={`/invoices/${inv.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
@@ -432,10 +429,10 @@ export default function CustomerDetailPage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-gray-900">{fmt(parseFloat(String(inv.amount)))}</p>
                           <p className="text-xs text-gray-400">
-                            {inv.invoice_number || 'Facture'} · {inv.due_date ? `Éch. ${fmtDate(inv.due_date)}` : fmtDate(inv.created_at)}
+                            {inv.invoice_number || (fr ? 'Facture' : 'Invoice')} · {inv.due_date ? (fr ? `Éch. ${fmtDate(inv.due_date)}` : `Due ${fmtDate(inv.due_date)}`) : fmtDate(inv.created_at)}
                           </p>
                         </div>
-                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s?.cls || ''}`}>{tStatus(inv.status)}</span>
+                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_CLASS[inv.status] || ''}`}>{tStatus(inv.status)}</span>
                       </Link>
                     </li>
                   )
@@ -448,9 +445,9 @@ export default function CustomerDetailPage() {
         {tab === 'quotes' && (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">Devis ({quotes.length})</h2>
+              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Devis' : 'Quotes'} ({quotes.length})</h2>
               <Link href={`/quotes?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
-                <Plus className="h-3.5 w-3.5" /> Nouveau devis
+                <Plus className="h-3.5 w-3.5" /> {fr ? 'Nouveau devis' : 'New quote'}
               </Link>
             </div>
             {quotes.length === 0 ? (
@@ -461,7 +458,7 @@ export default function CustomerDetailPage() {
             ) : (
               <ul className="divide-y divide-gray-50">
                 {quotes.map((q) => {
-                  const s = q.status ? QUOTE_STATUS[q.status] : null
+                  const cls = q.status ? QUOTE_STATUS_CLASS[q.status] : null
                   return (
                     <li key={q.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50">
@@ -469,15 +466,15 @@ export default function CustomerDetailPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-gray-900 truncate">
-                          {q.title || q.quote_number || 'Devis'}{q.total != null ? ` · ${fmt(parseFloat(String(q.total)))}` : ''}
+                          {q.title || q.quote_number || (fr ? 'Devis' : 'Quote')}{q.total != null ? ` · ${fmt(parseFloat(String(q.total)))}` : ''}
                         </p>
                         <p className="text-xs text-gray-400">
                           {q.quote_number ? `${q.quote_number} · ` : ''}
-                          {q.valid_until ? `Valide jusqu'au ${fmtDate(q.valid_until)}` : `Créé le ${fmtDate(q.created_at)}`}
+                          {q.valid_until ? (fr ? `Valide jusqu'au ${fmtDate(q.valid_until)}` : `Valid until ${fmtDate(q.valid_until)}`) : (fr ? `Créé le ${fmtDate(q.created_at)}` : `Created ${fmtDate(q.created_at)}`)}
                         </p>
                       </div>
-                      {s && q.status && (
-                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s.cls}`}>{tStatus(q.status)}</span>
+                      {cls && q.status && (
+                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>{tStatus(q.status)}</span>
                       )}
                     </li>
                   )
@@ -490,7 +487,7 @@ export default function CustomerDetailPage() {
         {tab === 'bookings' && (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">Réservations ({bookings.length})</h2>
+              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Réservations' : 'Bookings'} ({bookings.length})</h2>
             </div>
             {bookings.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -500,22 +497,22 @@ export default function CustomerDetailPage() {
             ) : (
               <ul className="divide-y divide-gray-50">
                 {bookings.map((b) => {
-                  const s = BOOKING_STATUS[b.status]
+                  const bcls = BOOKING_STATUS_CLASS[b.status]
                   return (
                     <li key={b.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50">
                         <Calendar className="h-4 w-4 text-indigo-500" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{b.service_name || 'Réservation'}</p>
+                        <p className="text-sm font-medium text-gray-900 truncate">{b.service_name || (fr ? 'Réservation' : 'Booking')}</p>
                         <p className="text-xs text-gray-400">
                           {b.requested_date ? fmtDate(b.requested_date) : fmtDate(b.created_at)}
-                          {b.requested_time ? ` à ${b.requested_time.slice(0, 5)}` : ''}
+                          {b.requested_time ? (fr ? ` à ${b.requested_time.slice(0, 5)}` : ` at ${b.requested_time.slice(0, 5)}`) : ''}
                           {b.source ? ` · ${b.source}` : ''}
                         </p>
                       </div>
-                      {s && (
-                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${s.cls}`}>{tStatus(b.status)}</span>
+                      {bcls && (
+                        <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${bcls}`}>{tStatus(b.status)}</span>
                       )}
                     </li>
                   )
@@ -528,9 +525,9 @@ export default function CustomerDetailPage() {
         {tab === 'notes' && (
           <div className="space-y-4">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">Ajouter une note</h3>
+              <h3 className="text-sm font-semibold text-gray-900 mb-3">{fr ? 'Ajouter une note' : 'Add a note'}</h3>
               <textarea
-                placeholder="Ajouter une note sur ce client..."
+                placeholder={fr ? 'Ajouter une note sur ce client...' : 'Add a note about this customer...'}
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 rows={3}
@@ -541,7 +538,7 @@ export default function CustomerDetailPage() {
                 disabled={!newNote.trim() || addingNote}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
               >
-                <Plus className="h-4 w-4" />{addingNote ? 'Ajout...' : 'Ajouter une note'}
+                <Plus className="h-4 w-4" />{addingNote ? (fr ? 'Ajout...' : 'Adding...') : (fr ? 'Ajouter une note' : 'Add a note')}
               </button>
             </div>
 
