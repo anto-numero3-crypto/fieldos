@@ -45,8 +45,10 @@ const STATUS_DOT: Record<string, string> = {
   scheduled: 'bg-blue-500', in_progress: 'bg-amber-500', complete: 'bg-emerald-500', cancelled: 'bg-gray-400',
 }
 
-const DAYS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
-const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+const DAYS_FR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam']
+const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 function startOfWeek(date: Date) {
   const d = new Date(date)
@@ -65,6 +67,8 @@ const toISO = (d: Date) => d.toISOString().slice(0, 10)
 export default function SchedulePage() {
   const { lang, t } = useLanguage()
   const fr = lang === 'fr'
+  const DAYS = fr ? DAYS_FR : DAYS_EN
+  const MONTHS = fr ? MONTHS_FR : MONTHS_EN
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()))
   const [jobs, setJobs]           = useState<Job[]>([])
   const [loading, setLoading]     = useState(true)
@@ -311,8 +315,8 @@ export default function SchedulePage() {
               <EmptyState
                 icon={Calendar}
                 title={fr ? "Aucun rendez-vous aujourd'hui" : 'No appointments today'}
-                description="Votre journée est libre."
-                actions={[{ label: 'Créer un emploi', href: '/jobs', variant: 'primary' }]}
+                description={fr ? 'Votre journée est libre.' : 'Your day is free.'}
+                actions={[{ label: fr ? 'Créer un emploi' : 'Create a job', href: '/jobs', variant: 'primary' }]}
               />
             ) : (
               <ul className="divide-y divide-gray-50">
@@ -350,10 +354,10 @@ export default function SchedulePage() {
             <h3 className="text-sm font-semibold text-gray-900 mb-4">{fr ? 'Légende des statuts' : 'Status legend'}</h3>
             <div className="space-y-3">
               {[
-                { status: 'scheduled',   label: 'Planifié',   desc: 'Bons de travail à venir' },
-                { status: 'in_progress', label: 'En cours',   desc: 'Interventions actives' },
-                { status: 'complete',    label: 'Terminé',    desc: 'Complétées avec succès' },
-                { status: 'cancelled',   label: 'Annulé',     desc: 'Annulées ou absences' },
+                { status: 'scheduled',   label: fr ? 'Planifié'   : 'Scheduled',   desc: fr ? 'Bons de travail à venir' : 'Upcoming work orders' },
+                { status: 'in_progress', label: fr ? 'En cours'   : 'In progress', desc: fr ? 'Interventions actives' : 'Active jobs' },
+                { status: 'complete',    label: fr ? 'Terminé'    : 'Complete',    desc: fr ? 'Complétées avec succès' : 'Successfully completed' },
+                { status: 'cancelled',   label: fr ? 'Annulé'     : 'Cancelled',   desc: fr ? 'Annulées ou absences' : 'Cancelled or no-shows' },
               ].map((s) => (
                 <div key={s.status} className="flex items-center gap-3">
                   <div className={`h-8 w-8 shrink-0 rounded-lg border-l-2 ${STATUS_COLOR[s.status]}`} />
