@@ -8,18 +8,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 
 interface Message { role: 'user' | 'assistant'; content: string }
 
-const SUGGESTED_PROMPTS = [
-  'Quel est mon revenu total ce mois-ci ?',
-  'Quels clients ont des factures en retard ?',
-  'Rédige un email de rappel de paiement pour les factures en retard',
-  'Résume mes performances commerciales cette semaine',
-  'Quels clients n\'ont pas eu d\'intervention depuis 90+ jours ?',
-  'Quels sont mes types d\'intervention les plus rentables ?',
-  'Combien d\'interventions actives ai-je en ce moment ?',
-  'Génère un résumé hebdomadaire de mon activité',
-]
-
-function MessageContent({ content }: { content: string }) {
+function MessageContent({ content, fr }: { content: string; fr: boolean }) {
   const [copied, setCopied] = useState(false)
 
   const copyContent = () => {
@@ -45,7 +34,7 @@ function MessageContent({ content }: { content: string }) {
       <button
         onClick={copyContent}
         className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 rounded-lg p-1 bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
-        title="Copy message"
+        title={fr ? 'Copier le message' : 'Copy message'}
       >
         {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
       </button>
@@ -54,7 +43,8 @@ function MessageContent({ content }: { content: string }) {
 }
 
 export default function AssistantPage() {
-  const { t } = useLanguage()
+  const { lang, t } = useLanguage()
+  const fr = lang === 'fr'
   const [user, setUser]     = useState<{ id: string; email?: string } | null>(null)
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: t.assistant.welcomeMsg },
@@ -107,7 +97,7 @@ export default function AssistantPage() {
       const data = await res.json()
       setMessages([...newMessages, { role: 'assistant', content: data.reply }])
     } catch {
-      setMessages([...newMessages, { role: 'assistant', content: 'Une erreur s\'est produite. Veuillez réessayer.' }])
+      setMessages([...newMessages, { role: 'assistant', content: fr ? "Une erreur s'est produite. Veuillez réessayer." : 'An error occurred. Please try again.' }])
     }
     setLoading(false)
   }
@@ -117,13 +107,13 @@ export default function AssistantPage() {
   }
 
   const resetConversation = () => {
-    setMessages([{ role: 'assistant', content: "Bonjour ! Je suis votre assistant IA Gestivio, propulsé par Claude.\n\nJ'ai accès en temps réel à toutes vos données — clients, interventions, factures, devis et analyses de revenus.\n\nPosez-moi n'importe quelle question ou demandez-moi de rédiger quelque chose !" }])
+    setMessages([{ role: 'assistant', content: t.assistant.welcomeMsg }])
   }
 
   const isOnlyWelcome = messages.length === 1
 
   return (
-    <AppLayout title="Assistant IA">
+    <AppLayout title={fr ? 'Assistant IA' : 'AI Assistant'}>
       <div className="flex flex-col h-full max-h-[calc(100vh-64px)]">
 
         {/* Messages area */}
@@ -134,7 +124,7 @@ export default function AssistantPage() {
             {isOnlyWelcome && (
               <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <Zap className="h-3.5 w-3.5" /> Questions suggérées
+                  <Zap className="h-3.5 w-3.5" /> {fr ? 'Questions suggérées' : 'Suggested questions'}
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {t.assistant.prompts.map((prompt) => (
@@ -169,7 +159,7 @@ export default function AssistantPage() {
                     : 'bg-white border border-gray-100 text-gray-800 rounded-tl-md',
                 ].join(' ')}>
                   {msg.role === 'assistant' ? (
-                    <MessageContent content={msg.content} />
+                    <MessageContent content={msg.content} fr={fr} />
                   ) : (
                     <p className="text-sm leading-relaxed">{msg.content}</p>
                   )}
@@ -202,14 +192,14 @@ export default function AssistantPage() {
                 type="button"
                 onClick={resetConversation}
                 className="shrink-0 mb-1 rounded-lg p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                title="Reset conversation"
+                title={fr ? 'Réinitialiser la conversation' : 'Reset conversation'}
               >
                 <RotateCcw className="h-4 w-4" />
               </button>
               <div className="flex-1 relative">
                 <textarea
                   ref={textareaRef}
-                  placeholder="Posez n'importe quelle question sur votre activité..."
+                  placeholder={fr ? "Posez n'importe quelle question sur votre activité..." : 'Ask anything about your business...'}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -229,7 +219,7 @@ export default function AssistantPage() {
               </div>
             </div>
             <p className="mt-2 text-center text-xs text-gray-400">
-              Propulsé par <span className="font-medium text-indigo-500">Claude Sonnet</span> · Accès en temps réel à vos données · Appuyez sur Entrée pour envoyer
+              {fr ? 'Propulsé par ' : 'Powered by '}<span className="font-medium text-indigo-500">Claude Sonnet</span> {fr ? '· Accès en temps réel à vos données · Appuyez sur Entrée pour envoyer' : '· Real-time access to your data · Press Enter to send'}
             </p>
           </div>
         </div>
