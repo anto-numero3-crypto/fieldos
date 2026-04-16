@@ -28,17 +28,19 @@ interface Job {
 }
 interface Customer { id: string; name: string }
 
-const STATUS_CFG: Record<string, { label: string; cls: string }> = {
-  scheduled:   { label: 'Planifié',   cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
-  in_progress: { label: 'En cours',   cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100' },
-  complete:    { label: 'Terminé',    cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
-  cancelled:   { label: 'Annulé',     cls: 'bg-gray-50 text-gray-500 ring-1 ring-gray-100' },
+const STATUS_CLS: Record<string, string> = {
+  scheduled:   'bg-blue-50 text-blue-700 ring-1 ring-blue-100',
+  in_progress: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',
+  complete:    'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
+  cancelled:   'bg-gray-50 text-gray-500 ring-1 ring-gray-100',
 }
-const PRIORITY_CFG: Record<string, { label: string; cls: string; icon: string }> = {
-  low:    { label: 'Faible',  cls: 'text-gray-400', icon: '↓' },
-  normal: { label: 'Normal',  cls: 'text-blue-500', icon: '→' },
-  high:   { label: 'Élevée', cls: 'text-amber-500', icon: '↑' },
-  urgent: { label: 'Urgent',  cls: 'text-red-500',  icon: '⚡' },
+function getPriorityCfg(fr: boolean): Record<string, { label: string; cls: string; icon: string }> {
+  return {
+    low:    { label: fr ? 'Faible' : 'Low',      cls: 'text-gray-400', icon: '↓' },
+    normal: { label: fr ? 'Normal' : 'Normal',   cls: 'text-blue-500', icon: '→' },
+    high:   { label: fr ? 'Élevée' : 'High',     cls: 'text-amber-500', icon: '↑' },
+    urgent: { label: fr ? 'Urgent' : 'Urgent',   cls: 'text-red-500',  icon: '⚡' },
+  }
 }
 
 export default function JobsPage() {
@@ -55,7 +57,9 @@ export default function JobsPage() {
       // Lightweight client-side check based on jobs already visible.
       // Server enforcement lives in the API where the insert happens.
       if (jobs.length >= plan.limits.maxJobsPerMonth) {
-        toast.error(`Limite de ${plan.limits.maxJobsPerMonth} interventions par mois atteinte sur Starter. Passez à Pro pour un nombre illimité.`)
+        toast.error(fr
+          ? `Limite de ${plan.limits.maxJobsPerMonth} interventions par mois atteinte sur Starter. Passez à Pro pour un nombre illimité.`
+          : `Starter plan limit of ${plan.limits.maxJobsPerMonth} jobs per month reached. Upgrade to Pro for unlimited.`)
         return
       }
     }
@@ -78,6 +82,7 @@ export default function JobsPage() {
   const { lang, t } = useLanguage()
   const fr = lang === 'fr'
   const tStatus = (k: string) => (t.status as Record<string, string>)[k] || k
+  const PRIORITY_CFG = getPriorityCfg(fr)
 
   const errTitle = touched.title ? validateRequired(title) : ''
   const formInvalid = !!validateRequired(title)
@@ -187,7 +192,7 @@ export default function JobsPage() {
   )
 
   if (pageLoading) return (
-    <AppLayout title="Interventions">
+    <AppLayout title={fr ? 'Interventions' : 'Jobs'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-3">
         <SkeletonText className="h-10 w-64 mb-3" />
         {[...Array(3)].map((_, i) => <SkeletonCard key={i} className="h-24" />)}
@@ -196,23 +201,23 @@ export default function JobsPage() {
   )
 
   const statusFilters = [
-    { key: 'all',         label: 'Tous',     count: jobs.length },
-    { key: 'scheduled',   label: 'Planifié', count: countByStatus('scheduled') },
-    { key: 'in_progress', label: 'En cours', count: countByStatus('in_progress') },
-    { key: 'complete',    label: 'Terminé',  count: countByStatus('complete') },
-    { key: 'cancelled',   label: 'Annulé',   count: countByStatus('cancelled') },
+    { key: 'all',         label: fr ? 'Tous'      : 'All',         count: jobs.length },
+    { key: 'scheduled',   label: fr ? 'Planifié'  : 'Scheduled',   count: countByStatus('scheduled') },
+    { key: 'in_progress', label: fr ? 'En cours'  : 'In progress', count: countByStatus('in_progress') },
+    { key: 'complete',    label: fr ? 'Terminé'   : 'Complete',    count: countByStatus('complete') },
+    { key: 'cancelled',   label: fr ? 'Annulé'    : 'Cancelled',   count: countByStatus('cancelled') },
   ]
 
   return (
-    <AppLayout title="Interventions" actions={AddButton}>
+    <AppLayout title={fr ? 'Interventions' : 'Jobs'} actions={AddButton}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
-            { label: 'Actives', value: countByStatus('scheduled') + countByStatus('in_progress'), icon: Briefcase, bg: 'bg-blue-50', color: 'text-blue-600' },
-            { label: 'En cours', value: countByStatus('in_progress'), icon: Clock, bg: 'bg-amber-50', color: 'text-amber-600' },
-            { label: 'Terminées', value: countByStatus('complete'), icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-            { label: 'Total', value: jobs.length, icon: Zap, bg: 'bg-violet-50', color: 'text-violet-600' },
+            { label: fr ? 'Actives' : 'Active', value: countByStatus('scheduled') + countByStatus('in_progress'), icon: Briefcase, bg: 'bg-blue-50', color: 'text-blue-600' },
+            { label: fr ? 'En cours' : 'In progress', value: countByStatus('in_progress'), icon: Clock, bg: 'bg-amber-50', color: 'text-amber-600' },
+            { label: fr ? 'Terminées' : 'Completed', value: countByStatus('complete'), icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+            { label: fr ? 'Total' : 'Total', value: jobs.length, icon: Zap, bg: 'bg-violet-50', color: 'text-violet-600' },
           ].map((s) => (
             <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${s.bg} mb-2`}>
@@ -245,7 +250,7 @@ export default function JobsPage() {
             <EmptyState
               icon={Briefcase}
               title={fr ? 'Aucun emploi' : 'No jobs'}
-              description="Créez votre premier emploi ou attendez une réservation en ligne."
+              description={fr ? 'Créez votre premier emploi ou attendez une réservation en ligne.' : 'Create your first job or wait for an online booking.'}
               actions={[{ label: fr ? 'Créer un emploi' : 'Create a job', onClick: openAddJob, variant: 'primary' }]}
             />
           </div>
@@ -267,7 +272,7 @@ export default function JobsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {paged.map((job) => {
-                    const scfg = STATUS_CFG[job.status]
+                    const scls = STATUS_CLS[job.status]
                     const pcfg = PRIORITY_CFG[job.priority || 'normal']
                     return (
                       <tr key={job.id} className="hover:bg-gray-50 transition-colors group">
@@ -287,7 +292,7 @@ export default function JobsPage() {
                           ) : <span className="text-gray-300">—</span>}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{tStatus(job.status)}</span>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scls || ''}`}>{tStatus(job.status)}</span>
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -298,8 +303,8 @@ export default function JobsPage() {
                                 <>
                                   <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(null)} />
                                   <div className="absolute right-0 top-full mt-1 z-20 w-44 rounded-xl border border-gray-100 bg-white shadow-lg py-1 slide-up">
-                                    <p className="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase">Changer le statut</p>
-                                    {Object.entries(STATUS_CFG).map(([key, cfg]) => (
+                                    <p className="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase">{fr ? 'Changer le statut' : 'Change status'}</p>
+                                    {Object.keys(STATUS_CLS).map((key) => (
                                       <button key={key} onClick={() => updateStatus(job.id, key)} className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${job.status === key ? 'font-semibold text-indigo-600' : 'text-gray-700'}`}>
                                         <span className={`h-2 w-2 rounded-full ${key === 'scheduled' ? 'bg-blue-500' : key === 'in_progress' ? 'bg-amber-500' : key === 'complete' ? 'bg-emerald-500' : 'bg-gray-400'}`} />
                                         {tStatus(key)}
@@ -323,7 +328,7 @@ export default function JobsPage() {
 
             <div className="md:hidden divide-y divide-gray-100">
               {filtered.map((job) => {
-                const scfg = STATUS_CFG[job.status]
+                const scls = STATUS_CLS[job.status]
                 const pcfg = PRIORITY_CFG[job.priority || 'normal']
                 return (
                   <Link key={job.id} href={`/jobs/${job.id}`} className="block p-4 hover:bg-gray-50 transition-colors">
@@ -334,7 +339,7 @@ export default function JobsPage() {
                         {job.scheduled_date && <p className="flex items-center gap-1 text-xs text-gray-400"><Calendar className="h-3 w-3" />{fmtDate(job.scheduled_date, lang)}</p>}
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{tStatus(job.status)}</span>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scls || ''}`}>{tStatus(job.status)}</span>
                         <span className={`text-xs font-medium ${pcfg.cls}`}>{pcfg.icon} {pcfg.label}</span>
                       </div>
                     </div>
@@ -359,7 +364,7 @@ export default function JobsPage() {
             <form onSubmit={addJob} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Titre' : 'Title'} <span className="text-red-500">*</span></label>
-                <input type="text" placeholder="ex. Entretien climatisation" value={title}
+                <input type="text" placeholder={fr ? 'ex. Entretien climatisation' : 'e.g. AC maintenance'} value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, title: true }))}
                   required
@@ -368,10 +373,10 @@ export default function JobsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Description' : 'Description'}</label>
-                <textarea placeholder="Décrivez les travaux à effectuer…" value={description} onChange={(e) => setDesc(e.target.value)} rows={3} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none" />
+                <textarea placeholder={fr ? 'Décrivez les travaux à effectuer…' : 'Describe the work to be done…'} value={description} onChange={(e) => setDesc(e.target.value)} rows={3} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Client</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Client' : 'Customer'}</label>
                 <div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                   <select value={customerId} onChange={(e) => setCustId(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
                     <option value="">{fr ? 'Aucun client sélectionné' : 'No customer selected'}</option>
