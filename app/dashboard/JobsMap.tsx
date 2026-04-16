@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtTime } from '@/lib/format'
 import { JOB_COLORS } from '@/lib/status-colors'
+import { supabase } from '@/app/supabase'
 
 // Default location: Montreal (centre-ville)
 const DEFAULT_CENTER: [number, number] = [45.5017, -73.5673]
@@ -86,6 +87,24 @@ async function geocode(address: string): Promise<{ lat: number; lng: number } | 
   }
 }
 
+function makeBusinessIcon() {
+  const html = `
+    <div style="width:24px;height:24px;border-radius:5px;background:#4f46e5;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </div>
+  `
+  return L.divIcon({
+    className: 'gestivio-business-pin',
+    html,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -14],
+  })
+}
+
 function makeIcon(color: string) {
   // Colored teardrop pin via divIcon + inline SVG. No image assets required.
   const html = `
@@ -129,12 +148,21 @@ interface Props {
   jobs: JobMarker[]
 }
 
+interface Business {
+  name: string
+  address: string
+  lat: number
+  lng: number
+}
+
 export default function JobsMap({ jobs }: Props) {
   const { lang } = useLanguage()
   const fr = lang === 'fr'
   const [geocoded, setGeocoded] = useState<Geocoded[]>([])
   const [loading, setLoading] = useState(true)
   const [isDark, setIsDark] = useState(false)
+  const [business, setBusiness] = useState<Business | null>(null)
+  const [businessMissing, setBusinessMissing] = useState(false)
   const abortRef = useRef(false)
 
   useEffect(() => {
@@ -143,6 +171,36 @@ export default function JobsMap({ jobs }: Props) {
     const observer = new MutationObserver(read)
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
     return () => observer.disconnect()
+  }, [])
+
+  // Fetch business address once, geocode, cache
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const { data: auth } = await supabase.auth.getUser()
+      if (!auth.user) return
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('name, address, city, state, zip')
+        .eq('owner_user_id', auth.user.id)
+        .maybeSingle()
+      if (cancelled) return
+      if (!org || !org.address || !org.address.trim()) {
+        setBusinessMissing(true)
+        return
+      }
+      const parts = [org.address, org.city, org.state, org.zip].filter(Boolean)
+      const fullAddress = parts.join(', ')
+      loadCacheFromStorage()
+      const coords = await geocode(fullAddress)
+      if (cancelled) return
+      if (coords) {
+        setBusiness({ name: org.name || 'Gestivio', address: fullAddress, lat: coords.lat, lng: coords.lng })
+      } else {
+        setBusinessMissing(true)
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
 
   useEffect(() => {
@@ -175,12 +233,14 @@ export default function JobsMap({ jobs }: Props) {
 
   const points: Array<[number, number]> = geocoded.map((g) => [g.lat, g.lng])
   const hasMarkers = geocoded.length > 0
+  const center: [number, number] = business ? [business.lat, business.lng] : DEFAULT_CENTER
+  const zoom = business ? 12 : DEFAULT_ZOOM
 
   return (
     <div className="relative h-[360px] w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800">
       <MapContainer
-        center={DEFAULT_CENTER}
-        zoom={DEFAULT_ZOOM}
+        center={center}
+        zoom={zoom}
         scrollWheelZoom={true}
         className="h-full w-full"
       >
@@ -190,6 +250,19 @@ export default function JobsMap({ jobs }: Props) {
             ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
             : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'}
         />
+        {business && (
+          <Marker position={[business.lat, business.lng]} icon={makeBusinessIcon()}>
+            <Popup>
+              <div className="text-xs space-y-1 min-w-[180px]">
+                <div className="font-semibold text-gray-900">{business.name}</div>
+                <div className="text-gray-600">{business.address}</div>
+                <a href="/settings" className="inline-block mt-1 text-indigo-600 hover:underline">
+                  {fr ? "Modifier l'adresse" : 'Edit address'}
+                </a>
+              </div>
+            </Popup>
+          </Marker>
+        )}
         {geocoded.map((j) => (
           <Marker
             key={j.id}
@@ -215,11 +288,11 @@ export default function JobsMap({ jobs }: Props) {
             </Popup>
           </Marker>
         ))}
-        <FitToMarkers points={points} />
+        <FitToMarkers points={business ? [...points, [business.lat, business.lng] as [number, number]] : points} />
       </MapContainer>
 
       {/* Overlay — shown while geocoding, or when nothing to show */}
-      {(loading || !hasMarkers) && (
+      {(loading || !hasMarkers) && !business && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-gray-950/60 backdrop-blur-[2px]">
           <div className="pointer-events-auto rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-4 py-3 shadow-lg text-center">
             <p className="text-sm font-medium text-gray-900 dark:text-white">
@@ -233,6 +306,15 @@ export default function JobsMap({ jobs }: Props) {
               </p>
             )}
           </div>
+        </div>
+      )}
+
+      {!loading && businessMissing && !hasMarkers && (
+        <div className="absolute bottom-3 left-3 right-3 sm:right-auto sm:max-w-xs pointer-events-auto">
+          <a href="/settings" className="block rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-3 py-2 shadow-sm text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-indigo-500 mr-1.5 align-middle" />
+            {fr ? 'Configurez votre adresse dans Paramètres → Entreprise' : 'Set your address in Settings → Business'}
+          </a>
         </div>
       )}
     </div>
