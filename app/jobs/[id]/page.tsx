@@ -120,26 +120,13 @@ export default function JobDetailPage() {
     setJob({ ...job, assigned_to: value })
     toast.success(t.success.updated)
     if (value) {
-      const m = team.find((x) => x.id === value)
-      if (m?.email) {
-        await fetch('/api/email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'job_assigned',
-            to: m.email,
-            memberName: m.name,
-            serviceName: job.title,
-            customerName: job.customers?.name || '',
-            customerPhone: job.customers?.phone || undefined,
-            address: job.service_address || undefined,
-            bookingDate: job.scheduled_date || '',
-            bookingTime: job.start_time || '',
-            notes: job.description || undefined,
-            jobLink: `${window.location.origin}/jobs/${job.id}`,
-          }),
-        })
-      }
+      fetch('/api/notifications/job-assigned', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobId: id }),
+      })
+        .then(async (r) => { if (!r.ok) console.error('[job-assigned email]', await r.json().catch(() => null)) })
+        .catch((err) => console.error('[job-assigned email]', err))
     }
   }
 
@@ -163,6 +150,14 @@ export default function JobDetailPage() {
       })
         .then(async (r) => console.log('[gcal sync update]', r.status, await r.json().catch(() => null)))
         .catch((err) => console.error('[gcal sync update] failed:', err))
+      const dateChanged = eDate !== (job.scheduled_date || '') || eStart !== (job.start_time || '') || eEnd !== (job.end_time || '')
+      if (dateChanged && job.assigned_to) {
+        fetch('/api/notifications/job-assigned', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobId: id, isReschedule: true }),
+        }).catch(() => {})
+      }
     }
     setSaving(false)
   }

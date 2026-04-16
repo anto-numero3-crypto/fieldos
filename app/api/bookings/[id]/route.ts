@@ -149,27 +149,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }
       if (job) {
         update.converted_to_job_id = job.id
-        // Email assigned team member
         if (jobAssignee) {
-          const { data: member } = await supabase
-            .from('team_members')
-            .select('name, email')
-            .eq('id', jobAssignee)
-            .single()
-          if (member?.email) {
-            await sendEmail({
-              type: 'job_assigned',
-              to: member.email,
-              memberName: member.name,
-              serviceName: booking.service_name,
-              customerName: booking.customer_name,
-              customerPhone: booking.customer_phone || undefined,
-              address: booking.customer_address || undefined,
-              bookingDate: dateFormatted,
-              bookingTime: timeFormatted,
-              notes: booking.notes || undefined,
-              jobLink: `https://gestivio.ca/jobs/${job.id}`,
+          const origin = process.env.NEXT_PUBLIC_APP_URL || 'https://gestivio.ca'
+          try {
+            await fetch(`${origin}/api/notifications/job-assigned`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Cookie: req.headers.get('cookie') || '' },
+              body: JSON.stringify({ jobId: job.id }),
             })
+          } catch (err) {
+            console.error('[booking confirm] job-assigned email failed:', err)
           }
         }
       }
