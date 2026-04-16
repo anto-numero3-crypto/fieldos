@@ -39,9 +39,13 @@ interface Service {
   is_active: boolean
 }
 
-const SERVICE_CATEGORIES = [
+const SERVICE_CATEGORIES_FR = [
   'Nettoyage', 'Plomberie', 'CVC / HVAC', 'Électricité',
   'Aménagement paysager', 'Peinture', 'Rénovation', 'Autre',
+]
+const SERVICE_CATEGORIES_EN = [
+  'Cleaning', 'Plumbing', 'HVAC', 'Electrical',
+  'Landscaping', 'Painting', 'Renovation', 'Other',
 ]
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
@@ -265,7 +269,7 @@ export default function SettingsPage() {
         plan.refresh()
       }
       if (params.get('canceled') === 'true') {
-        toast.info('Paiement annulé.')
+        toast.info(fr ? 'Paiement annulé.' : 'Payment cancelled.')
       }
       if (params.get('google') === 'success') {
         toast.success(fr ? 'Google Calendar connecté' : 'Google Calendar connected')
@@ -432,9 +436,9 @@ export default function SettingsPage() {
 
   const deleteService = async (svc: Service) => {
     const { confirmed } = await confirm({
-      title: 'Supprimer ce service ?',
-      description: `« ${svc.name} » ne sera plus disponible dans votre portail de réservation.`,
-      confirmLabel: 'Supprimer',
+      title: fr ? 'Supprimer ce service ?' : 'Delete this service?',
+      description: fr ? `« ${svc.name} » ne sera plus disponible dans votre portail de réservation.` : `"${svc.name}" will no longer be available on your booking portal.`,
+      confirmLabel: fr ? 'Supprimer' : 'Delete',
     })
     if (!confirmed) return
     const { error: svcErr } = await supabase.from('services').delete().eq('id', svc.id)
@@ -548,7 +552,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <AppLayout title="Paramètres">
+    <AppLayout title={fr ? 'Paramètres' : 'Settings'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
 
         {/* Tab nav */}
@@ -589,11 +593,11 @@ export default function SettingsPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Devise' : 'Currency'}</label>
                   <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
-                    <option value="CAD">CAD — Canadian Dollar</option>
-                    <option value="USD">USD — US Dollar</option>
+                    <option value="CAD">{fr ? 'CAD — Dollar canadien' : 'CAD — Canadian Dollar'}</option>
+                    <option value="USD">{fr ? 'USD — Dollar américain' : 'USD — US Dollar'}</option>
                     <option value="EUR">EUR — Euro</option>
-                    <option value="GBP">GBP — British Pound</option>
-                    <option value="AUD">AUD — Australian Dollar</option>
+                    <option value="GBP">{fr ? 'GBP — Livre sterling' : 'GBP — British Pound'}</option>
+                    <option value="AUD">{fr ? 'AUD — Dollar australien' : 'AUD — Australian Dollar'}</option>
                   </select>
                 </div>
                 <div>
@@ -637,7 +641,7 @@ export default function SettingsPage() {
                 </div>
               ) : services.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 py-8 px-4 text-center text-sm text-gray-500">
-                  Aucun service pour le moment. Ajoutez-en un ci-dessous.
+                  {fr ? 'Aucun service pour le moment. Ajoutez-en un ci-dessous.' : 'No services yet. Add one below.'}
                 </div>
               ) : (
                 <div className="space-y-2 mb-6">
@@ -681,7 +685,7 @@ export default function SettingsPage() {
                       type="text"
                       value={newSvcName}
                       onChange={(e) => setNewSvcName(e.target.value)}
-                      placeholder="ex. Nettoyage résidentiel standard"
+                      placeholder={fr ? 'ex. Nettoyage résidentiel standard' : 'e.g. Standard residential cleaning'}
                       className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </div>
@@ -693,8 +697,8 @@ export default function SettingsPage() {
                       onChange={(e) => setNewSvcCategory(e.target.value)}
                       className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     >
-                      <option value="">— Choisir —</option>
-                      {SERVICE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                      <option value="">{fr ? '— Choisir —' : '— Select —'}</option>
+                      {(fr ? SERVICE_CATEGORIES_FR : SERVICE_CATEGORIES_EN).map((c) => <option key={c} value={c}>{c}</option>)}
                     </select>
                   </div>
 
@@ -706,7 +710,7 @@ export default function SettingsPage() {
                       className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     >
                       <option value="fixed">{fr ? 'Prix fixe' : 'Fixed price'}</option>
-                      <option value="starting_from">À partir de…</option>
+                      <option value="starting_from">{fr ? 'À partir de…' : 'Starting from…'}</option>
                       <option value="hourly">{fr ? 'Par heure' : 'Hourly'}</option>
                       <option value="custom_range">{fr ? 'Fourchette (min – max)' : 'Range (min – max)'}</option>
                       <option value="quote_required">{fr ? 'Sur devis' : 'Quote required'}</option>
@@ -717,10 +721,10 @@ export default function SettingsPage() {
                   {newSvcPricingType !== 'quote_required' && newSvcPricingType !== 'free' && (
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">
-                        {newSvcPricingType === 'starting_from' ? 'Prix minimum' :
-                         newSvcPricingType === 'hourly' ? 'Tarif horaire' :
-                         newSvcPricingType === 'custom_range' ? 'Prix minimum' :
-                         'Prix'} ({currency})
+                        {newSvcPricingType === 'starting_from' ? (fr ? 'Prix minimum' : 'Minimum price') :
+                         newSvcPricingType === 'hourly' ? (fr ? 'Tarif horaire' : 'Hourly rate') :
+                         newSvcPricingType === 'custom_range' ? (fr ? 'Prix minimum' : 'Minimum price') :
+                         (fr ? 'Prix' : 'Price')} ({currency})
                       </label>
                       <input
                         type="number" step="0.01" min="0"
@@ -773,7 +777,7 @@ export default function SettingsPage() {
                       type="text"
                       value={newSvcPricingNote}
                       onChange={(e) => setNewSvcPricingNote(e.target.value)}
-                      placeholder="ex. Varie selon la taille et l'état du bateau"
+                      placeholder={fr ? "ex. Varie selon la taille et l'état du bateau" : 'e.g. Varies based on size and condition'}
                       className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </div>
@@ -784,7 +788,7 @@ export default function SettingsPage() {
                       rows={2}
                       value={newSvcDesc}
                       onChange={(e) => setNewSvcDesc(e.target.value)}
-                      placeholder="Ce que le service inclut…"
+                      placeholder={fr ? 'Ce que le service inclut…' : 'What the service includes…'}
                       className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm resize-none focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </div>
@@ -795,7 +799,7 @@ export default function SettingsPage() {
                   className="mt-4 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all"
                 >
                   {addingSvc ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                  Ajouter le service
+                  {fr ? 'Ajouter le service' : 'Add service'}
                 </button>
               </div>
             </div>
@@ -812,30 +816,30 @@ export default function SettingsPage() {
               <div className="space-y-4">
                 <InputRow
                   label={fr ? "Nom de l'agent" : "Agent's name"}
-                  sub="C'est le nom que votre agent IA utilise pour se présenter"
+                  sub={fr ? "C'est le nom que votre agent IA utilise pour se présenter" : 'The name your AI agent uses to introduce itself'}
                   value={agentName}
                   onChange={setAgentName}
                   placeholder="Alex"
                 />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-0.5">Message d&apos;accueil personnalisé (optionnel)</label>
-                  <p className="text-xs text-gray-400 mb-1.5">Remplace le message par défaut. Laissez vide pour utiliser le message par défaut.</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-0.5">{fr ? "Message d'accueil personnalisé (optionnel)" : 'Custom greeting (optional)'}</label>
+                  <p className="text-xs text-gray-400 mb-1.5">{fr ? 'Remplace le message par défaut. Laissez vide pour utiliser le message par défaut.' : 'Overrides the default greeting. Leave empty to use the default.'}</p>
                   <textarea
                     value={agentGreeting}
                     onChange={(e) => setAgentGreeting(e.target.value)}
                     rows={3}
-                    placeholder={`Bonjour ! Je suis ${agentName}, votre assistant de réservation. Comment puis-je vous aider ?`}
+                    placeholder={fr ? `Bonjour ! Je suis ${agentName}, votre assistant de réservation. Comment puis-je vous aider ?` : `Hi! I'm ${agentName}, your booking assistant. How can I help you?`}
                     className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-0.5">Services offerts (séparés par des virgules)</label>
-                  <p className="text-xs text-gray-400 mb-1.5">Indiquez à votre agent IA quels services proposer et discuter</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-0.5">{fr ? 'Services offerts (séparés par des virgules)' : 'Services offered (comma-separated)'}</label>
+                  <p className="text-xs text-gray-400 mb-1.5">{fr ? 'Indiquez à votre agent IA quels services proposer et discuter' : 'Tell your AI agent which services to offer and discuss'}</p>
                   <input
                     type="text"
                     value={agentServices}
                     onChange={(e) => setAgentServices(e.target.value)}
-                    placeholder="Réparation HVAC, installation CA, entretien chauffage, nettoyage conduits"
+                    placeholder={fr ? 'Réparation HVAC, installation CA, entretien chauffage, nettoyage conduits' : 'HVAC repair, AC installation, heating maintenance, duct cleaning'}
                     className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
@@ -846,19 +850,19 @@ export default function SettingsPage() {
             <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-5">
               <div className="flex items-center gap-2 mb-3">
                 <LinkIcon className="h-4 w-4 text-indigo-600" />
-                <p className="text-sm font-semibold text-indigo-900">Lien de votre portail de réservation</p>
+                <p className="text-sm font-semibold text-indigo-900">{fr ? 'Lien de votre portail de réservation' : 'Your booking portal link'}</p>
               </div>
-              <p className="text-xs text-indigo-600 mb-3">Partagez ce lien avec vos clients pour qu&apos;ils puissent réserver via votre agent IA.</p>
+              <p className="text-xs text-indigo-600 mb-3">{fr ? 'Partagez ce lien avec vos clients pour qu\'ils puissent réserver via votre agent IA.' : 'Share this link with clients so they can book through your AI agent.'}</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1 rounded-xl bg-white border border-indigo-200 px-3 py-2 text-xs font-mono text-gray-700 truncate">
-                  {bookingLink || 'Sauvegardez le nom de votre entreprise pour générer votre lien'}
+                  {bookingLink || (fr ? 'Sauvegardez le nom de votre entreprise pour générer votre lien' : 'Save your business name to generate your link')}
                 </div>
                 <button
                   onClick={copyBookingLink}
                   className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors shrink-0"
                 >
                   {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                  {copied ? 'Copié !' : 'Copier'}
+                  {copied ? (fr ? 'Copié !' : 'Copied!') : (fr ? 'Copier' : 'Copy')}
                 </button>
               </div>
             </div>
@@ -871,14 +875,14 @@ export default function SettingsPage() {
         {tab === 'notifications' && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Préférences de notifications</h2>
-              <p className="text-sm text-gray-400 mb-5">Choisissez quels événements déclenchent des notifications dans l&apos;app et par email.</p>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Préférences de notifications' : 'Notification preferences'}</h2>
+              <p className="text-sm text-gray-400 mb-5">{fr ? 'Choisissez quels événements déclenchent des notifications dans l\'app et par email.' : 'Choose which events trigger notifications in the app and by email.'}</p>
 
               <div className="rounded-xl bg-gray-50 px-5 py-4 mb-4">
                 <NotifRow label={fr ? 'Notifications par courriel' : 'Email notifications'} sub={fr ? 'Recevoir toutes les notifications par courriel également' : 'Receive all notifications by email as well'} checked={notifEmail} onChange={setNotifEmail} />
               </div>
 
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Déclencheurs d&apos;événements</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">{fr ? "Déclencheurs d'événements" : 'Event triggers'}</h3>
               <div className="rounded-xl border border-gray-100 px-5 divide-y divide-gray-50">
                 <NotifRow label={fr ? 'Nouvelle intervention créée' : 'New job created'} sub={fr ? "Quand un nouveau bon de travail est ajouté" : 'When a new work order is added'} checked={notifJobCreated} onChange={setNotifJobCreated} />
                 <NotifRow label={fr ? 'Intervention terminée' : 'Job completed'} sub={fr ? 'Quand un technicien marque une intervention comme terminée' : 'When a technician marks a job complete'} checked={notifJobComplete} onChange={setNotifJobComplete} />
@@ -965,26 +969,26 @@ export default function SettingsPage() {
               <div className="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-3 flex-wrap">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base font-semibold text-gray-900">Votre forfait</h2>
+                    <h2 className="text-base font-semibold text-gray-900">{fr ? 'Votre forfait' : 'Your plan'}</h2>
                     <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${
                       plan.status === 'trial' ? 'bg-indigo-50 text-indigo-700' :
                       plan.status === 'active' ? 'bg-emerald-50 text-emerald-700' :
                       plan.status === 'past_due' ? 'bg-amber-50 text-amber-700' :
                       'bg-gray-100 text-gray-600'
                     }`}>
-                      {plan.status === 'trial' ? `Essai · ${plan.trialDaysLeft} j restants` :
-                       plan.status === 'active' ? 'Actif' :
-                       plan.status === 'past_due' ? 'Paiement en retard' :
-                       plan.status === 'cancelled' ? 'Annulé' : 'Expiré'}
+                      {plan.status === 'trial' ? (fr ? `Essai · ${plan.trialDaysLeft} j restants` : `Trial · ${plan.trialDaysLeft}d left`) :
+                       plan.status === 'active' ? (fr ? 'Actif' : 'Active') :
+                       plan.status === 'past_due' ? (fr ? 'Paiement en retard' : 'Past due') :
+                       plan.status === 'cancelled' ? (fr ? 'Annulé' : 'Cancelled') : (fr ? 'Expiré' : 'Expired')}
                     </span>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{PLAN_PRICING[plan.plan].label} — ${PLAN_PRICING[plan.plan].monthly}/mois</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">{PLAN_PRICING[plan.plan].label} — ${PLAN_PRICING[plan.plan].monthly}/{fr ? 'mois' : 'mo'}</p>
                   {plan.nextBillingAt && plan.status === 'active' && !plan.promoCodeId && (
                     <p className="text-xs text-gray-400 mt-1">{fmtDate(plan.nextBillingAt, lang)}</p>
                   )}
                   {plan.promoCodeId && plan.promoExpiresAt && (
                     <p className="text-xs font-medium text-emerald-700 mt-1">
-                      🎁 Code promo actif · {plan.promoDaysLeft} jour{plan.promoDaysLeft > 1 ? 's' : ''} restant{plan.promoDaysLeft > 1 ? 's' : ''} — {fmtDate(plan.promoExpiresAt, lang)}
+                      {fr ? `🎁 Code promo actif · ${plan.promoDaysLeft} jour${plan.promoDaysLeft > 1 ? 's' : ''} restant${plan.promoDaysLeft > 1 ? 's' : ''}` : `🎁 Active promo code · ${plan.promoDaysLeft} day${plan.promoDaysLeft > 1 ? 's' : ''} remaining`} — {fmtDate(plan.promoExpiresAt, lang)}
                     </p>
                   )}
                 </div>
@@ -993,19 +997,19 @@ export default function SettingsPage() {
               {/* Usage */}
               <div className="px-6 py-5 grid gap-4 sm:grid-cols-3 border-b border-gray-100">
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">Clients</p>
+                  <p className="text-xs text-gray-400 mb-1">{fr ? 'Clients' : 'Customers'}</p>
                   <p className="text-sm font-semibold text-gray-900">
                     {plan.customerCount} / {plan.limits.maxCustomers === Infinity ? '∞' : plan.limits.maxCustomers}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">Utilisateurs</p>
+                  <p className="text-xs text-gray-400 mb-1">{fr ? 'Utilisateurs' : 'Users'}</p>
                   <p className="text-sm font-semibold text-gray-900">
                     {plan.teamMemberCount} / {plan.limits.maxUsers}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">Messages IA ce mois</p>
+                  <p className="text-xs text-gray-400 mb-1">{fr ? 'Messages IA ce mois' : 'AI messages this month'}</p>
                   <p className="text-sm font-semibold text-gray-900">
                     {plan.aiMessagesThisMonth} / {plan.limits.maxAIMessages === Infinity ? '∞' : plan.limits.maxAIMessages}
                   </p>
@@ -1017,11 +1021,11 @@ export default function SettingsPage() {
                 <button
                   onClick={() => setBillingCycle('monthly')}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${billingCycle === 'monthly' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                >Mensuel</button>
+                >{fr ? 'Mensuel' : 'Monthly'}</button>
                 <button
                   onClick={() => setBillingCycle('annual')}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${billingCycle === 'annual' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                >Annuel <span className="ml-1 text-emerald-600">(-20%)</span></button>
+                >{fr ? 'Annuel' : 'Annual'} <span className="ml-1 text-emerald-600">(-20%)</span></button>
               </div>
               <div className="p-6 pt-2 grid gap-4 md:grid-cols-3">
                 {(['starter', 'pro', 'business'] as const).map((p) => {
@@ -1031,17 +1035,17 @@ export default function SettingsPage() {
                   return (
                     <div key={p} className={`rounded-xl border p-4 ${isCurrent ? 'border-indigo-300 bg-indigo-50/40' : 'border-gray-200 bg-white'}`}>
                       <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">{info.label}</p>
-                      <p className="text-xl font-bold text-gray-900 mt-1">${price}<span className="text-xs font-normal text-gray-400">/mois{billingCycle === 'annual' ? ' · facturé annuellement' : ''}</span></p>
+                      <p className="text-xl font-bold text-gray-900 mt-1">${price}<span className="text-xs font-normal text-gray-400">/{fr ? 'mois' : 'mo'}{billingCycle === 'annual' ? (fr ? ' · facturé annuellement' : ' · billed annually') : ''}</span></p>
                       <p className="text-xs text-gray-500 mt-1 mb-3">{info.tagline}</p>
                       {isCurrent ? (
-                        <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white">Forfait actuel</span>
+                        <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white">{fr ? 'Forfait actuel' : 'Current plan'}</span>
                       ) : (
                         <button
                           onClick={() => handlePlanChange(p)}
                           disabled={checkoutLoading === p}
                           className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
                         >
-                          {checkoutLoading === p ? 'Chargement…' : p === 'starter' ? 'Rétrograder' : `Passer à ${info.label}`}
+                          {checkoutLoading === p ? (fr ? 'Chargement…' : 'Loading…') : p === 'starter' ? (fr ? 'Rétrograder' : 'Downgrade') : (fr ? `Passer à ${info.label}` : `Upgrade to ${info.label}`)}
                         </button>
                       )}
                     </div>
@@ -1058,8 +1062,8 @@ export default function SettingsPage() {
             {/* Stripe Connect section */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-100">
-                <h2 className="text-base font-semibold text-gray-900">Accepter les paiements en ligne</h2>
-                <p className="text-sm text-gray-400 mt-0.5">Connectez votre compte Stripe pour que vos clients puissent payer vos factures en ligne.</p>
+                <h2 className="text-base font-semibold text-gray-900">{fr ? 'Accepter les paiements en ligne' : 'Accept online payments'}</h2>
+                <p className="text-sm text-gray-400 mt-0.5">{fr ? 'Connectez votre compte Stripe pour que vos clients puissent payer vos factures en ligne.' : 'Connect your Stripe account so customers can pay invoices online.'}</p>
               </div>
 
               <div className="p-6">
@@ -1076,21 +1080,22 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <p className="font-bold text-emerald-900">Paiements actifs</p>
-                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">✓ Actif</span>
+                          <p className="font-bold text-emerald-900">{fr ? 'Paiements actifs' : 'Payments active'}</p>
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">{fr ? '✓ Actif' : '✓ Active'}</span>
                         </div>
                         <p className="text-sm text-emerald-700">
-                          {connectStatus.displayName || connectStatus.email || 'Votre compte Stripe'} est connecté.
-                          Vos clients peuvent maintenant payer vos factures en ligne.
+                          {fr
+                            ? `${connectStatus.displayName || connectStatus.email || 'Votre compte Stripe'} est connecté. Vos clients peuvent maintenant payer vos factures en ligne.`
+                            : `${connectStatus.displayName || connectStatus.email || 'Your Stripe account'} is connected. Your customers can now pay invoices online.`}
                         </p>
                         <div className="flex items-center gap-4 mt-3 text-xs">
                           <span className={`flex items-center gap-1 ${connectStatus.chargesEnabled ? 'text-emerald-600' : 'text-amber-600'}`}>
                             {connectStatus.chargesEnabled ? <CheckCircle className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5" />}
-                            Paiements {connectStatus.chargesEnabled ? 'activés' : 'en attente'}
+                            {fr ? `Paiements ${connectStatus.chargesEnabled ? 'activés' : 'en attente'}` : `Payments ${connectStatus.chargesEnabled ? 'enabled' : 'pending'}`}
                           </span>
                           <span className={`flex items-center gap-1 ${connectStatus.payoutsEnabled ? 'text-emerald-600' : 'text-amber-600'}`}>
                             {connectStatus.payoutsEnabled ? <CheckCircle className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5" />}
-                            Virements {connectStatus.payoutsEnabled ? 'activés' : 'en attente'}
+                            {fr ? `Virements ${connectStatus.payoutsEnabled ? 'activés' : 'en attente'}` : `Payouts ${connectStatus.payoutsEnabled ? 'enabled' : 'pending'}`}
                           </span>
                         </div>
                       </div>
@@ -1103,7 +1108,7 @@ export default function SettingsPage() {
                         className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all shadow-sm disabled:opacity-60"
                       >
                         <ExternalLink className="h-4 w-4" />
-                        Ouvrir le tableau de bord Stripe
+                        {fr ? 'Ouvrir le tableau de bord Stripe' : 'Open Stripe dashboard'}
                       </button>
                     </div>
                   </div>
@@ -1113,9 +1118,9 @@ export default function SettingsPage() {
                     <div className="flex items-start gap-3">
                       <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                       <div>
-                        <p className="font-semibold text-amber-900">Configuration incomplète</p>
+                        <p className="font-semibold text-amber-900">{fr ? 'Configuration incomplète' : 'Incomplete setup'}</p>
                         <p className="text-sm text-amber-700 mt-0.5">
-                          Votre compte Stripe est créé mais vous devez compléter la configuration pour commencer à accepter des paiements.
+                          {fr ? 'Votre compte Stripe est créé mais vous devez compléter la configuration pour commencer à accepter des paiements.' : 'Your Stripe account is created but you need to complete setup to start accepting payments.'}
                         </p>
                       </div>
                     </div>
@@ -1125,7 +1130,7 @@ export default function SettingsPage() {
                       className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-60 transition-all shadow-sm"
                     >
                       {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
-                      Compléter la configuration
+                      {fr ? 'Compléter la configuration' : 'Complete setup'}
                     </button>
                   </div>
                 ) : (
@@ -1133,40 +1138,46 @@ export default function SettingsPage() {
                   <div className="space-y-6">
                     <div className="grid sm:grid-cols-2 gap-6">
                       <div>
-                        <h3 className="text-base font-bold text-gray-900 mb-2">Payez-vous plus vite</h3>
+                        <h3 className="text-base font-bold text-gray-900 mb-2">{fr ? 'Payez-vous plus vite' : 'Get paid faster'}</h3>
                         <p className="text-sm text-gray-500 mb-4">
-                          Connectez Stripe pour que vos clients paient directement depuis leurs factures — par carte ou virement.
+                          {fr ? 'Connectez Stripe pour que vos clients paient directement depuis leurs factures — par carte ou virement.' : 'Connect Stripe so customers can pay directly from their invoices — by card or bank transfer.'}
                         </p>
                         <ul className="space-y-2 text-sm text-gray-600">
-                          {[
+                          {(fr ? [
                             'Les clients paient en ligne — fini les relances',
                             'Les fonds sont déposés directement dans votre compte',
                             'Visa, Mastercard, Amex, Interac acceptés',
                             'Reçus automatiques envoyés aux clients',
                             'Notifications de paiement en temps réel',
-                          ].map((b) => (
+                          ] : [
+                            'Customers pay online — no more follow-ups',
+                            'Funds deposited directly into your account',
+                            'Visa, Mastercard, Amex, Interac accepted',
+                            'Automatic receipts sent to customers',
+                            'Real-time payment notifications',
+                          ]).map((b) => (
                             <li key={b} className="flex items-start gap-2">
                               <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
                               {b}
                             </li>
                           ))}
                         </ul>
-                        <p className="mt-4 text-xs text-gray-400">Frais de traitement : 2,9 % + 30 ¢ par transaction (tarifs Stripe standard)</p>
+                        <p className="mt-4 text-xs text-gray-400">{fr ? 'Frais de traitement : 2,9 % + 30 ¢ par transaction (tarifs Stripe standard)' : 'Processing fees: 2.9% + 30¢ per transaction (standard Stripe rates)'}</p>
                       </div>
                       <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 p-8 text-center">
                         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 mb-4 shadow-lg shadow-indigo-200">
                           <CreditCard className="h-8 w-8 text-white" />
                         </div>
-                        <p className="text-sm font-medium text-gray-600 mb-1">Prend moins de 5 minutes</p>
+                        <p className="text-sm font-medium text-gray-600 mb-1">{fr ? 'Prend moins de 5 minutes' : 'Takes less than 5 minutes'}</p>
                         <button
                           onClick={handleConnectStripe}
                           disabled={connectLoading}
                           className="mt-3 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-md shadow-indigo-200"
                         >
                           {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-                          Connecter Stripe
+                          {fr ? 'Connecter Stripe' : 'Connect Stripe'}
                         </button>
-                        <p className="mt-3 text-xs text-gray-400">Propulsé par Stripe · Paiements sécurisés</p>
+                        <p className="mt-3 text-xs text-gray-400">{fr ? 'Propulsé par Stripe · Paiements sécurisés' : 'Powered by Stripe · Secure payments'}</p>
                       </div>
                     </div>
                   </div>
@@ -1194,7 +1205,7 @@ export default function SettingsPage() {
                         <p className="text-sm font-semibold text-gray-900">Stripe Connect</p>
                         {connectStatus?.connected && (
                           <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                            <CheckCircle className="h-3 w-3" /> Connecté
+                            <CheckCircle className="h-3 w-3" /> {fr ? 'Connecté' : 'Connected'}
                           </span>
                         )}
                       </div>
@@ -1226,7 +1237,7 @@ export default function SettingsPage() {
                         <p className="text-sm font-semibold text-gray-900">Google Calendar</p>
                         {googleConnected && (
                           <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                            <CheckCircle className="h-3 w-3" /> Connecté
+                            <CheckCircle className="h-3 w-3" /> {fr ? 'Connecté' : 'Connected'}
                           </span>
                         )}
                       </div>
