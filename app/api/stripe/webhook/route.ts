@@ -23,13 +23,28 @@ export async function POST(req: NextRequest) {
   const body = await req.text()
   const sig  = req.headers.get('stripe-signature')!
 
-  let event: Stripe.Event
-  try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
-  } catch (err) {
-    console.error('Webhook signature verification failed:', err)
+  // Stripe sets `account` on the event when it originates from a connected
+  // account. Try platform secret first, fall back to Connect secret so a
+  // single endpoint can receive both kinds.
+  const platformSecret = process.env.STRIPE_WEBHOOK_SECRET
+  const connectSecret  = process.env.STRIPE_CONNECT_WEBHOOK_SECRET
+  let event: Stripe.Event | null = null
+  const errors: string[] = []
+  for (const secret of [platformSecret, connectSecret]) {
+    if (!secret) continue
+    try {
+      event = stripe.webhooks.constructEvent(body, sig, secret)
+      break
+    } catch (err) {
+      errors.push(err instanceof Error ? err.message : String(err))
+    }
+  }
+  if (!event) {
+    console.error(`${LOG} signature verification failed:`, errors)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
+  const connectAccountId = (event as unknown as { account?: string }).account || null
+  if (connectAccountId) console.log(`${LOG} Connect event from account=${connectAccountId} type=${event.type}`)
 
   try {
     switch (event.type) {
@@ -37,7 +52,21 @@ export async function POST(req: NextRequest) {
       // ── Subscription / plan checkout ──────────────────────────────
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
-        const { userId, planId, invoiceId } = session.metadata || {}
+        const meta = session.metadata || {}
+        const { userId, planId } = meta
+        const invoiceToken = meta.invoice_token
+        let invoiceId = meta.invoiceId
+
+        // If we only have the token, resolve to id (also confirms token authenticity)
+        if (!invoiceId && invoiceToken) {
+          const { data: inv } = await supabase
+            .from('invoices')
+            .select('id')
+            .eq('token', invoiceToken)
+            .single()
+          if (inv) invoiceId = inv.id
+          else console.error(`${LOG} invoice_token lookup failed for token=${invoiceToken}`)
+        }
 
         if (userId && planId) {
           // Business subscribing to a Gestivio plan
