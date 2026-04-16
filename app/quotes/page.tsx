@@ -31,15 +31,15 @@ interface Quote {
 }
 interface Customer { id: string; name: string }
 
-const STATUS_CFG: Record<string, { label: string; cls: string }> = {
-  draft:     { label: 'Brouillon', cls: 'bg-gray-50 text-gray-600 ring-1 ring-gray-100' },
-  sent:      { label: 'Envoyé',    cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
-  viewed:    { label: 'Vu',        cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' },
-  approved:  { label: 'Accepté',   cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
-  accepted:  { label: 'Accepté',   cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
-  converted: { label: 'Converti',  cls: 'bg-violet-50 text-violet-700 ring-1 ring-violet-100' },
-  rejected:  { label: 'Refusé',    cls: 'bg-red-50 text-red-700 ring-1 ring-red-100' },
-  expired:   { label: 'Expiré',    cls: 'bg-amber-50 text-amber-600 ring-1 ring-amber-100' },
+const STATUS_CLS: Record<string, string> = {
+  draft:     'bg-gray-50 text-gray-600 ring-1 ring-gray-100',
+  sent:      'bg-blue-50 text-blue-700 ring-1 ring-blue-100',
+  viewed:    'bg-blue-50 text-blue-700 ring-1 ring-blue-100',
+  approved:  'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
+  accepted:  'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
+  converted: 'bg-violet-50 text-violet-700 ring-1 ring-violet-100',
+  rejected:  'bg-red-50 text-red-700 ring-1 ring-red-100',
+  expired:   'bg-amber-50 text-amber-600 ring-1 ring-amber-100',
 }
 
 // Statuses where conversion + acceptance buttons are visible
@@ -189,16 +189,16 @@ export default function QuotesPage() {
   const paged = useMemo(() => filtered.slice(range.from, range.to), [filtered, range.from, range.to])
   useEffect(() => { resetPage() }, [filter, search, resetPage])
 
-  const counts = Object.fromEntries(Object.keys(STATUS_CFG).map((k) => [k, quotes.filter((q) => q.status === k).length]))
+  const counts = Object.fromEntries(Object.keys(STATUS_CLS).map((k) => [k, quotes.filter((q) => q.status === k).length]))
 
   const AddButton = (
     <button onClick={() => setPanelOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all">
-      <Plus className="h-4 w-4" /> Nouveau devis
+      <Plus className="h-4 w-4" /> {fr ? 'Nouveau devis' : 'New quote'}
     </button>
   )
 
   if (pageLoading) return (
-    <AppLayout title="Devis">
+    <AppLayout title={fr ? 'Devis' : 'Quotes'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-3">
         <SkeletonText className="h-10 w-64 mb-3" />
         {[...Array(3)].map((_, i) => <SkeletonListRow key={i} />)}
@@ -211,16 +211,16 @@ export default function QuotesPage() {
   const acceptRate    = quotes.length > 0 ? (quotes.filter((q) => q.status === 'approved').length / quotes.filter((q) => q.status !== 'draft').length) * 100 : 0
 
   return (
-    <AppLayout title="Devis" actions={AddButton}>
+    <AppLayout title={fr ? 'Devis' : 'Quotes'} actions={AddButton}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
             { label: fr ? 'Total devis' : 'Total quotes', value: quotes.length, icon: FileSignature, bg: 'bg-indigo-50', color: 'text-indigo-600' },
-            { label: 'Valeur totale', value: fmt(totalValue), icon: DollarSign, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-            { label: 'Approuvés', value: fmt(approvedValue), icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-            { label: 'Taux d\'acceptation', value: `${isNaN(acceptRate) ? 0 : acceptRate.toFixed(0)}%`, icon: Tag, bg: 'bg-blue-50', color: 'text-blue-600' },
+            { label: fr ? 'Valeur totale' : 'Total value', value: fmt(totalValue), icon: DollarSign, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+            { label: fr ? 'Approuvés' : 'Approved', value: fmt(approvedValue), icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
+            { label: fr ? "Taux d'acceptation" : 'Accept rate', value: `${isNaN(acceptRate) ? 0 : acceptRate.toFixed(0)}%`, icon: Tag, bg: 'bg-blue-50', color: 'text-blue-600' },
           ].map((s) => (
             <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${s.bg} mb-2`}><s.icon className={`h-4 w-4 ${s.color}`} /></div>
@@ -233,7 +233,7 @@ export default function QuotesPage() {
         {/* Filters */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
           <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 flex-wrap">
-            {[{ key: 'all', label: 'Tous', count: quotes.length }, ...Object.entries(STATUS_CFG).map(([key, cfg]) => ({ key, label: cfg.label, count: counts[key] || 0 }))].map((f) => (
+            {[{ key: 'all', label: fr ? 'Tous' : 'All', count: quotes.length }, ...Object.keys(STATUS_CLS).map((key) => ({ key, label: tStatus(key), count: counts[key] || 0 }))].map((f) => (
               <button key={f.key} onClick={() => setFilter(f.key)} className={['flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all', filter === f.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'].join(' ')}>
                 {f.label} <span className={`h-4 min-w-4 inline-flex items-center justify-center rounded-full px-1 text-xs ${filter === f.key ? 'bg-gray-100 text-gray-600' : 'text-gray-400'}`}>{f.count}</span>
               </button>
@@ -250,7 +250,7 @@ export default function QuotesPage() {
             <EmptyState
               icon={ClipboardList}
               title={fr ? 'Aucun devis' : 'No quotes'}
-              description="Créez un devis pour un client."
+              description={fr ? 'Créez un devis pour un client.' : 'Create a quote for a customer.'}
               actions={[{ label: fr ? 'Créer un devis' : 'Create quote', onClick: () => setPanelOpen(true), variant: 'primary' }]}
             />
           </div>
@@ -258,10 +258,10 @@ export default function QuotesPage() {
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="hidden sm:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-100">
-                <thead><tr className="bg-gray-50">{['Devis', 'Client', 'Total', 'Valide jusqu\'au', 'Statut', ''].map((c) => <th key={c} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{c}</th>)}</tr></thead>
+                <thead><tr className="bg-gray-50">{(fr ? ['Devis', 'Client', 'Total', "Valide jusqu'au", 'Statut', ''] : ['Quote', 'Customer', 'Total', 'Valid until', 'Status', '']).map((c) => <th key={c} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{c}</th>)}</tr></thead>
                 <tbody className="divide-y divide-gray-50">
                   {paged.map((q) => {
-                    const scfg = STATUS_CFG[q.status]
+                    const scls = STATUS_CLS[q.status]
                     return (
                       <tr key={q.id} className="hover:bg-gray-50 transition-colors group">
                         <td className="px-5 py-4">
@@ -276,12 +276,12 @@ export default function QuotesPage() {
                           {q.valid_until ? fmtDate(q.valid_until, lang) : <span className="text-gray-300">—</span>}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{tStatus(q.status)}</span>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scls || ''}`}>{tStatus(q.status)}</span>
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-1">
                             {q.status === 'draft' && (
-                              <button onClick={() => updateStatus(q.id, 'sent')} className="rounded-lg p-1.5 text-blue-500 hover:bg-blue-50 transition-colors" title="Marquer comme envoyé">
+                              <button onClick={() => updateStatus(q.id, 'sent')} className="rounded-lg p-1.5 text-blue-500 hover:bg-blue-50 transition-colors" title={fr ? 'Marquer comme envoyé' : 'Mark as sent'}>
                                 <Send className="h-4 w-4" />
                               </button>
                             )}
@@ -292,7 +292,7 @@ export default function QuotesPage() {
                                 className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 px-2 py-1.5 text-xs font-semibold text-emerald-700 disabled:opacity-60"
                                 title={fr ? 'Accepter le devis' : 'Accept quote'}
                               >
-                                <CheckCircle className="h-3.5 w-3.5" /> Accepter
+                                <CheckCircle className="h-3.5 w-3.5" /> {fr ? 'Accepter' : 'Accept'}
                               </button>
                             )}
                             {CONVERTIBLE.has(q.status) && (
@@ -301,7 +301,7 @@ export default function QuotesPage() {
                                 className="inline-flex items-center gap-1 rounded-lg bg-violet-50 hover:bg-violet-100 px-2 py-1.5 text-xs font-semibold text-violet-700"
                                 title={fr ? 'Convertir en emploi' : 'Convert to job'}
                               >
-                                <Briefcase className="h-3.5 w-3.5" /> Convertir
+                                <Briefcase className="h-3.5 w-3.5" /> {fr ? 'Convertir' : 'Convert'}
                               </button>
                             )}
                             <button onClick={() => deleteQuote(q.id)} className="rounded-lg p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors">
@@ -317,7 +317,7 @@ export default function QuotesPage() {
             </div>
             <div className="sm:hidden divide-y divide-gray-100">
               {filtered.map((q) => {
-                const scfg = STATUS_CFG[q.status]
+                const scls = STATUS_CLS[q.status]
                 return (
                   <div key={q.id} className="p-4">
                     <div className="flex items-start justify-between gap-2 mb-1">
@@ -326,7 +326,7 @@ export default function QuotesPage() {
                         {q.customers && <p className="text-xs text-gray-400 flex items-center gap-1"><User className="h-3 w-3" />{q.customers.name}</p>}
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scfg?.cls || ''}`}>{tStatus(q.status)}</span>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scls || ''}`}>{tStatus(q.status)}</span>
                         <span className="text-sm font-bold text-gray-900">{fmt(q.total)}</span>
                       </div>
                     </div>
@@ -378,13 +378,13 @@ export default function QuotesPage() {
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium text-gray-700">{fr ? "Lignes d'articles" : 'Line items'}</label>
                   <button type="button" onClick={() => setLineItems([...lineItems, newItem()])} className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                    <Plus className="h-3.5 w-3.5" /> Ajouter une ligne
+                    <Plus className="h-3.5 w-3.5" /> {fr ? 'Ajouter une ligne' : 'Add a line'}
                   </button>
                 </div>
                 <div className="space-y-2">
                   {lineItems.map((item, idx) => (
                     <div key={item.id} className="flex gap-2 items-start">
-                      <input placeholder={`Item ${idx + 1}`} value={item.description} onChange={(e) => updateItem(item.id, 'description', e.target.value)} className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                      <input placeholder={fr ? `Article ${idx + 1}` : `Item ${idx + 1}`} value={item.description} onChange={(e) => updateItem(item.id, 'description', e.target.value)} className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                       <input type="number" placeholder={fr ? 'Qté' : 'Qty'} value={item.qty} min={1} onChange={(e) => updateItem(item.id, 'qty', parseInt(e.target.value) || 1)} className="w-16 rounded-xl border border-gray-200 px-2 py-2 text-sm text-gray-900 text-center focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                       <div className="relative w-28">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
@@ -414,7 +414,7 @@ export default function QuotesPage() {
                   </div>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Taxe</span>
+                  <span className="text-gray-500">{fr ? 'Taxe' : 'Tax'}</span>
                   <span className="font-medium">{fmt(taxAmount)}</span>
                 </div>
                 <div className="flex justify-between text-base font-bold border-t border-gray-200 pt-2 mt-2">
@@ -424,7 +424,7 @@ export default function QuotesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Notes' : 'Notes'}</label>
                 <textarea placeholder={fr ? 'Conditions, notes ou informations supplémentaires...' : 'Terms, notes, or additional information...'} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               </div>
 
