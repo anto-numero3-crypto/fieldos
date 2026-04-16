@@ -1,839 +1,1672 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+// ───────────────────────────────────────────────────────────────
+// Gestivio — world-class dashboard
+// ───────────────────────────────────────────────────────────────
+// Single-file dashboard page. Renders inside <AppLayout>, which already
+// provides the top bar (search, notifications, language + theme toggle)
+// and the sidebar. This file focuses on a data-rich, alive dashboard
+// body: greeting, KPIs, revenue chart + activity feed, today's schedule
+// + live jobs map, stat breakdowns, and pending/overdue queues.
+
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { supabase } from '../supabase'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import AppLayout from '@/components/AppLayout'
-import { SkeletonText, SkeletonChart, SkeletonKPICard, SkeletonListRow } from '@/components/ui/skeleton'
-import { useLanguage } from '@/lib/LanguageContext'
-import { fmtMoney, fmtDate } from '@/lib/format'
 import {
-  Users, Briefcase, FileText, DollarSign, TrendingUp, ArrowRight,
-  Plus, Sparkles, Clock, CheckCircle, AlertCircle, Calendar,
-  ArrowUpRight, Zap, Target, Activity,
+  AlertCircle,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpRight,
+  Briefcase,
+  Calendar,
+  CheckCircle,
+  DollarSign,
+  Loader2,
+  Moon,
+  Plus,
+  Send,
+  Sparkles,
+  Sun,
+  UserPlus,
+  Users,
+  X,
 } from 'lucide-react'
 import {
-  AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, CartesianGrid,
-  BarChart, Bar, YAxis,
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts'
 
-interface Stats {
-  customers: number; totalJobs: number; activeJobs: number
-  completedJobs: number; totalInvoiced: number; paidAmount: number
-  unpaidAmount: number; unpaidCount: number; overdueCount: number
-  revenueThisMonth: number; revenueLastMonth: number
-  jobsThisMonth: number; newCustomersThisMonth: number
-  jobsToday: number; pendingBookings: number
-}
-interface Job {
-  id: string; title: string; status: string
-  scheduled_date: string | null; start_time?: string | null; service_address?: string | null
-  customers: { name: string; phone?: string | null } | null
-  priority?: string
-}
+import AppLayout from '@/components/AppLayout'
+import { Skeleton, SkeletonKPICard } from '@/components/ui/skeleton'
+import { useTheme } from '@/components/ThemeProvider'
+import { useLanguage } from '@/lib/LanguageContext'
+import { fmtMoney } from '@/lib/format'
+import { supabase } from '@/app/supabase'
+
+// ───── Lazy load the map (leaflet needs window) ─────
+const JobsMap = dynamic(() => import('./JobsMap'), {
+  ssr: false,
+  loading: () => (
+    <Skeleton className="h-[360px] w-full rounded-xl" />
+  ),
+})
+
+// ────────── Types ──────────
 interface Invoice {
-  id: string; amount: number; status: string
-  due_date: string | null; customers: { name: string } | null; created_at: string
-  paid_at?: string | null
-  invoice_number?: string; token?: string
+  id: string
+  amount: number | string
+  status: 'paid' | 'unpaid' | 'sent' | 'overdue' | 'draft' | string
+  paid_at: string | null
+  created_at: string
+  due_date: string | null
+  invoice_number: string | null
+  customer_id: string | null
+  customers?: { name: string | null } | null
 }
+
+interface Job {
+  id: string
+  title: string | null
+  status: 'scheduled' | 'in_progress' | 'complete' | 'cancelled' | string
+  scheduled_date: string | null
+  start_time: string | null
+  end_time: string | null
+  service_address: string | null
+  customer_id: string | null
+  assigned_to: string | null
+  created_at: string
+  customers?: { name: string | null } | null
+  team_members?: { name: string | null } | null
+}
+
+interface Customer {
+  id: string
+  name: string | null
+  created_at: string
+}
+
+interface Booking {
+  id: string
+  customer_name: string | null
+  customer_phone: string | null
+  customer_email: string | null
+  service_name: string | null
+  preferred_date: string | null
+  preferred_time: string | null
+  status: 'pending' | 'accepted' | 'declined' | string
+  notes: string | null
+  created_at: string
+}
+
+type ActivityKind =
+  | 'invoice_paid'
+  | 'new_booking'
+  | 'job_completed'
+  | 'new_customer'
+  | 'invoice_overdue'
+
 interface ActivityItem {
   id: string
-  kind: 'booking' | 'invoice_paid' | 'job_complete' | 'new_customer'
+  kind: ActivityKind
   text: string
   href: string
   at: string
 }
-interface OverdueInvoice {
-  id: string; amount: number; due_date: string | null
-  customers: { name: string; email: string | null } | null
-  invoice_number?: string; token?: string
+
+type Period = '7d' | '30d' | '3m' | '6m' | '1y'
+
+// ────────── Small helpers ──────────
+const toNum = (v: number | string | null | undefined): number => {
+  if (v === null || v === undefined || v === '') return 0
+  if (typeof v === 'number') return Number.isFinite(v) ? v : 0
+  const n = Number(String(v).replace(',', '.'))
+  return Number.isFinite(n) ? n : 0
 }
 
-const statusClass: Record<string, string> = {
-  scheduled:   'bg-blue-50 text-blue-700',
-  in_progress: 'bg-amber-50 text-amber-700',
-  complete:    'bg-emerald-50 text-emerald-700',
-  cancelled:   'bg-gray-50 text-gray-500',
-  unpaid:      'bg-amber-50 text-amber-700',
-  paid:        'bg-emerald-50 text-emerald-700',
-  overdue:     'bg-red-50 text-red-700',
+const isoStartOfDay = (d: Date) => {
+  const x = new Date(d); x.setHours(0, 0, 0, 0); return x
 }
 
-// Build the last 12 months' revenue from PAID invoices (using paid_at).
-// Month abbreviations on the X-axis. $0 bars for months with no data.
-const FR_MONTHS = ['Janv', 'Févr', 'Mars', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc']
-const EN_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-function buildMonthlyRevenue(invoices: Invoice[], fr: boolean) {
-  const labels = fr ? FR_MONTHS : EN_MONTHS
-  const months: { key: string; label: string; revenue: number }[] = []
-  const now = new Date()
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    months.push({ key, label: labels[d.getMonth()], revenue: 0 })
-  }
-  const idx = new Map(months.map((m, i) => [m.key, i]))
-  for (const inv of invoices) {
-    if (inv.status !== 'paid') continue
-    const ts = inv.paid_at || inv.created_at
-    if (!ts) continue
-    const d = new Date(ts)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const i = idx.get(key)
-    if (i !== undefined) months[i].revenue += parseFloat(String(inv.amount))
-  }
-  return months.map((m) => ({ month: m.label, revenue: m.revenue }))
+const todayIsoDate = () => {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
-function timeAgo(iso: string, fr: boolean): string {
-  const ms = Date.now() - new Date(iso).getTime()
-  const m = Math.floor(ms / 60000)
-  if (m < 1) return fr ? "à l'instant" : 'just now'
-  if (m < 60) return fr ? `il y a ${m} min` : `${m} min ago`
-  const h = Math.floor(m / 60)
-  if (h < 24) return fr ? `il y a ${h} h` : `${h} h ago`
-  const d = Math.floor(h / 24)
-  return fr ? `il y a ${d} j` : `${d} d ago`
+const initials = (name: string | null | undefined): string => {
+  if (!name) return '?'
+  const parts = name.trim().split(/\s+/).slice(0, 2)
+  return parts.map((p) => p[0]?.toUpperCase() || '').join('') || '?'
 }
 
-const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
-  if (active && payload?.length) {
-    return (
-      <div className="rounded-xl border border-gray-100 bg-white px-3 py-2 shadow-lg">
-        <p className="text-xs text-gray-500 mb-1">{label}</p>
-        <p className="text-sm font-bold text-gray-900">${payload[0].value.toLocaleString('en', { minimumFractionDigits: 0 })}</p>
-      </div>
-    )
-  }
-  return null
-}
-
-export default function Dashboard() {
-  const [user, setUser] = useState<{ email?: string } | null>(null)
-  const [stats, setStats] = useState<Stats>({
-    customers: 0, totalJobs: 0, activeJobs: 0, completedJobs: 0,
-    totalInvoiced: 0, paidAmount: 0, unpaidAmount: 0, unpaidCount: 0, overdueCount: 0,
-    revenueThisMonth: 0, revenueLastMonth: 0, jobsThisMonth: 0, newCustomersThisMonth: 0,
-    jobsToday: 0, pendingBookings: 0,
-  })
-  const [todayJobs, setTodayJobs]           = useState<Job[]>([])
-  const [recentJobs, setRecentJobs]         = useState<Job[]>([])
-  const [recentInvoices, setRecentInvoices] = useState<Invoice[]>([])
-  const [chartData, setChartData]           = useState<{ month: string; revenue: number }[]>([])
-  const [activity, setActivity]             = useState<ActivityItem[]>([])
-  const [overdueList, setOverdueList]       = useState<OverdueInvoice[]>([])
-  const [loading, setLoading]               = useState(true)
-  const [reminderSending, setReminderSending] = useState<string | null>(null)
-  const { lang, t } = useLanguage()
+// ────────── Component ──────────
+export default function DashboardPage() {
+  const { lang } = useLanguage()
+  const { theme } = useTheme()
   const fr = lang === 'fr'
-  const tStatus = (key: string) => (t.status as Record<string, string>)[key] || key
+  const isDark = theme === 'dark'
 
-  const init = useCallback(async () => {
-    const { data } = await supabase.auth.getUser()
-    if (!data.user) { window.location.href = '/login'; return }
-    setUser(data.user)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [firstName, setFirstName] = useState<string>('')
 
-    const now = new Date()
-    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
-    const todayStr = now.toISOString().split('T')[0]
+  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [bookings, setBookings] = useState<Booking[]>([])
 
-    const [
-      { count: customerCount },
-      { count: newCustomers },
-      { count: jobsTodayCount },
-      { count: pendingBookings },
-      { data: jobs },
-      { data: invoices },
-      { data: bookings },
-      { data: recentNewCustomers },
-    ] = await Promise.all([
-      supabase.from('customers').select('*', { count: 'exact', head: true }).eq('user_id', data.user.id),
-      supabase.from('customers').select('*', { count: 'exact', head: true }).eq('user_id', data.user.id).gte('created_at', thisMonthStart),
-      supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('user_id', data.user.id).eq('scheduled_date', todayStr),
-      supabase.from('booking_requests').select('*', { count: 'exact', head: true }).eq('user_id', data.user.id).eq('status', 'pending'),
-      supabase.from('jobs').select('id, title, status, scheduled_date, start_time, service_address, priority, customers(name, phone)').eq('user_id', data.user.id).order('created_at', { ascending: false }).limit(100),
-      supabase.from('invoices').select('id, amount, status, due_date, customers(name, email), created_at, paid_at, invoice_number, token').eq('user_id', data.user.id).order('created_at', { ascending: false }).limit(500),
-      supabase.from('booking_requests').select('id, customer_name, status, created_at').eq('user_id', data.user.id).order('created_at', { ascending: false }).limit(20),
-      supabase.from('customers').select('id, name, created_at').eq('user_id', data.user.id).order('created_at', { ascending: false }).limit(20),
+  const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
+  const [lastSync, setLastSync] = useState<Date | null>(null)
+  const [now, setNow] = useState<Date>(new Date())
+  const [period, setPeriod] = useState<Period>('30d')
+
+  // Trigger staggered entrance after first paint.
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 30)
+    return () => clearTimeout(t)
+  }, [])
+
+  // Update clock once a minute so relative times stay fresh.
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 30_000)
+    return () => clearInterval(t)
+  }, [])
+
+  // ───── Fetch everything in parallel ─────
+  const fetchAll = useCallback(async (uid: string) => {
+    const [invRes, jobRes, custRes, bookRes] = await Promise.all([
+      supabase
+        .from('invoices')
+        .select('id, amount, status, paid_at, created_at, due_date, invoice_number, customer_id, customers(name)')
+        .eq('user_id', uid)
+        .order('created_at', { ascending: false })
+        .limit(2000),
+      supabase
+        .from('jobs')
+        .select('id, title, status, scheduled_date, start_time, end_time, service_address, customer_id, assigned_to, created_at, customers(name), team_members:assigned_to(name)')
+        .eq('user_id', uid)
+        .order('scheduled_date', { ascending: false })
+        .limit(2000),
+      supabase
+        .from('customers')
+        .select('id, name, created_at')
+        .eq('user_id', uid)
+        .order('created_at', { ascending: false })
+        .limit(2000),
+      supabase
+        .from('bookings')
+        .select('id, customer_name, customer_phone, customer_email, service_name, preferred_date, preferred_time, status, notes, created_at')
+        .eq('user_id', uid)
+        .order('created_at', { ascending: false })
+        .limit(200),
     ])
 
-    const allInvoices = (invoices || []) as unknown as Invoice[]
-    const allJobs     = (jobs || []) as unknown as Job[]
+    const invoicesData = ((invRes.data || []) as unknown) as Invoice[]
+    const jobsData = ((jobRes.data || []) as unknown) as Job[]
+    const customersData = ((custRes.data || []) as unknown) as Customer[]
+    const bookingsData = ((bookRes.data || []) as unknown) as Booking[]
 
-    const totalInvoiced = allInvoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0)
-    const paidAmount    = allInvoices.filter((i) => i.status === 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
-    // Unpaid = anything not paid (covers 'unpaid', 'sent', 'viewed', 'overdue').
-    const unpaidStatuses = new Set(['unpaid', 'sent', 'viewed', 'overdue'])
-    const unpaidAmount   = allInvoices.filter((i) => unpaidStatuses.has(i.status)).reduce((s, i) => s + parseFloat(String(i.amount)), 0)
-    const unpaidCount    = allInvoices.filter((i) => unpaidStatuses.has(i.status)).length
-    const overdueCount   = allInvoices.filter((i) => i.status === 'overdue').length
-    const activeJobs     = allJobs.filter((j) => j.status === 'scheduled' || j.status === 'in_progress').length
-    const completedJobs  = allJobs.filter((j) => j.status === 'complete').length
+    setInvoices(invoicesData)
+    setJobs(jobsData)
+    setCustomers(customersData)
+    setBookings(bookingsData)
+    setLastSync(new Date())
+  }, [])
 
-    // Revenue from PAID invoices using paid_at (falls back to created_at if missing).
-    const paidInWindow = (since: string, until?: string) =>
-      allInvoices.filter((i) => {
-        if (i.status !== 'paid') return false
-        const ts = i.paid_at || i.created_at
-        if (!ts) return false
-        if (ts < since) return false
-        if (until && ts >= until) return false
-        return true
-      }).reduce((s, i) => s + parseFloat(String(i.amount)), 0)
-    const revenueThisMonth = paidInWindow(thisMonthStart)
-    const revenueLastMonth = paidInWindow(lastMonthStart, thisMonthStart)
-
-    const jobsThisMonth = allJobs.filter((j) => {
-      const d = j.scheduled_date || ''
-      return d >= thisMonthStart.split('T')[0]
-    }).length
-
-    setStats({
-      customers: customerCount || 0, totalJobs: allJobs.length, activeJobs, completedJobs,
-      totalInvoiced, paidAmount, unpaidAmount, unpaidCount, overdueCount,
-      revenueThisMonth, revenueLastMonth, jobsThisMonth,
-      newCustomersThisMonth: newCustomers || 0,
-      jobsToday: jobsTodayCount || 0,
-      pendingBookings: pendingBookings || 0,
+  // Load the current user, then fetch initial data.
+  useEffect(() => {
+    let cancelled = false
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (cancelled) return
+      if (!data.user) {
+        setLoading(false)
+        return
+      }
+      setUserId(data.user.id)
+      // Derive first name — try user metadata, else the bit before '@'.
+      const metaName = (data.user.user_metadata?.first_name
+        || data.user.user_metadata?.full_name
+        || data.user.user_metadata?.name
+        || '') as string
+      let fn = metaName.trim().split(/\s+/)[0] || ''
+      if (!fn && data.user.email) {
+        fn = data.user.email.split('@')[0].replace(/[._-]+/g, ' ').split(' ')[0]
+        fn = fn.charAt(0).toUpperCase() + fn.slice(1)
+      }
+      setFirstName(fn || (fr ? 'Bienvenue' : 'Welcome'))
+      try {
+        await fetchAll(data.user.id)
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     })
+    return () => { cancelled = true }
+    // fetchAll is stable via useCallback; fr only affects fallback name
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchAll])
 
-    // Today's jobs sorted by start_time
-    const todayJobsSorted = allJobs
+  // Auto-refresh every 60s.
+  useEffect(() => {
+    if (!userId) return
+    const t = setInterval(() => { fetchAll(userId).catch(() => {}) }, 60_000)
+    return () => clearInterval(t)
+  }, [userId, fetchAll])
+
+  // ─────────────────────────────────────────────────
+  // Derived data
+  // ─────────────────────────────────────────────────
+  const today = useMemo(() => isoStartOfDay(new Date()), [])
+  const todayStr = useMemo(() => todayIsoDate(), [])
+
+  const startOfThisMonth = useMemo(() => {
+    const d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0); return d
+  }, [])
+  const startOfLastMonth = useMemo(() => {
+    const d = new Date(startOfThisMonth); d.setMonth(d.getMonth() - 1); return d
+  }, [startOfThisMonth])
+
+  // KPI 1 — revenue this month vs last month (paid invoices)
+  const { revenueThisMonth, revenueTrendPct } = useMemo(() => {
+    let thisM = 0
+    let lastM = 0
+    for (const inv of invoices) {
+      if (inv.status !== 'paid') continue
+      const ts = inv.paid_at || inv.created_at
+      if (!ts) continue
+      const d = new Date(ts)
+      if (d >= startOfThisMonth) thisM += toNum(inv.amount)
+      else if (d >= startOfLastMonth && d < startOfThisMonth) lastM += toNum(inv.amount)
+    }
+    const trend = lastM > 0 ? ((thisM - lastM) / lastM) * 100 : (thisM > 0 ? 100 : 0)
+    return { revenueThisMonth: thisM, revenueTrendPct: trend }
+  }, [invoices, startOfThisMonth, startOfLastMonth])
+
+  // KPI 2 — active jobs, and how many are scheduled today
+  const { activeJobs, jobsToday, todaysJobs } = useMemo(() => {
+    const active = jobs.filter((j) => j.status === 'scheduled' || j.status === 'in_progress')
+    const todays = jobs
       .filter((j) => j.scheduled_date === todayStr)
       .sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''))
-    setTodayJobs(todayJobsSorted)
+    return { activeJobs: active.length, jobsToday: todays.length, todaysJobs: todays }
+  }, [jobs, todayStr])
 
-    setRecentJobs(allJobs.slice(0, 6))
-    setRecentInvoices(allInvoices.slice(0, 6))
-    setChartData(buildMonthlyRevenue(allInvoices, lang === 'fr'))
+  // KPI 3 — customers + new this month
+  const { totalCustomers, newCustomersThisMonth } = useMemo(() => {
+    const total = customers.length
+    const newM = customers.filter((c) => c.created_at && new Date(c.created_at) >= startOfThisMonth).length
+    return { totalCustomers: total, newCustomersThisMonth: newM }
+  }, [customers, startOfThisMonth])
 
-    // ── Activity feed: merge bookings, paid invoices, completed jobs, new customers
-    const isFr = lang === 'fr'
-    const items: ActivityItem[] = []
-    for (const b of (bookings as Array<{ id: string; customer_name: string; status: string; created_at: string }> | null) || []) {
-      if (b.status === 'pending' || b.status === 'confirmed') {
-        items.push({ id: `b-${b.id}`, kind: 'booking', text: isFr ? `Nouvelle réservation de ${b.customer_name}` : `New booking from ${b.customer_name}`, href: '/schedule/bookings', at: b.created_at })
+  // KPI 4 — unpaid + overdue
+  const { unpaidTotal, unpaidCount, overdueInvoices } = useMemo(() => {
+    const unpaid = invoices.filter((i) => i.status === 'unpaid' || i.status === 'overdue' || i.status === 'sent')
+    const sum = unpaid.reduce((acc, i) => acc + toNum(i.amount), 0)
+    const overdue = invoices
+      .filter((i) => (i.status === 'unpaid' || i.status === 'overdue') && i.due_date && new Date(i.due_date) < today)
+      .sort((a, b) => (a.due_date || '').localeCompare(b.due_date || ''))
+    return { unpaidTotal: sum, unpaidCount: unpaid.length, overdueInvoices: overdue }
+  }, [invoices, today])
+
+  // Invoice status breakdown (Row 4 donut)
+  const invoiceBreakdown = useMemo(() => {
+    const buckets = { paid: 0, unpaid: 0, overdue: 0, draft: 0 }
+    for (const inv of invoices) {
+      if (inv.status === 'paid') buckets.paid++
+      else if (inv.status === 'overdue') buckets.overdue++
+      else if (inv.status === 'draft') buckets.draft++
+      else if (inv.status === 'unpaid' || inv.status === 'sent') buckets.unpaid++
+    }
+    return buckets
+  }, [invoices])
+
+  const invoiceBreakdownTotal =
+    invoiceBreakdown.paid + invoiceBreakdown.unpaid + invoiceBreakdown.overdue + invoiceBreakdown.draft
+
+  // Top customers (Row 4 card 2)
+  const topCustomers = useMemo(() => {
+    const map = new Map<string, { name: string; total: number }>()
+    for (const inv of invoices) {
+      const cid = inv.customer_id || 'unknown'
+      const name = inv.customers?.name || (fr ? 'Client' : 'Customer')
+      const entry = map.get(cid) || { name, total: 0 }
+      entry.total += toNum(inv.amount)
+      entry.name = name
+      map.set(cid, entry)
+    }
+    return Array.from(map.values())
+      .filter((c) => c.total > 0)
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5)
+  }, [invoices, fr])
+
+  // Jobs by status (Row 4 card 3)
+  const jobsByStatus = useMemo(() => {
+    const b = { scheduled: 0, in_progress: 0, complete: 0, cancelled: 0 }
+    for (const j of jobs) {
+      if (j.status === 'scheduled') b.scheduled++
+      else if (j.status === 'in_progress') b.in_progress++
+      else if (j.status === 'complete') b.complete++
+      else if (j.status === 'cancelled') b.cancelled++
+    }
+    return b
+  }, [jobs])
+
+  // Pending bookings (Row 5)
+  const pendingBookings = useMemo(
+    () => bookings.filter((b) => b.status === 'pending').slice(0, 5),
+    [bookings],
+  )
+
+  // ───── Revenue chart data (based on selected period) ─────
+  const revenueSeries = useMemo(() => {
+    const buckets: Array<{ label: string; value: number; ts: number }> = []
+    const nowD = new Date()
+    const pushBucket = (d: Date, label: string) => buckets.push({ label, value: 0, ts: d.getTime() })
+
+    if (period === '7d' || period === '30d') {
+      const days = period === '7d' ? 7 : 30
+      for (let i = days - 1; i >= 0; i--) {
+        const d = isoStartOfDay(new Date(nowD.getFullYear(), nowD.getMonth(), nowD.getDate() - i))
+        const label = d.toLocaleDateString(fr ? 'fr-CA' : 'en-CA', {
+          day: 'numeric',
+          month: days <= 7 ? 'short' : undefined,
+        })
+        pushBucket(d, label)
+      }
+      for (const inv of invoices) {
+        if (inv.status !== 'paid') continue
+        const ts = inv.paid_at || inv.created_at
+        if (!ts) continue
+        const d = isoStartOfDay(new Date(ts))
+        const idx = buckets.findIndex((b) => b.ts === d.getTime())
+        if (idx >= 0) buckets[idx].value += toNum(inv.amount)
+      }
+    } else {
+      // 3m / 6m / 1y — monthly buckets
+      const months = period === '3m' ? 3 : period === '6m' ? 6 : 12
+      for (let i = months - 1; i >= 0; i--) {
+        const d = new Date(nowD.getFullYear(), nowD.getMonth() - i, 1)
+        const label = d.toLocaleDateString(fr ? 'fr-CA' : 'en-CA', { month: 'short' })
+        buckets.push({ label, value: 0, ts: d.getTime() })
+      }
+      const keyOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1).getTime()
+      for (const inv of invoices) {
+        if (inv.status !== 'paid') continue
+        const ts = inv.paid_at || inv.created_at
+        if (!ts) continue
+        const k = keyOf(new Date(ts))
+        const idx = buckets.findIndex((b) => b.ts === k)
+        if (idx >= 0) buckets[idx].value += toNum(inv.amount)
       }
     }
-    for (const inv of allInvoices) {
+    return buckets.map((b) => ({ label: b.label, value: Math.round(b.value * 100) / 100 }))
+  }, [invoices, period, fr])
+
+  const revenuePeriodTotal = useMemo(
+    () => revenueSeries.reduce((acc, r) => acc + r.value, 0),
+    [revenueSeries],
+  )
+
+  // ───── Activity feed (Row 2 right) ─────
+  const activityItems = useMemo((): ActivityItem[] => {
+    const out: ActivityItem[] = []
+
+    for (const inv of invoices) {
       if (inv.status === 'paid' && inv.paid_at) {
-        const customer = inv.customers?.name || (isFr ? 'client' : 'customer')
-        items.push({ id: `i-${inv.id}`, kind: 'invoice_paid', text: isFr ? `Facture payée par ${customer} — $${parseFloat(String(inv.amount)).toFixed(2)}` : `Invoice paid by ${customer} — $${parseFloat(String(inv.amount)).toFixed(2)}`, href: `/invoices/${inv.id}`, at: inv.paid_at })
+        const name = inv.customers?.name || (fr ? 'un client' : 'a customer')
+        out.push({
+          id: `inv-paid-${inv.id}`,
+          kind: 'invoice_paid',
+          text: fr
+            ? `Facture ${inv.invoice_number || ''} payée par ${name}`
+            : `Invoice ${inv.invoice_number || ''} paid by ${name}`,
+          href: `/invoices`,
+          at: inv.paid_at,
+        })
+      }
+      if ((inv.status === 'unpaid' || inv.status === 'overdue') && inv.due_date && new Date(inv.due_date) < today) {
+        const name = inv.customers?.name || (fr ? 'un client' : 'a customer')
+        out.push({
+          id: `inv-over-${inv.id}`,
+          kind: 'invoice_overdue',
+          text: fr
+            ? `Facture ${inv.invoice_number || ''} en retard — ${name}`
+            : `Invoice ${inv.invoice_number || ''} overdue — ${name}`,
+          href: `/invoices`,
+          at: inv.due_date,
+        })
       }
     }
-    for (const j of allJobs) {
+
+    for (const j of jobs) {
       if (j.status === 'complete') {
-        items.push({ id: `j-${j.id}`, kind: 'job_complete', text: isFr ? `Emploi complété — ${j.customers?.name || j.title}` : `Job completed — ${j.customers?.name || j.title}`, href: `/jobs/${j.id}`, at: j.scheduled_date || '' })
+        const name = j.customers?.name || (fr ? 'un client' : 'a customer')
+        out.push({
+          id: `job-${j.id}`,
+          kind: 'job_completed',
+          text: fr ? `Intervention terminée pour ${name}` : `Job completed for ${name}`,
+          href: `/jobs/${j.id}`,
+          at: j.scheduled_date || j.created_at,
+        })
       }
     }
-    for (const c of (recentNewCustomers as Array<{ id: string; name: string; created_at: string }> | null) || []) {
-      items.push({ id: `c-${c.id}`, kind: 'new_customer', text: isFr ? `Nouveau client — ${c.name}` : `New customer — ${c.name}`, href: `/customers/${c.id}`, at: c.created_at })
-    }
-    items.sort((a, b) => (b.at || '').localeCompare(a.at || ''))
-    setActivity(items.slice(0, 10))
 
-    // ── Overdue invoices: explicit 'overdue' OR sent/viewed past due_date
-    const overdue = allInvoices.filter((i) => {
-      if (i.status === 'overdue') return true
-      if ((i.status === 'sent' || i.status === 'viewed') && i.due_date && i.due_date < todayStr) return true
-      return false
-    }).slice(0, 10) as unknown as OverdueInvoice[]
-    setOverdueList(overdue)
-
-    setLoading(false)
-  }, [lang])
-
-  useEffect(() => {
-    init()
-  }, [init])
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('subscribed') === 'true') {
-      toast.success(lang === 'fr' ? 'Bienvenue ! Votre abonnement est actif.' : 'Welcome! Your subscription is now active.')
-      const url = new URL(window.location.href)
-      url.searchParams.delete('subscribed')
-      url.searchParams.delete('session_id')
-      window.history.replaceState({}, '', url.toString())
-    }
-  }, [lang])
-
-  useEffect(() => {
-    if (!user) return
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) return
-      const channel = supabase
-        .channel('dashboard-realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs',      filter: `user_id=eq.${data.user.id}` }, init)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'invoices',  filter: `user_id=eq.${data.user.id}` }, init)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'customers', filter: `user_id=eq.${data.user.id}` }, init)
-        .subscribe()
-      return () => { supabase.removeChannel(channel) }
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user])
-
-  const fmt        = (n: number) => fmtMoney(n, lang).replace(/[,.]\d{2}\b/, '')
-  const fmt2       = (n: number) => fmtMoney(n, lang)
-
-  const sendReminder = async (inv: OverdueInvoice) => {
-    if (!inv.customers?.email) return
-    setReminderSending(inv.id)
-    try {
-      await fetch('/api/email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'payment_reminder',
-          to: inv.customers.email,
-          customerName: inv.customers.name,
-          invoiceNumber: inv.invoice_number || inv.id.slice(0, 8),
-          amount: fmt2(inv.amount),
-          dueDate: inv.due_date,
-          paymentLink: inv.token ? `${window.location.origin}/invoice/${inv.token}` : undefined,
-        }),
+    for (const b of bookings) {
+      out.push({
+        id: `book-${b.id}`,
+        kind: 'new_booking',
+        text: fr
+          ? `Nouvelle réservation — ${b.customer_name || 'client'} (${b.service_name || ''})`
+          : `New booking — ${b.customer_name || 'customer'} (${b.service_name || ''})`,
+        href: `/bookings`,
+        at: b.created_at,
       })
+    }
+
+    for (const c of customers) {
+      out.push({
+        id: `cust-${c.id}`,
+        kind: 'new_customer',
+        text: fr ? `Nouveau client : ${c.name || ''}` : `New customer: ${c.name || ''}`,
+        href: `/customers/${c.id}`,
+        at: c.created_at,
+      })
+    }
+
+    return out
+      .filter((a) => !!a.at)
+      .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+      .slice(0, 20)
+  }, [invoices, jobs, bookings, customers, today, fr])
+
+  // ───── Greeting helpers ─────
+  const formattedDate = now.toLocaleDateString(fr ? 'fr-CA' : 'en-CA', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+
+  const lastSyncLabel = useMemo(() => {
+    if (!lastSync) return ''
+    const secs = Math.max(0, Math.floor((now.getTime() - lastSync.getTime()) / 1000))
+    if (secs < 60) return fr ? `Mis à jour il y a ${secs}s` : `Updated ${secs}s ago`
+    const mins = Math.floor(secs / 60)
+    if (mins < 60) return fr ? `Mis à jour il y a ${mins} min` : `Updated ${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    return fr ? `Mis à jour il y a ${hrs} h` : `Updated ${hrs}h ago`
+  }, [lastSync, now, fr])
+
+  // ───── Bookings actions ─────
+  const [bookingActing, setBookingActing] = useState<string | null>(null)
+  const updateBooking = async (id: string, status: 'accepted' | 'declined') => {
+    setBookingActing(id)
+    try {
+      const res = await fetch(`/api/bookings/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      if (!res.ok) throw new Error(await res.text())
+      toast.success(
+        status === 'accepted'
+          ? (fr ? 'Réservation acceptée' : 'Booking accepted')
+          : (fr ? 'Réservation refusée' : 'Booking declined'),
+      )
+      if (userId) await fetchAll(userId)
+    } catch {
+      toast.error(fr ? "Impossible de mettre à jour la réservation" : 'Could not update booking')
     } finally {
-      setReminderSending(null)
+      setBookingActing(null)
     }
   }
-  const hour       = new Date().getHours()
-  const greeting   = fr
-    ? (hour < 12 ? 'Bonjour' : hour < 17 ? 'Bon après-midi' : 'Bonsoir')
-    : (hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening')
-  const name       = user?.email?.split('@')[0] || ''
-  const revenueΔ   = stats.revenueLastMonth > 0 ? ((stats.revenueThisMonth - stats.revenueLastMonth) / stats.revenueLastMonth) * 100 : null
-  const collectionRate = stats.totalInvoiced > 0 ? (stats.paidAmount / stats.totalInvoiced) * 100 : 0
-  const completionRate = stats.totalJobs > 0 ? (stats.completedJobs / stats.totalJobs) * 100 : 0
 
-  if (loading) return (
-    <AppLayout>
-      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-        <SkeletonText className="h-8 w-64" />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {[...Array(4)].map((_, i) => <SkeletonKPICard key={i} />)}
-        </div>
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2"><SkeletonChart className="h-72" /></div>
-          <div className="space-y-3">
-            <SkeletonText className="h-4 w-40 mb-3" />
-            {[...Array(4)].map((_, i) => <SkeletonListRow key={i} />)}
+  // Pass to JobsMap: today's jobs with an address.
+  const mapJobs = useMemo(() => todaysJobs
+    .filter((j) => !!j.service_address)
+    .map((j) => ({
+      id: j.id,
+      title: j.title || '',
+      status: j.status,
+      service_address: j.service_address,
+      customer_name: j.customers?.name || null,
+      start_time: j.start_time || null,
+      technician: j.team_members?.name || null,
+    })), [todaysJobs])
+
+  // ───── Render ─────
+  return (
+    <AppLayout title={fr ? 'Tableau de bord' : 'Dashboard'}>
+      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+        {/* ══════ ROW 0 — Greeting ══════ */}
+        <GreetingRow
+          firstName={firstName}
+          dateLabel={formattedDate}
+          lastSyncLabel={lastSyncLabel}
+          fr={fr}
+          mounted={mounted}
+          loading={loading && !firstName}
+        />
+
+        {/* ══════ ROW 1 — KPI cards ══════ */}
+        <section
+          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 transition-all duration-500 ease-out ${
+            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+          }`}
+          style={{ transitionDelay: '80ms' }}
+        >
+          {loading ? (
+            <>
+              <SkeletonKPICard /><SkeletonKPICard />
+              <SkeletonKPICard /><SkeletonKPICard />
+            </>
+          ) : (
+            <>
+              <KpiCard
+                href="/invoices"
+                tone="emerald"
+                Icon={DollarSign}
+                label={fr ? 'Revenus ce mois' : 'Revenue this month'}
+                value={fmtMoney(revenueThisMonth, lang)}
+                trendPct={revenueTrendPct}
+                trendSuffix={fr ? 'vs mois dernier' : 'vs last month'}
+              />
+              <KpiCard
+                href="/jobs"
+                tone="blue"
+                Icon={Briefcase}
+                label={fr ? 'Interventions actives' : 'Active jobs'}
+                value={String(activeJobs)}
+                subtext={
+                  fr
+                    ? `${jobsToday} planifiée${jobsToday !== 1 ? 's' : ''} aujourd'hui`
+                    : `${jobsToday} scheduled today`
+                }
+              />
+              <KpiCard
+                href="/customers"
+                tone="violet"
+                Icon={Users}
+                label={fr ? 'Clients' : 'Customers'}
+                value={String(totalCustomers)}
+                subtext={
+                  fr
+                    ? `+${newCustomersThisMonth} nouveau${newCustomersThisMonth !== 1 ? 'x' : ''} ce mois`
+                    : `+${newCustomersThisMonth} new this month`
+                }
+              />
+              <KpiCard
+                href="/invoices?status=unpaid"
+                tone="amber"
+                Icon={AlertCircle}
+                label={fr ? 'Factures impayées' : 'Unpaid invoices'}
+                value={fmtMoney(unpaidTotal, lang)}
+                subtext={
+                  fr
+                    ? `${unpaidCount} facture${unpaidCount !== 1 ? 's' : ''} en attente`
+                    : `${unpaidCount} invoice${unpaidCount !== 1 ? 's' : ''} pending`
+                }
+              />
+            </>
+          )}
+        </section>
+
+        {/* ══════ ROW 2 — Revenue chart + Activity feed ══════ */}
+        <section
+          className={`grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 transition-all duration-500 ease-out ${
+            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+          }`}
+          style={{ transitionDelay: '160ms' }}
+        >
+          <RevenueCard
+            fr={fr}
+            lang={lang}
+            isDark={isDark}
+            period={period}
+            onPeriod={setPeriod}
+            total={revenuePeriodTotal}
+            data={revenueSeries}
+            loading={loading}
+          />
+          <ActivityFeed items={activityItems} fr={fr} loading={loading} nowTs={now.getTime()} />
+        </section>
+
+        {/* ══════ ROW 3 — Today's schedule + Jobs map ══════ */}
+        <section
+          className={`grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-4 transition-all duration-500 ease-out ${
+            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+          }`}
+          style={{ transitionDelay: '240ms' }}
+        >
+          <TodaysSchedule jobs={todaysJobs} fr={fr} lang={lang} loading={loading} dateLabel={formattedDate} />
+          <div className="hidden lg:block">
+            <MapCard fr={fr} jobs={mapJobs} loading={loading} />
           </div>
-        </div>
+        </section>
+
+        {/* ══════ ROW 4 — Stat grid ══════ */}
+        <section
+          className={`grid grid-cols-1 md:grid-cols-3 gap-4 transition-all duration-500 ease-out ${
+            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+          }`}
+          style={{ transitionDelay: '320ms' }}
+        >
+          <InvoiceBreakdownCard
+            fr={fr}
+            breakdown={invoiceBreakdown}
+            total={invoiceBreakdownTotal}
+            isDark={isDark}
+            loading={loading}
+          />
+          <TopCustomersCard fr={fr} lang={lang} customers={topCustomers} loading={loading} />
+          <JobsByStatusCard fr={fr} stats={jobsByStatus} loading={loading} mounted={mounted} />
+        </section>
+
+        {/* ══════ ROW 5 — Pending bookings + Overdue invoices ══════ */}
+        <section
+          className={`grid grid-cols-1 md:grid-cols-2 gap-4 transition-all duration-500 ease-out ${
+            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+          }`}
+          style={{ transitionDelay: '400ms' }}
+        >
+          <PendingBookingsCard
+            fr={fr}
+            bookings={pendingBookings}
+            onAction={updateBooking}
+            acting={bookingActing}
+            loading={loading}
+          />
+          <OverdueInvoicesCard fr={fr} lang={lang} invoices={overdueInvoices} loading={loading} today={today} />
+        </section>
       </div>
     </AppLayout>
   )
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Sub-components
+// ═══════════════════════════════════════════════════════════════
+
+// ────────── Greeting row ──────────
+function GreetingRow({
+  firstName, dateLabel, lastSyncLabel, fr, mounted, loading,
+}: {
+  firstName: string; dateLabel: string; lastSyncLabel: string
+  fr: boolean; mounted: boolean; loading: boolean
+}) {
+  const { theme, toggleTheme } = useTheme()
+  const isDark = theme === 'dark'
 
   return (
-    <AppLayout>
-      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
+    <div
+      className={`flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 transition-all duration-500 ease-out ${
+        mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+      }`}
+    >
+      <div className="min-w-0">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
+          {loading ? (
+            <span className="inline-block h-8 w-60 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse align-middle" />
+          ) : (
+            <>
+              <span>{fr ? 'Bonjour, ' : 'Hi, '}</span>
+              <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+                {firstName}
+              </span>
+              <span className="ml-2 inline-block origin-[70%_70%] animate-wave">👋</span>
+            </>
+          )}
+        </h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 capitalize">
+          {dateLabel}
+          {lastSyncLabel && (
+            <span className="ml-2 hidden sm:inline text-xs text-gray-400 dark:text-gray-500">
+              · {lastSyncLabel}
+            </span>
+          )}
+        </p>
+      </div>
 
-        {/* Header */}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-medium text-gray-400 uppercase tracking-widest mb-1">
-              {fmtDate(new Date().toISOString().slice(0,10), lang)}
-            </p>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">{greeting}, {name} 👋</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              {stats.overdueCount > 0
-                ? (fr
-                    ? `⚠️ Vous avez ${stats.overdueCount} facture${stats.overdueCount > 1 ? 's' : ''} en retard qui nécessite${stats.overdueCount > 1 ? 'nt' : ''} votre attention.`
-                    : `⚠️ You have ${stats.overdueCount} overdue invoice${stats.overdueCount > 1 ? 's' : ''} requiring your attention.`)
-                : stats.activeJobs > 0
-                ? (fr
-                    ? `Vous avez ${stats.activeJobs} intervention${stats.activeJobs > 1 ? 's' : ''} en cours.`
-                    : `You have ${stats.activeJobs} active job${stats.activeJobs > 1 ? 's' : ''}.`)
-                : (fr ? `Voici un aperçu de votre activité aujourd'hui.` : `Here's an overview of your activity today.`)}
-            </p>
-          </div>
-          <div className="hidden sm:flex items-center gap-2 shrink-0">
-            <Link href="/jobs" className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
-              <Plus className="h-4 w-4" /> {fr ? 'Nouvelle intervention' : 'New job'}
-            </Link>
-            <Link href="/invoices" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm transition-colors">
-              <Plus className="h-4 w-4" /> {fr ? 'Nouvelle facture' : 'New invoice'}
-            </Link>
+      <div className="flex items-center gap-2">
+        <Link
+          href="/jobs"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          {fr ? 'Nouvelle intervention' : 'New job'}
+        </Link>
+        <Link
+          href="/invoices/new"
+          className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 text-sm font-medium transition-colors shadow-sm"
+        >
+          <Sparkles className="h-4 w-4" />
+          {fr ? 'Créer une facture' : 'New invoice'}
+        </Link>
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label={isDark ? (fr ? 'Passer au mode clair' : 'Switch to light mode') : (fr ? 'Passer au mode sombre' : 'Switch to dark mode')}
+          className="p-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300"
+        >
+          {isDark
+            ? <Sun className="h-4.5 w-4.5 transition-transform duration-300 hover:rotate-12" />
+            : <Moon className="h-4.5 w-4.5 transition-transform duration-300 hover:-rotate-12" />}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ────────── KPI card ──────────
+function KpiCard({
+  href, tone, Icon, label, value, subtext, trendPct, trendSuffix,
+}: {
+  href: string
+  tone: 'emerald' | 'blue' | 'violet' | 'amber'
+  Icon: React.ComponentType<{ className?: string }>
+  label: string
+  value: string
+  subtext?: string
+  trendPct?: number
+  trendSuffix?: string
+}) {
+  const tones: Record<typeof tone, { bg: string; fg: string }> = {
+    emerald: { bg: 'bg-emerald-50 dark:bg-emerald-500/10', fg: 'text-emerald-600 dark:text-emerald-400' },
+    blue:    { bg: 'bg-blue-50 dark:bg-blue-500/10',       fg: 'text-blue-600 dark:text-blue-400' },
+    violet:  { bg: 'bg-violet-50 dark:bg-violet-500/10',   fg: 'text-violet-600 dark:text-violet-400' },
+    amber:   { bg: 'bg-amber-50 dark:bg-amber-500/10',     fg: 'text-amber-600 dark:text-amber-400' },
+  }
+  const t = tones[tone]
+  const up = (trendPct ?? 0) >= 0
+
+  return (
+    <Link
+      href={href}
+      className="group relative rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+    >
+      <div className="flex items-start justify-between">
+        <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${t.bg}`}>
+          <Icon className={`h-5 w-5 ${t.fg}`} />
+        </div>
+        <ArrowUpRight className="h-4 w-4 text-gray-300 dark:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+      </div>
+
+      <div className="mt-3 text-3xl font-bold tabular-nums text-gray-900 dark:text-white leading-tight break-words">
+        {value}
+      </div>
+      <div className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{label}</div>
+
+      {typeof trendPct === 'number' && (
+        <div className="mt-3 flex items-center gap-1 text-xs">
+          <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 font-semibold ${
+            up
+              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
+              : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
+          }`}>
+            {up ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+            {Math.abs(trendPct).toFixed(1)}%
+          </span>
+          {trendSuffix && <span className="text-gray-400 dark:text-gray-500">{trendSuffix}</span>}
+        </div>
+      )}
+
+      {subtext && !Number.isFinite(trendPct as number) && (
+        <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">{subtext}</div>
+      )}
+      {subtext && Number.isFinite(trendPct as number) && (
+        <div className="mt-2 text-xs text-gray-400 dark:text-gray-500 truncate">{subtext}</div>
+      )}
+    </Link>
+  )
+}
+
+// ────────── Revenue card ──────────
+function RevenueCard({
+  fr, lang, isDark, period, onPeriod, total, data, loading,
+}: {
+  fr: boolean
+  lang: 'fr' | 'en'
+  isDark: boolean
+  period: Period
+  onPeriod: (p: Period) => void
+  total: number
+  data: Array<{ label: string; value: number }>
+  loading: boolean
+}) {
+  const pills: { key: Period; label: string }[] = [
+    { key: '7d', label: fr ? '7J' : '7D' },
+    { key: '30d', label: fr ? '30J' : '30D' },
+    { key: '3m', label: '3M' },
+    { key: '6m', label: '6M' },
+    { key: '1y', label: fr ? '1A' : '1Y' },
+  ]
+  const axisColor = isDark ? '#6b7280' : '#9ca3af'
+  const gridColor = isDark ? '#1f2937' : '#f3f4f6'
+  return (
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-5">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            {fr ? 'Revenus' : 'Revenue'}
+          </h2>
+          <div className="mt-1 flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-bold tabular-nums text-gray-900 dark:text-white">
+              {fmtMoney(total, lang)}
+            </span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">
+              {fr ? 'payé · période' : 'paid · period'}
+            </span>
           </div>
         </div>
-
-        {/* Alert banner */}
-        {(stats.overdueCount > 0 || stats.unpaidCount > 0) && (
-          <div className={`flex items-center gap-3 rounded-2xl px-5 py-4 ${stats.overdueCount > 0 ? 'bg-red-50 border border-red-100' : 'bg-amber-50 border border-amber-100'}`}>
-            <AlertCircle className={`h-5 w-5 shrink-0 ${stats.overdueCount > 0 ? 'text-red-500' : 'text-amber-500'}`} />
-            <div className="flex-1 min-w-0">
-              <p className={`text-sm font-semibold ${stats.overdueCount > 0 ? 'text-red-800' : 'text-amber-800'}`}>
-                {stats.overdueCount > 0
-                  ? (fr
-                      ? `${stats.overdueCount} facture${stats.overdueCount > 1 ? 's' : ''} en retard — ${fmt(stats.unpaidAmount)} impayé${stats.unpaidAmount > 1 ? 's' : ''}`
-                      : `${stats.overdueCount} overdue invoice${stats.overdueCount > 1 ? 's' : ''} — ${fmt(stats.unpaidAmount)} unpaid`)
-                  : (fr
-                      ? `${stats.unpaidCount} facture${stats.unpaidCount > 1 ? 's' : ''} en attente de paiement — ${fmt(stats.unpaidAmount)}`
-                      : `${stats.unpaidCount} invoice${stats.unpaidCount > 1 ? 's' : ''} pending payment — ${fmt(stats.unpaidAmount)}`)}
-              </p>
-              <p className={`text-xs mt-0.5 ${stats.overdueCount > 0 ? 'text-red-600' : 'text-amber-600'}`}>
-                {fr ? 'Envoyez des rappels pour être payé plus vite' : 'Send reminders to get paid faster'}
-              </p>
-            </div>
-            <Link href="/invoices" className={`shrink-0 text-xs font-semibold hover:underline ${stats.overdueCount > 0 ? 'text-red-700' : 'text-amber-700'}`}>
-              {fr ? 'Voir les factures →' : 'View invoices →'}
-            </Link>
-          </div>
-        )}
-
-        {/* KPI Cards */}
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {[
-            {
-              title: fr ? 'Revenus ce mois' : 'Revenue this month',
-              value: fmt(stats.revenueThisMonth),
-              icon: DollarSign, href: '/invoices',
-              iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600',
-              sub: revenueΔ !== null
-                ? (fr
-                    ? `${revenueΔ >= 0 ? '↑' : '↓'} ${Math.abs(revenueΔ).toFixed(0)}% vs mois dernier`
-                    : `${revenueΔ >= 0 ? '↑' : '↓'} ${Math.abs(revenueΔ).toFixed(0)}% vs last month`)
-                : (fr ? `${fmt(stats.paidAmount)} total encaissé` : `${fmt(stats.paidAmount)} total collected`),
-              subColor: revenueΔ !== null ? (revenueΔ >= 0 ? 'text-emerald-600' : 'text-red-500') : 'text-gray-400',
-              highlight: false,
-              badge: null as string | null,
-            },
-            {
-              title: fr ? "Emplois aujourd'hui" : "Today's jobs",
-              value: stats.jobsToday.toString(),
-              icon: Briefcase, href: '/jobs',
-              iconBg: 'bg-blue-100', iconColor: 'text-blue-600',
-              sub: fr
-                ? `${stats.jobsThisMonth} ce mois · ${stats.activeJobs} actives`
-                : `${stats.jobsThisMonth} this month · ${stats.activeJobs} active`,
-              subColor: 'text-gray-400',
-              highlight: false,
-              badge: null,
-            },
-            {
-              title: fr ? 'Réservations en attente' : 'Pending bookings',
-              value: stats.pendingBookings.toString(),
-              icon: Calendar, href: '/schedule/bookings',
-              iconBg: stats.pendingBookings > 0 ? 'bg-red-100' : 'bg-indigo-100',
-              iconColor: stats.pendingBookings > 0 ? 'text-red-600' : 'text-indigo-600',
-              sub: stats.pendingBookings > 0
-                ? (fr ? 'À traiter rapidement' : 'Needs attention')
-                : (fr ? 'Tout est à jour' : 'All caught up'),
-              subColor: stats.pendingBookings > 0 ? 'text-red-500' : 'text-gray-400',
-              highlight: stats.pendingBookings > 0,
-              badge: stats.pendingBookings > 0 ? String(stats.pendingBookings) : null,
-            },
-            {
-              title: fr ? 'Factures impayées' : 'Unpaid invoices',
-              value: fmt(stats.unpaidAmount),
-              icon: stats.overdueCount > 0 ? AlertCircle : Clock,
-              href: '/invoices',
-              iconBg: stats.overdueCount > 0 ? 'bg-red-100' : 'bg-amber-100',
-              iconColor: stats.overdueCount > 0 ? 'text-red-600' : 'text-amber-600',
-              sub: stats.overdueCount > 0
-                ? (fr ? `${stats.overdueCount} en retard` : `${stats.overdueCount} overdue`)
-                : (fr ? `${stats.unpaidCount} non payées` : `${stats.unpaidCount} unpaid`),
-              subColor: stats.overdueCount > 0 ? 'text-red-500' : 'text-amber-500',
-              highlight: stats.overdueCount > 0,
-              badge: null,
-            },
-          ].map((card) => (
-            <Link
-              key={card.title}
-              href={card.href}
-              className={[
-                'group relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm hover:shadow-md transition-all duration-200',
-                card.highlight ? 'border-red-200' : 'border-gray-100 hover:border-gray-200',
-              ].join(' ')}
+        <div className="inline-flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-0.5">
+          {pills.map((p) => (
+            <button
+              key={p.key}
+              onClick={() => onPeriod(p.key)}
+              className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-all ${
+                period === p.key
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className={`relative inline-flex h-10 w-10 items-center justify-center rounded-xl ${card.iconBg}`}>
-                  <card.icon className={`h-5 w-5 ${card.iconColor}`} />
-                  {card.badge && (
-                    <span className="absolute -top-1 -right-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white ring-2 ring-white">
-                      {card.badge}
-                    </span>
-                  )}
-                </div>
-                <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-gray-400 group-hover:translate-x-0.5 transition-all" />
-              </div>
-              <p className="text-xs font-medium text-gray-500 mb-1">{card.title}</p>
-              <p className="text-2xl font-bold text-gray-900 tabular-nums">{card.value}</p>
-              <p className={`mt-1 text-xs font-medium ${card.subColor}`}>{card.sub}</p>
-            </Link>
+              {p.label}
+            </button>
           ))}
         </div>
+      </div>
 
-        {/* Charts row */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Revenue chart — 12 months */}
-          <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Revenus' : 'Revenue'}</h2>
-                <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Encaissés · 12 derniers mois' : 'Collected · Last 12 months'}</p>
-              </div>
-              {revenueΔ !== null && (
-                <div className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold ${revenueΔ >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}`}>
-                  {revenueΔ >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowRight className="h-3.5 w-3.5 rotate-45" />}
-                  {Math.abs(revenueΔ).toFixed(1)}% MoM
-                </div>
-              )}
-            </div>
-            {chartData.some((d) => d.revenue > 0) ? (
-              <ResponsiveContainer width="100%" height={180}>
-                <AreaChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
-                  <defs>
-                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="revenue" stroke="#6366f1" strokeWidth={2.5} fill="url(#colorRevenue)" dot={false} activeDot={{ r: 4, fill: '#6366f1' }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex items-center justify-center h-44 rounded-xl bg-gray-50">
-                <div className="text-center">
-                  <TrendingUp className="h-10 w-10 text-gray-200 mx-auto mb-2" />
-                  <p className="text-sm text-gray-400">{fr ? 'Le graphique apparaîtra une fois que vous aurez des factures payées' : 'The chart will appear once you have paid invoices'}</p>
-                  <Link href="/invoices" className="mt-2 inline-block text-xs font-medium text-indigo-600 hover:underline">{fr ? 'Créer une facture →' : 'Create an invoice →'}</Link>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Job stats */}
-          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col gap-5">
-            <div>
-              <h2 className="text-sm font-semibold text-gray-900">Performance</h2>
-              <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Depuis le début' : 'All time'}</p>
-            </div>
-
-            <div className="space-y-4">
-              {[
-                { label: fr ? 'Taux de complétion' : 'Completion rate', value: completionRate, color: 'bg-emerald-500', icon: Target },
-                { label: fr ? 'Taux de recouvrement' : 'Collection rate', value: collectionRate, color: 'bg-indigo-500', icon: CheckCircle },
-                { label: fr ? 'Charge active' : 'Active workload', value: stats.totalJobs > 0 ? (stats.activeJobs / stats.totalJobs) * 100 : 0, color: 'bg-blue-400', icon: Activity },
-              ].map((row) => (
-                <div key={row.label}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs text-gray-600 flex items-center gap-1.5">
-                      <row.icon className="h-3 w-3 text-gray-400" /> {row.label}
-                    </span>
-                    <span className="text-xs font-bold text-gray-900">{Math.round(row.value)}%</span>
-                  </div>
-                  <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
-                    <div className={`h-full rounded-full ${row.color} transition-all duration-700`} style={{ width: `${Math.min(100, row.value)}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-auto border-t border-gray-100 pt-4 grid grid-cols-2 gap-3">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">{stats.totalJobs}</p>
-                <p className="text-xs text-gray-400">{fr ? 'Total interventions' : 'Total jobs'}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">{stats.customers}</p>
-                <p className="text-xs text-gray-400">{fr ? 'Clients' : 'Customers'}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Today's schedule */}
-        {todayJobs.length > 0 && (
-          <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 overflow-hidden shadow-sm">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-indigo-100">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-indigo-600" />
-                <h2 className="text-sm font-semibold text-indigo-900">{fr ? 'Planning du jour' : "Today's schedule"}</h2>
-                <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-bold text-white">{todayJobs.length}</span>
-              </div>
-              <Link href="/schedule" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                {fr ? 'Calendrier complet' : 'Full calendar'} <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-            <div className="divide-y divide-indigo-100">
-              {todayJobs.map((job) => (
-                <Link
-                  key={job.id}
-                  href={`/jobs/${job.id}`}
-                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-indigo-50 transition-colors"
-                >
-                  <div className="shrink-0 w-14 text-sm font-bold text-indigo-700 tabular-nums">{job.start_time?.slice(0, 5) || '—'}</div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-gray-900 truncate">{job.title}</p>
-                    <p className="text-xs text-gray-500 truncate">
-                      {job.customers?.name || (fr ? 'Sans client' : 'No customer')}
-                      {job.service_address ? ` · ${job.service_address}` : ''}
-                    </p>
-                  </div>
-                  <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusClass[job.status] || ''}`}>
-                    {tStatus(job.status)}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
+      <div className="mt-4 h-64 w-full">
+        {loading ? (
+          <Skeleton className="h-full w-full rounded-xl" />
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+              <defs>
+                <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#6366f1" stopOpacity={0.45} />
+                  <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} stroke={gridColor} strokeDasharray="3 3" />
+              <XAxis
+                dataKey="label"
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontSize: 11, fill: axisColor }}
+                interval="preserveStartEnd"
+                minTickGap={20}
+              />
+              <YAxis
+                hide
+                domain={[0, (max: number) => Math.max(max * 1.2, 10)]}
+              />
+              <Tooltip
+                cursor={{ stroke: '#6366f1', strokeWidth: 1, strokeOpacity: 0.3 }}
+                content={({ active, payload, label }) => {
+                  if (!active || !payload?.length) return null
+                  const v = toNum(payload[0].value as number | string)
+                  return (
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 shadow-lg">
+                      <div className="text-[11px] font-medium text-gray-400 dark:text-gray-500">{label}</div>
+                      <div className="text-sm font-semibold text-gray-900 dark:text-white tabular-nums">
+                        {fmtMoney(v, lang)}
+                      </div>
+                    </div>
+                  )
+                }}
+              />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="#6366f1"
+                strokeWidth={2.25}
+                fill="url(#revGradient)"
+                animationDuration={700}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         )}
+      </div>
+    </div>
+  )
+}
 
-        {/* Quick actions */}
+// ────────── Activity feed ──────────
+function ActivityFeed({
+  items, fr, loading, nowTs,
+}: {
+  items: ActivityItem[]
+  fr: boolean
+  loading: boolean
+  nowTs: number
+}) {
+  const timeAgo = (iso: string): string => {
+    const mins = Math.floor((nowTs - new Date(iso).getTime()) / 60000)
+    if (mins < 1) return fr ? "à l'instant" : 'just now'
+    if (mins < 60) return fr ? `il y a ${mins} min` : `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return fr ? `il y a ${hrs} h` : `${hrs}h ago`
+    const days = Math.floor(hrs / 24)
+    return fr ? `il y a ${days} j` : `${days}d ago`
+  }
+
+  const KIND_META: Record<ActivityKind, { dot: string; Icon: React.ComponentType<{ className?: string }>; fg: string; bg: string }> = {
+    invoice_paid:     { dot: 'bg-emerald-500', Icon: DollarSign,  fg: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+    new_booking:      { dot: 'bg-blue-500',    Icon: Calendar,    fg: 'text-blue-600 dark:text-blue-400',       bg: 'bg-blue-50 dark:bg-blue-500/10' },
+    job_completed:    { dot: 'bg-violet-500',  Icon: CheckCircle, fg: 'text-violet-600 dark:text-violet-400',   bg: 'bg-violet-50 dark:bg-violet-500/10' },
+    new_customer:     { dot: 'bg-amber-500',   Icon: UserPlus,    fg: 'text-amber-600 dark:text-amber-400',     bg: 'bg-amber-50 dark:bg-amber-500/10' },
+    invoice_overdue:  { dot: 'bg-red-500',     Icon: AlertCircle, fg: 'text-red-600 dark:text-red-400',         bg: 'bg-red-50 dark:bg-red-500/10' },
+  }
+
+  return (
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
         <div>
-          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">{fr ? 'Actions rapides' : 'Quick actions'}</h2>
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: fr ? 'Nouveau client' : 'New customer',       href: '/customers', color: 'hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700', icon: Users },
-              { label: fr ? 'Nouvelle intervention' : 'New job',     href: '/jobs',    color: 'hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700', icon: Briefcase },
-              { label: fr ? 'Nouveau devis' : 'New quote',           href: '/quotes',   color: 'hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700', icon: FileText },
-              { label: fr ? 'Nouvelle facture' : 'New invoice',      href: '/invoices', color: 'hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700', icon: DollarSign },
-              { label: fr ? 'Calendrier' : 'Calendar',               href: '/schedule', color: 'hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700', icon: Calendar },
-              { label: fr ? 'Rapports' : 'Reports',                  href: '/reports',  color: 'hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700', icon: TrendingUp },
-              { label: fr ? "Demander à l'IA" : 'Ask AI',            href: '/assistant', color: 'hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700', icon: Sparkles },
-            ].map((action) => (
-              <Link
-                key={action.label}
-                href={action.href}
-                className={`inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all ${action.color}`}
-              >
-                <Plus className="h-3.5 w-3.5" />{action.label}
-              </Link>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            {fr ? 'Activité récente' : 'Recent activity'}
+          </h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+            {fr ? 'Les 20 derniers événements' : 'Last 20 events'}
+          </p>
+        </div>
+        <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" title={fr ? 'Live' : 'Live'} />
+      </div>
+
+      <div className="max-h-[500px] min-h-[320px] overflow-y-auto">
+        {loading ? (
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="flex-1 space-y-1.5">
+                  <Skeleton className="h-3 w-3/4 rounded" />
+                  <Skeleton className="h-2.5 w-24 rounded" />
+                </div>
+              </div>
             ))}
           </div>
-        </div>
-
-        {/* Recent activity */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Recent jobs */}
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Interventions récentes' : 'Recent jobs'}</h2>
-              <Link href="/jobs" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                {fr ? 'Voir tout' : 'View all'} <ArrowRight className="h-3 w-3" />
-              </Link>
+        ) : items.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-500/10">
+              <Sparkles className="h-7 w-7 text-indigo-500 dark:text-indigo-400" />
             </div>
-            {recentJobs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 px-5 text-center">
-                <div className="h-12 w-12 rounded-2xl bg-violet-50 flex items-center justify-center mb-3">
-                  <Briefcase className="h-6 w-6 text-violet-300" />
-                </div>
-                <p className="text-sm font-medium text-gray-700 mb-1">{fr ? 'Aucune intervention' : 'No jobs yet'}</p>
-                <p className="text-xs text-gray-400 mb-3">{fr ? 'Créez votre premier bon de travail pour démarrer' : 'Create your first job to get started'}</p>
-                <Link href="/jobs" className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700">
-                  <Plus className="h-3.5 w-3.5" /> {fr ? 'Créer une intervention' : 'Create a job'}
-                </Link>
-              </div>
-            ) : (
-              <ul className="divide-y divide-gray-50">
-                {recentJobs.map((job) => (
-                  <li key={job.id}>
-                    <Link href={`/jobs/${job.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-violet-50">
-                        <Briefcase className="h-4 w-4 text-violet-500" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-gray-900">{job.title}</p>
-                        <p className="text-xs text-gray-400">
-                          {job.customers?.name || (fr ? 'Sans client' : 'No customer')}
-                          {job.scheduled_date ? ` · ${fmtDate(job.scheduled_date, lang)}` : ''}
-                        </p>
-                      </div>
-                      <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusClass[job.status] || ''}`}>
-                        {tStatus(job.status)}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              {fr ? 'Aucune activité pour l\'instant' : 'No activity yet'}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {fr ? 'Vos événements apparaîtront ici.' : 'Your events will appear here.'}
+            </p>
           </div>
-
-          {/* Recent invoices */}
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Factures récentes' : 'Recent invoices'}</h2>
-              <Link href="/invoices" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                {fr ? 'Voir tout' : 'View all'} <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-            {recentInvoices.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 px-5 text-center">
-                <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center mb-3">
-                  <FileText className="h-6 w-6 text-emerald-300" />
-                </div>
-                <p className="text-sm font-medium text-gray-700 mb-1">{fr ? 'Aucune facture' : 'No invoices yet'}</p>
-                <p className="text-xs text-gray-400 mb-3">{fr ? 'Créez une facture pour commencer à être payé' : 'Create an invoice to start getting paid'}</p>
-                <Link href="/invoices" className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700">
-                  <Plus className="h-3.5 w-3.5" /> {fr ? 'Créer une facture' : 'Create an invoice'}
-                </Link>
-              </div>
-            ) : (
-              <ul className="divide-y divide-gray-50">
-                {recentInvoices.map((inv) => (
-                  <li key={inv.id}>
-                    <Link href={`/invoices/${inv.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
-                        <DollarSign className="h-4 w-4 text-emerald-500" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline gap-2">
-                          <p className="text-sm font-bold text-gray-900">{fmt2(parseFloat(String(inv.amount)))}</p>
-                          {inv.invoice_number && <span className="text-xs text-gray-400">{inv.invoice_number}</span>}
-                        </div>
-                        <p className="text-xs text-gray-400">
-                          {inv.customers?.name || (fr ? 'Sans client' : 'No customer')}
-                          {inv.due_date ? ` · ${fmtDate(inv.due_date, lang)}` : ''}
-                        </p>
-                      </div>
-                      <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusClass[inv.status] || ''}`}>
-                        {tStatus(inv.status)}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-
-        {/* Activity feed + Overdue invoices */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Activity feed */}
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Activité récente' : 'Recent activity'}</h2>
-              <span className="text-xs text-gray-400">{activity.length} {fr ? 'événements' : 'events'}</span>
-            </div>
-            {activity.length === 0 ? (
-              <div className="py-10 text-center text-sm text-gray-400">{fr ? 'Aucune activité récente.' : 'No recent activity.'}</div>
-            ) : (
-              <ul className="divide-y divide-gray-50">
-                {activity.map((it) => {
-                  const cfg = it.kind === 'booking'      ? { bg: 'bg-indigo-50',  fg: 'text-indigo-600',  Icon: Calendar }
-                            : it.kind === 'invoice_paid' ? { bg: 'bg-emerald-50', fg: 'text-emerald-600', Icon: DollarSign }
-                            : it.kind === 'job_complete' ? { bg: 'bg-blue-50',    fg: 'text-blue-600',    Icon: CheckCircle }
-                            :                              { bg: 'bg-violet-50',  fg: 'text-violet-600',  Icon: Users }
-                  return (
-                    <li key={it.id}>
-                      <Link href={it.href} className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition-colors">
-                        <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${cfg.bg}`}>
-                          <cfg.Icon className={`h-4 w-4 ${cfg.fg}`} />
-                        </div>
-                        <p className="text-sm text-gray-700 flex-1 truncate">{it.text}</p>
-                        <span className="text-xs text-gray-400 shrink-0">{it.at ? timeAgo(it.at, fr) : ''}</span>
-                      </Link>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </div>
-
-          {/* Overdue invoices */}
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Factures en retard' : 'Overdue invoices'}</h2>
-              <Link href="/invoices" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
-                {fr ? 'Voir tout' : 'View all'} <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-            {overdueList.length === 0 ? (
-              <div className="py-10 text-center text-sm text-gray-400">
-                <CheckCircle className="h-6 w-6 text-emerald-300 mx-auto mb-2" />
-                {fr ? 'Aucune facture en retard' : 'No overdue invoices'}
-              </div>
-            ) : (
-              <ul className="divide-y divide-gray-50">
-                {overdueList.map((inv) => {
-                  const days = inv.due_date
-                    ? Math.max(0, Math.floor((Date.now() - new Date(inv.due_date).getTime()) / 86_400_000))
-                    : 0
-                  return (
-                    <li key={inv.id} className="flex items-center gap-3 px-5 py-3.5">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-red-50">
-                        <AlertCircle className="h-4 w-4 text-red-600" />
-                      </div>
-                      <Link href={`/invoices/${inv.id}`} className="flex-1 min-w-0 hover:opacity-80">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{inv.customers?.name || (fr ? 'Sans client' : 'No customer')}</p>
-                        <p className="text-xs text-gray-500">{fmt2(inv.amount)}{days > 0 ? (fr ? ` · ${days} j de retard` : ` · ${days} d late`) : ''}</p>
-                      </Link>
-                      {inv.customers?.email && (
-                        <button
-                          onClick={() => sendReminder(inv)}
-                          disabled={reminderSending === inv.id}
-                          className="shrink-0 text-xs font-semibold text-indigo-600 hover:text-indigo-700 disabled:opacity-60"
-                        >
-                          {reminderSending === inv.id ? (fr ? 'Envoi…' : 'Sending…') : (fr ? 'Envoyer un rappel' : 'Send reminder')}
-                        </button>
-                      )}
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </div>
-        </div>
-
-        {/* Revenue breakdown bar */}
-        {chartData.some((d) => d.revenue > 0) && (
-          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Revenus mensuels' : 'Monthly revenue'}</h2>
-                <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Revenus encaissés par mois' : 'Revenue collected by month'}</p>
-              </div>
-              <Zap className="h-4 w-4 text-amber-500" />
-            </div>
-            <ResponsiveContainer width="100%" height={120}>
-              <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }} barSize={20}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                <YAxis hide />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="revenue" fill="#6366f1" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+        ) : (
+          <ul className="divide-y divide-gray-50 dark:divide-gray-800">
+            {items.map((a) => {
+              const m = KIND_META[a.kind]
+              return (
+                <li key={a.id}>
+                  <Link
+                    href={a.href}
+                    className="flex items-start gap-3 px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
+                  >
+                    <span className={`mt-1.5 inline-flex h-2 w-2 shrink-0 rounded-full ${m.dot}`} />
+                    <div className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${m.bg}`}>
+                      <m.Icon className={`h-4 w-4 ${m.fg}`} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm text-gray-800 dark:text-gray-200 line-clamp-2">{a.text}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{timeAgo(a.at)}</p>
+                    </div>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
         )}
+      </div>
+    </div>
+  )
+}
 
-        {/* AI nudge */}
-        <div className="rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-violet-600 p-6 text-white shadow-lg">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="h-5 w-5 text-indigo-200" />
-                <span className="text-sm font-semibold text-indigo-100">{fr ? 'Insights IA pour votre entreprise' : 'AI Business Insights'}</span>
-              </div>
-              <p className="text-base font-semibold mb-1">
-                {stats.overdueCount > 0
-                  ? (fr
-                      ? `${stats.overdueCount} facture${stats.overdueCount > 1 ? 's' : ''} en retard — voulez-vous que l'IA rédige des rappels de paiement ?`
-                      : `${stats.overdueCount} overdue invoice${stats.overdueCount > 1 ? 's' : ''} — want AI to draft payment reminders?`)
-                  : stats.unpaidCount > 0
-                  ? (fr
-                      ? `${stats.unpaidCount} facture${stats.unpaidCount > 1 ? 's' : ''} en attente. Demandez à l'IA d'analyser votre trésorerie.`
-                      : `${stats.unpaidCount} invoice${stats.unpaidCount > 1 ? 's' : ''} pending. Ask AI to analyze your cash flow.`)
-                  : (fr
-                      ? `Votre entreprise fonctionne parfaitement. Demandez des insights ou créez des enregistrements avec l'IA.`
-                      : `Your business is running smoothly. Ask AI for insights or to create records.`)}
-              </p>
-              <p className="text-sm text-indigo-200">{fr ? "Votre assistant IA a accès en temps réel à toutes vos données d'entreprise." : 'Your AI assistant has real-time access to all your business data.'}</p>
+// ────────── Today's schedule ──────────
+function TodaysSchedule({
+  jobs, fr, lang, loading, dateLabel,
+}: {
+  jobs: Job[]; fr: boolean; lang: 'fr' | 'en'
+  loading: boolean; dateLabel: string
+}) {
+  return (
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            {fr ? "Agenda du jour" : "Today's schedule"}
+          </h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 capitalize">{dateLabel}</p>
+        </div>
+        <span className="inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
+          {jobs.length}
+        </span>
+      </div>
+
+      <div className="flex-1 max-h-[400px] overflow-y-auto">
+        {loading ? (
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-20 rounded-xl" />
+            ))}
+          </div>
+        ) : jobs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-500/10">
+              <Calendar className="h-8 w-8 text-indigo-500 dark:text-indigo-400" />
             </div>
-            <Link href="/assistant" className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-white/20 hover:bg-white/30 px-4 py-2.5 text-sm font-semibold text-white transition-colors">
-              {fr ? "Demander à l'IA" : 'Ask AI'} <ArrowRight className="h-4 w-4" />
+            <p className="text-base font-semibold text-gray-800 dark:text-gray-100">
+              {fr ? "Aucune intervention aujourd'hui" : 'No jobs today'}
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 mb-4">
+              {fr ? 'Votre journée est libre. Profitez-en.' : 'Your day is clear. Enjoy it.'}
+            </p>
+            <Link
+              href="/jobs"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 text-sm font-medium transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              {fr ? 'Créer une intervention' : 'Create a job'}
             </Link>
           </div>
-        </div>
-
+        ) : (
+          <ul className="p-3 space-y-2">
+            {jobs.map((j) => (
+              <ScheduleRow key={j.id} job={j} fr={fr} lang={lang} />
+            ))}
+          </ul>
+        )}
       </div>
-    </AppLayout>
+    </div>
   )
+}
+
+function ScheduleRow({ job, fr, lang }: { job: Job; fr: boolean; lang: 'fr' | 'en' }) {
+  const statusColor: Record<string, { border: string; badge: string; label: string }> = {
+    scheduled:   { border: 'border-l-blue-500',    badge: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',           label: fr ? 'Planifié' : 'Scheduled' },
+    in_progress: { border: 'border-l-amber-500',   badge: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400',       label: fr ? 'En cours' : 'In progress' },
+    complete:    { border: 'border-l-emerald-500', badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400', label: fr ? 'Terminé' : 'Complete' },
+    cancelled:   { border: 'border-l-gray-400',    badge: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',               label: fr ? 'Annulé' : 'Cancelled' },
+  }
+  const s = statusColor[job.status] || statusColor.scheduled
+
+  const formatTimeStr = (t: string | null): string => {
+    if (!t) return fr ? '—' : '—'
+    // t is either HH:MM or HH:MM:SS
+    const m = t.match(/^(\d{2}):(\d{2})/)
+    if (!m) return t
+    const h = Number(m[1]); const min = m[2]
+    if (lang === 'en') {
+      const ampm = h >= 12 ? 'PM' : 'AM'
+      const hh = h % 12 || 12
+      return `${hh}:${min} ${ampm}`
+    }
+    return `${m[1]}h${min}`
+  }
+
+  return (
+    <li>
+      <Link
+        href={`/jobs/${job.id}`}
+        className={`flex items-stretch gap-3 rounded-xl border-l-4 ${s.border} bg-gray-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-800 p-3 transition-colors`}
+      >
+        <div className="flex flex-col items-center justify-center w-16 shrink-0 text-center">
+          <div className="text-sm font-semibold text-gray-900 dark:text-white tabular-nums">
+            {formatTimeStr(job.start_time)}
+          </div>
+          {job.end_time && (
+            <div className="text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
+              {formatTimeStr(job.end_time)}
+            </div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+              {job.title || (fr ? 'Intervention' : 'Job')}
+            </h3>
+            <span className={`shrink-0 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${s.badge}`}>
+              {s.label}
+            </span>
+          </div>
+          <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 truncate">
+            {job.customers?.name || (fr ? 'Client' : 'Customer')}
+            {job.service_address ? ` · ${job.service_address}` : ''}
+          </p>
+          {job.team_members?.name && (
+            <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 truncate">
+              {fr ? 'Assigné à' : 'Assigned to'}: {job.team_members.name}
+            </p>
+          )}
+        </div>
+      </Link>
+    </li>
+  )
+}
+
+// ────────── Map card ──────────
+function MapCard({
+  fr, jobs, loading,
+}: {
+  fr: boolean
+  jobs: Array<{
+    id: string
+    title: string
+    status: string
+    service_address: string | null
+    customer_name: string | null
+    start_time: string | null
+    technician: string | null
+  }>
+  loading: boolean
+}) {
+  return (
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            {fr ? 'Carte des interventions' : 'Jobs map'}
+          </h2>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+            {fr ? 'Interventions d\'aujourd\'hui géolocalisées' : "Today's jobs, geolocated"}
+          </p>
+        </div>
+        <div className="flex items-center gap-3 text-[11px]">
+          <LegendDot color="#3b82f6" label={fr ? 'Planifié' : 'Scheduled'} />
+          <LegendDot color="#f59e0b" label={fr ? 'En cours' : 'In progress'} />
+          <LegendDot color="#10b981" label={fr ? 'Terminé' : 'Complete'} />
+        </div>
+      </div>
+      <div className="p-4">
+        {loading ? (
+          <Skeleton className="h-[360px] w-full rounded-xl" />
+        ) : (
+          <JobsMap jobs={jobs} />
+        )}
+      </div>
+    </div>
+  )
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
+      <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+      {label}
+    </span>
+  )
+}
+
+// ────────── Invoice breakdown donut ──────────
+function InvoiceBreakdownCard({
+  fr, breakdown, total, isDark, loading,
+}: {
+  fr: boolean
+  breakdown: { paid: number; unpaid: number; overdue: number; draft: number }
+  total: number
+  isDark: boolean
+  loading: boolean
+}) {
+  const data = [
+    { key: 'paid',    label: fr ? 'Payées' : 'Paid',       value: breakdown.paid,    color: '#10b981' },
+    { key: 'unpaid',  label: fr ? 'Impayées' : 'Unpaid',   value: breakdown.unpaid,  color: '#3b82f6' },
+    { key: 'overdue', label: fr ? 'En retard' : 'Overdue', value: breakdown.overdue, color: '#ef4444' },
+    { key: 'draft',   label: fr ? 'Brouillon' : 'Draft',   value: breakdown.draft,   color: '#9ca3af' },
+  ]
+  const hasData = total > 0
+  return (
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-5">
+      <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+        {fr ? 'Répartition des factures' : 'Invoice breakdown'}
+      </h2>
+      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+        {fr ? 'Par statut' : 'By status'}
+      </p>
+
+      <div className="mt-2 grid grid-cols-[1fr_auto] items-center gap-4">
+        <div className="h-44 relative">
+          {loading ? (
+            <Skeleton className="h-full w-full rounded-xl" />
+          ) : hasData ? (
+            <>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={data}
+                    dataKey="value"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    stroke={isDark ? '#0b0f19' : '#fff'}
+                    strokeWidth={2}
+                    animationDuration={600}
+                  >
+                    {data.map((d) => <Cell key={d.key} fill={d.color} />)}
+                  </Pie>
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null
+                      const p = payload[0].payload as { label: string; value: number; color: string }
+                      return (
+                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 shadow-lg text-xs">
+                          <span className="inline-block h-2 w-2 rounded-full mr-1.5" style={{ backgroundColor: p.color }} />
+                          <span className="font-medium text-gray-900 dark:text-white">{p.label}</span>
+                          <span className="ml-2 tabular-nums text-gray-500">{p.value}</span>
+                        </div>
+                      )
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <div className="text-2xl font-bold tabular-nums text-gray-900 dark:text-white">{total}</div>
+                <div className="text-[11px] uppercase tracking-wide text-gray-400">
+                  {fr ? 'factures' : 'invoices'}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center text-center">
+              <DollarSign className="h-8 w-8 text-gray-300 dark:text-gray-600 mb-1" />
+              <p className="text-xs text-gray-400">{fr ? 'Aucune facture' : 'No invoices yet'}</p>
+            </div>
+          )}
+        </div>
+        <ul className="space-y-1.5 text-sm min-w-[110px]">
+          {data.map((d) => (
+            <li key={d.key} className="flex items-center justify-between gap-4">
+              <span className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: d.color }} />
+                {d.label}
+              </span>
+              <span className="font-semibold tabular-nums text-gray-900 dark:text-white">{d.value}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+// ────────── Top customers ──────────
+function TopCustomersCard({
+  fr, lang, customers, loading,
+}: {
+  fr: boolean
+  lang: 'fr' | 'en'
+  customers: Array<{ name: string; total: number }>
+  loading: boolean
+}) {
+  const max = customers[0]?.total || 0
+  const gradients = [
+    'from-indigo-500 to-violet-500',
+    'from-emerald-500 to-teal-500',
+    'from-amber-500 to-orange-500',
+    'from-pink-500 to-rose-500',
+    'from-sky-500 to-blue-500',
+  ]
+  return (
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-5">
+      <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+        {fr ? 'Meilleurs clients' : 'Top customers'}
+      </h2>
+      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+        {fr ? 'Par revenu facturé' : 'By invoiced revenue'}
+      </p>
+
+      <div className="mt-4 space-y-3">
+        {loading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <Skeleton className="h-9 w-9 rounded-full" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-3 w-2/3 rounded" />
+                <Skeleton className="h-1.5 w-full rounded-full" />
+              </div>
+            </div>
+          ))
+        ) : customers.length === 0 ? (
+          <div className="py-8 text-center">
+            <Users className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+            <p className="text-xs text-gray-400">{fr ? 'Aucun client facturé' : 'No invoiced customers'}</p>
+          </div>
+        ) : (
+          customers.map((c, i) => {
+            const pct = max > 0 ? Math.max(4, (c.total / max) * 100) : 0
+            return (
+              <div key={c.name + i} className="flex items-center gap-3">
+                <div className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${gradients[i % gradients.length]} text-white text-xs font-bold`}>
+                  {initials(c.name)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{c.name}</span>
+                    <span className="text-xs font-semibold tabular-nums text-gray-600 dark:text-gray-300 shrink-0">
+                      {fmtMoney(c.total, lang)}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-700"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ────────── Jobs by status (animated bars) ──────────
+function JobsByStatusCard({
+  fr, stats, loading, mounted,
+}: {
+  fr: boolean
+  stats: { scheduled: number; in_progress: number; complete: number; cancelled: number }
+  loading: boolean
+  mounted: boolean
+}) {
+  const rows = [
+    { key: 'scheduled',   label: fr ? 'Planifié'  : 'Scheduled',   value: stats.scheduled,   color: 'from-blue-500 to-blue-400' },
+    { key: 'in_progress', label: fr ? 'En cours'  : 'In progress', value: stats.in_progress, color: 'from-amber-500 to-amber-400' },
+    { key: 'complete',    label: fr ? 'Terminé'   : 'Complete',    value: stats.complete,    color: 'from-emerald-500 to-emerald-400' },
+    { key: 'cancelled',   label: fr ? 'Annulé'    : 'Cancelled',   value: stats.cancelled,   color: 'from-gray-500 to-gray-400' },
+  ]
+  const max = Math.max(1, ...rows.map((r) => r.value))
+  return (
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-5">
+      <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+        {fr ? 'Interventions par statut' : 'Jobs by status'}
+      </h2>
+      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+        {fr ? 'Tous les temps' : 'All-time'}
+      </p>
+
+      <div className="mt-4 space-y-3">
+        {loading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="space-y-1.5">
+              <Skeleton className="h-3 w-1/3 rounded" />
+              <Skeleton className="h-2 w-full rounded-full" />
+            </div>
+          ))
+        ) : (
+          rows.map((r, idx) => {
+            const target = mounted ? `${(r.value / max) * 100}%` : '0%'
+            return (
+              <div key={r.key}>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{r.label}</span>
+                  <span className="text-sm font-semibold tabular-nums text-gray-900 dark:text-white">{r.value}</span>
+                </div>
+                <div className="mt-1.5 h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full bg-gradient-to-r ${r.color} transition-all duration-700 ease-out`}
+                    style={{ width: target, transitionDelay: `${idx * 80}ms` }}
+                  />
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ────────── Pending bookings ──────────
+function PendingBookingsCard({
+  fr, bookings, onAction, acting, loading,
+}: {
+  fr: boolean
+  bookings: Booking[]
+  onAction: (id: string, status: 'accepted' | 'declined') => void
+  acting: string | null
+  loading: boolean
+}) {
+  const fmtPrefDate = (d: string | null) => {
+    if (!d) return ''
+    const dt = new Date(d.length === 10 ? d + 'T12:00:00' : d)
+    if (isNaN(dt.getTime())) return d
+    return dt.toLocaleDateString(fr ? 'fr-CA' : 'en-CA', { weekday: 'short', day: 'numeric', month: 'short' })
+  }
+  return (
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            {fr ? 'Réservations en attente' : 'Pending bookings'}
+          </h2>
+          {bookings.length > 0 && (
+            <span className="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+              {bookings.length}
+            </span>
+          )}
+        </div>
+        <Link href="/bookings" className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
+          {fr ? 'Tout voir →' : 'See all →'}
+        </Link>
+      </div>
+
+      <div className="flex-1">
+        {loading ? (
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-24 rounded-xl" />
+            ))}
+          </div>
+        ) : bookings.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-500/10">
+              <CheckCircle className="h-8 w-8 text-emerald-500 dark:text-emerald-400" />
+            </div>
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+              {fr ? 'Aucune réservation en attente' : 'No pending bookings'}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {fr ? 'Tout est traité. Beau travail !' : "You're all caught up. Nice work!"}
+            </p>
+          </div>
+        ) : (
+          <ul className="p-3 space-y-2">
+            {bookings.map((b) => {
+              const busy = acting === b.id
+              return (
+                <li
+                  key={b.id}
+                  className="rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-3"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-white text-xs font-bold">
+                      {initials(b.customer_name)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                          {b.customer_name || (fr ? 'Client' : 'Customer')}
+                        </span>
+                        <span className="text-xs text-gray-400 shrink-0 tabular-nums">
+                          {fmtPrefDate(b.preferred_date)}
+                          {b.preferred_time ? ` · ${b.preferred_time}` : ''}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 truncate">
+                        {b.service_name || (fr ? 'Service' : 'Service')}
+                      </p>
+                      {b.notes && (
+                        <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1 line-clamp-2">
+                          {b.notes.length > 60 ? b.notes.slice(0, 60) + '…' : b.notes}
+                        </p>
+                      )}
+                      <div className="mt-2 flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => onAction(b.id, 'accepted')}
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-2.5 py-1 text-xs font-semibold transition-colors"
+                        >
+                          {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3" />}
+                          {fr ? 'Accepter' : 'Accept'}
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => onAction(b.id, 'declined')}
+                          className="inline-flex items-center gap-1 rounded-lg border border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-50 px-2.5 py-1 text-xs font-semibold transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                          {fr ? 'Refuser' : 'Decline'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ────────── Overdue invoices ──────────
+function OverdueInvoicesCard({
+  fr, lang, invoices, loading, today,
+}: {
+  fr: boolean
+  lang: 'fr' | 'en'
+  invoices: Invoice[]
+  loading: boolean
+  today: Date
+}) {
+  const totalOverdue = invoices.reduce((acc, i) => acc + toNum(i.amount), 0)
+  return (
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+            {fr ? 'Factures en retard' : 'Overdue invoices'}
+          </h2>
+          {invoices.length > 0 && (
+            <span className="inline-flex items-center rounded-full bg-red-100 dark:bg-red-500/15 px-2 py-0.5 text-xs font-bold text-red-700 dark:text-red-400 tabular-nums">
+              {fmtMoney(totalOverdue, lang)}
+            </span>
+          )}
+        </div>
+        <Link href="/invoices?status=overdue" className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
+          {fr ? 'Tout voir →' : 'See all →'}
+        </Link>
+      </div>
+
+      <div className="flex-1">
+        {loading ? (
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-16 rounded-xl" />
+            ))}
+          </div>
+        ) : invoices.length === 0 ? (
+          <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-500/10">
+              <CheckCircle className="h-8 w-8 text-emerald-500 dark:text-emerald-400" />
+            </div>
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+              {fr ? 'Toutes les factures sont à jour ✓' : 'All invoices are up to date ✓'}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {fr ? 'Aucun paiement en retard.' : 'No late payments.'}
+            </p>
+          </div>
+        ) : (
+          <ul className="p-3 space-y-2">
+            {invoices.slice(0, 5).map((inv) => {
+              const due = inv.due_date ? new Date(inv.due_date) : null
+              const days = due ? Math.max(1, Math.floor((today.getTime() - due.getTime()) / (86_400_000))) : 0
+              return (
+                <li key={inv.id} className="rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-3">
+                  <div className="flex items-start gap-3">
+                    <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 dark:bg-red-500/10">
+                      <AlertCircle className="h-4.5 w-4.5 text-red-500 dark:text-red-400" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                          {inv.customers?.name || (fr ? 'Client' : 'Customer')}
+                          {inv.invoice_number ? (
+                            <span className="ml-1.5 text-xs font-normal text-gray-400">#{inv.invoice_number}</span>
+                          ) : null}
+                        </span>
+                        <span className="text-sm font-bold tabular-nums text-red-600 dark:text-red-400 shrink-0">
+                          {fmtMoney(toNum(inv.amount), lang)}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-400 mt-0.5">
+                        {fr ? `En retard de ${days} jour${days > 1 ? 's' : ''}` : `${days} day${days > 1 ? 's' : ''} overdue`}
+                      </p>
+                      <div className="mt-2 flex items-center gap-2">
+                        <Link
+                          href={`/invoices/${inv.id}?remind=1`}
+                          className="inline-flex items-center gap-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 px-2.5 py-1 text-xs font-semibold transition-colors"
+                        >
+                          <Send className="h-3 w-3" />
+                          {fr ? 'Relancer' : 'Remind'}
+                        </Link>
+                        <Link
+                          href={`/invoices/${inv.id}`}
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 text-xs font-semibold transition-colors"
+                        >
+                          <DollarSign className="h-3 w-3" />
+                          {fr ? 'Marquer payée' : 'Mark paid'}
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ───── Inline styles for the waving emoji animation ─────
+// Tailwind doesn't ship a wave keyframe by default.
+// Placed at end so it doesn't visually crowd the components above.
+const css = `
+@keyframes wave {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30% { transform: rotate(14deg); }
+  20%      { transform: rotate(-8deg); }
+  40%      { transform: rotate(10deg); }
+  50%      { transform: rotate(0deg); }
+}
+.animate-wave { animation: wave 2.4s ease-in-out 0.4s 2; display: inline-block; transform-origin: 70% 70%; }
+`
+if (typeof document !== 'undefined' && !document.getElementById('dashboard-inline-css')) {
+  const s = document.createElement('style')
+  s.id = 'dashboard-inline-css'
+  s.textContent = css
+  document.head.appendChild(s)
 }
