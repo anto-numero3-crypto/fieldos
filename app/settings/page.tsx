@@ -204,12 +204,9 @@ export default function SettingsPage() {
   const [bizTaxNum, setBizTaxNum]   = useState('')
   const [currency, setCurrency]     = useState('CAD')
   const [timezone, setTimezone]     = useState('America/Toronto')
-  const [locationLat, setLocationLat] = useState('')
-  const [locationLng, setLocationLng] = useState('')
-  // Snapshots of what was loaded from the DB — used to detect if the user
-  // actually changed an address field or overrode the manual coords.
+  // Snapshot of address loaded from DB — used to detect if the user
+  // actually changed an address field (so we know to null saved coords).
   const [originalAddress, setOriginalAddress] = useState({ address: '', city: '', state: '', zip: '' })
-  const [originalCoords, setOriginalCoords]   = useState<{ lat: string; lng: string }>({ lat: '', lng: '' })
 
   // Booking portal / AI agent
   const [agentName, setAgentName]   = useState('Alex')
@@ -299,17 +296,11 @@ export default function SettingsPage() {
         if (org.tax_number)      setBizTaxNum(org.tax_number)
         if (org.currency)        setCurrency(org.currency)
         if (org.timezone)        setTimezone(org.timezone)
-        if (org.location_lat != null) setLocationLat(String(org.location_lat))
-        if (org.location_lng != null) setLocationLng(String(org.location_lng))
         setOriginalAddress({
           address: org.address || '',
           city: org.city || '',
           state: org.state || '',
           zip: org.zip || '',
-        })
-        setOriginalCoords({
-          lat: org.location_lat != null ? String(org.location_lat) : '',
-          lng: org.location_lng != null ? String(org.location_lng) : '',
         })
         if (org.ai_agent_name)   setAgentName(org.ai_agent_name)
         if (org.ai_agent_greeting) setAgentGreeting(org.ai_agent_greeting)
@@ -372,29 +363,28 @@ export default function SettingsPage() {
       ai_agent_name: agentName,
       ai_agent_greeting: agentGreeting,
       service_types: agentServices ? agentServices.split(',').map((s) => s.trim()).filter(Boolean) : [],
-      location_lat: locationLat.trim() === '' ? null : parseFloat(locationLat),
-      location_lng: locationLng.trim() === '' ? null : parseFloat(locationLng),
+      // Coordinates are derived purely from geocoding. If the address changed
+      // we null them so the dashboard re-geocodes on next load.
+      location_lat: null as number | null,
+      location_lng: null as number | null,
     }
 
-    // If address changed AND the user didn't manually override the coords
-    // this session, null the saved coords so the map re-geocodes on next load.
     const addressChanged =
       bizAddress !== originalAddress.address ||
       bizCity !== originalAddress.city ||
       bizState !== originalAddress.state ||
       bizZip !== originalAddress.zip
-    const coordsManuallyEdited =
-      locationLat !== originalCoords.lat ||
-      locationLng !== originalCoords.lng
-    if (addressChanged && !coordsManuallyEdited) {
-      payload.location_lat = null
-      payload.location_lng = null
+    if (!addressChanged) {
+      // Don't touch coords when address didn't change — preserve any coords
+      // the dashboard may have saved since the last settings load.
+      delete (payload as Record<string, unknown>).location_lat
+      delete (payload as Record<string, unknown>).location_lng
     }
     if (nextSlug) payload.slug = nextSlug
 
     // Route through the service-role API so RLS can't block writes to
     // location_lat/lng (anon policies blocked these writes silently before).
-    console.log('[settings save] starting save... payload.location_lat =', payload.location_lat, 'location_lng =', payload.location_lng)
+    console.log('[settings save] starting save... addressChanged =', addressChanged, 'location_lat in payload =', 'location_lat' in payload ? payload.location_lat : '(not sent)')
     const res = await fetch('/api/settings/save-business', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -408,13 +398,8 @@ export default function SettingsPage() {
     } else {
       if (data.org?.id) setOrgId(data.org.id)
       if (data.org?.slug) setOrgSlug(data.org.slug)
-      // Re-baseline snapshots so subsequent saves correctly detect changes.
+      // Re-baseline address snapshot so subsequent saves correctly detect changes.
       setOriginalAddress({ address: bizAddress, city: bizCity, state: bizState, zip: bizZip })
-      const newLat = payload.location_lat == null ? '' : String(payload.location_lat)
-      const newLng = payload.location_lng == null ? '' : String(payload.location_lng)
-      setLocationLat(newLat)
-      setLocationLng(newLng)
-      setOriginalCoords({ lat: newLat, lng: newLng })
       toast.success(t.success.saved)
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
@@ -664,18 +649,6 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="mt-5 border-t border-gray-100 pt-5">
-                <p className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Coordonnées manuelles (optionnel)' : 'Manual coordinates (optional)'}</p>
-                <p className="text-xs text-gray-500 mb-3">
-                  {fr
-                    ? "Utilisez ces champs si votre adresse n'est pas trouvée correctement sur la carte. Trouvez vos coordonnées sur Google Maps (clic droit sur votre emplacement → copiez lat, lng)."
-                    : "Use these fields if your address isn't located correctly on the map. Find your coordinates on Google Maps (right-click your location → copy lat, lng)."}
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  <InputRow label={fr ? 'Latitude' : 'Latitude'} value={locationLat} onChange={setLocationLat} placeholder="45.5017" />
-                  <InputRow label={fr ? 'Longitude' : 'Longitude'} value={locationLng} onChange={setLocationLng} placeholder="-73.5673" />
-                </div>
-              </div>
             </div>
 
             <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white shadow-sm p-5">

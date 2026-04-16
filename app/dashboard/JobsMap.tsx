@@ -92,20 +92,28 @@ function isCanadianCoord(lat: number, lng: number): boolean {
   return lat >= 42 && lat <= 83 && lng >= -141 && lng <= -52
 }
 
-// Business geocoder — calls the SAME geocode() function used for job
-// addresses (which is known to work). We add only a Canadian bounds
-// sanity check on top, plus verbose logging.
+// Business geocoder — server-side cascade (Google → Photon → Nominatim)
+// behind /api/geocode/business. Way more accurate than raw Nominatim
+// for Canadian street addresses.
 async function geocodeBusiness(query: string): Promise<{ lat: number; lng: number } | null> {
-  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`
   console.log('[business geocode] input:', query)
-  console.log('[business geocode] nominatim url:', url)
-  const coords = await geocode(query)
-  console.log('[business geocode] parsed coords:', coords)
-  if (!coords) { console.warn('[business geocode] no result'); return null }
-  const valid = isCanadianCoord(coords.lat, coords.lng)
-  console.log('[business geocode] validation passed:', valid)
-  if (!valid) return null
-  return coords
+  try {
+    const res = await fetch('/api/geocode/business', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address: query }),
+    })
+    if (!res.ok) {
+      console.warn('[business geocode] api returned', res.status)
+      return null
+    }
+    const data = await res.json() as { lat: number; lng: number; source: string }
+    console.log('[business geocode] result:', data)
+    return { lat: data.lat, lng: data.lng }
+  } catch (err) {
+    console.error('[business geocode] fetch error:', err)
+    return null
+  }
 }
 
 async function persistLocation(lat: number, lng: number) {
