@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendPlanEmail } from '@/lib/plan-emails'
-import { PLAN_PRICING } from '@/lib/plan-limits'
+import { PLAN_PRICING, normalizePlan } from '@/lib/plan-limits'
 
 const LOG = '[stripe webhook]'
 
@@ -69,9 +69,10 @@ export async function POST(req: NextRequest) {
         }
 
         if (userId && planId) {
-          // Business subscribing to a Gestivio plan
+          // Business subscribing to a Gestivio plan — always persist the canonical plan name
+          const canonicalPlan = normalizePlan(planId)
           await supabase.from('organizations').update({
-            plan: planId,
+            plan: canonicalPlan,
             plan_status: 'active',
             plan_started_at: new Date().toISOString(),
             stripe_subscription_id: session.subscription as string,
@@ -81,12 +82,12 @@ export async function POST(req: NextRequest) {
             user_id: userId,
             type: 'success',
             title: 'Abonnement activé',
-            body: `Votre forfait ${planId} est maintenant actif.`,
+            body: `Votre forfait ${PLAN_PRICING[canonicalPlan].label} est maintenant actif.`,
           })
           // Plan-upgrade confirmation email
           const { data: orgRow } = await supabase
             .from('organizations').select('email, name').eq('owner_user_id', userId).single()
-          const info = PLAN_PRICING[planId as keyof typeof PLAN_PRICING]
+          const info = PLAN_PRICING[canonicalPlan]
           if (orgRow?.email && info) {
             await sendPlanEmail('payment_success', {
               to: orgRow.email,
@@ -241,8 +242,8 @@ export async function POST(req: NextRequest) {
               const price = await stripe.prices.retrieve(priceId, { expand: ['product'] })
               const product = price.product as Stripe.Product
               const planId = product.metadata?.gestivio_plan
-              if (planId === 'starter' || planId === 'pro' || planId === 'business') {
-                planUpdate.plan = planId
+              if (typeof planId === 'string') {
+                planUpdate.plan = normalizePlan(planId)
               }
             } catch { /* keep existing plan */ }
           }
@@ -261,7 +262,7 @@ export async function POST(req: NextRequest) {
         if (userId) {
           await supabase
             .from('organizations')
-            .update({ plan: 'starter', plan_status: 'cancelled', stripe_subscription_id: null })
+            .update({ plan: 'demarrage', plan_status: 'cancelled', stripe_subscription_id: null })
             .eq('owner_user_id', userId)
           await supabase.from('notifications').insert({
             user_id: userId,

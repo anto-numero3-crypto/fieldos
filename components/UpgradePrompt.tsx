@@ -21,7 +21,7 @@ export default function UpgradePrompt({
   variant = 'banner',
   cta,
 }: Props) {
-  const planLabel = requiredPlan === 'pro' ? 'Pro' : 'Business'
+  const planLabel = requiredPlan === 'pro' ? 'Pro' : requiredPlan === 'croissance' ? 'Croissance' : 'Démarrage'
   const btnLabel = cta || `Passer au forfait ${planLabel}`
 
   if (variant === 'inline') {

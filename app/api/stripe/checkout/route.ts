@@ -2,13 +2,19 @@ import Stripe from 'stripe'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminClient, getAuthedUser, UNAUTHORIZED } from '@/lib/supabase-server'
 
+// New keys (2026 pricing) take precedence; legacy keys fall back to the same
+// env vars so existing Vercel configuration keeps working during the transition.
 const PRICE_MAP: Record<string, string | undefined> = {
-  starter_monthly:  process.env.STRIPE_PRICE_STARTER_MONTHLY,
-  starter_annual:   process.env.STRIPE_PRICE_STARTER_ANNUAL,
-  pro_monthly:      process.env.STRIPE_PRICE_PRO_MONTHLY,
-  pro_annual:       process.env.STRIPE_PRICE_PRO_ANNUAL,
-  business_monthly: process.env.STRIPE_PRICE_BUSINESS_MONTHLY,
-  business_annual:  process.env.STRIPE_PRICE_BUSINESS_ANNUAL,
+  demarrage_monthly:  process.env.STRIPE_PRICE_DEMARRAGE_MONTHLY  || process.env.STRIPE_PRICE_STARTER_MONTHLY,
+  demarrage_annual:   process.env.STRIPE_PRICE_DEMARRAGE_ANNUAL   || process.env.STRIPE_PRICE_STARTER_ANNUAL,
+  pro_monthly:        process.env.STRIPE_PRICE_PRO_MONTHLY,
+  pro_annual:         process.env.STRIPE_PRICE_PRO_ANNUAL,
+  croissance_monthly: process.env.STRIPE_PRICE_CROISSANCE_MONTHLY || process.env.STRIPE_PRICE_BUSINESS_MONTHLY,
+  croissance_annual:  process.env.STRIPE_PRICE_CROISSANCE_ANNUAL  || process.env.STRIPE_PRICE_BUSINESS_ANNUAL,
+  starter_monthly:    process.env.STRIPE_PRICE_DEMARRAGE_MONTHLY  || process.env.STRIPE_PRICE_STARTER_MONTHLY,
+  starter_annual:     process.env.STRIPE_PRICE_DEMARRAGE_ANNUAL   || process.env.STRIPE_PRICE_STARTER_ANNUAL,
+  business_monthly:   process.env.STRIPE_PRICE_CROISSANCE_MONTHLY || process.env.STRIPE_PRICE_BUSINESS_MONTHLY,
+  business_annual:    process.env.STRIPE_PRICE_CROISSANCE_ANNUAL  || process.env.STRIPE_PRICE_BUSINESS_ANNUAL,
 }
 
 export async function POST(req: NextRequest) {
@@ -24,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     const { planId, billingCycle } = await req.json()
     if (!planId) return NextResponse.json({ error: 'Missing planId' }, { status: 400 })
-    if (!['starter', 'pro', 'business'].includes(planId)) {
+    if (!['demarrage', 'pro', 'croissance', 'starter', 'business'].includes(planId)) {
       return NextResponse.json({ error: 'Invalid planId' }, { status: 400 })
     }
 

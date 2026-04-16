@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   if (!authorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json() as {
     code?: string
-    plan?: 'starter' | 'pro' | 'business'
+    plan?: 'demarrage' | 'pro' | 'croissance' | 'starter' | 'business'
     duration_days?: number
     max_uses?: number
     description?: string
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     .from('promo_codes')
     .insert({
       code: body.code.trim().toUpperCase(),
-      plan: body.plan || 'business',
+      plan: body.plan || 'croissance',
       duration_days: body.duration_days ?? 30,
       max_uses: body.max_uses ?? 1,
       description: body.description || null,

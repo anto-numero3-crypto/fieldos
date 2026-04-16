@@ -6,7 +6,7 @@ import { Loader2, Plus, Check, X } from 'lucide-react'
 interface Code {
   id: string
   code: string
-  plan: 'starter' | 'pro' | 'business'
+  plan: 'demarrage' | 'pro' | 'croissance'
   duration_days: number
   max_uses: number
   uses_count: number
@@ -35,7 +35,7 @@ export default function PromoAdminPage() {
 
   // Create form
   const [newCode, setNewCode] = useState('')
-  const [newPlan, setNewPlan] = useState<Code['plan']>('business')
+  const [newPlan, setNewPlan] = useState<Code['plan']>('croissance')
   const [newDuration, setNewDuration] = useState('30')
   const [newMaxUses, setNewMaxUses] = useState('1')
   const [newDesc, setNewDesc] = useState('')
@@ -158,9 +158,9 @@ export default function PromoAdminPage() {
                   onChange={(e) => setNewPlan(e.target.value as Code['plan'])}
                   className="rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white"
                 >
-                  <option value="starter">Starter</option>
+                  <option value="demarrage">Démarrage</option>
                   <option value="pro">Pro</option>
-                  <option value="business">Business</option>
+                  <option value="croissance">Croissance</option>
                 </select>
                 <input
                   type="number" min="1" value={newDuration}

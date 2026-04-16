@@ -15,8 +15,10 @@ import { formatTimeRange } from '@/lib/format-time'
 import {
   ArrowLeft, User, Calendar, Clock, Flag, Edit2, Save, CheckSquare,
   Square, Plus, Trash2, FileText, DollarSign, AlertCircle, CheckCircle,
-  MapPin, StickyNote, X, Camera,
+  MapPin, StickyNote, X, Camera, Lock,
 } from 'lucide-react'
+import { usePlan } from '@/lib/hooks/usePlan'
+import { normalizePlan } from '@/lib/plan-limits'
 
 interface ChecklistItem { id: string; text: string; done: boolean }
 interface Job {
@@ -65,6 +67,8 @@ export default function JobDetailPage() {
   const PRIORITY_CFG = fr ? PRIORITY_CFG_FR : PRIORITY_CFG_EN
   const fmtDate = (d: string) => fmtDateLib(d, lang)
   const fmt = (n: number) => fmtMoney(n, lang)
+  const plan = usePlan()
+  const isDemarrage = normalizePlan(plan.plan) === 'demarrage'
 
   const [job, setJob]         = useState<Job | null>(null)
   const [loading, setLoading] = useState(true)
@@ -143,19 +147,21 @@ export default function JobDetailPage() {
   const saveEdit = async () => {
     if (!eTitle.trim() || !job) return
     setSaving(true)
+    // Enforce: demarrage cannot set multi-day
+    const effectiveMultiDay = isDemarrage ? false : eMultiDay
     const { error } = await supabase.from('jobs').update({
       title: eTitle, description: eDesc || null, scheduled_date: eDate || null,
       start_time: eStart || null, end_time: eEnd || null,
       service_address: eAddr || null, internal_notes: eNotes || null, priority: ePriority,
-      is_multi_day: eMultiDay, end_date: eMultiDay ? (eEndDate || null) : null,
-      progress_percent: eMultiDay ? Math.max(0, Math.min(100, eProgress)) : 0,
+      is_multi_day: effectiveMultiDay, end_date: effectiveMultiDay ? (eEndDate || null) : null,
+      progress_percent: effectiveMultiDay ? Math.max(0, Math.min(100, eProgress)) : 0,
     }).eq('id', id)
     if (!error) {
       setJob({ ...job, title: eTitle, description: eDesc || null, scheduled_date: eDate || null,
         start_time: eStart || null, end_time: eEnd || null, service_address: eAddr || null,
         internal_notes: eNotes || null, priority: ePriority,
-        is_multi_day: eMultiDay, end_date: eMultiDay ? (eEndDate || null) : null,
-        progress_percent: eMultiDay ? Math.max(0, Math.min(100, eProgress)) : 0 })
+        is_multi_day: effectiveMultiDay, end_date: effectiveMultiDay ? (eEndDate || null) : null,
+        progress_percent: effectiveMultiDay ? Math.max(0, Math.min(100, eProgress)) : 0 })
       setEditMode(false)
       fetch('/api/integrations/google/sync-job', {
         method: 'POST',
@@ -431,11 +437,22 @@ export default function JobDetailPage() {
               </div>
               <input value={eAddr} onChange={(e) => setEAddr(e.target.value)} placeholder={fr ? "Adresse d'intervention..." : 'Service address...'} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
 
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input type="checkbox" checked={eMultiDay} onChange={(e) => setEMultiDay(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-                {fr ? 'Intervention sur plusieurs jours' : 'Multi-day job'}
-              </label>
-              {eMultiDay && (
+              {isDemarrage ? (
+                <div
+                  className="flex items-center gap-2 text-sm text-gray-400 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-2 cursor-not-allowed"
+                  title={fr ? 'Disponible avec le plan Pro' : 'Available with the Pro plan'}
+                >
+                  <Lock className="h-3.5 w-3.5 text-gray-400" />
+                  <span>{fr ? 'Intervention sur plusieurs jours' : 'Multi-day job'}</span>
+                  <span className="text-xs text-gray-500 ml-auto">{fr ? 'Disponible avec Pro' : 'Available with Pro'}</span>
+                </div>
+              ) : (
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" checked={eMultiDay} onChange={(e) => setEMultiDay(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                  {fr ? 'Intervention sur plusieurs jours' : 'Multi-day job'}
+                </label>
+              )}
+              {!isDemarrage && eMultiDay && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Date de fin' : 'End date'}</label>

@@ -10,6 +10,7 @@ import { secureUrl } from '@/lib/secure-url'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { useLanguage } from '@/lib/LanguageContext'
 import { LanguageToggle } from '@/components/LanguageToggle'
+import { getPlanLimits, normalizePlan } from '@/lib/plan-limits'
 
 interface Service {
   id: string
@@ -844,7 +845,7 @@ export default function PublicBookingPage() {
           </div>
         )}
       </div>
-      {(!org?.plan || org.plan === 'starter') && (
+      {getPlanLimits(normalizePlan((org as unknown as { plan?: string } | null)?.plan)).showGestivioBranding && (
         <footer className="py-4 text-center text-xs text-gray-400">
           {fr ? 'Propulsé par' : 'Powered by'} <a href="https://gestivio.ca" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-700">Gestivio</a>
         </footer>

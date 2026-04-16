@@ -8,6 +8,7 @@ import { secureUrl } from '@/lib/secure-url'
 import { useLanguage } from '@/lib/LanguageContext'
 import { LanguageToggle } from '@/components/LanguageToggle'
 import translations from '@/lib/i18n'
+import { getPlanLimits, normalizePlan } from '@/lib/plan-limits'
 
 interface LineItem {
   id?: string
@@ -192,7 +193,8 @@ function PublicInvoiceContent() {
 
   const printDate = (iso: string) =>
     new Date(iso).toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' })
-  const isStarter = !org?.plan || org.plan === 'starter'
+  // Gestivio branding is only shown on the Démarrage plan (includes legacy "starter").
+  const showBranding = getPlanLimits(normalizePlan(org?.plan)).showGestivioBranding
 
   return (
     <div className="min-h-screen bg-slate-50 py-6 px-4">
@@ -349,9 +351,9 @@ function PublicInvoiceContent() {
               {org.email && ` · ${org.email}`}
             </div>
           )}
-          {isStarter && (
-            <div style={{ marginTop: '6px', fontSize: '8px', color: '#ccc' }}>
-              Facture générée via Gestivio
+          {showBranding && (
+            <div style={{ marginTop: '6px', fontSize: '8px', color: '#cccccc', textAlign: 'center' }}>
+              Propulsé par Gestivio · gestivio.ca
             </div>
           )}
         </div>
@@ -590,7 +592,7 @@ function PublicInvoiceContent() {
                 </a>
               )}
             </div>
-            {(!org.plan || org.plan === 'starter') && (
+            {showBranding && (
               <p className="text-xs text-gray-300 pt-1">
                 Propulsé par <a href="https://gestivio.ca" target="_blank" rel="noopener noreferrer" className="hover:text-gray-500 transition-colors">Gestivio</a>
               </p>

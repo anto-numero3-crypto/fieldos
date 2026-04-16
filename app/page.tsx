@@ -76,9 +76,9 @@ export default function LandingPage() {
   ]
 
   const pricingPlans = [
-    { key: 'starter',  name: 'Starter',  monthlyPrice: 49,  description: l.starterDesc,  features: l.pricingFeatures.starter,  cta: l.pricingCtaStarter,  highlighted: false, href: '/signup' },
-    { key: 'pro',      name: 'Pro',      monthlyPrice: 99,  description: l.proDesc,      features: l.pricingFeatures.pro,      cta: l.pricingCtaPro,      highlighted: true,  href: '/signup' },
-    { key: 'business', name: 'Business', monthlyPrice: 179, description: l.businessDesc, features: l.pricingFeatures.business, cta: l.pricingCtaBusiness, highlighted: false, href: '/signup' },
+    { key: 'demarrage',  name: lang === 'fr' ? 'Démarrage' : 'Starter',  monthlyPrice: 39,  annualPrice: 35,  description: l.starterDesc,  features: l.pricingFeatures.starter,  cta: l.pricingCtaStarter,  highlighted: false, href: '/signup' },
+    { key: 'pro',        name: 'Pro',                                    monthlyPrice: 79,  annualPrice: 71,  description: l.proDesc,      features: l.pricingFeatures.pro,      cta: l.pricingCtaPro,      highlighted: true,  href: '/signup' },
+    { key: 'croissance', name: lang === 'fr' ? 'Croissance' : 'Growth',  monthlyPrice: 149, annualPrice: 134, description: l.businessDesc, features: l.pricingFeatures.business, cta: l.pricingCtaBusiness, highlighted: false, href: '/signup' },
   ]
 
 
@@ -457,7 +457,8 @@ export default function LandingPage() {
 
           <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
             {pricingPlans.map((plan, i) => {
-              const price = billing === 'annual' ? Math.round(plan.monthlyPrice * 0.8) : plan.monthlyPrice
+              const price = billing === 'annual' ? plan.annualPrice : plan.monthlyPrice
+              const annualTotal = plan.annualPrice * 12
               return (
                 <Reveal key={plan.key} delay={i * 80}>
                   <div className={`relative flex flex-col rounded-2xl p-7 h-full ${plan.highlighted ? 'bg-indigo-600 shadow-2xl shadow-indigo-200 ring-1 ring-indigo-500' : 'bg-white border border-gray-200 shadow-sm'}`}>
@@ -476,7 +477,7 @@ export default function LandingPage() {
                       </div>
                       {billing === 'annual' && (
                         <p className={`text-xs ${plan.highlighted ? 'text-indigo-200' : 'text-gray-400'}`}>
-                          {lang === 'fr' ? `Facturé $${plan.monthlyPrice * 12 * 0.8}/an` : `Billed $${Math.round(plan.monthlyPrice * 12 * 0.8)}/year`}
+                          {lang === 'fr' ? `Facturé $${annualTotal}/an` : `Billed $${annualTotal}/year`}
                         </p>
                       )}
                       <p className={`text-sm mt-2 ${plan.highlighted ? 'text-indigo-100' : 'text-gray-500'}`}>{plan.description}</p>

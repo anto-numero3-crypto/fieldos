@@ -78,7 +78,7 @@ export default function SubscribePage() {
 
   const clearPromo = () => { setPromoValid(null); setPromoInput(''); setPromoError(null) }
 
-  const choose = async (planId: 'starter' | 'pro' | 'business') => {
+  const choose = async (planId: 'demarrage' | 'pro' | 'croissance') => {
     setLoading(planId)
     try {
       const res = await fetch('/api/stripe/subscribe', {
@@ -105,16 +105,16 @@ export default function SubscribePage() {
     window.location.href = '/login'
   }
 
-  const features: Record<'starter' | 'pro' | 'business', string[]> = {
-    starter: fr
-      ? ['1 utilisateur', "Jusqu'à 50 clients", '30 interventions par mois', 'Facturation et paiements', 'Portail de réservation']
-      : ['1 user', 'Up to 50 customers', '30 jobs per month', 'Invoicing and payments', 'Booking portal'],
+  const features: Record<'demarrage' | 'pro' | 'croissance', string[]> = {
+    demarrage: fr
+      ? ['1 utilisateur', "Jusqu'à 50 clients", '25 interventions par mois', '30 messages IA par mois', 'Facturation illimitée', 'Portail de réservation', 'Google Calendar + Stripe', 'Support courriel (3 j ouvrables)']
+      : ['1 user', 'Up to 50 customers', '25 jobs per month', '30 AI messages per month', 'Unlimited invoicing', 'Booking portal', 'Google Calendar + Stripe', 'Email support (3 biz days)'],
     pro: fr
-      ? ['5 utilisateurs', 'Clients illimités', 'Interventions illimitées', 'Assistant IA', 'Analyses avancées', 'Campagnes marketing']
-      : ['5 users', 'Unlimited customers', 'Unlimited jobs', 'AI assistant', 'Advanced analytics', 'Marketing campaigns'],
-    business: fr
-      ? ['15 utilisateurs', 'Tout dans Pro', 'SMS automatisés', 'Export QuickBooks', 'Marque blanche', 'Support prioritaire']
-      : ['15 users', 'Everything in Pro', 'Automated SMS', 'QuickBooks export', 'White-label branding', 'Priority support'],
+      ? ['Tout illimité + IA', 'Interventions sur plusieurs jours', 'Export CSV', 'Rapports complets', 'Notifications de complétion', 'Aucune marque Gestivio', 'Support prioritaire (2 j ouvrables)']
+      : ['Everything unlimited + AI', 'Multi-day jobs', 'CSV export', 'Full reports', 'Completion notifications', 'No Gestivio branding', 'Priority support (2 biz days)'],
+    croissance: fr
+      ? ['Tout ce qui est dans Pro', 'Onboarding vidéo 1 h', 'Support prioritaire (1 j ouvrable)', 'Accès anticipé aux nouveautés']
+      : ['Everything in Pro', '1h video onboarding', 'Priority support (1 biz day)', 'Early access to new features'],
   }
 
   return (
@@ -186,50 +186,52 @@ export default function SubscribePage() {
               onClick={() => setCycle('annual')}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${cycle === 'annual' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:text-gray-900'}`}
             >
-              {fr ? 'Annuel' : 'Annual'} <span className="ml-1 text-xs text-emerald-300">−20%</span>
+              {fr ? 'Annuel' : 'Annual'} <span className="ml-1 text-xs text-emerald-300">{fr ? '−10%' : '−10%'}</span>
             </button>
           </div>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {(['starter', 'pro', 'business'] as const).map((key) => {
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 items-start">
+          {(['demarrage', 'pro', 'croissance'] as const).map((key) => {
             const p = PLAN_PRICING[key]
             const highlighted = key === 'pro'
             const price = cycle === 'annual' ? p.annual : p.monthly
+            const label = fr ? p.label : p.labelEn
+            const tagline = fr ? p.tagline : p.taglineEn
             return (
               <div
                 key={key}
-                className={`relative rounded-2xl bg-white p-6 shadow-sm border ${highlighted ? 'border-indigo-500 ring-2 ring-indigo-100' : 'border-gray-200'}`}
+                className={`relative rounded-2xl p-6 shadow-sm border ${highlighted ? 'bg-indigo-600 text-white border-indigo-500 ring-2 ring-indigo-200 shadow-xl shadow-indigo-100 scale-[1.03]' : 'bg-white border-gray-200'}`}
               >
                 {highlighted && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-1 text-xs font-bold text-white">
-                    <Sparkles className="h-3 w-3" /> {fr ? 'Populaire' : 'Popular'}
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-amber-900">
+                    <Sparkles className="h-3 w-3" /> {fr ? 'Plus populaire' : 'Most popular'}
                   </span>
                 )}
-                <h3 className="text-lg font-bold text-gray-900 mb-1">{p.label}</h3>
-                <p className="text-sm text-gray-500 mb-4">{p.tagline}</p>
+                <h3 className={`text-lg font-bold mb-1 ${highlighted ? 'text-white' : 'text-gray-900'}`}>{label}</h3>
+                <p className={`text-sm mb-4 ${highlighted ? 'text-indigo-100' : 'text-gray-500'}`}>{tagline}</p>
                 <div className="mb-5">
                   {promoValid && !promoValid.is_free_access && promoValid.discount_percent ? (
                     <>
-                      <span className="text-sm text-gray-400 line-through mr-2">${price}</span>
-                      <span className="text-4xl font-bold text-emerald-600">${Math.round(price * (1 - promoValid.discount_percent / 100))}</span>
-                      <span className="text-sm text-gray-500">{fr ? ' / mois' : ' / mo'}</span>
-                      <p className="text-xs text-emerald-600 mt-1">{fr ? `Économie de ${promoValid.discount_percent}%` : `${promoValid.discount_percent}% off`}</p>
+                      <span className={`text-sm line-through mr-2 ${highlighted ? 'text-indigo-200' : 'text-gray-400'}`}>${price}</span>
+                      <span className={`text-4xl font-bold ${highlighted ? 'text-white' : 'text-emerald-600'}`}>${Math.round(price * (1 - promoValid.discount_percent / 100))}</span>
+                      <span className={`text-sm ${highlighted ? 'text-indigo-100' : 'text-gray-500'}`}>{fr ? ' / mois' : ' / mo'}</span>
+                      <p className={`text-xs mt-1 ${highlighted ? 'text-indigo-100' : 'text-emerald-600'}`}>{fr ? `Économie de ${promoValid.discount_percent}%` : `${promoValid.discount_percent}% off`}</p>
                     </>
                   ) : (
                     <>
-                      <span className="text-4xl font-bold text-gray-900">${price}</span>
-                      <span className="text-sm text-gray-500">{fr ? ' / mois' : ' / mo'}</span>
+                      <span className={`text-4xl font-bold ${highlighted ? 'text-white' : 'text-gray-900'}`}>${price}</span>
+                      <span className={`text-sm ${highlighted ? 'text-indigo-100' : 'text-gray-500'}`}>{fr ? ' / mois' : ' / mo'}</span>
                       {cycle === 'annual' && (
-                        <p className="text-xs text-gray-400 mt-1">{fr ? 'Facturé annuellement' : 'Billed annually'}</p>
+                        <p className={`text-xs mt-1 ${highlighted ? 'text-indigo-200' : 'text-gray-400'}`}>{fr ? `Facturé ${p.annualTotal} $/an` : `Billed $${p.annualTotal}/year`}</p>
                       )}
                     </>
                   )}
                 </div>
                 <ul className="space-y-2 mb-6">
                   {features[key].map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm text-gray-700">
-                      <Check className="h-4 w-4 shrink-0 text-emerald-500 mt-0.5" />
+                    <li key={f} className={`flex items-start gap-2 text-sm ${highlighted ? 'text-indigo-50' : 'text-gray-700'}`}>
+                      <Check className={`h-4 w-4 shrink-0 mt-0.5 ${highlighted ? 'text-white' : 'text-emerald-500'}`} />
                       <span>{f}</span>
                     </li>
                   ))}
@@ -239,7 +241,7 @@ export default function SubscribePage() {
                   disabled={loading !== null}
                   className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
                     highlighted
-                      ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                      ? 'bg-white text-indigo-700 hover:bg-indigo-50'
                       : 'bg-gray-900 text-white hover:bg-gray-800'
                   } disabled:opacity-60`}
                 >

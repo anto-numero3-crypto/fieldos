@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { NextRequest, NextResponse } from 'next/server'
 import { adminClient, getAuthedUser, UNAUTHORIZED } from '@/lib/supabase-server'
+import { getPlanLimits, normalizePlan } from '@/lib/plan-limits'
 
 export async function POST(req: NextRequest) {
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -30,7 +31,9 @@ export async function POST(req: NextRequest) {
       .eq('owner_user_id', userId)
       .single()
 
-    const STARTER_LIMIT = 20
+    const normalizedPlan = normalizePlan(orgPlan?.plan)
+    const planLimits = getPlanLimits(normalizedPlan)
+    const AI_LIMIT = planLimits.maxAIMessages
     let currentCount = orgPlan?.ai_messages_this_month || 0
     const resetAt = orgPlan?.ai_messages_reset_at ? new Date(orgPlan.ai_messages_reset_at) : null
     const nowTs = new Date()
@@ -41,10 +44,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (orgPlan?.plan === 'starter' && currentCount >= STARTER_LIMIT) {
+    if (AI_LIMIT !== Infinity && currentCount >= AI_LIMIT) {
       return NextResponse.json({
-        reply: `Vous avez atteint la limite de ${STARTER_LIMIT} messages IA ce mois-ci sur le forfait Starter. Passez au forfait Pro pour un accès illimité à l'assistant IA.`,
+        reply: `Vous avez atteint la limite de ${AI_LIMIT} messages IA ce mois-ci sur le forfait Démarrage. Passez au forfait Pro pour un accès illimité à l'assistant IA.`,
+        replyEn: `You've reached the limit of ${AI_LIMIT} AI messages this month on the Démarrage plan. Upgrade to Pro for unlimited access to the AI assistant.`,
         limitReached: true,
+        upgradeUrl: '/subscribe',
       }, { status: 402 })
     }
 

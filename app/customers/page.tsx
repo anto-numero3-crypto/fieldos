@@ -9,6 +9,7 @@ import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
 import UpgradePrompt from '@/components/UpgradePrompt'
 import { usePlan } from '@/lib/hooks/usePlan'
+import { normalizePlan } from '@/lib/plan-limits'
 import { validateRequired, validateEmail, validatePhone } from '@/lib/validators'
 import FieldError from '@/components/FieldError'
 import EmptyState from '@/components/EmptyState'
@@ -152,8 +153,8 @@ export default function CustomersPage() {
   const openAddCustomer = () => {
     if (plan.isAtCustomerLimit) {
       toast.error(fr
-        ? `Limite de ${plan.limits.maxCustomers} clients atteinte sur le forfait Starter. Passez à Pro pour un nombre illimité.`
-        : `Starter plan limit of ${plan.limits.maxCustomers} customers reached. Upgrade to Pro for unlimited.`)
+        ? `Limite de ${plan.limits.maxCustomers} clients atteinte sur le forfait Démarrage. Passez à Pro pour un nombre illimité.`
+        : `Démarrage plan limit of ${plan.limits.maxCustomers} customers reached. Upgrade to Pro for unlimited.`)
       return
     }
     setPanelOpen(true)
@@ -234,17 +235,29 @@ export default function CustomersPage() {
     <AppLayout title={fr ? 'Clients' : 'Customers'} actions={AddButton}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
-        {/* Stats row */}
-        {plan.plan === 'starter' && (
-          <div className="mb-4 rounded-xl border border-gray-100 bg-white px-4 py-3 flex items-center gap-3 text-sm">
-            <span className="font-semibold text-gray-900">{plan.customerCount}/{plan.limits.maxCustomers} {fr ? 'clients' : 'customers'}</span>
-            <span className="text-gray-400">·</span>
-            <span className="text-gray-500 flex-1 min-w-0 truncate">{fr ? 'Forfait Starter' : 'Starter plan'}</span>
-            {plan.isAtCustomerLimit && (
-              <UpgradePrompt variant="inline" feature={fr ? 'Clients illimités' : 'Unlimited customers'} requiredPlan="pro" />
-            )}
-          </div>
-        )}
+        {/* Usage bar — Démarrage plan only */}
+        {normalizePlan(plan.plan) === 'demarrage' && plan.limits.maxCustomers !== Infinity && (() => {
+          const pct = Math.min(100, Math.round((plan.customerCount / plan.limits.maxCustomers) * 100))
+          const barCls = pct >= 92 ? 'bg-red-500' : pct >= 80 ? 'bg-orange-500' : 'bg-emerald-500'
+          const txtCls = pct >= 92 ? 'text-red-700' : pct >= 80 ? 'text-orange-700' : 'text-gray-900'
+          return (
+            <div className="mb-4 rounded-xl border border-gray-100 bg-white px-4 py-3 space-y-2">
+              <div className="flex items-center gap-3 text-sm">
+                <span className={`font-semibold ${txtCls}`}>
+                  {plan.customerCount} / {plan.limits.maxCustomers} {fr ? 'clients utilisés' : 'customers used'}
+                </span>
+                <span className="text-gray-400">·</span>
+                <span className="text-gray-500 flex-1 min-w-0 truncate">{fr ? 'Forfait Démarrage' : 'Démarrage plan'}</span>
+                {pct >= 100 && (
+                  <UpgradePrompt variant="inline" feature={fr ? 'Clients illimités' : 'Unlimited customers'} requiredPlan="pro" />
+                )}
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                <div className={`h-full ${barCls} transition-all`} style={{ width: `${pct}%` }} />
+              </div>
+            </div>
+          )
+        })()}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           {[
             { label: fr ? 'Total clients' : 'Total customers', value: customers.length, icon: Users, bg: 'bg-blue-50', color: 'text-blue-600' },

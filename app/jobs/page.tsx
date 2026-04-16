@@ -8,6 +8,8 @@ import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import MobileFAB from '@/components/MobileFAB'
 import { usePlan } from '@/lib/hooks/usePlan'
+import { normalizePlan } from '@/lib/plan-limits'
+import UpgradePrompt from '@/components/UpgradePrompt'
 import { validateRequired } from '@/lib/validators'
 import FieldError from '@/components/FieldError'
 import EmptyState from '@/components/EmptyState'
@@ -20,7 +22,7 @@ import { getEffectiveJobStatus } from '@/lib/job-status'
 import { JOB_COLORS } from '@/lib/status-colors'
 import {
   Briefcase, Plus, X, Calendar, User, CheckCircle,
-  Search, ChevronRight, MoreHorizontal, Trash2, Clock, Zap, Flag,
+  Search, ChevronRight, MoreHorizontal, Trash2, Clock, Zap, Flag, Lock,
 } from 'lucide-react'
 
 interface Job {
@@ -54,21 +56,9 @@ export default function JobsPage() {
   const [activeFilter, setActiveFilter] = useState('all')
   const [search, setSearch]   = useState('')
   const [panelOpen, setPanelOpen] = useState(false)
+  const [jobsThisMonth, setJobsThisMonth] = useState(0)
   const plan = usePlan()
 
-  const openAddJob = () => {
-    if (plan.plan === 'starter' && plan.limits.maxJobsPerMonth !== Infinity) {
-      // Lightweight client-side check based on jobs already visible.
-      // Server enforcement lives in the API where the insert happens.
-      if (jobs.length >= plan.limits.maxJobsPerMonth) {
-        toast.error(fr
-          ? `Limite de ${plan.limits.maxJobsPerMonth} interventions par mois atteinte sur Starter. Passez à Pro pour un nombre illimité.`
-          : `Starter plan limit of ${plan.limits.maxJobsPerMonth} jobs per month reached. Upgrade to Pro for unlimited.`)
-        return
-      }
-    }
-    setPanelOpen(true)
-  }
   const [pageLoading, setPageLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
@@ -94,16 +84,39 @@ export default function JobsPage() {
   const errTitle = touched.title ? validateRequired(title) : ''
   const formInvalid = !!validateRequired(title)
 
+  const isDemarrage = normalizePlan(plan.plan) === 'demarrage'
+
+  const openAddJob = () => {
+    if (isDemarrage && plan.limits.maxJobsPerMonth !== Infinity && jobsThisMonth >= plan.limits.maxJobsPerMonth) {
+      toast.error(fr
+        ? `Limite de ${plan.limits.maxJobsPerMonth} interventions ce mois-ci atteinte sur le forfait Démarrage. Passez à Pro pour un nombre illimité.`
+        : `Démarrage plan limit of ${plan.limits.maxJobsPerMonth} jobs this month reached. Upgrade to Pro for unlimited.`)
+      return
+    }
+    setPanelOpen(true)
+  }
+
   useEffect(() => {
     const init = async () => {
       const { data } = await supabase.auth.getUser()
       if (!data.user) { window.location.href = '/login'; return }
       setUser(data.user)
-      await Promise.all([fetchJobs(data.user.id), fetchCustomers(data.user.id)])
+      await Promise.all([fetchJobs(data.user.id), fetchCustomers(data.user.id), fetchJobsThisMonth(data.user.id)])
       setPageLoading(false)
     }
     init()
   }, [])
+
+  const fetchJobsThisMonth = async (uid: string) => {
+    const now = new Date()
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+    const { count } = await supabase
+      .from('jobs')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', uid)
+      .gte('created_at', startOfMonth)
+    setJobsThisMonth(count || 0)
+  }
 
   const fetchJobs = async (_uid: string) => {
     try {
@@ -124,13 +137,22 @@ export default function JobsPage() {
     e.preventDefault()
     setTouched({ title: true })
     if (formInvalid) return
+    // Re-check the monthly limit right before insert (defense-in-depth).
+    if (isDemarrage && plan.limits.maxJobsPerMonth !== Infinity && jobsThisMonth >= plan.limits.maxJobsPerMonth) {
+      toast.error(fr
+        ? `Limite de ${plan.limits.maxJobsPerMonth} interventions ce mois-ci atteinte. Passez au forfait Pro.`
+        : `Monthly job limit of ${plan.limits.maxJobsPerMonth} reached. Upgrade to Pro.`)
+      return
+    }
+    // Demarrage plan cannot create multi-day jobs
+    const effectiveIsMultiDay = isDemarrage ? false : isMultiDay
     setLoading(true)
     const { data: inserted, error } = await supabase.from('jobs').insert({
       user_id: user!.id, customer_id: customerId || null,
       title: title.trim(), description: description.trim() || null,
       scheduled_date: scheduledDate || null, status, priority,
-      is_multi_day: isMultiDay, end_date: isMultiDay ? (endDate || null) : null,
-      progress_percent: isMultiDay ? Math.max(0, Math.min(100, progressPct)) : 0,
+      is_multi_day: effectiveIsMultiDay, end_date: effectiveIsMultiDay ? (endDate || null) : null,
+      progress_percent: effectiveIsMultiDay ? Math.max(0, Math.min(100, progressPct)) : 0,
       start_time: startTime || null, end_time: endTime || null,
     }).select('id').single()
     if (error) { toast.error(error.message) }
@@ -148,7 +170,7 @@ export default function JobsPage() {
       }
       toast.success(t.success.created)
       setTitle(''); setDesc(''); setCustId(''); setDate(''); setStatus('scheduled'); setPriority('normal'); setStartTime(''); setEndTime(''); setIsMultiDay(false); setEndDateVal(''); setProgressPct(0)
-      await fetchJobs(user!.id)
+      await Promise.all([fetchJobs(user!.id), fetchJobsThisMonth(user!.id)])
       setPanelOpen(false)
     }
     setLoading(false)
@@ -221,6 +243,30 @@ export default function JobsPage() {
   return (
     <AppLayout title={fr ? 'Interventions' : 'Jobs'} actions={AddButton}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+
+        {/* Usage bar — Démarrage plan only */}
+        {isDemarrage && plan.limits.maxJobsPerMonth !== Infinity && (() => {
+          const pct = Math.min(100, Math.round((jobsThisMonth / plan.limits.maxJobsPerMonth) * 100))
+          const barCls = pct >= 92 ? 'bg-red-500' : pct >= 80 ? 'bg-orange-500' : 'bg-emerald-500'
+          const txtCls = pct >= 92 ? 'text-red-700' : pct >= 80 ? 'text-orange-700' : 'text-gray-900'
+          return (
+            <div className="mb-4 rounded-xl border border-gray-100 bg-white px-4 py-3 space-y-2">
+              <div className="flex items-center gap-3 text-sm">
+                <span className={`font-semibold ${txtCls}`}>
+                  {jobsThisMonth} / {plan.limits.maxJobsPerMonth} {fr ? 'interventions ce mois' : 'jobs this month'}
+                </span>
+                <span className="text-gray-400">·</span>
+                <span className="text-gray-500 flex-1 min-w-0 truncate">{fr ? 'Forfait Démarrage' : 'Démarrage plan'}</span>
+                {pct >= 100 && (
+                  <UpgradePrompt variant="inline" feature={fr ? 'Interventions illimitées' : 'Unlimited jobs'} requiredPlan="pro" />
+                )}
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                <div className={`h-full ${barCls} transition-all`} style={{ width: `${pct}%` }} />
+              </div>
+            </div>
+          )
+        })()}
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
@@ -445,11 +491,22 @@ export default function JobsPage() {
                 </div>
               </div>
 
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input type="checkbox" checked={isMultiDay} onChange={(e) => setIsMultiDay(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
-                {fr ? 'Intervention sur plusieurs jours' : 'Multi-day job'}
-              </label>
-              {isMultiDay && (
+              {isDemarrage ? (
+                <div
+                  className="flex items-center gap-2 text-sm text-gray-400 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-2 cursor-not-allowed"
+                  title={fr ? 'Disponible avec le plan Pro' : 'Available with the Pro plan'}
+                >
+                  <Lock className="h-3.5 w-3.5 text-gray-400" />
+                  <span>{fr ? 'Intervention sur plusieurs jours' : 'Multi-day job'}</span>
+                  <span className="text-xs text-gray-500 ml-auto">{fr ? 'Disponible avec Pro' : 'Available with Pro'}</span>
+                </div>
+              ) : (
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                  <input type="checkbox" checked={isMultiDay} onChange={(e) => setIsMultiDay(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                  {fr ? 'Intervention sur plusieurs jours' : 'Multi-day job'}
+                </label>
+              )}
+              {!isDemarrage && isMultiDay && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Date de fin' : 'End date'}</label>

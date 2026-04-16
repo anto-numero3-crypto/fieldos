@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendPlanEmail } from '@/lib/plan-emails'
+import { normalizePlan } from '@/lib/plan-limits'
 
 // Daily cron — expires trials past their deadline + sends the 3-day-warning
 // email to trials expiring in 3 days.
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest) {
   for (const org of expired || []) {
     await supabase
       .from('organizations')
-      .update({ plan: 'starter', plan_status: 'expired' })
+      .update({ plan: 'demarrage', plan_status: 'expired' })
       .eq('id', org.id)
     if (org.email) {
       await sendPlanEmail('trial_expired', { to: org.email, name: org.name || undefined })
@@ -80,7 +81,7 @@ export async function GET(req: NextRequest) {
   for (const org of promoExpired || []) {
     await supabase
       .from('organizations')
-      .update({ plan: 'starter', plan_status: 'expired', promo_code_id: null, promo_expires_at: null })
+      .update({ plan: 'demarrage', plan_status: 'expired', promo_code_id: null, promo_expires_at: null })
       .eq('id', org.id)
     if (org.email) {
       // Reuse trial_expired template — copy is equivalent for "your access ended".
@@ -187,10 +188,17 @@ export async function GET(req: NextRequest) {
 
       const { data: org } = await supabase
         .from('organizations')
-        .select('name, email')
+        .select('name, email, plan')
         .eq('owner_user_id', j.user_id)
         .maybeSingle()
       if (!org?.email) continue
+
+      // Completion notifications are a Pro+ feature. Keep the DB state
+      // transitions above (still useful), just don't send the email on Démarrage.
+      if (normalizePlan(org.plan) === 'demarrage') {
+        await supabase.from('jobs').update({ completion_notified_at: new Date().toISOString() }).eq('id', j.id)
+        continue
+      }
 
       const bizName = org.name || 'Gestivio'
       const customerName = (j.customers as unknown as { name?: string } | null)?.name || ''

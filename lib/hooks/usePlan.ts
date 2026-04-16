@@ -5,6 +5,7 @@ import { supabase } from '../../app/supabase'
 import {
   getPlanLimits,
   isFeatureAvailable,
+  normalizePlan,
   type FeatureFlag,
   type PlanLimits,
   type PlanName,
@@ -36,12 +37,12 @@ interface PlanInfo {
 }
 
 const DEFAULT: PlanInfo = {
-  plan: 'starter',
+  plan: 'demarrage',
   status: 'trial',
   trialEndsAt: null,
   trialDaysLeft: 0,
   nextBillingAt: null,
-  limits: getPlanLimits('starter'),
+  limits: getPlanLimits('demarrage'),
   customerCount: 0,
   aiMessagesThisMonth: 0,
   teamMemberCount: 0,
@@ -79,7 +80,7 @@ export function usePlan(): PlanInfo {
       supabase.from('team_members').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
     ])
 
-    const plan = (org?.plan || 'starter') as PlanName
+    const plan: PlanName = normalizePlan(org?.plan)
     const status = (org?.plan_status || 'trial') as PlanStatus
     const limits = getPlanLimits(plan)
     const customerCount = custRes.count || 0

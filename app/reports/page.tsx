@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
-import UpgradePrompt from '@/components/UpgradePrompt'
 import { usePlan } from '@/lib/hooks/usePlan'
+import { normalizePlan } from '@/lib/plan-limits'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonChart, SkeletonKPICard } from '@/components/ui/skeleton'
-import { BarChart3 } from 'lucide-react'
+import { BarChart3, Lock } from 'lucide-react'
+import Link from 'next/link'
 import {
   BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
@@ -54,23 +55,84 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
   return null
 }
 
+function DemarrageBasicReports() {
+  const { lang } = useLanguage()
+  const fr = lang === 'fr'
+  const [revenue, setRevenue] = useState(0)
+  const [jobCount, setJobCount] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    (async () => {
+      // Importing here to avoid the top-level ordering rules with the inner component
+      const { supabase } = await import('../supabase')
+      const { data: auth } = await supabase.auth.getUser()
+      if (!auth.user) { window.location.href = '/login'; return }
+      const [{ data: inv }, { count: jc }] = await Promise.all([
+        supabase.from('invoices').select('amount, status').eq('user_id', auth.user.id),
+        supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('user_id', auth.user.id),
+      ])
+      const total = (inv || []).filter((i) => i.status === 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+      setRevenue(total)
+      setJobCount(jc || 0)
+      setLoading(false)
+    })()
+  }, [])
+
+  if (loading) return (
+    <div className="grid gap-4 grid-cols-2 sm:grid-cols-2">
+      {[...Array(2)].map((_, i) => <SkeletonKPICard key={i} />)}
+    </div>
+  )
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+          <p className="text-xs font-medium text-gray-500 mb-1">{fr ? 'Revenus encaissés (à vie)' : 'Collected revenue (all time)'}</p>
+          <p className="text-3xl font-bold text-gray-900 tabular-nums">${revenue.toLocaleString('en', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+        </div>
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+          <p className="text-xs font-medium text-gray-500 mb-1">{fr ? 'Interventions totales' : 'Total jobs'}</p>
+          <p className="text-3xl font-bold text-gray-900 tabular-nums">{jobCount}</p>
+        </div>
+      </div>
+
+      {/* Locked advanced section */}
+      <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-violet-50 p-8 text-center">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white">
+          <Lock className="h-5 w-5" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">
+          {fr ? 'Débloquez les rapports complets avec Pro' : 'Unlock full reports with Pro'}
+        </h2>
+        <p className="text-sm text-gray-600 max-w-lg mx-auto mb-5">
+          {fr
+            ? 'Tendances de revenus, taux de recouvrement, top clients, vieillissement des créances, export CSV et plus encore.'
+            : 'Revenue trends, collection rate, top customers, AR aging, CSV export, and more.'}
+        </p>
+        <Link
+          href="/subscribe"
+          className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 shadow-md"
+        >
+          {fr ? 'Passer au Pro' : 'Upgrade to Pro'}
+        </Link>
+      </div>
+    </div>
+  )
+}
+
 function ReportsGate({ children }: { children: React.ReactNode }) {
   const plan = usePlan()
   const { lang } = useLanguage()
   const fr = lang === 'fr'
   if (plan.loading) return <>{children}</>
-  if (!plan.isFeatureAvailable('hasAnalytics')) {
+  // Démarrage gets a simplified "basic stats only" view plus an upsell card.
+  if (normalizePlan(plan.plan) === 'demarrage' || !plan.isFeatureAvailable('fullReports')) {
     return (
       <AppLayout title={fr ? 'Rapports' : 'Reports'}>
-        <div className="p-6 sm:p-10">
-          <UpgradePrompt
-            variant="overlay"
-            feature={fr ? 'Rapports et analyses' : 'Reports and analytics'}
-            requiredPlan="pro"
-            description={fr
-              ? 'Suivez vos revenus, vos interventions et vos clients les plus fidèles avec des tableaux de bord complets — disponibles dès le forfait Pro.'
-              : 'Track revenue, jobs, and your most loyal customers with complete dashboards — available from the Pro plan.'}
-          />
+        <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
+          <DemarrageBasicReports />
         </div>
       </AppLayout>
     )

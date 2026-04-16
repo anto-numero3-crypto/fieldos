@@ -7,7 +7,7 @@ import { supabase } from '../supabase'
 import { formatPrice } from '@/lib/pricing'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { usePlan } from '@/lib/hooks/usePlan'
-import { PLAN_PRICING } from '@/lib/plan-limits'
+import { PLAN_PRICING, normalizePlan } from '@/lib/plan-limits'
 import PromoCodeInput from '@/components/PromoCodeInput'
 import { validateEmail, validatePhone } from '@/lib/validators'
 import { useConfirm } from '@/components/ui/confirm-dialog'
@@ -169,7 +169,7 @@ export default function SettingsPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
 
-  const handlePlanChange = async (planId: 'starter' | 'pro' | 'business') => {
+  const handlePlanChange = async (planId: 'demarrage' | 'pro' | 'croissance') => {
     if (!user) return
     setCheckoutLoading(planId)
     try {
@@ -1017,7 +1017,7 @@ export default function SettingsPage() {
                        plan.status === 'cancelled' ? (fr ? 'Annulé' : 'Cancelled') : (fr ? 'Expiré' : 'Expired')}
                     </span>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{PLAN_PRICING[plan.plan].label} — ${PLAN_PRICING[plan.plan].monthly}/{fr ? 'mois' : 'mo'}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">{PLAN_PRICING[normalizePlan(plan.plan)].label} — ${PLAN_PRICING[normalizePlan(plan.plan)].monthly}/{fr ? 'mois' : 'mo'}</p>
                   {plan.nextBillingAt && plan.status === 'active' && !plan.promoCodeId && (
                     <p className="text-xs text-gray-400 mt-1">{fmtDate(plan.nextBillingAt, lang)}</p>
                   )}
@@ -1075,18 +1075,20 @@ export default function SettingsPage() {
                 <button
                   onClick={() => setBillingCycle('annual')}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${billingCycle === 'annual' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                >{fr ? 'Annuel' : 'Annual'} <span className="ml-1 text-emerald-600">(-20%)</span></button>
+                >{fr ? 'Annuel' : 'Annual'} <span className="ml-1 text-emerald-600">(-10%)</span></button>
               </div>
               <div className="p-6 pt-2 grid gap-4 md:grid-cols-3">
-                {(['starter', 'pro', 'business'] as const).map((p) => {
+                {(['demarrage', 'pro', 'croissance'] as const).map((p) => {
                   const info = PLAN_PRICING[p]
                   const price = billingCycle === 'annual' ? info.annual : info.monthly
-                  const isCurrent = plan.plan === p
+                  const isCurrent = normalizePlan(plan.plan) === p
+                  const label = fr ? info.label : info.labelEn
+                  const tagline = fr ? info.tagline : info.taglineEn
                   return (
                     <div key={p} className={`rounded-xl border p-4 ${isCurrent ? 'border-indigo-300 bg-indigo-50/40' : 'border-gray-200 bg-white'}`}>
-                      <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">{info.label}</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">{label}</p>
                       <p className="text-xl font-bold text-gray-900 mt-1">${price}<span className="text-xs font-normal text-gray-400">/{fr ? 'mois' : 'mo'}{billingCycle === 'annual' ? (fr ? ' · facturé annuellement' : ' · billed annually') : ''}</span></p>
-                      <p className="text-xs text-gray-500 mt-1 mb-3">{info.tagline}</p>
+                      <p className="text-xs text-gray-500 mt-1 mb-3">{tagline}</p>
                       {isCurrent ? (
                         <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white">{fr ? 'Forfait actuel' : 'Current plan'}</span>
                       ) : (
@@ -1095,7 +1097,7 @@ export default function SettingsPage() {
                           disabled={checkoutLoading === p}
                           className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
                         >
-                          {checkoutLoading === p ? (fr ? 'Chargement…' : 'Loading…') : p === 'starter' ? (fr ? 'Rétrograder' : 'Downgrade') : (fr ? `Passer à ${info.label}` : `Upgrade to ${info.label}`)}
+                          {checkoutLoading === p ? (fr ? 'Chargement…' : 'Loading…') : p === 'demarrage' ? (fr ? 'Rétrograder' : 'Downgrade') : (fr ? `Passer à ${label}` : `Upgrade to ${label}`)}
                         </button>
                       )}
                     </div>
@@ -1104,8 +1106,8 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Promo code — only useful on trial/starter/expired */}
-            {user && (plan.status === 'trial' || plan.plan === 'starter' || plan.status === 'expired') && (
+            {/* Promo code — only useful on trial/demarrage/expired */}
+            {user && (plan.status === 'trial' || normalizePlan(plan.plan) === 'demarrage' || plan.status === 'expired') && (
               <PromoCodeInput userId={user.id} onApplied={() => plan.refresh()} />
             )}
 
