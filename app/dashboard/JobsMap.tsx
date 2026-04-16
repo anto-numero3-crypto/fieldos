@@ -130,7 +130,16 @@ export default function JobsMap({ jobs }: Props) {
   const fr = lang === 'fr'
   const [geocoded, setGeocoded] = useState<Geocoded[]>([])
   const [loading, setLoading] = useState(true)
+  const [isDark, setIsDark] = useState(false)
   const abortRef = useRef(false)
+
+  useEffect(() => {
+    const read = () => setIsDark(document.documentElement.classList.contains('dark'))
+    read()
+    const observer = new MutationObserver(read)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     loadCacheFromStorage()
@@ -168,12 +177,14 @@ export default function JobsMap({ jobs }: Props) {
       <MapContainer
         center={DEFAULT_CENTER}
         zoom={DEFAULT_ZOOM}
-        scrollWheelZoom={false}
+        scrollWheelZoom={true}
         className="h-full w-full"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url={isDark
+            ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+            : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'}
         />
         {geocoded.map((j) => (
           <Marker
