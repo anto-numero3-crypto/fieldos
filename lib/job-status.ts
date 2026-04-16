@@ -6,6 +6,56 @@ export const JOB_STATUS_VALUES: JobStatus[] = [
 
 // Simplified 4-state palette. Invoiced is visually identical to completed.
 // Cancelled is completed-colored but dimmed via opacity.
+export interface JobStatusConfig {
+  bg: string
+  border: string
+  text: string
+  darkBg: string
+  darkText: string
+  dot: string
+  pulse: boolean
+  labelFr: string
+  labelEn: string
+}
+
+export const JOB_STATUS_CONFIG: Record<string, JobStatusConfig> = {
+  scheduled: {
+    bg: '#dbeafe', border: '#2563eb', text: '#1e40af',
+    darkBg: '#1e3a5f', darkText: '#93c5fd', dot: '#3b82f6',
+    pulse: false, labelFr: 'Planifiée', labelEn: 'Scheduled',
+  },
+  in_progress: {
+    bg: '#dcfce7', border: '#16a34a', text: '#14532d',
+    darkBg: '#14532d', darkText: '#86efac', dot: '#16a34a',
+    pulse: true, labelFr: 'En cours', labelEn: 'In progress',
+  },
+  needs_completion: {
+    bg: '#ffedd5', border: '#ea580c', text: '#7c2d12',
+    darkBg: '#431407', darkText: '#fdba74', dot: '#ea580c',
+    pulse: true, labelFr: 'À compléter', labelEn: 'Needs completion',
+  },
+  completed: {
+    bg: '#f3f4f6', border: '#9ca3af', text: '#374151',
+    darkBg: '#1f2937', darkText: '#d1d5db', dot: '#9ca3af',
+    pulse: false, labelFr: 'Complétée', labelEn: 'Completed',
+  },
+  complete: {
+    bg: '#f3f4f6', border: '#9ca3af', text: '#374151',
+    darkBg: '#1f2937', darkText: '#d1d5db', dot: '#9ca3af',
+    pulse: false, labelFr: 'Complétée', labelEn: 'Completed',
+  },
+  invoiced: {
+    bg: '#f3f4f6', border: '#9ca3af', text: '#374151',
+    darkBg: '#1f2937', darkText: '#d1d5db', dot: '#9ca3af',
+    pulse: false, labelFr: 'Complétée', labelEn: 'Completed',
+  },
+  cancelled: {
+    bg: '#f9fafb', border: '#d1d5db', text: '#6b7280',
+    darkBg: '#1f2937', darkText: '#6b7280', dot: '#9ca3af',
+    pulse: false, labelFr: 'Annulée', labelEn: 'Cancelled',
+  },
+}
+
 export const JOB_STATUS_CLS: Record<string, string> = {
   scheduled:        'bg-blue-100 text-blue-800 ring-1 ring-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:ring-blue-800',
   in_progress:      'bg-green-100 text-green-900 ring-1 ring-green-600 animate-pulse dark:bg-green-950/60 dark:text-green-300 dark:ring-green-700',
