@@ -24,20 +24,21 @@ export function getEffectiveJobStatus(job: {
   if (s === 'completed' || s === 'complete' || s === 'invoiced' || s === 'cancelled') return s
   if (!job.scheduled_date) return s
 
-  const now = new Date()
-  const startStr = job.start_time
-    ? `${job.scheduled_date}T${job.start_time}`
-    : `${job.scheduled_date}T00:00:00`
-  const jobStart = new Date(startStr)
-  const jobEnd = job.end_time ? new Date(`${job.scheduled_date}T${job.end_time}`) : null
+  const dateStr = job.scheduled_date.slice(0, 10)
+  // Normalize Supabase TIME strings ("HH:MM", "HH:MM:SS", or with fractional/tz)
+  // to plain HH:MM. Without a tz suffix the Date constructor parses as LOCAL time,
+  // which matches how the user reads their clock.
+  const startTime = job.start_time ? job.start_time.slice(0, 5) : '00:00'
+  const endTime = job.end_time ? job.end_time.slice(0, 5) : null
 
-  if (jobEnd && now > jobEnd) return 'needs_completion'
-  if (!jobEnd && s === 'in_progress') {
-    // in_progress with no end_time — flip to needs_completion 1h past start
-    const plusHour = new Date(jobStart.getTime() + 60 * 60 * 1000)
-    if (now > plusHour) return 'needs_completion'
-  }
-  if (now > jobStart) return 'in_progress'
+  const now = new Date()
+  const jobStart = new Date(`${dateStr}T${startTime}:00`)
+  const jobEnd = endTime
+    ? new Date(`${dateStr}T${endTime}:00`)
+    : new Date(jobStart.getTime() + 60 * 60 * 1000)
+
+  if (now.getTime() > jobEnd.getTime()) return 'needs_completion'
+  if (now.getTime() > jobStart.getTime()) return 'in_progress'
   return s
 }
 
