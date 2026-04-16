@@ -129,6 +129,8 @@ export default function JobsPage() {
         })
           .then(async (r) => console.log('[gcal sync insert]', r.status, await r.json().catch(() => null)))
           .catch((err) => console.error('[gcal sync insert] failed:', err))
+      } else {
+        console.warn('[gcal sync insert] insert succeeded but returned no id — RLS on implicit SELECT?')
       }
       toast.success(t.success.created)
       setTitle(''); setDesc(''); setCustId(''); setDate(''); setStatus('scheduled'); setPriority('normal'); setStartTime(''); setEndTime('')
