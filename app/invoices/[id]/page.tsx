@@ -44,11 +44,11 @@ interface Invoice {
   jobs: { id: string; title: string } | null
 }
 
-const STATUS_CFG: Record<string, { label: string; className: string; icon: React.ElementType }> = {
-  unpaid:  { label: 'Non payé',  className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',   icon: Clock },
-  sent:    { label: 'Envoyée',   className: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',       icon: Send },
-  paid:    { label: 'Payé',      className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', icon: CheckCircle },
-  overdue: { label: 'En retard', className: 'bg-red-50 text-red-700 ring-1 ring-red-200',         icon: AlertCircle },
+const STATUS_CFG: Record<string, { className: string; icon: React.ElementType }> = {
+  unpaid:  { className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',   icon: Clock },
+  sent:    { className: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',       icon: Send },
+  paid:    { className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200', icon: CheckCircle },
+  overdue: { className: 'bg-red-50 text-red-700 ring-1 ring-red-200',         icon: AlertCircle },
 }
 
 export default function InvoiceDetailPage() {
@@ -230,7 +230,7 @@ export default function InvoiceDetailPage() {
   const fmt = (n: number) => fmtMoney(n, lang)
 
   if (loading) return (
-    <AppLayout title="Facture">
+    <AppLayout title={fr ? 'Facture' : 'Invoice'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-4">
         <SkeletonText className="h-6 w-48" />
         <SkeletonCard className="h-32" />
@@ -244,11 +244,11 @@ export default function InvoiceDetailPage() {
   )
 
   if (!invoice) return (
-    <AppLayout title="Facture">
+    <AppLayout title={fr ? 'Facture' : 'Invoice'}>
       <div className="flex flex-col items-center justify-center p-12 text-center">
         <FileText className="h-10 w-10 text-gray-300 mb-3" />
-        <p className="text-sm text-gray-500">Facture introuvable.</p>
-        <Link href="/invoices" className="mt-4 text-sm text-indigo-600 hover:underline">Retour aux factures</Link>
+        <p className="text-sm text-gray-500">{fr ? 'Facture introuvable.' : 'Invoice not found.'}</p>
+        <Link href="/invoices" className="mt-4 text-sm text-indigo-600 hover:underline">{fr ? 'Retour aux factures' : 'Back to invoices'}</Link>
       </div>
     </AppLayout>
   )
@@ -271,7 +271,7 @@ export default function InvoiceDetailPage() {
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <Link href="/invoices" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Factures
+            <ArrowLeft className="h-4 w-4" /> {fr ? 'Factures' : 'Invoices'}
           </Link>
           <span className="text-gray-300">/</span>
           <span className="text-sm font-semibold text-gray-900">{invoice.invoice_number || invoice.id.slice(0, 8)}</span>
@@ -324,7 +324,7 @@ export default function InvoiceDetailPage() {
               {editing ? (
                 <div className="px-6 py-4 grid grid-cols-2 gap-4 bg-gray-50 border-b border-gray-100">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Statut</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Statut' : 'Status'}</label>
                     <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)}
                       className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                       <option value="unpaid">{tStatus('unpaid')}</option>
@@ -333,7 +333,7 @@ export default function InvoiceDetailPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Date d'échéance</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? "Date d'échéance" : 'Due date'}</label>
                     <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)}
                       className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                   </div>
@@ -361,23 +361,23 @@ export default function InvoiceDetailPage() {
               {/* Line items */}
               <div className="px-6 py-5">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-semibold text-gray-900">Lignes de la facture</p>
+                  <p className="text-sm font-semibold text-gray-900">{fr ? 'Lignes de la facture' : 'Line items'}</p>
                   {editing && (
-                    <button onClick={addLineItem} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700">+ Ajouter une ligne</button>
+                    <button onClick={addLineItem} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700">+ {fr ? 'Ajouter une ligne' : 'Add a line'}</button>
                   )}
                 </div>
 
                 {editing ? (
                   <div className="space-y-2">
                     {lineItems.length === 0 && (
-                      <p className="text-xs text-gray-400 text-center py-4">Aucune ligne. Ajoutez-en une ou enregistrez simplement le montant de la facture.</p>
+                      <p className="text-xs text-gray-400 text-center py-4">{fr ? 'Aucune ligne. Ajoutez-en une ou enregistrez simplement le montant de la facture.' : 'No line items. Add one or simply save the invoice amount.'}</p>
                     )}
                     {lineItems.map((li, i) => (
                       <div key={i} className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:items-center rounded-xl bg-gray-50 sm:bg-transparent p-2 sm:p-0">
                         <input
                           value={li.description}
                           onChange={(e) => updateLineItem(i, 'description', e.target.value)}
-                          placeholder="Description"
+                          placeholder={fr ? 'Description' : 'Description'}
                           className="sm:col-span-6 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-base sm:text-sm text-gray-900 focus:border-indigo-500 focus:outline-none"
                         />
                         <div className="grid grid-cols-[1fr_1fr_auto] gap-2 sm:contents">
@@ -385,22 +385,22 @@ export default function InvoiceDetailPage() {
                             type="number" inputMode="numeric" min="1" value={li.qty}
                             onChange={(e) => updateLineItem(i, 'qty', e.target.value)}
                             className="sm:col-span-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-base sm:text-sm text-gray-900 focus:border-indigo-500 focus:outline-none text-center"
-                            placeholder="Qté"
+                            placeholder={fr ? 'Qté' : 'Qty'}
                           />
                           <input
                             type="number" inputMode="decimal" min="0" step="0.01" value={li.unit_price}
                             onChange={(e) => updateLineItem(i, 'unit_price', e.target.value)}
                             className="sm:col-span-3 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-base sm:text-sm text-gray-900 focus:border-indigo-500 focus:outline-none"
-                            placeholder="Prix"
+                            placeholder={fr ? 'Prix' : 'Price'}
                           />
-                          <button onClick={() => removeLineItem(i)} aria-label="Retirer" className="sm:col-span-1 flex items-center justify-center rounded-lg px-2 text-gray-400 hover:text-red-500 transition-colors">
+                          <button onClick={() => removeLineItem(i)} aria-label={fr ? 'Retirer' : 'Remove'} className="sm:col-span-1 flex items-center justify-center rounded-lg px-2 text-gray-400 hover:text-red-500 transition-colors">
                             <X className="h-5 w-5" />
                           </button>
                         </div>
                       </div>
                     ))}
                     <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
-                      <label className="text-xs text-gray-500">Taux de taxe :</label>
+                      <label className="text-xs text-gray-500">{fr ? 'Taux de taxe :' : 'Tax rate:'}</label>
                       <input type="number" min="0" max="100" step="0.1" value={editTaxRate}
                         onChange={(e) => setEditTaxRate(e.target.value)}
                         className="w-20 rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:outline-none" />
@@ -412,9 +412,9 @@ export default function InvoiceDetailPage() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-gray-100">
-                          <th className="pb-2 text-left text-xs font-medium text-gray-400">Description</th>
-                          <th className="pb-2 text-center text-xs font-medium text-gray-400">Qté</th>
-                          <th className="pb-2 text-right text-xs font-medium text-gray-400">Prix unitaire</th>
+                          <th className="pb-2 text-left text-xs font-medium text-gray-400">{fr ? 'Description' : 'Description'}</th>
+                          <th className="pb-2 text-center text-xs font-medium text-gray-400">{fr ? 'Qté' : 'Qty'}</th>
+                          <th className="pb-2 text-right text-xs font-medium text-gray-400">{fr ? 'Prix unitaire' : 'Unit price'}</th>
                           <th className="pb-2 text-right text-xs font-medium text-gray-400">Total</th>
                         </tr>
                       </thead>
@@ -430,9 +430,9 @@ export default function InvoiceDetailPage() {
                       </tbody>
                     </table>
                     <div className="mt-3 pt-3 border-t border-gray-100 space-y-1 text-sm">
-                      <div className="flex justify-between text-gray-500"><span>Sous-total</span><span>{fmt(displaySubtotal)}</span></div>
+                      <div className="flex justify-between text-gray-500"><span>{fr ? 'Sous-total' : 'Subtotal'}</span><span>{fmt(displaySubtotal)}</span></div>
                       {(invoice.tax_rate || 0) > 0 && (
-                        <div className="flex justify-between text-gray-500"><span>Tax ({invoice.tax_rate}%)</span><span>{fmt(displayTax)}</span></div>
+                        <div className="flex justify-between text-gray-500"><span>{fr ? 'Taxe' : 'Tax'} ({invoice.tax_rate}%)</span><span>{fmt(displayTax)}</span></div>
                       )}
                       <div className="flex justify-between font-bold text-gray-900 text-base pt-1 border-t border-gray-100">
                         <span>Total</span><span>{fmt(invoice.amount)}</span>
@@ -441,16 +441,16 @@ export default function InvoiceDetailPage() {
                   </div>
                 ) : (
                   <div className="flex justify-between items-center py-4 border-t border-gray-100">
-                    <span className="text-sm text-gray-500">Montant de la facture</span>
+                    <span className="text-sm text-gray-500">{fr ? 'Montant de la facture' : 'Invoice amount'}</span>
                     <span className="text-2xl font-bold text-gray-900">{fmt(invoice.amount)}</span>
                   </div>
                 )}
 
                 {editing && lineItems.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-gray-100 space-y-1 text-sm">
-                    <div className="flex justify-between text-gray-500"><span>Sous-total</span><span>{fmt(lineItemSubtotal)}</span></div>
+                    <div className="flex justify-between text-gray-500"><span>{fr ? 'Sous-total' : 'Subtotal'}</span><span>{fmt(lineItemSubtotal)}</span></div>
                     {parseFloat(editTaxRate) > 0 && (
-                      <div className="flex justify-between text-gray-500"><span>Tax ({editTaxRate}%)</span><span>{fmt(taxAmount)}</span></div>
+                      <div className="flex justify-between text-gray-500"><span>{fr ? 'Taxe' : 'Tax'} ({editTaxRate}%)</span><span>{fmt(taxAmount)}</span></div>
                     )}
                     <div className="flex justify-between font-bold text-gray-900 text-base pt-1 border-t border-gray-100">
                       <span>Total</span><span>{fmt(lineItemTotal)}</span>
@@ -466,7 +466,7 @@ export default function InvoiceDetailPage() {
 
             {/* Amount card */}
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Montant total</p>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{fr ? 'Montant total' : 'Total amount'}</p>
               <p className="text-4xl font-bold text-gray-900">{fmt(invoice.amount)}</p>
               {invoice.status === 'paid' && invoice.paid_at && (
                 <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> {fmtDate(invoice.paid_at, lang)}</p>
@@ -476,7 +476,7 @@ export default function InvoiceDetailPage() {
             {/* Customer card */}
             {invoice.customers && (
               <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Client</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{fr ? 'Client' : 'Customer'}</p>
                 <div className="flex items-start gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 font-bold text-sm">
                     {invoice.customers.name[0]?.toUpperCase()}
@@ -496,7 +496,7 @@ export default function InvoiceDetailPage() {
             {/* Job card */}
             {invoice.jobs && (
               <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Intervention liée</p>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{fr ? 'Intervention liée' : 'Linked job'}</p>
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-4 w-4 text-gray-400 shrink-0" />
                   <p className="text-sm font-medium text-gray-900 truncate">{invoice.jobs.title}</p>
