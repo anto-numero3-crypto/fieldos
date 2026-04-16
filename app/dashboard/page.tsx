@@ -1250,7 +1250,7 @@ function MapCard({
           <LegendDot color={JOB_COLORS.needs_completion.hex} label={fr ? JOB_COLORS.needs_completion.label.fr : JOB_COLORS.needs_completion.label.en} />
           <LegendDot color={JOB_COLORS.completed.hex}        label={fr ? JOB_COLORS.completed.label.fr        : JOB_COLORS.completed.label.en} />
           <span className="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
-            <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: '#4f46e5' }} />
+            <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: '#000000' }} />
             {fr ? 'Votre entreprise' : 'Your business'}
           </span>
         </div>

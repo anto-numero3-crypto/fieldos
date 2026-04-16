@@ -89,7 +89,7 @@ async function geocode(address: string): Promise<{ lat: number; lng: number } | 
 
 function makeBusinessIcon() {
   const html = `
-    <div style="width:24px;height:24px;border-radius:5px;background:#4f46e5;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;">
+    <div style="width:24px;height:24px;border-radius:5px;background:#000000;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
         <polyline points="9 22 9 12 15 12 15 22"/>
@@ -179,26 +179,49 @@ export default function JobsMap({ jobs }: Props) {
     ;(async () => {
       const { data: auth } = await supabase.auth.getUser()
       if (!auth.user) return
-      const { data: org } = await supabase
+      const { data: org, error } = await supabase
         .from('organizations')
         .select('name, address, city, state, zip')
         .eq('owner_user_id', auth.user.id)
         .maybeSingle()
       if (cancelled) return
-      if (!org || !org.address || !org.address.trim()) {
+      console.log('[business marker] org:', org, 'error:', error)
+
+      if (!org || (!org.address?.trim() && !org.city?.trim())) {
+        console.warn('[business marker] no address/city on organization — prompting user')
         setBusinessMissing(true)
         return
       }
-      const parts = [org.address, org.city, org.state, org.zip].filter(Boolean)
+
+      const parts = [org.address, org.city, org.state, org.zip].filter((p) => p && String(p).trim())
       const fullAddress = parts.join(', ')
+      console.log('[business marker] address:', fullAddress)
       loadCacheFromStorage()
-      const coords = await geocode(fullAddress)
-      if (cancelled) return
-      if (coords) {
-        setBusiness({ name: org.name || 'Gestivio', address: fullAddress, lat: coords.lat, lng: coords.lng })
-      } else {
-        setBusinessMissing(true)
+
+      // 1. Full address
+      let coords = fullAddress ? await geocode(fullAddress) : null
+      console.log('[business marker] full-address geocode:', coords)
+
+      // 2. Fallback: city + province
+      if (!coords && org.city) {
+        const cityQuery = `${org.city}, ${org.state || 'Quebec'}, Canada`
+        coords = await geocode(cityQuery)
+        console.log('[business marker] city-only fallback:', cityQuery, coords)
       }
+
+      // 3. Last resort: Montreal (so we still show a marker rather than vanishing silently)
+      if (!coords) {
+        console.warn('[business marker] geocoding failed — using Montreal fallback')
+        coords = { lat: 45.5017, lng: -73.5673 }
+      }
+
+      if (cancelled) return
+      setBusiness({
+        name: org.name || 'Gestivio',
+        address: fullAddress || [org.city, org.state].filter(Boolean).join(', '),
+        lat: coords.lat,
+        lng: coords.lng,
+      })
     })()
     return () => { cancelled = true }
   }, [])
