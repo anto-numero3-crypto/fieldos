@@ -408,6 +408,10 @@ export default function SettingsPage() {
       setLocationLat(newLat)
       setLocationLng(newLng)
       setOriginalCoords({ lat: newLat, lng: newLng })
+      // Notify the dashboard map to re-fetch the business row + re-geocode if coords were cleared.
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('gestivio:business-updated'))
+      }
       toast.success(t.success.saved)
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)

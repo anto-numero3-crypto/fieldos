@@ -197,7 +197,19 @@ export default function JobsMap({ jobs }: Props) {
   const [isDark, setIsDark] = useState(false)
   const [business, setBusiness] = useState<Business | null>(null)
   const [businessMissing, setBusinessMissing] = useState(false)
+  const [businessReloadKey, setBusinessReloadKey] = useState(0)
   const abortRef = useRef(false)
+
+  // Settings page dispatches this when address/coords change — force re-fetch.
+  useEffect(() => {
+    const onChange = () => {
+      setBusiness(null)
+      setBusinessMissing(false)
+      setBusinessReloadKey((k) => k + 1)
+    }
+    window.addEventListener('gestivio:business-updated', onChange)
+    return () => window.removeEventListener('gestivio:business-updated', onChange)
+  }, [])
 
   useEffect(() => {
     const read = () => setIsDark(document.documentElement.classList.contains('dark'))
@@ -223,8 +235,17 @@ export default function JobsMap({ jobs }: Props) {
 
       if (!org) { setBusinessMissing(true); return }
 
-      const addressLabel = [org.address, org.city, org.state, org.zip].filter((p) => p && String(p).trim()).join(', ')
-        || [org.city, org.state].filter(Boolean).join(', ')
+      // If org.address already contains the full line (e.g. street + city
+      // all in one field), show it as-is. Otherwise join the structured parts.
+      const addressHasCity =
+        !!org.address &&
+        org.address.includes(',') &&
+        !!org.city &&
+        org.address.toLowerCase().includes(String(org.city).toLowerCase())
+      const addressLabel = addressHasCity
+        ? String(org.address).trim()
+        : ([org.address, org.city, org.state, org.zip].filter((p) => p && String(p).trim()).join(', ')
+           || [org.city, org.state].filter(Boolean).join(', '))
 
       // 0. Saved coords in DB (either manual entry or previously persisted geocode result)
       //    Validate they're in Canada; if not, treat as stale and re-geocode.
@@ -299,7 +320,8 @@ export default function JobsMap({ jobs }: Props) {
       })
     })()
     return () => { cancelled = true }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessReloadKey])
 
   useEffect(() => {
     loadCacheFromStorage()

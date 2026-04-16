@@ -17,6 +17,7 @@ import { toast } from 'sonner'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtDate } from '@/lib/format'
 import { getEffectiveJobStatus } from '@/lib/job-status'
+import { JOB_COLORS } from '@/lib/status-colors'
 import {
   Briefcase, Plus, X, Calendar, User, CheckCircle,
   Search, ChevronRight, MoreHorizontal, Trash2, Clock, Zap, Flag,
@@ -31,11 +32,11 @@ interface Job {
 }
 interface Customer { id: string; name: string }
 
-const STATUS_CLS: Record<string, string> = {
-  scheduled:   'bg-blue-50 text-blue-700 ring-1 ring-blue-100',
-  in_progress: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100',
-  complete:    'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100',
-  cancelled:   'bg-gray-50 text-gray-500 ring-1 ring-gray-100',
+function jobBadgeCls(status: string): string {
+  const c = JOB_COLORS[status] || JOB_COLORS.scheduled
+  const pulse = status === 'in_progress' || status === 'needs_completion' ? ' animate-pulse' : ''
+  const opacity = status === 'cancelled' ? ' opacity-60' : ''
+  return `${c.bg} ${c.text} ${c.darkBg} ${c.darkText}${pulse}${opacity}`
 }
 function getPriorityCfg(fr: boolean): Record<string, { label: string; cls: string; icon: string }> {
   return {
@@ -209,11 +210,12 @@ export default function JobsPage() {
   )
 
   const statusFilters = [
-    { key: 'all',         label: fr ? 'Tous'      : 'All',         count: jobs.length },
-    { key: 'scheduled',   label: fr ? 'Planifié'  : 'Scheduled',   count: countByStatus('scheduled') },
-    { key: 'in_progress', label: fr ? 'En cours'  : 'In progress', count: countByStatus('in_progress') },
-    { key: 'complete',    label: fr ? 'Terminé'   : 'Complete',    count: countByStatus('complete') },
-    { key: 'cancelled',   label: fr ? 'Annulé'    : 'Cancelled',   count: countByStatus('cancelled') },
+    { key: 'all',              label: fr ? 'Toutes'        : 'All',                count: jobs.length,                          hex: null },
+    { key: 'scheduled',        label: fr ? 'Planifiées'    : 'Scheduled',          count: countByStatus('scheduled'),           hex: JOB_COLORS.scheduled.hex },
+    { key: 'in_progress',      label: fr ? 'En cours'       : 'In progress',       count: countByStatus('in_progress'),         hex: JOB_COLORS.in_progress.hex },
+    { key: 'needs_completion', label: fr ? 'À compléter'    : 'Needs completion',  count: countByStatus('needs_completion'),    hex: JOB_COLORS.needs_completion.hex },
+    { key: 'completed',        label: fr ? 'Complétées'     : 'Completed',         count: countByStatus('completed') + countByStatus('complete') + countByStatus('invoiced'), hex: JOB_COLORS.completed.hex },
+    { key: 'cancelled',        label: fr ? 'Annulées'       : 'Cancelled',         count: countByStatus('cancelled'),           hex: JOB_COLORS.cancelled.hex },
   ]
 
   return (
@@ -242,6 +244,7 @@ export default function JobsPage() {
             {statusFilters.map((f) => (
               <button key={f.key} onClick={() => setActiveFilter(f.key)}
                 className={['flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all', activeFilter === f.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'].join(' ')}>
+                {f.hex && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: f.hex }} />}
                 {f.label}
                 <span className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs ${activeFilter === f.key ? 'bg-gray-100 text-gray-600' : 'text-gray-400'}`}>{f.count}</span>
               </button>
@@ -281,7 +284,7 @@ export default function JobsPage() {
                 <tbody className="divide-y divide-gray-50">
                   {paged.map((job) => {
                     const effStatus = getEffectiveJobStatus(job)
-                    const scls = STATUS_CLS[effStatus]
+                    const scls = jobBadgeCls(effStatus)
                     const pcfg = PRIORITY_CFG[job.priority || 'normal']
                     return (
                       <tr key={job.id} className="hover:bg-gray-50 transition-colors group">
@@ -326,9 +329,9 @@ export default function JobsPage() {
                                   <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(null)} />
                                   <div className="absolute right-0 top-full mt-1 z-20 w-44 rounded-xl border border-gray-100 bg-white shadow-lg py-1 slide-up">
                                     <p className="px-3 py-1.5 text-xs font-semibold text-gray-400 uppercase">{fr ? 'Changer le statut' : 'Change status'}</p>
-                                    {Object.keys(STATUS_CLS).map((key) => (
+                                    {(['scheduled', 'in_progress', 'completed', 'cancelled'] as const).map((key) => (
                                       <button key={key} onClick={() => updateStatus(job.id, key)} className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${job.status === key ? 'font-semibold text-indigo-600' : 'text-gray-700'}`}>
-                                        <span className={`h-2 w-2 rounded-full ${key === 'scheduled' ? 'bg-blue-500' : key === 'in_progress' ? 'bg-amber-500' : key === 'complete' ? 'bg-emerald-500' : 'bg-gray-400'}`} />
+                                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: JOB_COLORS[key].hex }} />
                                         {tStatus(key)}
                                       </button>
                                     ))}
@@ -351,7 +354,7 @@ export default function JobsPage() {
             <div className="md:hidden divide-y divide-gray-100">
               {filtered.map((job) => {
                 const effStatus = getEffectiveJobStatus(job)
-                const scls = STATUS_CLS[effStatus]
+                const scls = jobBadgeCls(effStatus)
                 const pcfg = PRIORITY_CFG[job.priority || 'normal']
                 return (
                   <Link key={job.id} href={`/jobs/${job.id}`} className="block p-4 hover:bg-gray-50 transition-colors">
