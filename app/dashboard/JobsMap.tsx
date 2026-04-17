@@ -236,79 +236,35 @@ export default function JobsMap({ jobs }: Props) {
 
       if (!org) { setBusinessMissing(true); return }
 
-      // If org.address contains commas it's already a complete address string
-      // (e.g. "5920 Rue Desaulniers, Montréal, Québec, H1N 1V8, Canada").
-      // Use it as-is — do NOT append city/state/zip again.
-      const addressIsComplete = !!org.address && org.address.includes(',')
-      const addressLabel = addressIsComplete
-        ? String(org.address).trim()
-        : ([org.address, org.city, org.state, org.zip].filter((p) => p && String(p).trim()).join(', ')
-           || [org.city, org.state].filter(Boolean).join(', '))
+      // The address field in settings contains the FULL address as typed by the user.
+      // Use it directly for both display and geocoding. Never append city/state/zip.
+      const address = (org.address || '').trim()
+      if (!address) {
+        setBusinessMissing(true)
+        return
+      }
 
-      // 0. Saved coords in DB (either manual entry or previously persisted geocode result)
-      //    Validate they're in Canada; if not, treat as stale and re-geocode.
+      // If we already have valid saved coords, use them directly
       const savedLat = Number(org.location_lat)
       const savedLng = Number(org.location_lng)
       if (Number.isFinite(savedLat) && Number.isFinite(savedLng) && isCanadianCoord(savedLat, savedLng)) {
-        console.log('[business marker] using saved coords from DB:', savedLat, savedLng)
-        setBusiness({
-          name: org.name || 'Gestivio',
-          address: addressLabel,
-          lat: savedLat,
-          lng: savedLng,
-          matchedAddress: null,
-        })
-        return
-      }
-      if (Number.isFinite(savedLat) && Number.isFinite(savedLng)) {
-        console.warn('[business marker] saved coords outside Canada — will re-geocode:', savedLat, savedLng)
-      }
-
-      if (!org.address?.trim() && !org.city?.trim()) {
-        console.warn('[business marker] no address/city on organization — prompting user')
-        setBusinessMissing(true)
+        setBusiness({ name: org.name || 'Gestivio', address, lat: savedLat, lng: savedLng, matchedAddress: null })
         return
       }
 
-      // If the address field already contains a full address (e.g. was typed
-      // Same logic: if org.address has commas, use it directly for geocoding.
-      const fullAddress = addressIsComplete
-        ? String(org.address).trim()
-        : [org.address, org.city, org.state, org.zip]
-            .filter((p) => p && String(p).trim())
-            .join(', ')
-      console.log('[business geocode] addressIsComplete:', addressIsComplete)
-      console.log('[business geocode] fullAddress:', fullAddress)
-
-      // 1. Full address
-      let coords = fullAddress ? await geocodeBusiness(fullAddress) : null
-
-      // 2. Fallback: city + province only
-      if (!coords && org.city) {
-        const cityQuery = `${org.city}, ${org.state || 'Quebec'}`
-        console.log('[business geocode] trying city fallback:', cityQuery)
-        coords = await geocodeBusiness(cityQuery)
-      }
-
+      // Geocode the address field exactly as-is
+      console.log('[business geocode] query:', address)
+      const coords = await geocodeBusiness(address)
+      console.log('[business geocode] result:', coords)
       if (cancelled) return
 
       if (!coords) {
-        console.warn('[business marker] geocoding failed at every level — no marker rendered')
         setBusinessMissing(true)
         return
       }
 
-      // Persist to DB so we never geocode this business again
-      console.log('[business geocode] saving to DB:', coords.lat, coords.lng)
       persistLocation(coords.lat, coords.lng)
-
-      setBusiness({
-        name: org.name || 'Gestivio',
-        address: addressLabel,
-        lat: coords.lat,
-        lng: coords.lng,
-        matchedAddress: null,
-      })
+      setBusiness({ name: org.name || 'Gestivio', address, lat: coords.lat, lng: coords.lng, matchedAddress: null })
     })()
     return () => { cancelled = true }
   }, [])
