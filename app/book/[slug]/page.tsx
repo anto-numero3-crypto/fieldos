@@ -11,6 +11,7 @@ import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { useLanguage } from '@/lib/LanguageContext'
 import { LanguageToggle } from '@/components/LanguageToggle'
 import { getPlanLimits, normalizePlan } from '@/lib/plan-limits'
+import AIBookingChat from '@/components/AIBookingChat'
 
 interface Service {
   id: string
@@ -32,6 +33,8 @@ interface OrgData {
   email: string | null
   logo_url: string | null
   plan?: string | null
+  ai_agent_name?: string | null
+  ai_agent_greeting?: string | null
 }
 interface AvailSettings {
   booking_page_title: string
@@ -99,6 +102,9 @@ export default function PublicBookingPage() {
   const [customAddress, setCustomAddress] = useState('')
   const [customSubmitting, setCustomSubmitting] = useState(false)
   const [customSubmitted, setCustomSubmitted] = useState(false)
+
+  // AI chat vs form toggle
+  const [showForm, setShowForm] = useState(false)
 
   // Calendar state
   const today = new Date()
@@ -340,13 +346,46 @@ export default function PublicBookingPage() {
 
       <div className="max-w-lg mx-auto px-4 py-6 space-y-4">
 
+        {/* AI Booking Chat (default view) */}
+        {!showForm && step !== 'done' && (
+          <div className="space-y-3">
+            <AIBookingChat
+              orgSlug={slug}
+              orgName={org?.name || ''}
+              agentName={org?.ai_agent_name || 'Alex'}
+              agentGreeting={org?.ai_agent_greeting || undefined}
+              onSwitchToForm={() => setShowForm(true)}
+            />
+          </div>
+        )}
+
+        {/* Form toggle link (when AI chat is shown) */}
+        {!showForm && step !== 'done' && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="w-full text-center text-xs text-gray-400 hover:text-indigo-600 transition-colors py-1"
+          >
+            {fr ? 'Préférez-vous remplir un formulaire ?' : 'Prefer to fill a form?'}
+          </button>
+        )}
+
+        {/* Back to AI chat link (when form is shown) */}
+        {showForm && step !== 'done' && (
+          <button
+            onClick={() => { setShowForm(false); setStep('service') }}
+            className="w-full text-center text-xs text-gray-400 hover:text-indigo-600 transition-colors py-1"
+          >
+            {fr ? '← Revenir au chat IA' : '← Back to AI chat'}
+          </button>
+        )}
+
         {/* Welcome message */}
-        {step === 'service' && avSettings?.booking_page_description && (
+        {showForm && step === 'service' && avSettings?.booking_page_description && (
           <p className="text-sm text-gray-600 text-center">{avSettings.booking_page_description}</p>
         )}
 
         {/* ── Step 1: Service Selection ── */}
-        {step === 'service' && (
+        {showForm && step === 'service' && (
           <div className="space-y-3">
             <h2 className="text-lg font-bold text-gray-900">{fr ? 'Choisissez un service' : 'Choose a service'}</h2>
             {services.length === 0 ? (
@@ -520,7 +559,7 @@ export default function PublicBookingPage() {
         )}
 
         {/* ── Step 2: Date Selection ── */}
-        {step === 'date' && (
+        {showForm && step === 'date' && (
           <div>
             <div className="flex items-center gap-3 mb-4">
               {services.length > 1 && (
@@ -598,7 +637,7 @@ export default function PublicBookingPage() {
         )}
 
         {/* ── Step 3: Time Slot Selection ── */}
-        {step === 'time' && (
+        {showForm && step === 'time' && (
           <div>
             <div className="flex items-center gap-3 mb-4">
               <button onClick={() => { setStep('date'); setSelectedTime('') }} className="text-gray-400 hover:text-gray-700 transition-colors">
@@ -645,7 +684,7 @@ export default function PublicBookingPage() {
         )}
 
         {/* ── Step 4: Customer Info ── */}
-        {step === 'info' && (
+        {showForm && step === 'info' && (
           <div>
             <div className="flex items-center gap-3 mb-4">
               <button onClick={() => { setStep('time') }} className="text-gray-400 hover:text-gray-700 transition-colors">
@@ -712,7 +751,7 @@ export default function PublicBookingPage() {
         )}
 
         {/* ── Step 5: Confirm ── */}
-        {step === 'confirm' && (
+        {showForm && step === 'confirm' && (
           <div>
             <div className="flex items-center gap-3 mb-4">
               <button onClick={() => setStep('info')} className="text-gray-400 hover:text-gray-700 transition-colors">

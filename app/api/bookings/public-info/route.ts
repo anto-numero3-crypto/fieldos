@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   const isUUID = /^[0-9a-f-]{36}$/i.test(slug)
   const orgQuery = supabase
     .from('organizations')
-    .select('id, slug, name, phone, email, owner_user_id, ai_agent_name, plan')
+    .select('id, slug, name, phone, email, owner_user_id, ai_agent_name, ai_agent_greeting, plan')
   const { data: org } = isUUID
     ? await orgQuery.eq('id', slug).maybeSingle()
     : await orgQuery.eq('slug', slug).maybeSingle()
@@ -51,6 +51,7 @@ export async function GET(req: NextRequest) {
       email: org.email,
       owner_user_id: org.owner_user_id,
       ai_agent_name: org.ai_agent_name,
+      ai_agent_greeting: org.ai_agent_greeting,
       plan: org.plan,
     },
     services: services || [],
