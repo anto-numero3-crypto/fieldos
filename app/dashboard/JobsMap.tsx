@@ -236,14 +236,11 @@ export default function JobsMap({ jobs }: Props) {
 
       if (!org) { setBusinessMissing(true); return }
 
-      // If org.address already contains the full line (e.g. street + city
-      // all in one field), show it as-is. Otherwise join the structured parts.
-      const addressHasCity =
-        !!org.address &&
-        org.address.includes(',') &&
-        !!org.city &&
-        org.address.toLowerCase().includes(String(org.city).toLowerCase())
-      const addressLabel = addressHasCity
+      // If org.address contains commas it's already a complete address string
+      // (e.g. "5920 Rue Desaulniers, Montréal, Québec, H1N 1V8, Canada").
+      // Use it as-is — do NOT append city/state/zip again.
+      const addressIsComplete = !!org.address && org.address.includes(',')
+      const addressLabel = addressIsComplete
         ? String(org.address).trim()
         : ([org.address, org.city, org.state, org.zip].filter((p) => p && String(p).trim()).join(', ')
            || [org.city, org.state].filter(Boolean).join(', '))
@@ -274,20 +271,13 @@ export default function JobsMap({ jobs }: Props) {
       }
 
       // If the address field already contains a full address (e.g. was typed
-      // or pasted as "5920 Rue Desaulniers, Montréal, Québec, H1N 1V8, Canada"),
-      // use it as-is. Otherwise join the structured parts.
-      const addressAlreadyFull =
-        !!org.address &&
-        org.address.includes(',') &&
-        !!org.city &&
-        org.address.toLowerCase().includes(String(org.city).toLowerCase())
-
-      const fullAddress = addressAlreadyFull
+      // Same logic: if org.address has commas, use it directly for geocoding.
+      const fullAddress = addressIsComplete
         ? String(org.address).trim()
         : [org.address, org.city, org.state, org.zip]
             .filter((p) => p && String(p).trim())
             .join(', ')
-      console.log('[business geocode] addressAlreadyFull:', addressAlreadyFull)
+      console.log('[business geocode] addressIsComplete:', addressIsComplete)
       console.log('[business geocode] fullAddress:', fullAddress)
 
       // 1. Full address
