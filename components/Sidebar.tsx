@@ -10,6 +10,7 @@ import {
   Calendar, FileSignature, BarChart3, Settings, Users2,
   Bell, ChevronDown, Globe, Lightbulb, Megaphone, BookOpen, Clock,
 } from 'lucide-react'
+import { isModuleEnabled } from '@/lib/modules'
 
 interface SidebarProps { open: boolean; onClose: () => void }
 
@@ -17,6 +18,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname()
   const { lang } = useLanguage()
   const fr = lang === 'fr'
+
+  const [user, setUser]   = useState<{ email?: string; id?: string } | null>(null)
+  const [unread, setUnread] = useState(0)
+  const [orgPlan, setOrgPlan] = useState<string | null>(null)
+  const [orgModules, setOrgModules] = useState<Record<string, boolean> | null>(null)
 
   const navSections = [
     {
@@ -28,6 +34,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         { href: '/schedule/availability',  label: fr ? 'Disponibilités' : 'Availability',   icon: Clock },
         { href: '/jobs',                   label: fr ? 'Interventions' : 'Jobs',             icon: Briefcase },
         { href: '/quotes',                 label: fr ? 'Devis' : 'Quotes',                  icon: FileSignature },
+        ...(isModuleEnabled(orgModules, orgPlan, 'recurring_contracts') ? [{ href: '/contracts', label: fr ? 'Contrats' : 'Contracts', icon: FileText }] : []),
       ],
     },
     {
@@ -41,6 +48,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       label: fr ? 'Affaires' : 'Business',
       items: [
         { href: '/team',     label: fr ? 'Équipe' : 'Team',             icon: Users2 },
+        ...(isModuleEnabled(orgModules, orgPlan, 'time_tracking') ? [{ href: '/timesheets', label: fr ? 'Feuilles de temps' : 'Timesheets', icon: Clock }] : []),
         { href: '/reports',  label: fr ? 'Rapports' : 'Reports',        icon: BarChart3 },
         { href: '/insights', label: fr ? 'Analyses IA' : 'AI Insights', icon: Lightbulb },
       ],
@@ -53,8 +61,6 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     { href: '/schedule/availability', label: fr ? 'Portail réserv.' : 'Booking Portal', icon: Globe },
     { href: '/settings',              label: fr ? 'Paramètres' : 'Settings',            icon: Settings },
   ]
-  const [user, setUser]   = useState<{ email?: string; id?: string } | null>(null)
-  const [unread, setUnread] = useState(0)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -66,6 +72,18 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           .eq('user_id', data.user.id)
           .eq('read', false)
           .then(({ count }) => setUnread(count || 0))
+
+        supabase
+          .from('organizations')
+          .select('plan, enabled_modules')
+          .eq('owner_user_id', data.user.id)
+          .maybeSingle()
+          .then(({ data: orgData }) => {
+            if (orgData) {
+              setOrgPlan(orgData.plan)
+              setOrgModules((orgData.enabled_modules as Record<string, boolean>) || null)
+            }
+          })
       }
     })
   }, [])

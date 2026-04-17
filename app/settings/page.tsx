@@ -19,9 +19,11 @@ import {
   Building2, Bell, Shield, Globe, Save, CheckCircle, AlertCircle,
   CreditCard, Wrench, Sparkles, Link as LinkIcon, Copy, Check,
   ExternalLink, Loader2, DollarSign, Plus, Trash2, Clock, Upload, Lock, X,
+  Puzzle, FileText, Users, BookOpen, AlertTriangle,
 } from 'lucide-react'
+import { MODULES, canEnableModule, getDependents, isModuleEnabled, type ModuleKey } from '@/lib/modules'
 
-type Tab = 'business' | 'services' | 'booking' | 'notifications' | 'account' | 'integrations' | 'billing'
+type Tab = 'business' | 'services' | 'booking' | 'notifications' | 'account' | 'integrations' | 'billing' | 'modules'
 
 interface Service {
   id: string
@@ -282,6 +284,10 @@ export default function SettingsPage() {
   const [newSvcDesc, setNewSvcDesc]     = useState('')
   const [addingSvc, setAddingSvc]       = useState(false)
 
+  // Modules
+  const [enabledModules, setEnabledModules] = useState<Record<string, boolean>>({})
+  const [togglingModule, setTogglingModule] = useState<string | null>(null)
+
   // Google Calendar
   const [googleConnected, setGoogleConnected] = useState(false)
   const [googleEmail, setGoogleEmail] = useState<string | null>(null)
@@ -315,7 +321,7 @@ export default function SettingsPage() {
       // Handle Stripe Connect / tab return URL params
       const params = new URLSearchParams(window.location.search)
       const urlTab = params.get('tab')
-      if (urlTab === 'billing' || urlTab === 'services' || urlTab === 'booking' || urlTab === 'notifications' || urlTab === 'account' || urlTab === 'integrations') {
+      if (urlTab === 'billing' || urlTab === 'services' || urlTab === 'booking' || urlTab === 'notifications' || urlTab === 'account' || urlTab === 'integrations' || urlTab === 'modules') {
         setTab(urlTab as Tab)
       }
       if (params.get('connected') === 'true') {
@@ -361,6 +367,7 @@ export default function SettingsPage() {
         if (org.ai_agent_name)   setAgentName(org.ai_agent_name)
         if (org.ai_agent_greeting) setAgentGreeting(org.ai_agent_greeting)
         if (org.service_types)   setAgentServices(Array.isArray(org.service_types) ? org.service_types.join(', ') : '')
+        if (org.enabled_modules) setEnabledModules(org.enabled_modules as Record<string, boolean>)
       }
     }
     init()
@@ -610,6 +617,7 @@ export default function SettingsPage() {
     { key: 'billing',       label: fr ? 'Facturation' : 'Billing',                icon: DollarSign },
     { key: 'notifications', label: fr ? 'Notifications' : 'Notifications',        icon: Bell },
     { key: 'account',       label: fr ? 'Compte' : 'Account',                      icon: Shield },
+    { key: 'modules',       label: 'Modules',                                      icon: Puzzle },
     { key: 'integrations',  label: fr ? 'Intégrations' : 'Integrations',          icon: Globe },
   ]
 
@@ -1263,6 +1271,103 @@ export default function SettingsPage() {
         )}
 
         {/* Integrations */}
+        {tab === 'modules' && (
+          <div className="space-y-6">
+            {(['operations', 'integrations'] as const).map(category => {
+              const mods = MODULES.filter(m => m.category === category)
+              if (mods.length === 0) return null
+              const ICON_MAP: Record<string, typeof FileText> = { FileText, Users, Clock, BookOpen }
+              return (
+                <div key={category} className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
+                  <h2 className="text-base font-semibold text-gray-900 mb-1">
+                    {category === 'operations' ? (fr ? 'Opérations' : 'Operations') : (fr ? 'Intégrations' : 'Integrations')}
+                  </h2>
+                  <p className="text-sm text-gray-400 mb-5">
+                    {category === 'operations'
+                      ? (fr ? 'Activez les modules dont vous avez besoin.' : 'Enable the modules you need.')
+                      : (fr ? 'Connectez des outils tiers.' : 'Connect third-party tools.')}
+                  </p>
+                  <div className="space-y-3">
+                    {mods.map(mod => {
+                      const Icon = ICON_MAP[mod.icon] || FileText
+                      const enabled = isModuleEnabled(enabledModules, plan.plan, mod.key)
+                      const check = canEnableModule(enabledModules, plan.plan, mod.key)
+                      const planTooLow = !check.allowed && check.reason && !mod.requiresModule
+                      const depMissing = !check.allowed && check.reason && mod.requiresModule && enabledModules?.[mod.requiresModule] !== true
+
+                      return (
+                        <div
+                          key={mod.key}
+                          className={`rounded-xl border p-4 flex items-start justify-between transition-all ${enabled ? 'border-emerald-200 border-l-4 border-l-emerald-500' : 'border-gray-100'}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`flex h-10 w-10 items-center justify-center rounded-xl shrink-0 ${enabled ? 'bg-emerald-100' : 'bg-gray-100'}`}>
+                              <Icon className={`h-5 w-5 ${enabled ? 'text-emerald-600' : 'text-gray-500'}`} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">{fr ? mod.name.fr : mod.name.en}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">{fr ? mod.description.fr : mod.description.en}</p>
+                              {planTooLow && (
+                                <div className="flex items-center gap-1.5 mt-2">
+                                  <Lock className="h-3.5 w-3.5 text-amber-500" />
+                                  <span className="text-xs text-amber-600 font-medium">{fr ? check.reason!.fr : check.reason!.en}</span>
+                                  <Link href="/subscribe" className="text-xs text-indigo-600 font-semibold hover:underline ml-1">
+                                    {fr ? 'Voir les forfaits' : 'View plans'}
+                                  </Link>
+                                </div>
+                              )}
+                              {depMissing && (
+                                <div className="flex items-center gap-1.5 mt-2">
+                                  <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+                                  <span className="text-xs text-amber-600 font-medium">{fr ? check.reason!.fr : check.reason!.en}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="shrink-0 ml-4">
+                            <button
+                              type="button"
+                              disabled={!check.allowed && !enabled || togglingModule === mod.key}
+                              onClick={async () => {
+                                setTogglingModule(mod.key)
+                                try {
+                                  const res = await fetch('/api/modules/toggle', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ module: mod.key, enabled: !enabled }),
+                                  })
+                                  const data = await res.json()
+                                  if (!res.ok) {
+                                    toast.error(fr ? data.reason?.fr || data.error : data.reason?.en || data.error)
+                                    return
+                                  }
+                                  setEnabledModules(data.enabled_modules)
+                                  toast.success(
+                                    !enabled
+                                      ? (fr ? `${mod.name.fr} activé` : `${mod.name.en} enabled`)
+                                      : (fr ? `${mod.name.fr} désactivé` : `${mod.name.en} disabled`)
+                                  )
+                                } catch {
+                                  toast.error(fr ? 'Erreur inattendue' : 'Unexpected error')
+                                } finally {
+                                  setTogglingModule(null)
+                                }
+                              }}
+                              className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ${enabled ? 'bg-indigo-600' : 'bg-gray-200'} ${(!check.allowed && !enabled) ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+                            >
+                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${enabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
         {tab === 'integrations' && (
           <div className="space-y-4">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">

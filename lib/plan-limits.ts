@@ -25,6 +25,7 @@ export interface PlanLimits {
   fullReports: boolean
   completionNotifications: boolean
   showGestivioBranding: boolean
+  availableModules: string[]
 }
 
 // Canonical plan limits keyed by the new 2026 names.
@@ -51,6 +52,7 @@ export const PLAN_LIMITS: Record<PlanName, PlanLimits> = {
     fullReports: false,
     completionNotifications: false,
     showGestivioBranding: true,
+    availableModules: [],
   },
   pro: {
     maxUsers: 5,
@@ -73,6 +75,7 @@ export const PLAN_LIMITS: Record<PlanName, PlanLimits> = {
     fullReports: true,
     completionNotifications: true,
     showGestivioBranding: false,
+    availableModules: ['recurring_contracts', 'team_management', 'time_tracking', 'quickbooks'],
   },
   croissance: {
     maxUsers: 15,
@@ -95,6 +98,7 @@ export const PLAN_LIMITS: Record<PlanName, PlanLimits> = {
     fullReports: true,
     completionNotifications: true,
     showGestivioBranding: false,
+    availableModules: ['recurring_contracts', 'team_management', 'time_tracking', 'quickbooks'],
   },
 }
 
