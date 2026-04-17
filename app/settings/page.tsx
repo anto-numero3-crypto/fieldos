@@ -18,7 +18,7 @@ import { fmtDate } from '@/lib/format'
 import {
   Building2, Bell, Shield, Globe, Save, CheckCircle, AlertCircle,
   CreditCard, Wrench, Sparkles, Link as LinkIcon, Copy, Check,
-  ExternalLink, Loader2, DollarSign, Plus, Trash2, Clock,
+  ExternalLink, Loader2, DollarSign, Plus, Trash2, Clock, Upload, Lock, X,
 } from 'lucide-react'
 
 type Tab = 'business' | 'services' | 'booking' | 'notifications' | 'account' | 'integrations' | 'billing'
@@ -256,6 +256,9 @@ export default function SettingsPage() {
   const [bizTaxNum, setBizTaxNum]   = useState('')
   const [currency, setCurrency]     = useState('CAD')
   const [timezone, setTimezone]     = useState('America/Toronto')
+  // Logo
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [logoUploading, setLogoUploading] = useState(false)
   // Snapshot of address loaded from DB — used to detect if the user
   // actually changed an address field (so we know to null saved coords).
   const [originalAddress, setOriginalAddress] = useState({ address: '', city: '', state: '', zip: '' })
@@ -346,6 +349,7 @@ export default function SettingsPage() {
         if (org.zip)             setBizZip(org.zip)
         if (org.website)         setBizWebsite(org.website)
         if (org.tax_number)      setBizTaxNum(org.tax_number)
+        if (org.logo_url)        setLogoUrl(org.logo_url)
         if (org.currency)        setCurrency(org.currency)
         if (org.timezone)        setTimezone(org.timezone)
         setOriginalAddress({
@@ -701,6 +705,75 @@ export default function SettingsPage() {
                 </div>
               </div>
 
+            </div>
+
+            {/* Logo upload section */}
+            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? "Logo de l'entreprise" : 'Business logo'}</h2>
+              <p className="text-sm text-gray-400 mb-4">{fr ? 'Apparaît sur vos factures imprimées.' : 'Appears on your printed invoices.'}</p>
+
+              {normalizePlan(plan.plan) === 'demarrage' ? (
+                <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                  <Lock className="h-5 w-5 text-gray-400 shrink-0" />
+                  <p className="text-sm text-gray-500">{fr ? 'Disponible avec le plan Pro' : 'Available with Pro plan'}</p>
+                </div>
+              ) : (
+                <div>
+                  {logoUrl ? (
+                    <div className="flex items-start gap-4">
+                      <img src={logoUrl} alt="Logo" style={{ maxWidth: 180, maxHeight: 80, objectFit: 'contain' }} className="rounded border border-gray-200 bg-white p-1" />
+                      <button
+                        onClick={async () => {
+                          setLogoUploading(true)
+                          try {
+                            const res = await fetch('/api/org/delete-logo', { method: 'POST' })
+                            const data = await res.json()
+                            if (data.ok) { setLogoUrl(null); toast.success(fr ? 'Logo supprimé' : 'Logo removed') }
+                            else toast.error(data.error || (fr ? 'Erreur' : 'Error'))
+                          } catch { toast.error(fr ? 'Erreur réseau' : 'Network error') }
+                          setLogoUploading(false)
+                        }}
+                        disabled={logoUploading}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors disabled:opacity-60"
+                      >
+                        <X className="h-3.5 w-3.5" />{fr ? 'Supprimer' : 'Remove'}
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-8 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors">
+                      {logoUploading ? (
+                        <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+                      ) : (
+                        <>
+                          <Upload className="h-6 w-6 text-gray-400 mb-2" />
+                          <span className="text-sm text-gray-600 font-medium">{fr ? 'Cliquez pour téléverser ou glisser-déposez' : 'Click to upload or drag and drop'}</span>
+                          <span className="text-xs text-gray-400 mt-1">JPG, PNG, WebP — Max 2 MB</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+                          setLogoUploading(true)
+                          try {
+                            const fd = new FormData()
+                            fd.append('logo', file)
+                            const res = await fetch('/api/org/upload-logo', { method: 'POST', body: fd })
+                            const data = await res.json()
+                            if (data.ok && data.logo_url) { setLogoUrl(data.logo_url); toast.success(fr ? 'Logo téléversé' : 'Logo uploaded') }
+                            else toast.error(data.error || (fr ? 'Erreur' : 'Error'))
+                          } catch { toast.error(fr ? 'Erreur réseau' : 'Network error') }
+                          setLogoUploading(false)
+                          e.target.value = ''
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white shadow-sm p-5">

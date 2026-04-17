@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { CheckCircle, Clock, AlertCircle, CreditCard, Phone, Mail, Printer, Lock } from 'lucide-react'
+import { fmtMoney, fmtDate } from '@/lib/format'
 import { secureUrl } from '@/lib/secure-url'
 import { useLanguage } from '@/lib/LanguageContext'
 import { LanguageToggle } from '@/components/LanguageToggle'
@@ -62,6 +63,7 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
+// Legacy formatter kept for backward compat with any remaining usages
 const fmt = (n: number) =>
   `$${parseFloat(String(n || 0)).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
@@ -191,416 +193,425 @@ function PublicInvoiceContent() {
 
   const canPay = !isPaid && (org?.stripe_connect_charges_enabled || true) // allow Stripe checkout even without Connect
 
-  const printDate = (iso: string) =>
-    new Date(iso).toLocaleDateString('fr-CA', { year: 'numeric', month: 'long', day: 'numeric' })
   // Gestivio branding is only shown on the Démarrage plan (includes legacy "starter").
   const showBranding = getPlanLimits(normalizePlan(org?.plan)).showGestivioBranding
 
+  const fr = lang === 'fr'
+  const invoiceNumber = inv.invoice_number || inv.id.slice(0, 8).toUpperCase()
+  const hasLogo = !!org?.logo_url && !showBranding
+  const bizName = org?.name || ''
+
   return (
-    <div className="min-h-screen bg-slate-50 py-6 px-4">
-      {/* ═══════ PRINT-ONLY FORMAL INVOICE (QuickBooks-style) ═══════ */}
-      <div className="print-only" style={{ background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '10px' }}>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          @page { size: letter; margin: 0.6in; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          .screen-only { display: none !important; }
+          .print-only { display: flex !important; flex-direction: column !important; min-height: 100vh !important; }
+        }
+        @media screen { .print-only { display: none; } }
+      `}} />
+      <div className="min-h-screen bg-slate-50 py-6 px-4">
+        {/* ═══════ PRINT-ONLY PROFESSIONAL INVOICE ═══════ */}
+        <div className="print-only" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', fontFamily: "-apple-system, 'Segoe UI', sans-serif", color: '#111', padding: 0 }}>
 
-        {/* SECTION 1 — HEADER */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
-          <tbody>
-            <tr>
-              <td style={{ width: '55%', verticalAlign: 'top' }}>
-                {org?.logo_url && (
-                  <img
-                    src={secureUrl(org.logo_url)}
-                    alt={org.name || ''}
-                    style={{ maxWidth: '160px', maxHeight: '70px', objectFit: 'contain', marginBottom: '12px', display: 'block' }}
-                  />
-                )}
-                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#000', marginBottom: '4px' }}>{org?.name || ''}</div>
-                <div style={{ fontSize: '10px', color: '#333', lineHeight: 1.7 }}>
-                  {org?.address && <div>{org.address}</div>}
-                  {(org?.city || org?.state || org?.zip) && <div>{[org.city, org.state, org.zip].filter(Boolean).join(', ')}</div>}
-                  {org?.phone && <div>{org.phone}</div>}
-                  {org?.email && <div>{org.email}</div>}
-                </div>
-              </td>
-              <td style={{ width: '45%', verticalAlign: 'top', textAlign: 'right' }}>
-                <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#000', letterSpacing: '4px', textTransform: 'uppercase', marginBottom: '16px' }}>Facture</div>
-                <table style={{ marginLeft: 'auto', borderCollapse: 'collapse', fontSize: '10px' }}>
-                  <tbody>
-                    <tr>
-                      <td style={{ color: '#666', textAlign: 'right', padding: '2px 12px 2px 0' }}>Numéro&nbsp;:</td>
-                      <td style={{ color: '#000', fontWeight: 'bold', textAlign: 'right' }}>{inv.invoice_number || inv.id.slice(0, 8).toUpperCase()}</td>
-                    </tr>
-                    <tr>
-                      <td style={{ color: '#666', textAlign: 'right', padding: '2px 12px 2px 0' }}>Date&nbsp;:</td>
-                      <td style={{ color: '#000', fontWeight: 'bold', textAlign: 'right' }}>{printDate(inv.created_at)}</td>
-                    </tr>
-                    {inv.due_date && (
-                      <tr>
-                        <td style={{ color: '#666', textAlign: 'right', padding: '2px 12px 2px 0' }}>Échéance&nbsp;:</td>
-                        <td style={{ color: '#000', fontWeight: 'bold', textAlign: 'right' }}>{printDate(inv.due_date)}</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div style={{ borderTop: '1.5px solid #000', margin: '20px 0' }} />
-
-        {/* SECTION 2 — BILL TO */}
-        {inv.customers && (
-          <div>
-            <div style={{ fontSize: '8px', fontWeight: 'bold', letterSpacing: '2px', textTransform: 'uppercase', color: '#999', marginBottom: '6px' }}>Facturé à</div>
-            <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#000', marginBottom: '3px' }}>{inv.customers.name}</div>
-            <div style={{ fontSize: '10px', color: '#333', lineHeight: 1.7 }}>
-              {inv.customers.address && <div>{inv.customers.address}</div>}
-              {inv.customers.phone && <div>{inv.customers.phone}</div>}
-              {inv.customers.email && <div>{inv.customers.email}</div>}
-            </div>
-          </div>
-        )}
-
-        <div style={{ borderTop: '1px solid #ccc', margin: '16px 0' }} />
-
-        {/* SECTION 3 — ITEMS TABLE */}
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr className="print-table-header" style={{ background: '#f2f2f2', borderTop: '1px solid #ccc', borderBottom: '1px solid #ccc' }}>
-              <th style={{ padding: '8px 10px', textAlign: 'left',   fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', color: '#333', width: '58%' }}>Description</th>
-              <th style={{ padding: '8px 10px', textAlign: 'center', fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', color: '#333', width: '9%' }}>Qté</th>
-              <th style={{ padding: '8px 10px', textAlign: 'right',  fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', color: '#333', width: '16%' }}>Prix unit.</th>
-              <th style={{ padding: '8px 10px', textAlign: 'right',  fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px', color: '#333', width: '17%' }}>Montant</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(lineItems.length > 0 ? lineItems : [{ description: inv.invoice_number || 'Services', qty: 1, unit_price: subtotal } as LineItem]).map((item, i) => (
-              <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '9px 10px', textAlign: 'left',   fontSize: '10px', color: '#000' }}>{item.description}</td>
-                <td style={{ padding: '9px 10px', textAlign: 'center', fontSize: '10px', color: '#666' }}>{item.qty}</td>
-                <td style={{ padding: '9px 10px', textAlign: 'right',  fontSize: '10px', color: '#666' }}>{fmt(item.unit_price)}</td>
-                <td style={{ padding: '9px 10px', textAlign: 'right',  fontSize: '10px', color: '#000', fontWeight: 'bold' }}>{fmt((item.qty || 1) * (item.unit_price || 0))}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div style={{ borderTop: '1px solid #ccc' }} />
-
-        {/* SECTION 4 — TOTALS */}
-        <div style={{ width: '100%', overflow: 'hidden', marginTop: '12px' }}>
-          <div style={{ float: 'right', width: '38%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #eee', fontSize: '10px' }}>
-              <span style={{ color: '#666' }}>Sous-total</span>
-              <span style={{ color: '#000' }}>{fmt(subtotal)}</span>
-            </div>
-            {discount > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #eee', fontSize: '10px' }}>
-                <span style={{ color: '#666' }}>Escompte</span>
-                <span style={{ color: '#000' }}>-{fmt(discount)}</span>
-              </div>
-            )}
-            {taxAmt > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #eee', fontSize: '10px' }}>
-                <span style={{ color: '#666' }}>{inv.tax_name || 'TPS'}{inv.tax_rate ? ` (${inv.tax_rate}%)` : ''}</span>
-                <span style={{ color: '#000' }}>{fmt(taxAmt)}</span>
-              </div>
-            )}
-            {tax2Amt > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #eee', fontSize: '10px' }}>
-                <span style={{ color: '#666' }}>{inv.tax2_name || 'TVQ'}{inv.tax2_rate ? ` (${inv.tax2_rate}%)` : ''}</span>
-                <span style={{ color: '#000' }}>{fmt(tax2Amt)}</span>
-              </div>
-            )}
-            <div style={{ borderTop: '1.5px solid #000' }} />
-            {isPaid && (
-              <div style={{ padding: '6px 0 0 0', fontSize: '10px', color: '#333' }}>✓ Cette facture a été payée.</div>
-            )}
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', fontSize: '12px', fontWeight: 'bold', color: '#000' }}>
-              <span>{isPaid ? `Payée le ${inv.paid_at ? printDate(inv.paid_at) : '—'} :` : 'Solde dû :'}</span>
-              <span>{fmt(total)}</span>
-            </div>
-          </div>
-          <div style={{ clear: 'both' }} />
-        </div>
-
-        {/* SECTION 5 — TERMS + NOTES */}
-        {(inv.terms || inv.client_notes) && (
-          <div style={{ clear: 'both', marginTop: '32px', fontSize: '10px' }}>
-            {inv.terms && (
-              <div style={{ marginBottom: '12px' }}>
-                <span style={{ fontWeight: 'bold', color: '#333' }}>Modalités&nbsp;: </span>
-                <span style={{ color: '#666', whiteSpace: 'pre-line' }}>{inv.terms}</span>
-              </div>
-            )}
-            {inv.client_notes && (
-              <div>
-                <span style={{ fontWeight: 'bold', color: '#333' }}>Notes&nbsp;: </span>
-                <span style={{ color: '#666', whiteSpace: 'pre-line' }}>{inv.client_notes}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* SECTION 6 — FOOTER */}
-        <div style={{ marginTop: '40px', borderTop: '1px solid #ccc', paddingTop: '12px', textAlign: 'center', fontSize: '9px', color: '#999' }}>
-          <div style={{ marginBottom: '4px' }}>Merci pour votre confiance.</div>
-          {org?.name && (
+          {/* HEADER: two columns */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+            {/* LEFT: logo/name + address */}
             <div>
-              {org.name}
-              {org.phone && ` · ${org.phone}`}
-              {org.email && ` · ${org.email}`}
-            </div>
-          )}
-          {showBranding && (
-            <div style={{ marginTop: '6px', fontSize: '8px', color: '#cccccc', textAlign: 'center' }}>
-              Propulsé par Gestivio · gestivio.ca
-            </div>
-          )}
-        </div>
-      </div>
-
-
-      {/* ══════════ SCREEN-ONLY ONLINE PAYMENT VIEW ══════════ */}
-      <div className="screen-only max-w-2xl mx-auto space-y-4">
-        <div className="flex justify-end items-center gap-2">
-          <LanguageToggle />
-          <button
-            onClick={() => window.print()}
-            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 shadow-sm transition"
-          >
-            <Printer className="h-3.5 w-3.5" /> {ti.printPdf}
-          </button>
-        </div>
-        {lang === 'en' && (
-          <p className="text-xs text-center text-gray-400 italic">{ti.formalNote}</p>
-        )}
-
-        {/* Business header */}
-        {org?.name && (
-          <div className="text-center pt-2 pb-1">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white font-black text-xl mb-2">
-              {org.name.charAt(0).toUpperCase()}
-            </div>
-            <p className="font-bold text-gray-900">{org.name}</p>
-            {(org.city || org.state) && <p className="text-xs text-gray-400">{[org.city, org.state].filter(Boolean).join(', ')}</p>}
-          </div>
-        )}
-
-        {/* Payment success banner */}
-        {isPaid && (
-          <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-5 py-4 flex items-center gap-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100">
-              <CheckCircle className="h-6 w-6 text-emerald-600" />
-            </div>
-            <div>
-              <p className="font-bold text-emerald-900">{ti.paymentReceived}</p>
-              <p className="text-sm text-emerald-700 mt-0.5">
-                {ti.paymentReceivedSub}
-                {inv.customers?.email && ` Un reçu a été envoyé à ${inv.customers.email}.`}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Main invoice card */}
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-
-          {/* Invoice header */}
-          <div className="px-6 py-6 sm:px-8">
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">{ti.invoice}</p>
-                <h1 className="text-2xl font-black text-gray-900">{inv.invoice_number || `INV-${inv.id.slice(0, 8).toUpperCase()}`}</h1>
+              {hasLogo && (
+                <img src={secureUrl(org!.logo_url!)} alt={bizName} style={{ maxWidth: '180px', maxHeight: '80px', objectFit: 'contain', marginBottom: '8px', display: 'block' }} />
+              )}
+              {(!org?.logo_url || showBranding) && (
+                <div style={{ fontSize: '20px', fontWeight: 800, marginBottom: '4px' }}>{bizName}</div>
+              )}
+              {hasLogo && (
+                <div style={{ fontSize: '11px', color: '#666' }}>{bizName}</div>
+              )}
+              <div style={{ fontSize: '11px', color: '#555', lineHeight: 1.6 }}>
+                {org?.address && <>{org.address}<br /></>}
+                {(org?.city || org?.state || org?.zip) && <>{[org.city, org.state].filter(Boolean).join(', ')} {org?.zip}</>}
+                {org?.phone && <><br />{org.phone}</>}
+                {org?.email && <><br />{org.email}</>}
+                {org?.tax_number && <><br />TPS/TVQ: {org.tax_number}</>}
               </div>
-              <div className="text-right">
-                <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold mb-2 ${isPaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : isOverdue ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
-                  {isPaid ? <CheckCircle className="h-3.5 w-3.5" /> : isOverdue ? <AlertCircle className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
-                  {isPaid ? ti.paid : isOverdue ? ti.overdue : ti.outstanding}
-                </div>
-                <div className="text-sm text-gray-500 space-y-0.5">
-                  <p>{ti.issued} {new Date(inv.created_at).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                  {inv.due_date && (
-                    <p className={isOverdue && !isPaid ? 'text-red-600 font-semibold' : ''}>
-                      {ti.due}: {new Date(inv.due_date).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}
-                    </p>
-                  )}
-                </div>
+            </div>
+            {/* RIGHT: FACTURE box */}
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '2px', color: '#111', marginBottom: '12px' }}>
+                {fr ? 'FACTURE' : 'INVOICE'}
+              </div>
+              <div style={{ border: '1px solid #ddd', borderRadius: '6px', padding: '12px 16px', textAlign: 'left', fontSize: '12px', lineHeight: 1.8 }}>
+                <div><strong>{fr ? 'Numéro' : 'Number'}:</strong> {invoiceNumber}</div>
+                <div><strong>Date:</strong> {fmtDate(inv.created_at, lang)}</div>
+                {inv.due_date && <div><strong>{fr ? 'Échéance' : 'Due'}:</strong> {fmtDate(inv.due_date, lang)}</div>}
               </div>
             </div>
           </div>
 
-          {/* Amount due — prominent */}
-          {!isPaid && (
-            <div className="mx-6 sm:mx-8 mb-2 rounded-2xl bg-indigo-600 px-6 py-5 text-white text-center">
-              <p className="text-sm font-medium text-indigo-200 mb-1">{ti.amountDue}</p>
-              <p className="text-4xl font-black">{fmt(total)}</p>
-            </div>
-          )}
+          {/* DIVIDER */}
+          <div style={{ borderTop: '2px solid #000', marginBottom: '20px' }} />
 
-          {/* Bill from / to */}
-          <div className="px-6 sm:px-8 py-5 grid sm:grid-cols-2 gap-5 border-t border-gray-100">
-            {org && (
-              <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{ti.from}</p>
-                <p className="font-semibold text-gray-900 text-sm">{org.name}</p>
-                {org.address && <p className="text-xs text-gray-500 mt-0.5">{org.address}</p>}
-                {(org.city || org.state) && <p className="text-xs text-gray-500">{[org.city, org.state, org.zip].filter(Boolean).join(', ')}</p>}
-                {org.email && <p className="text-xs text-gray-500">{org.email}</p>}
-                {org.phone && <p className="text-xs text-gray-500">{org.phone}</p>}
-                {org.tax_number && <p className="text-xs text-gray-400 mt-1">TPS/TVQ: {org.tax_number}</p>}
-              </div>
-            )}
+          {/* BILL TO + JOB INFO */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
             {inv.customers && (
-              <div className={org ? '' : 'sm:col-start-2'}>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{ti.billedTo}</p>
-                <p className="font-semibold text-gray-900 text-sm">{inv.customers.name}</p>
-                {inv.customers.address && <p className="text-xs text-gray-500 mt-0.5">{inv.customers.address}</p>}
-                {inv.customers.email && <p className="text-xs text-gray-500">{inv.customers.email}</p>}
-                {inv.customers.phone && <p className="text-xs text-gray-500">{inv.customers.phone}</p>}
+              <div>
+                <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
+                  {fr ? 'FACTURÉ À' : 'BILLED TO'}
+                </div>
+                <div style={{ fontSize: '13px', fontWeight: 700 }}>{inv.customers.name}</div>
+                {inv.customers.address && <div style={{ fontSize: '11px', color: '#555' }}>{inv.customers.address}</div>}
+                {inv.customers.phone && <div style={{ fontSize: '11px', color: '#555' }}>{inv.customers.phone}</div>}
+                {inv.customers.email && <div style={{ fontSize: '11px', color: '#555' }}>{inv.customers.email}</div>}
               </div>
             )}
           </div>
 
-          {/* Line items */}
-          {lineItems.length > 0 && (
-            <div className="px-6 sm:px-8 py-4 border-t border-gray-100">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100">
-                    <th className="pb-2 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">{lang === 'fr' ? 'Description' : 'Description'}</th>
-                    <th className="pb-2 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider w-14">{lang === 'fr' ? 'Qté' : 'Qty'}</th>
-                    <th className="pb-2 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">{lang === 'fr' ? 'Prix unit.' : 'Unit price'}</th>
-                    <th className="pb-2 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">{lang === 'fr' ? 'Total' : 'Total'}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {lineItems.map((item, i) => (
-                    <tr key={i}>
-                      <td className="py-2.5 text-gray-900">
-                        {item.description}
-                        {item.unit && item.unit !== 'unité' && <span className="text-xs text-gray-400 ml-1">/ {item.unit}</span>}
-                      </td>
-                      <td className="py-2.5 text-right text-gray-500">{item.qty}</td>
-                      <td className="py-2.5 text-right text-gray-500">{fmt(item.unit_price)}</td>
-                      <td className="py-2.5 text-right font-semibold text-gray-900">{fmt((item.qty || 1) * (item.unit_price || 0))}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          {/* LINE ITEMS TABLE */}
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
+            <thead>
+              <tr style={{ background: '#1f2937', color: 'white' }}>
+                <th style={{ textAlign: 'left', padding: '10px 12px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</th>
+                <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '10px', textTransform: 'uppercase', width: '60px' }}>{fr ? 'Qté' : 'Qty'}</th>
+                <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '10px', textTransform: 'uppercase', width: '100px' }}>{fr ? 'Prix unit.' : 'Unit price'}</th>
+                <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '10px', textTransform: 'uppercase', width: '100px' }}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(lineItems.length > 0 ? lineItems : [{ description: inv.invoice_number || 'Services', qty: 1, unit_price: subtotal } as LineItem]).map((li, i) => (
+                <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 ? '#fafafa' : 'white' }}>
+                  <td style={{ padding: '10px 12px', fontSize: '12px' }}>{li.description}{li.unit ? ` (${li.unit})` : ''}</td>
+                  <td style={{ textAlign: 'center', padding: '10px 12px', fontSize: '12px' }}>{li.qty}</td>
+                  <td style={{ textAlign: 'right', padding: '10px 12px', fontSize: '12px' }}>{fmtMoney(li.unit_price, lang)}</td>
+                  <td style={{ textAlign: 'right', padding: '10px 12px', fontSize: '12px', fontWeight: 600 }}>{fmtMoney((li.qty || 1) * (li.unit_price || 0), lang)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-          {/* Totals */}
-          <div className="px-6 sm:px-8 py-4 border-t border-gray-100">
-            <div className="flex flex-col items-end gap-1.5 max-w-xs ml-auto">
-              {lineItems.length > 0 && (
-                <div className="flex justify-between w-full text-sm">
-                  <span className="text-gray-500">{lang === 'fr' ? 'Sous-total' : 'Subtotal'}</span>
-                  <span className="font-medium text-gray-900">{fmt(subtotal)}</span>
-                </div>
-              )}
-              {discount > 0 && (
-                <div className="flex justify-between w-full text-sm">
-                  <span className="text-gray-500">{lang === 'fr' ? 'Escompte' : 'Discount'}</span>
-                  <span className="font-medium text-emerald-600">-{fmt(discount)}</span>
-                </div>
-              )}
+          {/* TOTALS (right-aligned) */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+            <div style={{ width: '250px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: '12px', color: '#555' }}>
+                <span>{fr ? 'Sous-total' : 'Subtotal'}</span><span>{fmtMoney(subtotal, lang)}</span>
+              </div>
               {taxAmt > 0 && (
-                <div className="flex justify-between w-full text-sm">
-                  <span className="text-gray-500">{inv.tax_name || 'TPS'}{inv.tax_rate ? ` (${inv.tax_rate}%)` : ''}</span>
-                  <span className="font-medium text-gray-900">{fmt(taxAmt)}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: '12px', color: '#555' }}>
+                  <span>{inv.tax_name || 'TPS'}{inv.tax_rate ? ` (${inv.tax_rate}%)` : ''}</span><span>{fmtMoney(taxAmt, lang)}</span>
                 </div>
               )}
               {tax2Amt > 0 && (
-                <div className="flex justify-between w-full text-sm">
-                  <span className="text-gray-500">{inv.tax2_name || 'TVQ'}{inv.tax2_rate ? ` (${inv.tax2_rate}%)` : ''}</span>
-                  <span className="font-medium text-gray-900">{fmt(tax2Amt)}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: '12px', color: '#555' }}>
+                  <span>{inv.tax2_name || 'TVQ'}{inv.tax2_rate ? ` (${inv.tax2_rate}%)` : ''}</span><span>{fmtMoney(tax2Amt, lang)}</span>
                 </div>
               )}
-              <div className="flex justify-between w-full border-t border-gray-200 pt-2 mt-1">
-                <span className="font-bold text-gray-900">{lang === 'fr' ? 'Total' : 'Total'}</span>
-                <span className="text-2xl font-black text-gray-900">{fmt(total)}</span>
+              {discount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: '12px', color: '#16a34a' }}>
+                  <span>{fr ? 'Rabais' : 'Discount'}</span><span>-{fmtMoney(discount, lang)}</span>
+                </div>
+              )}
+              <div style={{ borderTop: '2px solid #000', marginTop: '8px', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 800 }}>
+                <span>{fr ? 'TOTAL DÛ' : 'TOTAL DUE'}</span><span>{fmtMoney(total, lang)}</span>
               </div>
             </div>
           </div>
 
-          {/* Notes */}
-          {inv.client_notes && (
-            <div className="px-6 sm:px-8 py-4 border-t border-gray-100 bg-gray-50">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Notes</p>
-              <p className="text-sm text-gray-600 whitespace-pre-line">{inv.client_notes}</p>
+          {/* PAYMENT STATUS */}
+          {isPaid ? (
+            <div style={{ border: '2px solid #16a34a', borderRadius: '8px', background: '#f0fdf4', padding: '12px 16px', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <span style={{ color: '#16a34a', fontWeight: 700, fontSize: '14px' }}>&#10003; {fr ? 'PAYÉE' : 'PAID'}</span>
+              {inv.paid_at && <span style={{ fontSize: '12px', color: '#555' }}>{fr ? 'Reçu le' : 'Received'} {fmtDate(inv.paid_at, lang)}</span>}
             </div>
-          )}
-          {inv.terms && (
-            <div className="px-6 sm:px-8 py-3 border-t border-gray-100">
-              <p className="text-xs text-gray-400">{inv.terms}</p>
+          ) : (
+            <div style={{ border: '2px solid #111', borderRadius: '8px', padding: '12px 16px', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <span style={{ fontWeight: 700, fontSize: '14px' }}>{fr ? 'SOLDE DÛ' : 'BALANCE DUE'}: {fmtMoney(total, lang)}</span>
             </div>
           )}
 
-          {/* Payment CTA */}
-          <div className="px-6 sm:px-8 py-6 border-t border-gray-100 no-print">
-            {isPaid ? (
-              <div className="flex items-center justify-center gap-3 py-4 rounded-2xl bg-emerald-50 border border-emerald-100">
-                <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0" />
-                <p className="font-semibold text-emerald-800">
-                  {ti.paidOn} {inv.paid_at ? new Date(inv.paid_at).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <button
-                  onClick={handlePay}
-                  disabled={paying}
-                  className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-indigo-600 py-4 text-base font-bold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all active:scale-[0.99] shadow-lg shadow-indigo-100"
-                >
-                  <CreditCard className="h-5 w-5" />
-                  {paying ? ti.redirecting : `${ti.payNow} ${fmt(total)}`}
-                </button>
-                {payError && (
-                  <p className="text-sm text-red-600 text-center">{payError}</p>
-                )}
-                <div className="flex flex-col items-center gap-3">
-                  <div className="flex items-center gap-2 flex-wrap justify-center">
-                    <span className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-bold text-gray-700 tracking-wider">VISA</span>
-                    <span className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-bold text-gray-700 tracking-wider">MASTERCARD</span>
-                    <span className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-bold text-gray-700 tracking-wider">AMEX</span>
-                    <span className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-bold text-gray-700 tracking-wider">INTERAC</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                    <Lock className="h-3.5 w-3.5" />
-                    <span>{ti.securedByStripe}</span>
-                  </div>
-                </div>
+          {/* SPACER */}
+          <div style={{ flex: 1 }} />
+
+          {/* NOTES */}
+          {inv.client_notes && (
+            <div style={{ borderLeft: '3px solid #ddd', padding: '8px 12px', marginBottom: '12px', background: '#fafafa' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#888', marginBottom: '4px' }}>Notes</div>
+              <div style={{ fontSize: '11px', color: '#555', whiteSpace: 'pre-wrap' }}>{inv.client_notes}</div>
+            </div>
+          )}
+
+          {/* TERMS */}
+          {inv.terms ? (
+            <div style={{ fontSize: '10px', color: '#999', marginBottom: '16px' }}>{inv.terms}</div>
+          ) : (
+            <div style={{ fontSize: '10px', color: '#999', marginBottom: '16px' }}>
+              {fr ? 'Modalités : Paiement dû dans 30 jours.' : 'Terms: Payment due within 30 days.'}
+            </div>
+          )}
+
+          {/* FOOTER */}
+          <div style={{ borderTop: '1px solid #ddd', paddingTop: '12px', textAlign: 'center' }}>
+            <div style={{ fontSize: '11px', color: '#888', fontStyle: 'italic', marginBottom: '4px' }}>
+              {fr ? 'Merci pour votre confiance.' : 'Thank you for your business.'}
+            </div>
+            <div style={{ fontSize: '10px', color: '#999' }}>
+              {bizName}{org?.phone ? ` \u00B7 ${org.phone}` : ''}{org?.email ? ` \u00B7 ${org.email}` : ''}
+            </div>
+            {showBranding && (
+              <div style={{ fontSize: '8px', color: '#ccc', marginTop: '8px' }}>
+                {fr ? 'Facture générée via Gestivio \u00B7 gestivio.ca' : 'Invoice generated via Gestivio \u00B7 gestivio.ca'}
               </div>
             )}
           </div>
         </div>
 
-        {/* Contact footer */}
-        {org && (
-          <div className="text-center py-2 space-y-1 no-print">
-            <p className="text-xs text-gray-400">{ti.questionsContact.replace('{name}', org.name || '')}</p>
-            <div className="flex items-center justify-center gap-5 text-xs text-gray-400">
-              {org.email && (
-                <a href={`mailto:${org.email}`} className="flex items-center gap-1 hover:text-gray-700 transition-colors">
-                  <Mail className="h-3.5 w-3.5" />{org.email}
-                </a>
+
+        {/* ══════════ SCREEN-ONLY ONLINE PAYMENT VIEW ══════════ */}
+        <div className="screen-only max-w-2xl mx-auto space-y-4">
+          <div className="flex justify-end items-center gap-2">
+            <LanguageToggle />
+            <button
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 shadow-sm transition"
+            >
+              <Printer className="h-3.5 w-3.5" /> {ti.printPdf}
+            </button>
+          </div>
+          {lang === 'en' && (
+            <p className="text-xs text-center text-gray-400 italic">{ti.formalNote}</p>
+          )}
+
+          {/* Business header with logo */}
+          {org && (
+            <div className="text-center pt-2 pb-1">
+              {hasLogo ? (
+                <img src={secureUrl(org.logo_url!)} alt={bizName} className="mx-auto mb-2" style={{ maxWidth: '150px', maxHeight: '70px', objectFit: 'contain' }} />
+              ) : (
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white font-black text-xl mb-2">
+                  {bizName.charAt(0).toUpperCase()}
+                </div>
               )}
-              {org.phone && (
-                <a href={`tel:${org.phone}`} className="flex items-center gap-1 hover:text-gray-700 transition-colors">
-                  <Phone className="h-3.5 w-3.5" />{org.phone}
-                </a>
+              <p className="font-bold text-gray-900">{bizName}</p>
+              {(org.city || org.state) && <p className="text-xs text-gray-400">{[org.city, org.state].filter(Boolean).join(', ')}</p>}
+            </div>
+          )}
+
+          {/* Payment success banner */}
+          {isPaid && (
+            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 px-5 py-4 flex items-center gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                <CheckCircle className="h-6 w-6 text-emerald-600" />
+              </div>
+              <div>
+                <p className="font-bold text-emerald-900">{ti.paymentReceived}</p>
+                <p className="text-sm text-emerald-700 mt-0.5">
+                  {ti.paymentReceivedSub}
+                  {inv.customers?.email && ` Un reçu a été envoyé à ${inv.customers.email}.`}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Main invoice card */}
+          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+
+            {/* Invoice header */}
+            <div className="px-6 py-6 sm:px-8">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">{ti.invoice}</p>
+                  <h1 className="text-2xl font-black text-gray-900">{inv.invoice_number || `INV-${inv.id.slice(0, 8).toUpperCase()}`}</h1>
+                </div>
+                <div className="text-right">
+                  <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold mb-2 ${isPaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : isOverdue ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                    {isPaid ? <CheckCircle className="h-3.5 w-3.5" /> : isOverdue ? <AlertCircle className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
+                    {isPaid ? ti.paid : isOverdue ? ti.overdue : ti.outstanding}
+                  </div>
+                  <div className="text-sm text-gray-500 space-y-0.5">
+                    <p>{ti.issued} {fmtDate(inv.created_at, lang)}</p>
+                    {inv.due_date && (
+                      <p className={isOverdue && !isPaid ? 'text-red-600 font-semibold' : ''}>
+                        {ti.due}: {fmtDate(inv.due_date, lang)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Amount due — prominent */}
+            {!isPaid && (
+              <div className="mx-6 sm:mx-8 mb-2 rounded-2xl bg-indigo-600 px-6 py-5 text-white text-center">
+                <p className="text-sm font-medium text-indigo-200 mb-1">{ti.amountDue}</p>
+                <p className="text-4xl font-black">{fmtMoney(total, lang)}</p>
+              </div>
+            )}
+
+            {/* Bill from / to */}
+            <div className="px-6 sm:px-8 py-5 grid sm:grid-cols-2 gap-5 border-t border-gray-100">
+              {org && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{ti.from}</p>
+                  <p className="font-semibold text-gray-900 text-sm">{org.name}</p>
+                  {org.address && <p className="text-xs text-gray-500 mt-0.5">{org.address}</p>}
+                  {(org.city || org.state) && <p className="text-xs text-gray-500">{[org.city, org.state, org.zip].filter(Boolean).join(', ')}</p>}
+                  {org.email && <p className="text-xs text-gray-500">{org.email}</p>}
+                  {org.phone && <p className="text-xs text-gray-500">{org.phone}</p>}
+                  {org.tax_number && <p className="text-xs text-gray-400 mt-1">TPS/TVQ: {org.tax_number}</p>}
+                </div>
+              )}
+              {inv.customers && (
+                <div className={org ? '' : 'sm:col-start-2'}>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{ti.billedTo}</p>
+                  <p className="font-semibold text-gray-900 text-sm">{inv.customers.name}</p>
+                  {inv.customers.address && <p className="text-xs text-gray-500 mt-0.5">{inv.customers.address}</p>}
+                  {inv.customers.email && <p className="text-xs text-gray-500">{inv.customers.email}</p>}
+                  {inv.customers.phone && <p className="text-xs text-gray-500">{inv.customers.phone}</p>}
+                </div>
               )}
             </div>
-            {showBranding && (
-              <p className="text-xs text-gray-300 pt-1">
-                Propulsé par <a href="https://gestivio.ca" target="_blank" rel="noopener noreferrer" className="hover:text-gray-500 transition-colors">Gestivio</a>
-              </p>
+
+            {/* Line items */}
+            {lineItems.length > 0 && (
+              <div className="px-6 sm:px-8 py-4 border-t border-gray-100">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="pb-2 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Description</th>
+                      <th className="pb-2 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider w-14">{fr ? 'Qté' : 'Qty'}</th>
+                      <th className="pb-2 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">{fr ? 'Prix unit.' : 'Unit price'}</th>
+                      <th className="pb-2 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {lineItems.map((item, i) => (
+                      <tr key={i}>
+                        <td className="py-2.5 text-gray-900">
+                          {item.description}
+                          {item.unit && item.unit !== 'unité' && <span className="text-xs text-gray-400 ml-1">/ {item.unit}</span>}
+                        </td>
+                        <td className="py-2.5 text-right text-gray-500">{item.qty}</td>
+                        <td className="py-2.5 text-right text-gray-500">{fmtMoney(item.unit_price, lang)}</td>
+                        <td className="py-2.5 text-right font-semibold text-gray-900">{fmtMoney((item.qty || 1) * (item.unit_price || 0), lang)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
+
+            {/* Totals */}
+            <div className="px-6 sm:px-8 py-4 border-t border-gray-100">
+              <div className="flex flex-col items-end gap-1.5 max-w-xs ml-auto">
+                {lineItems.length > 0 && (
+                  <div className="flex justify-between w-full text-sm">
+                    <span className="text-gray-500">{fr ? 'Sous-total' : 'Subtotal'}</span>
+                    <span className="font-medium text-gray-900">{fmtMoney(subtotal, lang)}</span>
+                  </div>
+                )}
+                {discount > 0 && (
+                  <div className="flex justify-between w-full text-sm">
+                    <span className="text-gray-500">{fr ? 'Escompte' : 'Discount'}</span>
+                    <span className="font-medium text-emerald-600">-{fmtMoney(discount, lang)}</span>
+                  </div>
+                )}
+                {taxAmt > 0 && (
+                  <div className="flex justify-between w-full text-sm">
+                    <span className="text-gray-500">{inv.tax_name || 'TPS'}{inv.tax_rate ? ` (${inv.tax_rate}%)` : ''}</span>
+                    <span className="font-medium text-gray-900">{fmtMoney(taxAmt, lang)}</span>
+                  </div>
+                )}
+                {tax2Amt > 0 && (
+                  <div className="flex justify-between w-full text-sm">
+                    <span className="text-gray-500">{inv.tax2_name || 'TVQ'}{inv.tax2_rate ? ` (${inv.tax2_rate}%)` : ''}</span>
+                    <span className="font-medium text-gray-900">{fmtMoney(tax2Amt, lang)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between w-full border-t border-gray-200 pt-2 mt-1">
+                  <span className="font-bold text-gray-900">Total</span>
+                  <span className="text-2xl font-black text-gray-900">{fmtMoney(total, lang)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes */}
+            {inv.client_notes && (
+              <div className="px-6 sm:px-8 py-4 border-t border-gray-100 bg-gray-50">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Notes</p>
+                <p className="text-sm text-gray-600 whitespace-pre-line">{inv.client_notes}</p>
+              </div>
+            )}
+            {inv.terms && (
+              <div className="px-6 sm:px-8 py-3 border-t border-gray-100">
+                <p className="text-xs text-gray-400">{inv.terms}</p>
+              </div>
+            )}
+
+            {/* Payment CTA */}
+            <div className="px-6 sm:px-8 py-6 border-t border-gray-100 no-print">
+              {isPaid ? (
+                <div className="flex items-center justify-center gap-3 py-4 rounded-2xl bg-emerald-50 border border-emerald-100">
+                  <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0" />
+                  <p className="font-semibold text-emerald-800">
+                    {ti.paidOn} {inv.paid_at ? fmtDate(inv.paid_at, lang) : '\u2014'}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <button
+                    onClick={handlePay}
+                    disabled={paying}
+                    className="w-full flex items-center justify-center gap-2.5 rounded-2xl bg-indigo-600 py-4 text-base font-bold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all active:scale-[0.99] shadow-lg shadow-indigo-100"
+                  >
+                    <CreditCard className="h-5 w-5" />
+                    {paying ? ti.redirecting : `${ti.payNow} ${fmtMoney(total, lang)}`}
+                  </button>
+                  {payError && (
+                    <p className="text-sm text-red-600 text-center">{payError}</p>
+                  )}
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="flex items-center gap-2 flex-wrap justify-center">
+                      <span className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-bold text-gray-700 tracking-wider">VISA</span>
+                      <span className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-bold text-gray-700 tracking-wider">MASTERCARD</span>
+                      <span className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-bold text-gray-700 tracking-wider">AMEX</span>
+                      <span className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-bold text-gray-700 tracking-wider">INTERAC</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                      <Lock className="h-3.5 w-3.5" />
+                      <span>{ti.securedByStripe}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        )}
+
+          {/* Contact footer */}
+          {org && (
+            <div className="text-center py-2 space-y-1 no-print">
+              <p className="text-xs text-gray-400">{ti.questionsContact.replace('{name}', org.name || '')}</p>
+              <div className="flex items-center justify-center gap-5 text-xs text-gray-400">
+                {org.email && (
+                  <a href={`mailto:${org.email}`} className="flex items-center gap-1 hover:text-gray-700 transition-colors">
+                    <Mail className="h-3.5 w-3.5" />{org.email}
+                  </a>
+                )}
+                {org.phone && (
+                  <a href={`tel:${org.phone}`} className="flex items-center gap-1 hover:text-gray-700 transition-colors">
+                    <Phone className="h-3.5 w-3.5" />{org.phone}
+                  </a>
+                )}
+              </div>
+              {showBranding && (
+                <p className="text-xs text-gray-300 pt-1">
+                  {fr ? 'Propulsé par' : 'Powered by'} <a href="https://gestivio.ca" target="_blank" rel="noopener noreferrer" className="hover:text-gray-500 transition-colors">Gestivio</a>
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
