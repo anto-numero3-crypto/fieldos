@@ -107,11 +107,11 @@ export default function ArticleGestionInterventions() {
           </div>
 
           <div className="mt-12 flex flex-wrap gap-4">
-            <Link href="/logiciel-plombier" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
-              Gestivio pour plombiers <ArrowRight className="h-4 w-4" />
+            <Link href="/pricing" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
+              Voir nos plans <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link href="/logiciel-cvc" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
-              Gestivio pour CVC <ArrowRight className="h-4 w-4" />
+            <Link href="/signup" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
+              Essayer Gestivio <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="/blogue/portail-reservation-entreprise-service" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
               Portail de réservation IA <ArrowRight className="h-4 w-4" />

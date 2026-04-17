@@ -73,21 +73,16 @@ export default function MontrealPage() {
         </section>
 
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Industries desservies à Montréal</h2>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {[
-              { label: 'Plombiers', href: '/logiciel-plombier' },
-              { label: 'Électriciens', href: '/logiciel-electricien' },
-              { label: 'CVC / HVAC', href: '/logiciel-cvc' },
-              { label: 'Nettoyage', href: '/logiciel-nettoyage' },
-              { label: 'Paysagistes', href: '/logiciel-paysagiste' },
-              { label: 'Rénovation', href: '/logiciel-renovateur' },
-            ].map((ind) => (
-              <Link key={ind.href} href={ind.href} className="flex items-center gap-2 rounded-xl border border-gray-100 bg-white p-4 hover:border-indigo-200 hover:bg-indigo-50/50 transition-colors">
-                <span className="text-sm font-semibold text-gray-900">{ind.label}</span>
-                <ArrowRight className="h-3.5 w-3.5 text-indigo-600 ml-auto" />
-              </Link>
-            ))}
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Commencez dès aujourd&apos;hui</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Link href="/pricing" className="flex items-center gap-2 rounded-xl border border-gray-100 bg-white p-4 hover:border-indigo-200 hover:bg-indigo-50/50 transition-colors">
+              <span className="text-sm font-semibold text-gray-900">Voir nos plans</span>
+              <ArrowRight className="h-3.5 w-3.5 text-indigo-600 ml-auto" />
+            </Link>
+            <Link href="/signup" className="flex items-center gap-2 rounded-xl border border-gray-100 bg-white p-4 hover:border-indigo-200 hover:bg-indigo-50/50 transition-colors">
+              <span className="text-sm font-semibold text-gray-900">Essai gratuit 14 jours</span>
+              <ArrowRight className="h-3.5 w-3.5 text-indigo-600 ml-auto" />
+            </Link>
           </div>
         </section>
 

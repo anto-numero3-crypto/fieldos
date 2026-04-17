@@ -36,17 +36,6 @@ export default function MarketingShell({ children }: { children: ReactNode }) {
             <p className="text-sm text-gray-500">La plateforme pour les entrepreneurs en services. Fait au Québec 🍁.</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Industries</p>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li><Link href="/logiciel-plombier" className="hover:text-gray-900">Plombiers</Link></li>
-              <li><Link href="/logiciel-electricien" className="hover:text-gray-900">Électriciens</Link></li>
-              <li><Link href="/logiciel-cvc" className="hover:text-gray-900">CVC / HVAC</Link></li>
-              <li><Link href="/logiciel-nettoyage" className="hover:text-gray-900">Nettoyage</Link></li>
-              <li><Link href="/logiciel-paysagiste" className="hover:text-gray-900">Paysagistes</Link></li>
-              <li><Link href="/logiciel-renovateur" className="hover:text-gray-900">Rénovation</Link></li>
-            </ul>
-          </div>
-          <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Ressources</p>
             <ul className="space-y-2 text-sm text-gray-600">
               <li><Link href="/pricing" className="hover:text-gray-900">Tarifs</Link></li>

@@ -116,8 +116,8 @@ export default function ArticlePlombier() {
           </div>
 
           <div className="mt-12 flex flex-wrap gap-4">
-            <Link href="/logiciel-plombier" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
-              Gestivio pour plombiers <ArrowRight className="h-4 w-4" />
+            <Link href="/pricing" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
+              Voir nos plans <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="/vs/jobber" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
               Gestivio vs Jobber <ArrowRight className="h-4 w-4" />

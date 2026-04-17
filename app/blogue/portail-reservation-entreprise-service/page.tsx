@@ -118,11 +118,11 @@ export default function ArticlePortalReservation() {
             <Link href="/blogue/gestion-interventions-terrain" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
               Guide gestion des interventions <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link href="/logiciel-nettoyage" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
-              Gestivio pour nettoyage <ArrowRight className="h-4 w-4" />
+            <Link href="/pricing" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
+              Voir nos plans <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link href="/logiciel-paysagiste" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
-              Gestivio pour paysagistes <ArrowRight className="h-4 w-4" />
+            <Link href="/signup" className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800">
+              Essayer Gestivio <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
 

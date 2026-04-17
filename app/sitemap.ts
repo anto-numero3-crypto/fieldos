@@ -14,14 +14,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/login`,                               lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${SITE_URL}/book`,                                lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
 
-    // Industry pages
-    { url: `${SITE_URL}/logiciel-plombier`,                   lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${SITE_URL}/logiciel-electricien`,                lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${SITE_URL}/logiciel-cvc`,                        lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${SITE_URL}/logiciel-nettoyage`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${SITE_URL}/logiciel-paysagiste`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
-    { url: `${SITE_URL}/logiciel-renovateur`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
-
     // City pages
     { url: `${SITE_URL}/montreal`,                            lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${SITE_URL}/quebec-city`,                         lastModified: now, changeFrequency: 'monthly', priority: 0.8 },

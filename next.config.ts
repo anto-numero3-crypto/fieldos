@@ -9,7 +9,6 @@ const nextConfig: NextConfig = {
     return [
       { source: '/blog', destination: '/blogue', permanent: true },
       { source: '/blog/:slug', destination: '/blogue/:slug', permanent: true },
-      { source: '/logiciel-hvac', destination: '/logiciel-cvc', permanent: true },
       { source: '/press', destination: '/contact', permanent: true },
       { source: '/careers', destination: '/contact', permanent: true },
       { source: '/billing', destination: '/settings?tab=billing', permanent: true },
