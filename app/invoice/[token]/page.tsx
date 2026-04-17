@@ -204,17 +204,33 @@ function PublicInvoiceContent() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
+        @media screen {
+          .print-only { display: none !important; }
+        }
         @media print {
           @page { size: letter; margin: 0.6in; }
+          html, body { background: white !important; margin: 0 !important; padding: 0 !important; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .screen-only { display: none !important; }
-          .print-only { display: flex !important; flex-direction: column !important; min-height: 100vh !important; }
+          .screen-only, nav, header, .no-print { display: none !important; }
+          .print-only {
+            display: flex !important;
+            flex-direction: column !important;
+            min-height: 100vh !important;
+            background: white !important;
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+          .print-invoice-footer { page-break-inside: avoid; margin-top: auto; }
         }
-        @media screen { .print-only { display: none; } }
       `}} />
-      <div className="min-h-screen bg-slate-50 py-6 px-4">
+      <div className="min-h-screen bg-slate-50 py-6 px-4 print:!bg-white print:!p-0 print:!m-0">
         {/* ═══════ PRINT-ONLY PROFESSIONAL INVOICE ═══════ */}
-        <div className="print-only" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', fontFamily: "-apple-system, 'Segoe UI', sans-serif", color: '#111', padding: 0 }}>
+        <div className="print-only" style={{ flexDirection: 'column', minHeight: '100vh', fontFamily: "-apple-system, 'Segoe UI', sans-serif", color: '#111', padding: 0 }}>
 
           {/* HEADER: two columns */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -281,7 +297,7 @@ function PublicInvoiceContent() {
             <tbody>
               {(lineItems.length > 0 ? lineItems : [{ description: inv.invoice_number || 'Services', qty: 1, unit_price: subtotal } as LineItem]).map((li, i) => (
                 <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 ? '#fafafa' : 'white' }}>
-                  <td style={{ padding: '10px 12px', fontSize: '12px' }}>{li.description}{li.unit ? ` (${li.unit})` : ''}</td>
+                  <td style={{ padding: '10px 12px', fontSize: '12px' }}>{li.description}{li.unit && li.unit !== 'unité' && li.unit !== 'unit' ? ` (${li.unit})` : ''}</td>
                   <td style={{ textAlign: 'center', padding: '10px 12px', fontSize: '12px' }}>{li.qty}</td>
                   <td style={{ textAlign: 'right', padding: '10px 12px', fontSize: '12px' }}>{fmtMoney(li.unit_price, lang)}</td>
                   <td style={{ textAlign: 'right', padding: '10px 12px', fontSize: '12px', fontWeight: 600 }}>{fmtMoney((li.qty || 1) * (li.unit_price || 0), lang)}</td>
@@ -350,7 +366,7 @@ function PublicInvoiceContent() {
           )}
 
           {/* FOOTER */}
-          <div style={{ borderTop: '1px solid #ddd', paddingTop: '12px', textAlign: 'center' }}>
+          <div className="print-invoice-footer" style={{ borderTop: '1px solid #ddd', paddingTop: '12px', textAlign: 'center' }}>
             <div style={{ fontSize: '11px', color: '#888', fontStyle: 'italic', marginBottom: '4px' }}>
               {fr ? 'Merci pour votre confiance.' : 'Thank you for your business.'}
             </div>
@@ -370,12 +386,19 @@ function PublicInvoiceContent() {
         <div className="screen-only max-w-2xl mx-auto space-y-4">
           <div className="flex justify-end items-center gap-2">
             <LanguageToggle />
-            <button
-              onClick={() => window.print()}
-              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 shadow-sm transition"
-            >
-              <Printer className="h-3.5 w-3.5" /> {ti.printPdf}
-            </button>
+            <div className="text-right">
+              <button
+                onClick={() => window.print()}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 shadow-sm transition"
+              >
+                <Printer className="h-3.5 w-3.5" /> {ti.printPdf}
+              </button>
+              <p className="text-[11px] text-gray-400 mt-1">
+                {fr
+                  ? "Dans la boîte de dialogue d'impression, sélectionnez « Enregistrer en PDF »"
+                  : 'In the print dialog, select "Save as PDF"'}
+              </p>
+            </div>
           </div>
           {lang === 'en' && (
             <p className="text-xs text-center text-gray-400 italic">{ti.formalNote}</p>
