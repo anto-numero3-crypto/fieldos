@@ -90,9 +90,9 @@ const translations = {
       pricingCtaBusiness: 'Start free trial',
       mostPopular: 'Most Popular',
       pricingFeatures: {
-        starter: ['1 user', 'Up to 50 customers', '25 jobs / month', '30 AI messages / month', 'Unlimited invoicing', 'Online payments via Stripe', '"Powered by Gestivio" on invoices', 'Email support (3 biz days)'],
-        pro: ['Everything unlimited + AI', 'Multi-day jobs', 'CSV export', 'Full reports', 'Completion notifications', 'No Gestivio branding', 'Priority support (2 biz days)'],
-        business: ['Everything in Pro', '1h video onboarding', 'Priority support (1 biz day)', 'Early access to new features'],
+        starter: ['1 user', 'Up to 50 customers', '25 jobs / month', '30 AI messages / month', 'Unlimited invoicing', 'Online payments via Stripe', '"Powered by Gestivio" on invoices', 'Email support (3 business days)'],
+        pro: ['Everything unlimited + AI', 'Multi-day jobs', 'CSV export', 'Full reports', 'Completion notifications', 'No Gestivio branding', 'Priority support (2 business days)'],
+        business: ['Everything in Pro', '1h video onboarding', 'Priority support (1 business day)', 'Early access to new features'],
       },
     },
     login: {

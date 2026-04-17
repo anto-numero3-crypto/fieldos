@@ -25,7 +25,7 @@ export default function TrialBanner() {
           <p className="flex-1 font-medium">
             {fr
               ? 'Votre essai Pro est terminé. Vous êtes maintenant sur le forfait Démarrage — certaines fonctionnalités sont restreintes.'
-              : 'Your Pro trial has ended. You are now on the Démarrage plan — some features are restricted.'}
+              : 'Your Pro trial has ended. You are now on the Starter plan — some features are restricted.'}
           </p>
           <Link href="/subscribe" className="rounded-lg bg-white text-red-700 px-3 py-1.5 text-xs font-bold hover:bg-red-50 shrink-0">
             {fr ? 'Restaurer Pro' : 'Restore Pro'}

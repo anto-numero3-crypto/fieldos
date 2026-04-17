@@ -108,13 +108,13 @@ export default function SubscribePage() {
   const features: Record<'demarrage' | 'pro' | 'croissance', string[]> = {
     demarrage: fr
       ? ['1 utilisateur', "Jusqu'à 50 clients", '25 interventions par mois', '30 messages IA par mois', 'Facturation illimitée', 'Portail de réservation', 'Google Calendar + Stripe', 'Support courriel (3 j ouvrables)']
-      : ['1 user', 'Up to 50 customers', '25 jobs per month', '30 AI messages per month', 'Unlimited invoicing', 'Booking portal', 'Google Calendar + Stripe', 'Email support (3 biz days)'],
+      : ['1 user', 'Up to 50 customers', '25 jobs per month', '30 AI messages per month', 'Unlimited invoicing', 'Booking portal', 'Google Calendar + Stripe', 'Email support (3 business days)'],
     pro: fr
       ? ['Tout illimité + IA', 'Interventions sur plusieurs jours', 'Export CSV', 'Rapports complets', 'Notifications de complétion', 'Aucune marque Gestivio', 'Support prioritaire (2 j ouvrables)']
-      : ['Everything unlimited + AI', 'Multi-day jobs', 'CSV export', 'Full reports', 'Completion notifications', 'No Gestivio branding', 'Priority support (2 biz days)'],
+      : ['Everything unlimited + AI', 'Multi-day jobs', 'CSV export', 'Full reports', 'Completion notifications', 'No Gestivio branding', 'Priority support (2 business days)'],
     croissance: fr
       ? ['Tout ce qui est dans Pro', 'Onboarding vidéo 1 h', 'Support prioritaire (1 j ouvrable)', 'Accès anticipé aux nouveautés']
-      : ['Everything in Pro', '1h video onboarding', 'Priority support (1 biz day)', 'Early access to new features'],
+      : ['Everything in Pro', '1h video onboarding', 'Priority support (1 business day)', 'Early access to new features'],
   }
 
   return (

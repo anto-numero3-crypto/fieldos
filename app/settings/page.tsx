@@ -7,7 +7,7 @@ import { supabase } from '../supabase'
 import { formatPrice } from '@/lib/pricing'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { usePlan } from '@/lib/hooks/usePlan'
-import { PLAN_PRICING, normalizePlan } from '@/lib/plan-limits'
+import { PLAN_PRICING, normalizePlan, getPlanDisplayName } from '@/lib/plan-limits'
 import PromoCodeInput from '@/components/PromoCodeInput'
 import { validateEmail, validatePhone } from '@/lib/validators'
 import { useConfirm } from '@/components/ui/confirm-dialog'
@@ -169,22 +169,74 @@ export default function SettingsPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
 
+  const PLAN_TIER: Record<string, number> = { demarrage: 0, pro: 1, croissance: 2 }
+
   const handlePlanChange = async (planId: 'demarrage' | 'pro' | 'croissance') => {
     if (!user) return
+
+    // On trial (no subscription yet) — redirect to subscribe page
+    if (plan.status === 'trial' || plan.status === 'expired') {
+      setCheckoutLoading(planId)
+      try {
+        const res = await fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ planId, userId: user.id, billingCycle }),
+        })
+        const data = await res.json()
+        if (!res.ok || !data.url) {
+          toast.error(data.error || t.errors.unknown)
+          setCheckoutLoading(null)
+          return
+        }
+        window.location.href = data.url
+      } catch (err) {
+        console.error('Plan change error:', err)
+        toast.error(t.errors.unknown)
+        setCheckoutLoading(null)
+      }
+      return
+    }
+
+    // Active subscription — upgrade/downgrade via plan change API
+    const currentTier = PLAN_TIER[normalizePlan(plan.plan)] ?? 0
+    const newTier = PLAN_TIER[planId] ?? 0
+    const isUpgrade = newTier > currentTier
+    const targetLabel = getPlanDisplayName(planId, lang)
+
+    const { confirmed } = await confirm({
+      title: isUpgrade
+        ? (fr ? `Passer au forfait ${targetLabel} ?` : `Upgrade to ${targetLabel}?`)
+        : (fr ? `Rétrograder vers ${targetLabel} ?` : `Downgrade to ${targetLabel}?`),
+      description: isUpgrade
+        ? (fr ? 'La différence sera calculée au prorata et appliquée immédiatement.' : 'The difference will be prorated and applied immediately.')
+        : (fr ? 'Le changement prendra effet à la fin de votre période de facturation actuelle.' : 'The change will take effect at the end of your current billing period.'),
+      confirmLabel: isUpgrade
+        ? (fr ? 'Confirmer la mise à niveau' : 'Confirm upgrade')
+        : (fr ? 'Confirmer la rétrogradation' : 'Confirm downgrade'),
+    })
+    if (!confirmed) return
+
     setCheckoutLoading(planId)
     try {
-      const res = await fetch('/api/stripe/checkout', {
+      const res = await fetch('/api/stripe/change-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId, userId: user.id, billingCycle }),
+        body: JSON.stringify({ newPlanId: planId, cycle: billingCycle }),
       })
       const data = await res.json()
-      if (!res.ok || !data.url) {
+      if (!res.ok || !data.ok) {
         toast.error(data.error || t.errors.unknown)
         setCheckoutLoading(null)
         return
       }
-      window.location.href = data.url
+      if (data.effective === 'immediate') {
+        toast.success(fr ? `Vous êtes maintenant sur le forfait ${targetLabel} !` : `You are now on the ${targetLabel} plan!`)
+      } else {
+        toast.success(fr ? `Votre forfait passera à ${targetLabel} à la fin de la période.` : `Your plan will switch to ${targetLabel} at the end of the period.`)
+      }
+      plan.refresh()
+      setCheckoutLoading(null)
     } catch (err) {
       console.error('Plan change error:', err)
       toast.error(t.errors.unknown)
@@ -1017,13 +1069,15 @@ export default function SettingsPage() {
                        plan.status === 'cancelled' ? (fr ? 'Annulé' : 'Cancelled') : (fr ? 'Expiré' : 'Expired')}
                     </span>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{PLAN_PRICING[normalizePlan(plan.plan)].label} — ${PLAN_PRICING[normalizePlan(plan.plan)].monthly}/{fr ? 'mois' : 'mo'}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">{getPlanDisplayName(plan.plan, lang)} — ${PLAN_PRICING[normalizePlan(plan.plan)].monthly}/{fr ? 'mois' : 'mo'}</p>
                   {plan.nextBillingAt && plan.status === 'active' && !plan.promoCodeId && (
                     <p className="text-xs text-gray-400 mt-1">{fmtDate(plan.nextBillingAt, lang)}</p>
                   )}
                   {plan.promoCodeId && plan.promoExpiresAt && (
                     <p className="text-xs font-medium text-emerald-700 mt-1">
-                      {fr ? `🎁 Code promo actif · ${plan.promoDaysLeft} jour${plan.promoDaysLeft > 1 ? 's' : ''} restant${plan.promoDaysLeft > 1 ? 's' : ''}` : `🎁 Active promo code · ${plan.promoDaysLeft} day${plan.promoDaysLeft > 1 ? 's' : ''} remaining`} — {fmtDate(plan.promoExpiresAt, lang)}
+                      {new Date(plan.promoExpiresAt).getFullYear() > 2090
+                        ? (fr ? '🎁 Accès gratuit à vie' : '🎁 Lifetime free access')
+                        : (fr ? `🎁 Code promo actif jusqu'au ${fmtDate(plan.promoExpiresAt, lang)}` : `🎁 Promo code active until ${fmtDate(plan.promoExpiresAt, lang)}`)}
                     </p>
                   )}
                 </div>
@@ -1091,15 +1145,36 @@ export default function SettingsPage() {
                       <p className="text-xs text-gray-500 mt-1 mb-3">{tagline}</p>
                       {isCurrent ? (
                         <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white">{fr ? 'Forfait actuel' : 'Current plan'}</span>
-                      ) : (
-                        <button
-                          onClick={() => handlePlanChange(p)}
-                          disabled={checkoutLoading === p}
-                          className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
-                        >
-                          {checkoutLoading === p ? (fr ? 'Chargement…' : 'Loading…') : p === 'demarrage' ? (fr ? 'Rétrograder' : 'Downgrade') : (fr ? `Passer à ${label}` : `Upgrade to ${label}`)}
-                        </button>
-                      )}
+                      ) : (() => {
+                        const currentTier = PLAN_TIER[normalizePlan(plan.plan)] ?? 0
+                        const targetTier = PLAN_TIER[p] ?? 0
+                        const isUpgrade = targetTier > currentTier
+                        const isTrial = plan.status === 'trial' || plan.status === 'expired'
+                        return isTrial ? (
+                          <Link
+                            href={`/subscribe`}
+                            className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                          >
+                            {fr ? `Choisir ${label}` : `Choose ${label}`}
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={() => handlePlanChange(p)}
+                            disabled={checkoutLoading === p}
+                            className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-60 ${
+                              isUpgrade
+                                ? 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                          >
+                            {checkoutLoading === p
+                              ? (fr ? 'Chargement…' : 'Loading…')
+                              : isUpgrade
+                                ? (fr ? `Passer au ${label}` : `Switch to ${label}`)
+                                : (fr ? `Passer au ${label}` : `Switch to ${label}`)}
+                          </button>
+                        )
+                      })()}
                     </div>
                   )
                 })}
@@ -1111,131 +1186,6 @@ export default function SettingsPage() {
               <PromoCodeInput userId={user.id} onApplied={() => plan.refresh()} />
             )}
 
-            {/* Stripe Connect section */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-100">
-                <h2 className="text-base font-semibold text-gray-900">{fr ? 'Accepter les paiements en ligne' : 'Accept online payments'}</h2>
-                <p className="text-sm text-gray-400 mt-0.5">{fr ? 'Connectez votre compte Stripe pour que vos clients puissent payer vos factures en ligne.' : 'Connect your Stripe account so customers can pay invoices online.'}</p>
-              </div>
-
-              <div className="p-6">
-                {connectStatus === null ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
-                  </div>
-                ) : connectStatus.onboardingComplete ? (
-                  // ── State C: Fully active ──────────────────────────────────
-                  <div className="space-y-5">
-                    <div className="flex items-start gap-4 rounded-2xl bg-emerald-50 border border-emerald-100 p-5">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100">
-                        <CheckCircle className="h-6 w-6 text-emerald-600" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-bold text-emerald-900">{fr ? 'Paiements actifs' : 'Payments active'}</p>
-                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">{fr ? '✓ Actif' : '✓ Active'}</span>
-                        </div>
-                        <p className="text-sm text-emerald-700">
-                          {fr
-                            ? `${connectStatus.displayName || connectStatus.email || 'Votre compte Stripe'} est connecté. Vos clients peuvent maintenant payer vos factures en ligne.`
-                            : `${connectStatus.displayName || connectStatus.email || 'Your Stripe account'} is connected. Your customers can now pay invoices online.`}
-                        </p>
-                        <div className="flex items-center gap-4 mt-3 text-xs">
-                          <span className={`flex items-center gap-1 ${connectStatus.chargesEnabled ? 'text-emerald-600' : 'text-amber-600'}`}>
-                            {connectStatus.chargesEnabled ? <CheckCircle className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5" />}
-                            {fr ? `Paiements ${connectStatus.chargesEnabled ? 'activés' : 'en attente'}` : `Payments ${connectStatus.chargesEnabled ? 'enabled' : 'pending'}`}
-                          </span>
-                          <span className={`flex items-center gap-1 ${connectStatus.payoutsEnabled ? 'text-emerald-600' : 'text-amber-600'}`}>
-                            {connectStatus.payoutsEnabled ? <CheckCircle className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5" />}
-                            {fr ? `Virements ${connectStatus.payoutsEnabled ? 'activés' : 'en attente'}` : `Payouts ${connectStatus.payoutsEnabled ? 'enabled' : 'pending'}`}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={handleStripeDashboard}
-                        disabled={connectLoading}
-                        className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all shadow-sm disabled:opacity-60"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        {fr ? 'Ouvrir le tableau de bord Stripe' : 'Open Stripe dashboard'}
-                      </button>
-                    </div>
-                  </div>
-                ) : connectStatus.connected ? (
-                  // ── State B: Connected but onboarding incomplete ───────────
-                  <div className="rounded-2xl bg-amber-50 border border-amber-100 p-5 space-y-4">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-semibold text-amber-900">{fr ? 'Configuration incomplète' : 'Incomplete setup'}</p>
-                        <p className="text-sm text-amber-700 mt-0.5">
-                          {fr ? 'Votre compte Stripe est créé mais vous devez compléter la configuration pour commencer à accepter des paiements.' : 'Your Stripe account is created but you need to complete setup to start accepting payments.'}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleConnectStripe}
-                      disabled={connectLoading}
-                      className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-60 transition-all shadow-sm"
-                    >
-                      {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
-                      {fr ? 'Compléter la configuration' : 'Complete setup'}
-                    </button>
-                  </div>
-                ) : (
-                  // ── State A: Not connected ─────────────────────────────────
-                  <div className="space-y-6">
-                    <div className="grid sm:grid-cols-2 gap-6">
-                      <div>
-                        <h3 className="text-base font-bold text-gray-900 mb-2">{fr ? 'Payez-vous plus vite' : 'Get paid faster'}</h3>
-                        <p className="text-sm text-gray-500 mb-4">
-                          {fr ? 'Connectez Stripe pour que vos clients paient directement depuis leurs factures — par carte ou virement.' : 'Connect Stripe so customers can pay directly from their invoices — by card or bank transfer.'}
-                        </p>
-                        <ul className="space-y-2 text-sm text-gray-600">
-                          {(fr ? [
-                            'Les clients paient en ligne — fini les relances',
-                            'Les fonds sont déposés directement dans votre compte',
-                            'Visa, Mastercard, Amex, Interac acceptés',
-                            'Reçus automatiques envoyés aux clients',
-                            'Notifications de paiement en temps réel',
-                          ] : [
-                            'Customers pay online — no more follow-ups',
-                            'Funds deposited directly into your account',
-                            'Visa, Mastercard, Amex, Interac accepted',
-                            'Automatic receipts sent to customers',
-                            'Real-time payment notifications',
-                          ]).map((b) => (
-                            <li key={b} className="flex items-start gap-2">
-                              <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                              {b}
-                            </li>
-                          ))}
-                        </ul>
-                        <p className="mt-4 text-xs text-gray-400">{fr ? 'Frais de traitement : 2,9 % + 30 ¢ par transaction (tarifs Stripe standard)' : 'Processing fees: 2.9% + 30¢ per transaction (standard Stripe rates)'}</p>
-                      </div>
-                      <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 p-8 text-center">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 mb-4 shadow-lg shadow-indigo-200">
-                          <CreditCard className="h-8 w-8 text-white" />
-                        </div>
-                        <p className="text-sm font-medium text-gray-600 mb-1">{fr ? 'Prend moins de 5 minutes' : 'Takes less than 5 minutes'}</p>
-                        <button
-                          onClick={handleConnectStripe}
-                          disabled={connectLoading}
-                          className="mt-3 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all shadow-md shadow-indigo-200"
-                        >
-                          {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
-                          {fr ? 'Connecter Stripe' : 'Connect Stripe'}
-                        </button>
-                        <p className="mt-3 text-xs text-gray-400">{fr ? 'Propulsé par Stripe · Paiements sécurisés' : 'Powered by Stripe · Secure payments'}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
         )}
 
@@ -1268,12 +1218,47 @@ export default function SettingsPage() {
                       </p>
                     </div>
                   </div>
-                  {!connectStatus?.connected && (
+                  {connectStatus?.connected ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleStripeDashboard}
+                        disabled={connectLoading}
+                        className="shrink-0 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5 inline mr-1" />
+                        {fr ? 'Tableau de bord' : 'Dashboard'}
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const { confirmed: ok } = await confirm({
+                            title: fr ? 'Déconnecter Stripe ?' : 'Disconnect Stripe?',
+                            description: fr
+                              ? 'Vos clients ne pourront plus payer en ligne.'
+                              : 'Your clients will no longer be able to pay online.',
+                            confirmLabel: fr ? 'Déconnecter' : 'Disconnect',
+                          })
+                          if (!ok) return
+                          try {
+                            const res = await fetch('/api/stripe/disconnect-connect', { method: 'POST' })
+                            if (!res.ok) throw new Error()
+                            setConnectStatus({ connected: false })
+                            toast.success(fr ? 'Stripe déconnecté' : 'Stripe disconnected')
+                          } catch {
+                            toast.error(fr ? 'Échec de la déconnexion' : 'Disconnect failed')
+                          }
+                        }}
+                        className="shrink-0 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition-colors"
+                      >
+                        {fr ? 'Déconnecter' : 'Disconnect'}
+                      </button>
+                    </div>
+                  ) : (
                     <button
-                      onClick={() => setTab('billing')}
-                      className="shrink-0 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                      onClick={handleConnectStripe}
+                      disabled={connectLoading}
+                      className="shrink-0 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors disabled:opacity-60"
                     >
-                      {fr ? 'Configurer' : 'Set up'}
+                      {connectLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (fr ? 'Configurer' : 'Set up')}
                     </button>
                   )}
                 </div>

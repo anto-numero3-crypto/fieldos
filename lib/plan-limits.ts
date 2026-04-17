@@ -148,6 +148,12 @@ export function requiredPlanFor(feature: FeatureFlag): PlanName {
   return 'croissance'
 }
 
+export function getPlanDisplayName(plan: string | null | undefined, lang: string): string {
+  const n = normalizePlan(plan)
+  const p = PLAN_PRICING[n]
+  return lang === 'fr' ? p.label : p.labelEn
+}
+
 export function daysUntil(date: string | Date | null | undefined): number {
   if (!date) return 0
   const ms = new Date(date).getTime() - Date.now()
