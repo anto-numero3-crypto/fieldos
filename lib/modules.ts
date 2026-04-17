@@ -1,4 +1,4 @@
-export type ModuleKey = 'recurring_contracts' | 'team_management' | 'time_tracking' | 'quickbooks'
+export type ModuleKey = 'recurring_contracts' | 'team_management' | 'time_tracking'
 
 export interface Module {
   key: ModuleKey
@@ -35,14 +35,6 @@ export const MODULES: Module[] = [
     requiredPlan: 'pro',
     requiresModule: 'team_management',
     category: 'operations',
-  },
-  {
-    key: 'quickbooks',
-    name: { fr: 'QuickBooks Online', en: 'QuickBooks Online' },
-    description: { fr: 'Synchronisez vos factures et paiements avec QuickBooks Online automatiquement.', en: 'Automatically sync your invoices and payments with QuickBooks Online.' },
-    icon: 'BookOpen',
-    requiredPlan: 'pro',
-    category: 'integrations',
   },
 ]
 
