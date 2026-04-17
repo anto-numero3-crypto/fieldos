@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Menu, Bell, X, CheckCircle, AlertCircle, Info, AlertTriangle, Sun, Moon, Search, Calendar, DollarSign, UserPlus, Briefcase, XCircle, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import Sidebar from './Sidebar'
@@ -61,11 +62,19 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
   const { theme, toggleTheme }          = useTheme()
   const { lang, setLang }               = useLanguage()
   const fr = lang === 'fr'
+  const appRouter = useRouter()
 
   // Keep browser tab title in sync
   useEffect(() => {
     if (title) document.title = `${title} — Gestivio`
   }, [title])
+
+  // Redirect employee users to employee dashboard
+  useEffect(() => {
+    fetch('/api/employees/me').then(r => {
+      if (r.ok) appRouter.replace('/employee')
+    }).catch(() => {})
+  }, [appRouter])
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {

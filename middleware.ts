@@ -4,7 +4,7 @@ import { createServerClient } from '@supabase/ssr'
 const PROTECTED_PREFIXES = [
   '/dashboard', '/customers', '/jobs', '/invoices', '/quotes',
   '/schedule', '/team', '/reports', '/settings', '/assistant',
-  '/notifications', '/insights',
+  '/notifications', '/insights', '/equipe', '/employee',
 ]
 
 function isProtected(pathname: string): boolean {
@@ -49,6 +49,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(login)
   }
 
+  // Employee pages skip the org/plan ownership check — employees don't own orgs.
+  if (url.pathname.startsWith('/employee')) return response
+
   // Check plan status. Allow access on query failure so we don't lock users out.
   const { data: org, error } = await supabase
     .from('organizations')
@@ -79,6 +82,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|login|signup|subscribe|book|invoice|quote|legal|privacy|terms|about|contact|pricing|security|accessibility|cookies|support|changelog|onboarding).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|login|signup|subscribe|book|invoice|quote|legal|privacy|terms|about|contact|pricing|security|accessibility|cookies|support|changelog|onboarding|invite).*)',
   ],
 }
