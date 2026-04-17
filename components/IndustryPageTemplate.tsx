@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { CheckCircle, ArrowRight, Sparkles } from 'lucide-react'
-import { IndustryPage } from '@/content/industries'
+import { IndustryPage, INDUSTRIES } from '@/content/industries'
 import MarketingShell from './MarketingShell'
 import NewsletterSignup from './NewsletterSignup'
 
@@ -80,6 +80,24 @@ export default function IndustryPageTemplate({ page }: { page: IndustryPage }) {
           </div>
         </div>
       </section>
+
+      {/* Related industries */}
+      {page.relatedSlugs && page.relatedSlugs.length > 0 && (
+        <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Voir aussi</h2>
+          <div className="flex flex-wrap gap-3">
+            {page.relatedSlugs.map((slug) => {
+              const related = INDUSTRIES.find((i) => i.slug === slug)
+              if (!related) return null
+              return (
+                <Link key={slug} href={`/${slug}`} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:border-indigo-200 hover:bg-indigo-50/50 transition-colors">
+                  Gestivio pour {related.industry.toLowerCase()} <ArrowRight className="h-3.5 w-3.5 text-indigo-600" />
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {/* CTA */}
       <section className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-20">

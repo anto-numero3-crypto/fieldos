@@ -221,6 +221,27 @@ export default function PricingPage() {
         </div>
       </section>
 
+      {/* Industry links */}
+      <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pb-12">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+          {fr ? 'Gestivio pour votre industrie' : 'Gestivio for your industry'}
+        </h2>
+        <div className="flex flex-wrap justify-center gap-3">
+          {[
+            { label: fr ? 'Plombiers' : 'Plumbers', href: '/logiciel-plombier' },
+            { label: fr ? 'Électriciens' : 'Electricians', href: '/logiciel-electricien' },
+            { label: 'CVC / HVAC', href: '/logiciel-cvc' },
+            { label: fr ? 'Nettoyage' : 'Cleaning', href: '/logiciel-nettoyage' },
+            { label: fr ? 'Paysagistes' : 'Landscapers', href: '/logiciel-paysagiste' },
+            { label: fr ? 'Rénovation' : 'Renovation', href: '/logiciel-renovateur' },
+          ].map((ind) => (
+            <Link key={ind.href} href={ind.href} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:border-indigo-200 hover:bg-indigo-50/50 transition-colors">
+              {ind.label} <ArrowRight className="h-3.5 w-3.5 text-indigo-600" />
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* FAQ */}
       <section className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 pb-20">
         <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">

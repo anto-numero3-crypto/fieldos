@@ -20,6 +20,73 @@ export function organizationSchema() {
       email: 'support@gestivio.ca',
       availableLanguage: ['French', 'English'],
     },
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Montréal',
+      addressRegion: 'QC',
+      addressCountry: 'CA',
+    },
+  }
+}
+
+export function globalSoftwareApplicationSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Gestivio',
+    operatingSystem: 'Web',
+    applicationCategory: 'BusinessApplication',
+    description: "Logiciel de gestion d'interventions pour entrepreneurs en services au Québec. Facturation TPS/TVQ, planification, portail client IA.",
+    inLanguage: ['fr-CA', 'en-CA'],
+    offers: [
+      { '@type': 'Offer', name: 'Démarrage', price: '39', priceCurrency: 'CAD', url: `${SITE_URL}/pricing` },
+      { '@type': 'Offer', name: 'Pro', price: '79', priceCurrency: 'CAD', url: `${SITE_URL}/pricing` },
+      { '@type': 'Offer', name: 'Croissance', price: '149', priceCurrency: 'CAD', url: `${SITE_URL}/pricing` },
+    ],
+    featureList: [
+      'Facturation TPS/TVQ automatique',
+      'Planification et calendrier',
+      'Portail de réservation IA',
+      'Gestion clientèle',
+      'Rapports et analytiques',
+      'Paiements en ligne Stripe',
+      'Interface bilingue FR/EN',
+      'Application mobile responsive',
+    ],
+  }
+}
+
+export function globalFaqSchema() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Gestivio est-il conçu pour les entrepreneurs du Québec ?',
+        acceptedAnswer: { '@type': 'Answer', text: "Oui. Gestivio est développé au Québec et gère automatiquement la TPS/TVQ, l'interface bilingue FR/EN, et l'hébergement des données au Canada conformément à la Loi 25." },
+      },
+      {
+        '@type': 'Question',
+        name: 'Quels types d\'entrepreneurs peuvent utiliser Gestivio ?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Gestivio est conçu pour les plombiers, électriciens, techniciens CVC/HVAC, entreprises de nettoyage, paysagistes, rénovateurs et tout entrepreneur qui se déplace chez ses clients.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'Y a-t-il un essai gratuit ?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Oui, Gestivio offre un essai gratuit de 14 jours sans carte de crédit requise. Vous avez accès à toutes les fonctionnalités pendant la période d\'essai.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'Gestivio est-il une alternative à Jobber au Québec ?',
+        acceptedAnswer: { '@type': 'Answer', text: "Oui. Contrairement à Jobber, Gestivio est bilingue, gère nativement la TPS/TVQ du Québec, héberge les données au Canada, et offre un portail de réservation propulsé par l'IA — le tout à un prix compétitif en dollars canadiens." },
+      },
+      {
+        '@type': 'Question',
+        name: 'Comment Gestivio gère-t-il la TPS et la TVQ ?',
+        acceptedAnswer: { '@type': 'Answer', text: "Vous entrez vos numéros de TPS et de TVQ une seule fois dans les paramètres. Gestivio applique ensuite automatiquement les taxes québécoises sur chaque facture et soumission, conformément aux règles de Revenu Québec." },
+      },
+    ],
   }
 }
 

@@ -6,7 +6,7 @@ import JsonLd from '@/components/JsonLd'
 import { softwareApplicationSchema, breadcrumbSchema, faqSchema } from '@/lib/schema'
 import { notFound } from 'next/navigation'
 
-const SLUG = 'logiciel-hvac'
+const SLUG = 'logiciel-nettoyage'
 
 export const metadata: Metadata = (() => {
   const page = getIndustry(SLUG)

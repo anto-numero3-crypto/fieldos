@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import JsonLd from "@/components/JsonLd";
-import { organizationSchema } from "@/lib/schema";
+import { organizationSchema, globalSoftwareApplicationSchema, globalFaqSchema } from "@/lib/schema";
 import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
@@ -22,28 +22,28 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Gestivio — Field Service Management Platform",
+    default: "Gestivio — Logiciel de gestion d'interventions pour entrepreneurs au Québec",
     template: "%s | Gestivio",
   },
-  description: "Manage customers, jobs, and invoices for your field service business. AI-powered scheduling, invoicing, and analytics. Made in Québec, Canada.",
-  keywords: ["field service management", "FSM software", "job management", "invoice software", "HVAC software", "plumbing software", "trade business software", "Canada", "Quebec"],
+  description: "Gérez vos clients, interventions et factures en un seul endroit. Logiciel bilingue fait au Québec pour plombiers, électriciens, CVC et entrepreneurs de service. Essai gratuit 14 jours.",
+  keywords: ["logiciel gestion intervention Québec", "logiciel plombier Québec", "logiciel électricien Québec", "logiciel entrepreneur service", "facturation entrepreneur Québec", "field service management Quebec", "contractor software Canada", "logiciel CVC Québec"],
   authors: [{ name: "Gestivio Inc." }],
   creator: "Gestivio Inc.",
   publisher: "Gestivio Inc.",
   metadataBase: new URL("https://gestivio.ca"),
   openGraph: {
     type: "website",
-    locale: "en_CA",
-    alternateLocale: "fr_CA",
+    locale: "fr_CA",
+    alternateLocale: "en_CA",
     url: "https://gestivio.ca",
     siteName: "Gestivio",
-    title: "Gestivio — Field Service Management Platform",
-    description: "Manage customers, jobs, and invoices for your field service business. AI-powered. Made in Québec, Canada.",
+    title: "Gestivio — Logiciel de gestion d'interventions pour entrepreneurs au Québec",
+    description: "Gérez vos clients, interventions et factures en un seul endroit. Logiciel bilingue fait au Québec pour plombiers, électriciens, CVC et entrepreneurs de service.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Gestivio — Field Service Management Platform",
-    description: "Manage customers, jobs, and invoices for your field service business. AI-powered.",
+    title: "Gestivio — Logiciel de gestion pour entrepreneurs au Québec",
+    description: "Gérez vos clients, interventions et factures en un seul endroit. Fait au Québec. Essai gratuit 14 jours.",
   },
   robots: {
     index: true,
@@ -65,7 +65,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <JsonLd data={organizationSchema()} />
+        <JsonLd data={[organizationSchema(), globalSoftwareApplicationSchema(), globalFaqSchema()]} />
         <GoogleAnalytics />
         <ThemeProvider>
           <LanguageProvider>
