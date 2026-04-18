@@ -53,6 +53,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     'title', 'description', 'customer_id', 'start_date', 'end_date',
     'recurrence_type', 'recurrence_days', 'service_name', 'service_description',
     'price_per_visit', 'total_price', 'billing_type', 'billing_frequency',
+    'include_tps', 'include_tvq',
     'notes', 'internal_notes', 'status',
   ]
 

@@ -7,12 +7,13 @@ import AppLayout from '@/components/AppLayout'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import { fmtMoney, fmtDate } from '@/lib/format'
+import { getBillingTypeLabel, getBillingFrequencyLabel, getRecurrenceLabel, getDayLabels } from '@/lib/contract-labels'
 import { supabase } from '../../supabase'
 import { toast } from 'sonner'
 import {
   Loader2, FileText, Calendar, DollarSign, Briefcase, Send,
   Zap, ChevronRight, CheckCircle, Clock, XCircle, Edit,
-  Trash2, ArrowLeft, Receipt,
+  Trash2, ArrowLeft, Receipt, Printer, Eye,
 } from 'lucide-react'
 
 interface Contract {
@@ -38,6 +39,8 @@ interface Contract {
   jobs_generated_count: number
   last_job_generated_at: string | null
   next_job_date: string | null
+  include_tps: boolean
+  include_tvq: boolean
   created_at: string
   customers: { id: string; name: string; email: string | null; phone: string | null; address: string | null } | null
 }
@@ -48,6 +51,16 @@ interface Job {
   status: string
   scheduled_date: string
   contract_id: string
+  invoice_id: string | null
+}
+
+interface ContractInvoice {
+  id: string
+  invoice_number: string | null
+  amount: number
+  status: string
+  created_at: string
+  token: string
 }
 
 type Tab = 'details' | 'jobs' | 'billing'
@@ -83,16 +96,11 @@ const JOB_STATUS_CLS: Record<string, string> = {
   cancelled: 'bg-red-50 text-red-700',
 }
 
-function recurrenceLabel(type: string, fr: boolean): string {
-  const map: Record<string, [string, string]> = {
-    none: ['Ponctuel', 'One-time'],
-    daily: ['Quotidien', 'Daily'],
-    weekly: ['Hebdomadaire', 'Weekly'],
-    biweekly: ['Aux 2 semaines', 'Biweekly'],
-    monthly: ['Mensuel', 'Monthly'],
-    custom: ['Personnalis\u00e9', 'Custom'],
-  }
-  return (map[type] || map.none)![fr ? 0 : 1]
+const INV_STATUS_BADGE: Record<string, string> = {
+  draft: 'bg-gray-100 text-gray-700',
+  sent: 'bg-blue-50 text-blue-700',
+  paid: 'bg-emerald-50 text-emerald-700',
+  overdue: 'bg-red-50 text-red-700',
 }
 
 export default function ContractDetailPage() {
@@ -104,10 +112,15 @@ export default function ContractDetailPage() {
 
   const [contract, setContract] = useState<Contract | null>(null)
   const [jobs, setJobs] = useState<Job[]>([])
+  const [invoices, setInvoices] = useState<ContractInvoice[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('details')
   const [generating, setGenerating] = useState(false)
   const [sending, setSending] = useState(false)
+
+  // Billing tab state
+  const [selectedJobs, setSelectedJobs] = useState<string[]>([])
+  const [creatingInvoice, setCreatingInvoice] = useState(false)
 
   useEffect(() => {
     loadContract()
@@ -124,10 +137,18 @@ export default function ContractDetailPage() {
     if (authData.user) {
       const { data: jobsData } = await supabase
         .from('jobs')
-        .select('id, title, status, scheduled_date, contract_id')
+        .select('id, title, status, scheduled_date, contract_id, invoice_id')
         .eq('contract_id', id)
         .order('scheduled_date', { ascending: true })
       if (jobsData) setJobs(jobsData)
+
+      // Load invoices linked to this contract
+      const { data: invData } = await supabase
+        .from('invoices')
+        .select('id, invoice_number, amount, status, created_at, token')
+        .eq('contract_id', id)
+        .order('created_at', { ascending: false })
+      if (invData) setInvoices(invData)
     }
     setLoading(false)
   }
@@ -184,6 +205,29 @@ export default function ContractDetailPage() {
     }
   }
 
+  const handleCreateInvoice = async () => {
+    if (selectedJobs.length === 0 || !contract) return
+    setCreatingInvoice(true)
+    try {
+      const res = await fetch(`/api/contracts/${id}/create-invoice`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobIds: selectedJobs }),
+      })
+      const data = await res.json()
+      if (res.ok && data.invoiceId) {
+        toast.success(fr ? 'Facture cr\u00e9\u00e9e!' : 'Invoice created!')
+        router.push(`/invoices?id=${data.invoiceId}`)
+      } else {
+        toast.error(data.error || 'Error')
+      }
+    } catch {
+      toast.error(fr ? 'Erreur' : 'Error')
+    } finally {
+      setCreatingInvoice(false)
+    }
+  }
+
   if (loading) {
     return (
       <AppLayout title={fr ? 'Contrat' : 'Contract'}>
@@ -206,6 +250,27 @@ export default function ContractDetailPage() {
 
   const completedJobs = jobs.filter((j) => j.status === 'completed').length
   const totalJobs = jobs.length
+
+  // Tax calculations
+  const includeTps = contract.include_tps !== false
+  const includeTvq = contract.include_tvq !== false
+  const subtotal = contract.price_per_visit * (totalJobs || 1)
+  const tpsAmount = includeTps ? subtotal * 0.05 : 0
+  const tvqAmount = includeTvq ? subtotal * 0.09975 : 0
+  const totalWithTaxes = subtotal + tpsAmount + tvqAmount
+
+  // Billing progress
+  const billedAmount = invoices.reduce((sum, inv) => sum + (inv.amount || 0), 0)
+  const billedPercent = totalWithTaxes > 0 ? Math.min(100, Math.round((billedAmount / totalWithTaxes) * 100)) : 0
+
+  // Unbilled completed jobs
+  const unbilledJobs = jobs.filter((j) => j.status === 'completed' && !j.invoice_id)
+
+  // Selected jobs total
+  const selectedTotal = unbilledJobs.filter((j) => selectedJobs.includes(j.id)).length * contract.price_per_visit
+  const selectedTps = includeTps ? selectedTotal * 0.05 : 0
+  const selectedTvq = includeTvq ? selectedTotal * 0.09975 : 0
+  const selectedGrandTotal = selectedTotal + selectedTps + selectedTvq
 
   const tabs: { key: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { key: 'details', label: fr ? 'D\u00e9tails' : 'Details', icon: FileText },
@@ -236,6 +301,17 @@ export default function ContractDetailPage() {
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
+            {/* Print button */}
+            {contract.approval_token && (
+              <Link
+                href={`/contrat/${contract.approval_token}`}
+                target="_blank"
+                className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                <Printer className="h-4 w-4" />
+                {fr ? 'Imprimer' : 'Print'}
+              </Link>
+            )}
             {contract.status === 'draft' && (
               <button
                 onClick={handleSend}
@@ -291,41 +367,97 @@ export default function ContractDetailPage() {
 
         {/* Tab content */}
         {tab === 'details' && (
-          <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-6 space-y-4">
-            <DetailRow label={fr ? 'Service' : 'Service'} value={contract.service_name} />
-            {contract.service_description && (
-              <DetailRow label={fr ? 'Description' : 'Description'} value={contract.service_description} />
-            )}
-            <DetailRow label={fr ? 'P\u00e9riode' : 'Period'} value={`${fmtDate(contract.start_date, lang)} - ${fmtDate(contract.end_date, lang)}`} />
-            <DetailRow label={fr ? 'R\u00e9currence' : 'Recurrence'} value={recurrenceLabel(contract.recurrence_type, fr)} />
-            {contract.recurrence_days && contract.recurrence_days.length > 0 && (
-              <DetailRow
-                label={fr ? 'Jours' : 'Days'}
-                value={contract.recurrence_days.map((d) => {
-                  const labels = fr
-                    ? ['', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-                    : ['', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-                  return labels[d] || String(d)
-                }).join(', ')}
-              />
-            )}
-            <DetailRow label={fr ? 'Prix par visite' : 'Price per visit'} value={fmtMoney(contract.price_per_visit, lang)} />
-            <DetailRow label={fr ? 'Total' : 'Total'} value={fmtMoney(contract.total_price, lang)} />
-            <DetailRow label={fr ? 'Facturation' : 'Billing'} value={contract.billing_type} />
-            {contract.approved_at && (
-              <DetailRow label={fr ? 'Approuv\u00e9 le' : 'Approved on'} value={fmtDate(contract.approved_at, lang)} />
-            )}
-            {contract.approved_by_name && (
-              <DetailRow label={fr ? 'Approuv\u00e9 par' : 'Approved by'} value={contract.approved_by_name} />
-            )}
-            {contract.notes && (
-              <DetailRow label={fr ? 'Notes client' : 'Client notes'} value={contract.notes} />
-            )}
-            {contract.internal_notes && (
-              <DetailRow label={fr ? 'Notes internes' : 'Internal notes'} value={contract.internal_notes} />
-            )}
-            {contract.next_job_date && (
-              <DetailRow label={fr ? 'Prochaine intervention' : 'Next job'} value={fmtDate(contract.next_job_date, lang)} />
+          <div className="space-y-6">
+            {/* SERVICE */}
+            <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-6">
+              <SectionTitle label={fr ? 'SERVICE' : 'SERVICE'} />
+              <DetailRow label={fr ? 'Nom du service' : 'Service name'} value={contract.service_name} />
+              {contract.service_description && (
+                <DetailRow label={fr ? 'Description' : 'Description'} value={contract.service_description} />
+              )}
+            </div>
+
+            {/* PERIODE */}
+            <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-6">
+              <SectionTitle label={fr ? 'P\u00c9RIODE' : 'PERIOD'} />
+              <DetailRow label={fr ? 'D\u00e9but' : 'Start'} value={fmtDate(contract.start_date, lang)} />
+              <DetailRow label={fr ? 'Fin' : 'End'} value={fmtDate(contract.end_date, lang)} />
+            </div>
+
+            {/* RECURRENCE */}
+            <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-6">
+              <SectionTitle label={fr ? 'R\u00c9CURRENCE' : 'RECURRENCE'} />
+              <DetailRow label={fr ? 'Type' : 'Type'} value={getRecurrenceLabel(contract.recurrence_type, lang)} />
+              {contract.recurrence_days && contract.recurrence_days.length > 0 && (
+                <DetailRow label={fr ? 'Jours' : 'Days'} value={getDayLabels(contract.recurrence_days, lang)} />
+              )}
+              {contract.next_job_date && (
+                <DetailRow label={fr ? 'Prochaine intervention' : 'Next job'} value={fmtDate(contract.next_job_date, lang)} />
+              )}
+            </div>
+
+            {/* TARIFICATION */}
+            <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-6">
+              <SectionTitle label={fr ? 'TARIFICATION' : 'PRICING'} />
+              <DetailRow label={fr ? 'Prix par visite' : 'Price per visit'} value={fmtMoney(contract.price_per_visit, lang)} />
+              <DetailRow label={fr ? 'Nombre de visites' : 'Number of visits'} value={String(totalJobs || '-')} />
+              <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">{fr ? 'Sous-total' : 'Subtotal'}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{fmtMoney(subtotal, lang)}</span>
+                </div>
+                {includeTps && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">TPS (5%)</span>
+                    <span className="text-gray-700 dark:text-gray-300">{fmtMoney(tpsAmount, lang)}</span>
+                  </div>
+                )}
+                {includeTvq && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">TVQ (9,975%)</span>
+                    <span className="text-gray-700 dark:text-gray-300">{fmtMoney(tvqAmount, lang)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-base font-bold border-t border-gray-200 dark:border-gray-700 pt-2">
+                  <span className="text-gray-900 dark:text-white">Total</span>
+                  <span className="text-indigo-600">{fmtMoney(totalWithTaxes, lang)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* FACTURATION */}
+            <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-6">
+              <SectionTitle label={fr ? 'FACTURATION' : 'BILLING'} />
+              <DetailRow label={fr ? 'Type' : 'Type'} value={getBillingTypeLabel(contract.billing_type, lang)} />
+              <DetailRow label={fr ? 'Fr\u00e9quence' : 'Frequency'} value={getBillingFrequencyLabel(contract.billing_frequency, lang)} />
+            </div>
+
+            {/* APPROBATION */}
+            <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-6">
+              <SectionTitle label={fr ? 'APPROBATION' : 'APPROVAL'} />
+              {contract.approved_at ? (
+                <>
+                  <DetailRow label={fr ? 'Approuv\u00e9 le' : 'Approved on'} value={fmtDate(contract.approved_at, lang)} />
+                  {contract.approved_by_name && (
+                    <DetailRow label={fr ? 'Approuv\u00e9 par' : 'Approved by'} value={contract.approved_by_name} />
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-gray-400 py-2">{fr ? 'Non approuv\u00e9' : 'Not yet approved'}</p>
+              )}
+            </div>
+
+            {/* Notes */}
+            {(contract.notes || contract.internal_notes) && (
+              <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-6">
+                <SectionTitle label="NOTES" />
+                {contract.notes && (
+                  <DetailRow label={fr ? 'Notes client' : 'Client notes'} value={contract.notes} />
+                )}
+                {contract.internal_notes && (
+                  <DetailRow label={fr ? 'Notes internes' : 'Internal notes'} value={contract.internal_notes} />
+                )}
+              </div>
             )}
           </div>
         )}
@@ -380,54 +512,162 @@ export default function ContractDetailPage() {
         )}
 
         {tab === 'billing' && (
-          <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-6 space-y-6">
-            <div className="space-y-3">
-              <DetailRow label={fr ? 'Valeur du contrat' : 'Contract value'} value={fmtMoney(contract.total_price, lang)} />
-              <DetailRow label={fr ? 'Type de facturation' : 'Billing type'} value={contract.billing_type} />
-              <DetailRow label={fr ? 'Fr\u00e9quence' : 'Frequency'} value={contract.billing_frequency} />
-              <DetailRow label={fr ? 'Interventions g\u00e9n\u00e9r\u00e9es' : 'Jobs generated'} value={String(contract.jobs_generated_count || 0)} />
+          <div className="space-y-6">
+            {/* Progress bar */}
+            <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-6">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-500">{fr ? 'Factur\u00e9' : 'Billed'}</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {fmtMoney(billedAmount, lang)} / {fmtMoney(totalWithTaxes, lang)} ({billedPercent}%)
+                </span>
+              </div>
+              <div className="h-3 bg-gray-100 rounded-full overflow-hidden dark:bg-gray-800">
+                <div
+                  className="h-full bg-indigo-600 rounded-full transition-all"
+                  style={{ width: `${billedPercent}%` }}
+                />
+              </div>
             </div>
 
-            {/* Progress */}
-            {totalJobs > 0 && (
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="text-gray-500">{fr ? 'Progression' : 'Progress'}</span>
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    {completedJobs}/{totalJobs} ({totalJobs > 0 ? Math.round((completedJobs / totalJobs) * 100) : 0}%)
-                  </span>
-                </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden dark:bg-gray-800">
-                  <div
-                    className="h-full bg-indigo-600 rounded-full transition-all"
-                    style={{ width: `${totalJobs > 0 ? (completedJobs / totalJobs) * 100 : 0}%` }}
-                  />
+            {/* Linked invoices */}
+            {invoices.length > 0 && (
+              <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-6">
+                <SectionTitle label={fr ? 'FACTURES' : 'INVOICES'} />
+                <div className="divide-y divide-gray-50 dark:divide-gray-800">
+                  {invoices.map((inv) => (
+                    <div key={inv.id} className="flex items-center gap-4 py-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {inv.invoice_number || inv.id.slice(0, 8).toUpperCase()}
+                        </p>
+                        <p className="text-xs text-gray-500">{fmtDate(inv.created_at, lang)} - {fmtMoney(inv.amount, lang)}</p>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${INV_STATUS_BADGE[inv.status] || 'bg-gray-100 text-gray-600'}`}>
+                        {inv.status === 'paid' ? (fr ? 'Pay\u00e9e' : 'Paid') :
+                         inv.status === 'sent' ? (fr ? 'Envoy\u00e9e' : 'Sent') :
+                         inv.status === 'overdue' ? (fr ? 'En retard' : 'Overdue') :
+                         (fr ? 'Brouillon' : 'Draft')}
+                      </span>
+                      <Link
+                        href={`/invoice/${inv.token}`}
+                        target="_blank"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200 transition-colors"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        {fr ? 'Voir' : 'View'}
+                      </Link>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* Billing estimate */}
-            <div className="rounded-xl bg-gray-50 dark:bg-gray-800 p-4 space-y-2">
-              <p className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                {fr ? 'Estimation de facturation' : 'Billing estimate'}
-              </p>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{fr ? 'Valeur compl\u00e9t\u00e9e' : 'Completed value'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {fmtMoney(completedJobs * contract.price_per_visit, lang)}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{fr ? 'Restant' : 'Remaining'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {fmtMoney((totalJobs - completedJobs) * contract.price_per_visit, lang)}
-                </span>
-              </div>
+            {/* Create invoice section */}
+            <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-6">
+              <SectionTitle label={fr ? 'CR\u00c9ER UNE FACTURE' : 'CREATE INVOICE'} />
+
+              {unbilledJobs.length === 0 ? (
+                <p className="text-sm text-gray-400 py-4 text-center">
+                  {fr ? 'Aucune intervention compl\u00e9t\u00e9e non factur\u00e9e' : 'No completed unbilled jobs'}
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-500">
+                    {fr
+                      ? 'S\u00e9lectionnez les interventions compl\u00e9t\u00e9es \u00e0 facturer:'
+                      : 'Select completed jobs to invoice:'}
+                  </p>
+                  <div className="space-y-2">
+                    {/* Select all */}
+                    <label className="flex items-center gap-3 py-2 px-3 rounded-lg bg-gray-50 dark:bg-gray-800 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedJobs.length === unbilledJobs.length && unbilledJobs.length > 0}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedJobs(unbilledJobs.map((j) => j.id))
+                          } else {
+                            setSelectedJobs([])
+                          }
+                        }}
+                        className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {fr ? 'Tout s\u00e9lectionner' : 'Select all'} ({unbilledJobs.length})
+                      </span>
+                    </label>
+                    {unbilledJobs.map((job) => (
+                      <label key={job.id} className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedJobs.includes(job.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedJobs((prev) => [...prev, job.id])
+                            } else {
+                              setSelectedJobs((prev) => prev.filter((jid) => jid !== job.id))
+                            }
+                          }}
+                          className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-900 dark:text-white">{job.title}</p>
+                          <p className="text-xs text-gray-500">{fmtDate(job.scheduled_date, lang)}</p>
+                        </div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {fmtMoney(contract.price_per_visit, lang)}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+
+                  {/* Selected total */}
+                  {selectedJobs.length > 0 && (
+                    <div className="rounded-xl bg-gray-50 dark:bg-gray-800 p-4 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">{fr ? 'Sous-total' : 'Subtotal'} ({selectedJobs.length} {fr ? 'visites' : 'visits'})</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{fmtMoney(selectedTotal, lang)}</span>
+                      </div>
+                      {includeTps && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">TPS (5%)</span>
+                          <span className="text-gray-700 dark:text-gray-300">{fmtMoney(selectedTps, lang)}</span>
+                        </div>
+                      )}
+                      {includeTvq && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">TVQ (9,975%)</span>
+                          <span className="text-gray-700 dark:text-gray-300">{fmtMoney(selectedTvq, lang)}</span>
+                        </div>
+                      )}
+                      <div className="border-t border-gray-200 dark:border-gray-700 pt-2 flex justify-between text-base font-bold">
+                        <span className="text-gray-900 dark:text-white">Total</span>
+                        <span className="text-indigo-600">{fmtMoney(selectedGrandTotal, lang)}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleCreateInvoice}
+                    disabled={selectedJobs.length === 0 || creatingInvoice}
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                  >
+                    {creatingInvoice ? <Loader2 className="h-4 w-4 animate-spin" /> : <Receipt className="h-4 w-4" />}
+                    {fr ? 'Cr\u00e9er la facture' : 'Create invoice'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
     </AppLayout>
+  )
+}
+
+function SectionTitle({ label }: { label: string }) {
+  return (
+    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">{label}</p>
   )
 }
 

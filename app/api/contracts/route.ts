@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
     title, customer_id, start_date, end_date, recurrence_type,
     recurrence_days, service_name, service_description,
     price_per_visit, billing_type, billing_frequency,
+    include_tps, include_tvq,
     notes, internal_notes, description,
   } = body
 
@@ -84,6 +85,8 @@ export async function POST(req: NextRequest) {
       total_price,
       billing_type: billing_type || 'per_visit',
       billing_frequency: billing_frequency || 'monthly',
+      include_tps: include_tps !== false,
+      include_tvq: include_tvq !== false,
       approval_token: crypto.randomUUID(),
       notes: notes || null,
       internal_notes: internal_notes || null,

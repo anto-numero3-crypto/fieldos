@@ -10,6 +10,7 @@ import { useConfirm } from '@/components/ui/confirm-dialog'
 import { useLanguage } from '@/lib/LanguageContext'
 import { isModuleEnabled } from '@/lib/modules'
 import { fmtMoney, fmtDate } from '@/lib/format'
+import { getRecurrenceLabel } from '@/lib/contract-labels'
 import { supabase } from '../supabase'
 import { toast } from 'sonner'
 import {
@@ -56,15 +57,7 @@ const STATUS_LABEL_EN: Record<string, string> = {
 }
 
 function recurrenceLabel(type: string, fr: boolean): string {
-  const map: Record<string, [string, string]> = {
-    none: ['Ponctuel', 'One-time'],
-    daily: ['Quotidien', 'Daily'],
-    weekly: ['Hebdomadaire', 'Weekly'],
-    biweekly: ['Aux 2 semaines', 'Biweekly'],
-    monthly: ['Mensuel', 'Monthly'],
-    custom: ['Personnalis\u00e9', 'Custom'],
-  }
-  return (map[type] || map.none)![fr ? 0 : 1]
+  return getRecurrenceLabel(type, fr ? 'fr' : 'en')
 }
 
 export default function ContractsPage() {

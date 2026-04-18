@@ -144,6 +144,8 @@ export default function NewContractPage() {
           total_price: subtotal,
           billing_type: billingType,
           billing_frequency: billingFrequency,
+          include_tps: tpsEnabled,
+          include_tvq: tvqEnabled,
           notes,
           internal_notes: internalNotes,
         }),

@@ -9,7 +9,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
 
   const { data: contract, error } = await sb
     .from('contracts')
-    .select('*, customers(name, email)')
+    .select('*, customers(name, email, phone, address)')
     .eq('approval_token', token)
     .maybeSingle()
 
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
   // Fetch org info
   const { data: org } = await sb
     .from('organizations')
-    .select('name, phone, email, logo_url')
+    .select('name, phone, email, logo_url, address, city, state, zip, tax_number')
     .eq('id', contract.org_id)
     .maybeSingle()
 
@@ -39,6 +39,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     price_per_visit: contract.price_per_visit,
     total_price: contract.total_price,
     billing_type: contract.billing_type,
+    billing_frequency: contract.billing_frequency,
+    include_tps: contract.include_tps,
+    include_tvq: contract.include_tvq,
     notes: contract.notes,
     approval_token: contract.approval_token,
     customers: contract.customers,
