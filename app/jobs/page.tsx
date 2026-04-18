@@ -22,8 +22,12 @@ import { getEffectiveJobStatus } from '@/lib/job-status'
 import { JOB_COLORS } from '@/lib/status-colors'
 import {
   Briefcase, Plus, X, Calendar, User, CheckCircle,
-  Search, ChevronRight, MoreHorizontal, Trash2, Clock, Zap, Flag, Lock,
+  Search, ChevronRight, MoreHorizontal, Trash2, Clock, Zap, Flag, Lock, Users,
 } from 'lucide-react'
+import EmployeePicker from '@/components/EmployeePicker'
+
+interface EmployeeRow { id: string; first_name: string; last_name: string; color: string }
+interface AssignmentInfo { job_id: string; employee_id: string; first_name: string; last_name: string; color: string }
 
 interface Job {
   id: string; title: string; description: string | null; status: string
@@ -75,6 +79,9 @@ export default function JobsPage() {
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime]   = useState('')
   const [touched, setTouched]   = useState<Record<string, boolean>>({})
+  const [allEmployees, setAllEmployees] = useState<EmployeeRow[]>([])
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([])
+  const [jobAssignments, setJobAssignments] = useState<Record<string, AssignmentInfo[]>>({})
   const confirm = useConfirm()
   const { lang, t } = useLanguage()
   const fr = lang === 'fr'
@@ -101,7 +108,7 @@ export default function JobsPage() {
       const { data } = await supabase.auth.getUser()
       if (!data.user) { window.location.href = '/login'; return }
       setUser(data.user)
-      await Promise.all([fetchJobs(data.user.id), fetchCustomers(data.user.id), fetchJobsThisMonth(data.user.id)])
+      await Promise.all([fetchJobs(data.user.id), fetchCustomers(data.user.id), fetchJobsThisMonth(data.user.id), fetchEmployees()])
       setPageLoading(false)
     }
     init()
@@ -118,11 +125,49 @@ export default function JobsPage() {
     setJobsThisMonth(count || 0)
   }
 
+  const fetchEmployees = async () => {
+    try {
+      const res = await fetch('/api/employees', { cache: 'no-store' })
+      const data = await res.json()
+      setAllEmployees((data.employees || []).map((e: Record<string, unknown>) => ({
+        id: e.id as string,
+        first_name: e.first_name as string,
+        last_name: e.last_name as string,
+        color: (e.color as string) || '#6366f1',
+      })))
+    } catch { /* ignore */ }
+  }
+
+  const fetchAssignmentsForJobs = async (jobIds: string[]) => {
+    const map: Record<string, AssignmentInfo[]> = {}
+    await Promise.all(jobIds.map(async (jid) => {
+      try {
+        const res = await fetch(`/api/jobs/${jid}/assignments`, { cache: 'no-store' })
+        const data = await res.json()
+        map[jid] = (data.assignments || []).map((a: Record<string, unknown>) => ({
+          job_id: jid,
+          employee_id: a.employee_id as string,
+          first_name: a.first_name as string,
+          last_name: a.last_name as string,
+          color: (a.color as string) || '#6366f1',
+        }))
+      } catch {
+        map[jid] = []
+      }
+    }))
+    setJobAssignments(map)
+  }
+
   const fetchJobs = async (_uid: string) => {
     try {
       const res = await fetch('/api/jobs', { cache: 'no-store' })
       const data = await res.json()
-      setJobs((data.jobs || []) as unknown as Job[])
+      const jobsList = (data.jobs || []) as unknown as Job[]
+      setJobs(jobsList)
+      // Fetch assignments for all jobs
+      if (jobsList.length > 0) {
+        fetchAssignmentsForJobs(jobsList.map((j) => j.id))
+      }
     } catch (e) {
       console.error('[jobs] fetch failed:', e)
       setJobs([])
@@ -168,8 +213,16 @@ export default function JobsPage() {
       } else {
         console.warn('[gcal sync insert] insert succeeded but returned no id — RLS on implicit SELECT?')
       }
+      // Assign employees if selected
+      if (inserted?.id && selectedEmployeeIds.length > 0) {
+        await fetch(`/api/jobs/${inserted.id}/assignments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ employee_ids: selectedEmployeeIds }),
+        }).catch(() => {})
+      }
       toast.success(t.success.created)
-      setTitle(''); setDesc(''); setCustId(''); setDate(''); setStatus('scheduled'); setPriority('normal'); setStartTime(''); setEndTime(''); setIsMultiDay(false); setEndDateVal(''); setProgressPct(0)
+      setTitle(''); setDesc(''); setCustId(''); setDate(''); setStatus('scheduled'); setPriority('normal'); setStartTime(''); setEndTime(''); setIsMultiDay(false); setEndDateVal(''); setProgressPct(0); setSelectedEmployeeIds([])
       await Promise.all([fetchJobs(user!.id), fetchJobsThisMonth(user!.id)])
       setPanelOpen(false)
     }
@@ -322,7 +375,7 @@ export default function JobsPage() {
               <table className="min-w-full divide-y divide-gray-100">
                 <thead>
                   <tr className="bg-gray-50">
-                    {(fr ? ['Intervention', 'Client', 'Priorité', 'Date', 'Statut', ''] : ['Job', 'Customer', 'Priority', 'Date', 'Status', '']).map((col) => (
+                    {(fr ? ['Intervention', 'Client', 'Techniciens', 'Priorité', 'Date', 'Statut', ''] : ['Job', 'Customer', 'Technicians', 'Priority', 'Date', 'Status', '']).map((col) => (
                       <th key={col} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{col}</th>
                     ))}
                   </tr>
@@ -340,6 +393,25 @@ export default function JobsPage() {
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500">
                           {job.customers ? <span className="flex items-center gap-1.5"><User className="h-3.5 w-3.5 text-gray-300" />{job.customers.name}</span> : <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {(() => {
+                            const assigns = jobAssignments[job.id] || []
+                            if (assigns.length === 0) return <span className="text-gray-300 text-xs">{fr ? 'Aucun' : 'None'}</span>
+                            const show = assigns.slice(0, 3)
+                            const extra = assigns.length - 3
+                            return (
+                              <div className="flex items-center gap-1">
+                                {show.map((a) => (
+                                  <span key={a.employee_id} className="inline-flex items-center gap-1" title={`${a.first_name} ${a.last_name}`}>
+                                    <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: a.color }} />
+                                    {assigns.length <= 3 && <span className="text-xs">{a.first_name}</span>}
+                                  </span>
+                                ))}
+                                {extra > 0 && <span className="text-xs text-gray-400">+{extra}</span>}
+                              </div>
+                            )
+                          })()}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
                           <span className={`flex items-center gap-1 text-sm font-medium ${pcfg.cls}`}><Flag className="h-3.5 w-3.5" />{pcfg.label}</span>
@@ -517,6 +589,15 @@ export default function JobsPage() {
                     <input type="range" min={0} max={100} value={progressPct} onChange={(e) => setProgressPct(parseInt(e.target.value, 10))} className="block w-full mt-3" />
                   </div>
                 </div>
+              )}
+
+              {allEmployees.length > 0 && (
+                <EmployeePicker
+                  employees={allEmployees}
+                  selected={selectedEmployeeIds}
+                  onChange={setSelectedEmployeeIds}
+                  label={fr ? 'Techniciens' : 'Technicians'}
+                />
               )}
 
             </form>

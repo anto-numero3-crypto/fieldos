@@ -28,10 +28,18 @@ export async function GET(req: NextRequest) {
   const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-CA')
   const jobSelect = 'id, title, description, status, scheduled_date, start_time, end_time, service_address, customers(name, phone)'
 
-  // Build OR filter: assigned_to = team_member_id OR assigned_employee_id = employee_id
+  // Get jobs via junction table
+  const { data: assignmentJobs } = await sb
+    .from('job_assignments')
+    .select('job_id')
+    .eq('employee_id', emp.id)
+  const assignmentJobIds = (assignmentJobs || []).map((a) => a.job_id)
+
+  // Build OR filter: assigned_to = team_member_id OR assigned_employee_id = employee_id OR id IN assignmentJobIds
   const conditions: string[] = []
   if (tm?.id) conditions.push(`assigned_to.eq.${tm.id}`)
   conditions.push(`assigned_employee_id.eq.${emp.id}`)
+  if (assignmentJobIds.length > 0) conditions.push(`id.in.(${assignmentJobIds.join(',')})`)
   const orFilter = conditions.join(',')
 
   const { data: todayData } = await sb

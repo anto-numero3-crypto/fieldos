@@ -15,8 +15,9 @@ import { formatTimeRange } from '@/lib/format-time'
 import {
   ArrowLeft, User, Calendar, Clock, Flag, Edit2, Save, CheckSquare,
   Square, Plus, Trash2, FileText, DollarSign, AlertCircle, CheckCircle,
-  MapPin, StickyNote, X, Camera, Lock,
+  MapPin, StickyNote, X, Camera, Lock, Users,
 } from 'lucide-react'
+import EmployeePicker from '@/components/EmployeePicker'
 import { usePlan } from '@/lib/hooks/usePlan'
 import { normalizePlan } from '@/lib/plan-limits'
 
@@ -33,6 +34,7 @@ interface Job {
   customers: { id: string; name: string; email: string | null; phone: string | null } | null
 }
 interface TeamMember { id: string; name: string; email: string; is_active: boolean }
+interface EmployeeRow { id: string; first_name: string; last_name: string; color: string }
 
 const STATUS_CFG: Record<string, { cls: string; dotCls: string }> = {
   scheduled:        { cls: 'bg-blue-100 text-blue-900 ring-1 ring-blue-300',          dotCls: 'bg-blue-500' },
@@ -78,6 +80,8 @@ export default function JobDetailPage() {
   const [statusDropdown, setStatusDropdown] = useState(false)
   const [invoiceLinked, setInvoiceLinked] = useState<{ id: string; amount: number; status: string } | null>(null)
   const [team, setTeam] = useState<TeamMember[]>([])
+  const [employees, setEmployees] = useState<EmployeeRow[]>([])
+  const [assignedEmployeeIds, setAssignedEmployeeIds] = useState<string[]>([])
 
   // Edit fields
   const [eTitle, setETitle]   = useState('')
@@ -121,10 +125,52 @@ export default function JobDetailPage() {
         .order('name')
       setTeam(tm || [])
 
+      // Fetch employees for multi-assignment
+      fetch('/api/employees', { cache: 'no-store' })
+        .then((r) => r.json())
+        .then((d) => {
+          const emps = (d.employees || []).map((e: Record<string, unknown>) => ({
+            id: e.id as string,
+            first_name: e.first_name as string,
+            last_name: e.last_name as string,
+            color: (e.color as string) || '#6366f1',
+          }))
+          setEmployees(emps)
+        })
+        .catch(() => {})
+
+      // Fetch current assignments
+      fetch(`/api/jobs/${id}/assignments`, { cache: 'no-store' })
+        .then((r) => r.json())
+        .then((d) => {
+          const ids = (d.assignments || []).map((a: Record<string, unknown>) => a.employee_id as string)
+          setAssignedEmployeeIds(ids)
+        })
+        .catch(() => {})
+
       setLoading(false)
     }
     init()
   }, [id, router])
+
+  const handleAssignmentChange = async (newIds: string[]) => {
+    setAssignedEmployeeIds(newIds)
+    try {
+      const res = await fetch(`/api/jobs/${id}/assignments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employee_ids: newIds }),
+      })
+      if (res.ok) {
+        toast.success(t.success.updated)
+      } else {
+        const err = await res.json().catch(() => null)
+        toast.error(err?.error || 'Error')
+      }
+    } catch {
+      toast.error('Network error')
+    }
+  }
 
   const assignMember = async (memberId: string) => {
     if (!job) return
@@ -645,18 +691,32 @@ export default function JobDetailPage() {
               )}
             </div>
 
-            {/* Team assignment */}
-            {team.length > 0 && (
+            {/* Multi-employee assignment */}
+            {employees.length > 0 && (
               <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
                 <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <User className="h-4 w-4 text-indigo-500" /> {fr ? 'Assigné à' : 'Assigned to'}
+                  <Users className="h-4 w-4 text-indigo-500" /> {fr ? 'Techniciens assign\u00e9s' : 'Assigned technicians'}
+                </h2>
+                <EmployeePicker
+                  employees={employees}
+                  selected={assignedEmployeeIds}
+                  onChange={handleAssignmentChange}
+                />
+              </div>
+            )}
+
+            {/* Legacy single assignment (if no employees but team exists) */}
+            {employees.length === 0 && team.length > 0 && (
+              <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+                <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <User className="h-4 w-4 text-indigo-500" /> {fr ? 'Assign\u00e9 \u00e0' : 'Assigned to'}
                 </h2>
                 <select
                   value={job.assigned_to || ''}
                   onChange={(e) => assignMember(e.target.value)}
                   className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
-                  <option value="">{fr ? 'Non assigné' : 'Unassigned'}</option>
+                  <option value="">{fr ? 'Non assign\u00e9' : 'Unassigned'}</option>
                   {team.map((m) => (
                     <option key={m.id} value={m.id}>{m.name}</option>
                   ))}

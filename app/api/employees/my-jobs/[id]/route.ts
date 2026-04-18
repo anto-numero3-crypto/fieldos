@@ -22,10 +22,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     .eq('email', emp.email)
     .maybeSingle()
 
-  // Verify the job is assigned to this employee (via either field)
+  // Check if assigned via junction table
+  const { data: junctionAssign } = await sb
+    .from('job_assignments')
+    .select('id')
+    .eq('job_id', id)
+    .eq('employee_id', emp.id)
+    .maybeSingle()
+
+  // Verify the job is assigned to this employee (via either field or junction table)
   const conditions: string[] = []
   if (tm?.id) conditions.push(`assigned_to.eq.${tm.id}`)
   conditions.push(`assigned_employee_id.eq.${emp.id}`)
+  if (junctionAssign) conditions.push(`id.eq.${id}`)
 
   const { data: job } = await sb
     .from('jobs')
@@ -60,9 +69,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .eq('email', emp.email)
     .maybeSingle()
 
+  // Check junction table
+  const { data: junctionAssignPatch } = await sb
+    .from('job_assignments')
+    .select('id')
+    .eq('job_id', id)
+    .eq('employee_id', emp.id)
+    .maybeSingle()
+
   const conditions: string[] = []
   if (tm?.id) conditions.push(`assigned_to.eq.${tm.id}`)
   conditions.push(`assigned_employee_id.eq.${emp.id}`)
+  if (junctionAssignPatch) conditions.push(`id.eq.${id}`)
 
   // Verify ownership
   const { data: job } = await sb
