@@ -19,75 +19,45 @@ export async function GET(req: NextRequest) {
     .maybeSingle()
   if (!org) return NextResponse.json({ error: 'not_owner' }, { status: 403 })
 
+  // Get all employees for this org
+  const { data: orgEmployees } = await sb
+    .from('employees')
+    .select('id, email, first_name, last_name, hourly_rate, color')
+    .eq('org_id', org.id)
+
+  if (!orgEmployees || orgEmployees.length === 0) {
+    return NextResponse.json({ entries: [] })
+  }
+
+  // Build employee lookup by id
+  const empById: Record<string, { email: string; first_name: string; last_name: string; hourly_rate: number | null; color: string | null }> = {}
+  for (const e of orgEmployees) {
+    empById[e.id] = { email: e.email, first_name: e.first_name, last_name: e.last_name, hourly_rate: e.hourly_rate, color: e.color }
+  }
+
+  // Filter by specific employee if requested
+  const targetEmployeeIds = employeeId ? [employeeId] : orgEmployees.map(e => e.id)
+
+  // Query time_entries joined via team_member_id = employees.id
   let query = sb
     .from('time_entries')
-    .select('*, jobs(id, title, customers(name)), team_members(id, name, email)')
+    .select('*, jobs(id, title, customers(name))')
+    .in('team_member_id', targetEmployeeIds)
     .order('clocked_in_at', { ascending: false })
 
   if (from) query = query.gte('clocked_in_at', `${from}T00:00:00`)
   if (to) query = query.lte('clocked_in_at', `${to}T23:59:59`)
 
-  if (employeeId) {
-    // Find team_member for this employee
-    const { data: emp } = await sb
-      .from('employees')
-      .select('email')
-      .eq('id', employeeId)
-      .maybeSingle()
-    if (emp) {
-      const { data: tm } = await sb
-        .from('team_members')
-        .select('id')
-        .eq('email', emp.email)
-        .maybeSingle()
-      if (tm) {
-        query = query.eq('team_member_id', tm.id)
-      }
-    }
-  }
-
-  // Scope entries to this org's team members
-  const { data: orgTeamMembers } = await sb
-    .from('team_members')
-    .select('id')
-    .eq('user_id', user.id)
-  const tmIds = (orgTeamMembers || []).map(t => t.id)
-  if (tmIds.length > 0) {
-    query = query.in('team_member_id', tmIds)
-  } else {
-    return NextResponse.json({ entries: [] })
-  }
-
   const { data: entries, error } = await query
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Enrich with employee info
-  const emails = new Set<string>()
-  for (const e of entries || []) {
-    const tm = e.team_members as { email?: string } | null
-    if (tm?.email) emails.add(tm.email)
-  }
-
-  let employeeMap: Record<string, { first_name: string; last_name: string; hourly_rate: number | null }> = {}
-  if (emails.size > 0) {
-    const { data: emps } = await sb
-      .from('employees')
-      .select('email, first_name, last_name, hourly_rate')
-      .in('email', Array.from(emails))
-    if (emps) {
-      for (const e of emps) {
-        employeeMap[e.email] = { first_name: e.first_name, last_name: e.last_name, hourly_rate: e.hourly_rate }
-      }
-    }
-  }
-
   const enriched = (entries || []).map(e => {
-    const tm = e.team_members as { email?: string; name?: string } | null
-    const empInfo = tm?.email ? employeeMap[tm.email] : null
+    const empInfo = empById[e.team_member_id]
     return {
       ...e,
-      employee_name: empInfo ? `${empInfo.first_name} ${empInfo.last_name}` : (tm?.name || 'Unknown'),
+      employee_name: empInfo ? `${empInfo.first_name} ${empInfo.last_name}` : 'Unknown',
+      employee_color: empInfo?.color || null,
       hourly_rate: empInfo?.hourly_rate || null,
     }
   })

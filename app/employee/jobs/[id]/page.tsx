@@ -10,7 +10,7 @@ import { isModuleEnabled } from '@/lib/modules'
 import {
   Wrench, LogOut, ArrowLeft, User, MapPin, Clock, Calendar,
   CheckCircle, FileText, StickyNote, Phone, ExternalLink,
-  Loader2, Save, Play, Square, AlertTriangle,
+  Loader2, Save, Play, Square, AlertTriangle, Pause,
 } from 'lucide-react'
 
 interface Job {
@@ -32,6 +32,9 @@ interface TimeEntry {
   clocked_in_at: string
   clocked_out_at: string | null
   duration_minutes: number | null
+  status?: string
+  paused_duration_minutes?: number
+  pause_started_at?: string | null
   jobs?: { id: string; title: string } | null
 }
 
@@ -45,7 +48,7 @@ const STATUS_CFG: Record<string, { label: { fr: string; en: string }; cls: strin
 }
 
 function formatElapsed(ms: number): string {
-  const totalSec = Math.floor(ms / 1000)
+  const totalSec = Math.max(0, Math.floor(ms / 1000))
   const h = Math.floor(totalSec / 3600)
   const m = Math.floor((totalSec % 3600) / 60)
   const s = totalSec % 60
@@ -56,6 +59,18 @@ function formatDuration(mins: number): string {
   const h = Math.floor(mins / 60)
   const m = mins % 60
   return `${h}h ${String(m).padStart(2, '0')}min`
+}
+
+function computeWorkedMs(entry: TimeEntry): number {
+  const start = new Date(entry.clocked_in_at).getTime()
+  const pausedMs = (entry.paused_duration_minutes || 0) * 60000
+  if (entry.status === 'paused' && entry.pause_started_at) {
+    // Frozen at pause moment
+    const pauseAt = new Date(entry.pause_started_at).getTime()
+    return (pauseAt - start) - pausedMs
+  }
+  // Active: live
+  return (Date.now() - start) - pausedMs
 }
 
 export default function EmployeeJobDetailPage() {
@@ -117,8 +132,14 @@ export default function EmployeeJobDetailPage() {
   // Live timer
   useEffect(() => {
     if (activeEntry && activeEntry.job_id === id && !activeEntry.clocked_out_at) {
-      const start = new Date(activeEntry.clocked_in_at).getTime()
-      const tick = () => setElapsed(Date.now() - start)
+      if (activeEntry.status === 'paused') {
+        // Frozen timer
+        setElapsed(computeWorkedMs(activeEntry))
+        if (timerRef.current) clearInterval(timerRef.current)
+        return
+      }
+      // Active: tick every second
+      const tick = () => setElapsed(computeWorkedMs(activeEntry))
       tick()
       timerRef.current = setInterval(tick, 1000)
       return () => { if (timerRef.current) clearInterval(timerRef.current) }
@@ -145,6 +166,38 @@ export default function EmployeeJobDetailPage() {
       setClockLoading(false)
     }
   }, [id])
+
+  const pauseEntry = useCallback(async () => {
+    if (!activeEntry) return
+    setClockLoading(true)
+    try {
+      const res = await fetch('/api/time/pause', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entryId: activeEntry.id }),
+      })
+      const data = await res.json()
+      if (res.ok) setActiveEntry(data.entry)
+    } finally {
+      setClockLoading(false)
+    }
+  }, [activeEntry])
+
+  const resumeEntry = useCallback(async () => {
+    if (!activeEntry) return
+    setClockLoading(true)
+    try {
+      const res = await fetch('/api/time/resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entryId: activeEntry.id }),
+      })
+      const data = await res.json()
+      if (res.ok) setActiveEntry(data.entry)
+    } finally {
+      setClockLoading(false)
+    }
+  }, [activeEntry])
 
   const clockOut = useCallback(async () => {
     if (!activeEntry) return
@@ -207,7 +260,9 @@ export default function EmployeeJobDetailPage() {
   if (!job) return null
 
   const sc = STATUS_CFG[job.status] || STATUS_CFG.scheduled
-  const isClockedInHere = activeEntry && activeEntry.job_id === id && !activeEntry.clocked_out_at
+  const isThisJob = activeEntry && activeEntry.job_id === id && !activeEntry.clocked_out_at
+  const isActive = isThisJob && activeEntry?.status !== 'paused'
+  const isPaused = isThisJob && activeEntry?.status === 'paused'
   const isClockedInElsewhere = activeEntry && activeEntry.job_id !== id && !activeEntry.clocked_out_at
 
   return (
@@ -243,7 +298,8 @@ export default function EmployeeJobDetailPage() {
         {/* Time tracking section */}
         {timeEnabled && (
           <div className="mb-4">
-            {isClockedInHere && !showClockOutForm && (
+            {/* Active state */}
+            {isActive && !showClockOutForm && (
               <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -257,22 +313,70 @@ export default function EmployeeJobDetailPage() {
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setShowClockOutForm(true)}
-                    disabled={clockLoading}
-                    className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
-                  >
-                    <Square className="w-4 h-4" />
-                    {fr ? 'Terminer' : 'Stop'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={pauseEntry}
+                      disabled={clockLoading}
+                      className="flex items-center gap-2 bg-gray-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-600 transition-colors disabled:opacity-50"
+                    >
+                      <Pause className="w-4 h-4" />
+                      {fr ? 'Pause' : 'Pause'}
+                    </button>
+                    <button
+                      onClick={() => setShowClockOutForm(true)}
+                      disabled={clockLoading}
+                      className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+                    >
+                      <Square className="w-4 h-4" />
+                      {fr ? 'Terminer' : 'Stop'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
 
-            {isClockedInHere && showClockOutForm && (
+            {/* Paused state */}
+            {isPaused && !showClockOutForm && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="h-3 w-3 rounded-full bg-amber-500 animate-pulse" />
+                    <div>
+                      <p className="font-semibold text-amber-900 dark:text-amber-300">
+                        {fr ? 'En pause' : 'Paused'}
+                      </p>
+                      <p className="text-sm text-amber-700 dark:text-amber-400 font-mono">
+                        {formatElapsed(elapsed)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={resumeEntry}
+                      disabled={clockLoading}
+                      className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                    >
+                      <Play className="w-4 h-4" />
+                      {fr ? 'Reprendre' : 'Resume'}
+                    </button>
+                    <button
+                      onClick={() => setShowClockOutForm(true)}
+                      disabled={clockLoading}
+                      className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+                    >
+                      <Square className="w-4 h-4" />
+                      {fr ? 'Terminer' : 'Stop'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Clock out form */}
+            {isThisJob && showClockOutForm && (
               <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 space-y-3">
                 <div className="flex items-center gap-3">
-                  <span className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className={`h-3 w-3 rounded-full ${isPaused ? 'bg-amber-500' : 'bg-emerald-500'} animate-pulse`} />
                   <p className="font-semibold text-emerald-900 dark:text-emerald-300 font-mono">
                     {formatElapsed(elapsed)}
                   </p>

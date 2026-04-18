@@ -7,7 +7,6 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json()
   const entryId: string = body.entryId
-  const notes: string | undefined = body.notes
 
   if (!entryId) return NextResponse.json({ error: 'missing entryId' }, { status: 400 })
 
@@ -34,31 +33,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'not_your_entry' }, { status: 403 })
   }
 
-  // Calculate final pause chunk if currently paused
-  let totalPaused = entry.paused_duration_minutes || 0
-  if (entry.status === 'paused' && entry.pause_started_at) {
-    const pauseStart = new Date(entry.pause_started_at).getTime()
-    totalPaused += Math.round((Date.now() - pauseStart) / 60000)
-  }
-
-  // Calculate duration minus pauses
-  const clockedIn = new Date(entry.clocked_in_at).getTime()
-  const now = Date.now()
-  const totalMinutes = Math.round((now - clockedIn) / 60000)
-  const durationMinutes = Math.max(0, totalMinutes - totalPaused)
-
-  const updateData: Record<string, unknown> = {
-    clocked_out_at: new Date().toISOString(),
-    duration_minutes: durationMinutes,
-    status: 'completed',
-    paused_duration_minutes: totalPaused,
-    pause_started_at: null,
-  }
-  if (notes !== undefined) updateData.notes = notes
+  // Calculate pause duration
+  const pauseStart = entry.pause_started_at ? new Date(entry.pause_started_at).getTime() : Date.now()
+  const pauseChunk = Math.round((Date.now() - pauseStart) / 60000)
+  const totalPaused = (entry.paused_duration_minutes || 0) + pauseChunk
 
   const { data: updated, error } = await sb
     .from('time_entries')
-    .update(updateData)
+    .update({
+      status: 'active',
+      paused_duration_minutes: totalPaused,
+      pause_started_at: null,
+    })
     .eq('id', entryId)
     .select('*')
     .single()

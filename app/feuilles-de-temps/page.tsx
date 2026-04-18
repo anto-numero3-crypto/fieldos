@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
 import { useLanguage } from '@/lib/LanguageContext'
 import { isModuleEnabled } from '@/lib/modules'
 import {
   Clock, ChevronLeft, ChevronRight, Loader2, Lock, Users, DollarSign,
-  CheckCircle, AlertCircle,
+  CheckCircle, AlertCircle, Pause,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -21,10 +21,13 @@ interface TimeEntry {
   duration_minutes: number | null
   notes: string | null
   billable: boolean
+  status?: string
+  paused_duration_minutes?: number
+  pause_started_at?: string | null
   employee_name: string
+  employee_color?: string | null
   hourly_rate: number | null
   jobs: { id: string; title: string; customers: { name: string } | null } | null
-  team_members: { id: string; name: string; email: string } | null
 }
 
 interface Employee {
@@ -69,6 +72,45 @@ function fmtDuration(mins: number | null): string {
   return `${h}h ${String(m).padStart(2, '0')}min`
 }
 
+function computeLiveMinutes(entry: TimeEntry): number {
+  const start = new Date(entry.clocked_in_at).getTime()
+  const pausedMs = (entry.paused_duration_minutes || 0) * 60000
+  if (entry.status === 'paused' && entry.pause_started_at) {
+    const pauseAt = new Date(entry.pause_started_at).getTime()
+    return Math.max(0, Math.round(((pauseAt - start) - pausedMs) / 60000))
+  }
+  return Math.max(0, Math.round(((Date.now() - start) - pausedMs) / 60000))
+}
+
+function LiveTimer({ entry }: { entry: TimeEntry }) {
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    if (entry.status === 'paused') return
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [entry.status])
+
+  const start = new Date(entry.clocked_in_at).getTime()
+  const pausedMs = (entry.paused_duration_minutes || 0) * 60000
+  let workedMs: number
+  if (entry.status === 'paused' && entry.pause_started_at) {
+    const pauseAt = new Date(entry.pause_started_at).getTime()
+    workedMs = (pauseAt - start) - pausedMs
+  } else {
+    workedMs = (now - start) - pausedMs
+  }
+  const totalSec = Math.max(0, Math.floor(workedMs / 1000))
+  const h = Math.floor(totalSec / 3600)
+  const m = Math.floor((totalSec % 3600) / 60)
+  const s = totalSec % 60
+
+  return (
+    <span className="font-mono">
+      {h}h {String(m).padStart(2, '0')}min {String(s).padStart(2, '0')}s
+    </span>
+  )
+}
+
 export default function TimesheetsPage() {
   const { lang } = useLanguage()
   const fr = lang === 'fr'
@@ -79,6 +121,7 @@ export default function TimesheetsPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [weekStart, setWeekStart] = useState(() => getMonday(new Date()))
   const [selectedEmployee, setSelectedEmployee] = useState<string>('all')
+  const refreshRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Check module access
   useEffect(() => {
@@ -107,53 +150,73 @@ export default function TimesheetsPage() {
     check()
   }, [])
 
+  const fetchEntries = useCallback(async () => {
+    if (!moduleEnabled) return
+    const from = fmtDateISO(weekStart)
+    const to = fmtDateISO(addDays(weekStart, 6))
+    const params = new URLSearchParams({ from, to })
+    if (selectedEmployee !== 'all') params.set('employee_id', selectedEmployee)
+
+    const res = await fetch(`/api/time/entries?${params}`)
+    if (res.ok) {
+      const data = await res.json()
+      setEntries(data.entries || [])
+    }
+  }, [moduleEnabled, weekStart, selectedEmployee])
+
   // Fetch entries when week or employee changes
   useEffect(() => {
-    if (!moduleEnabled) return
-    const load = async () => {
-      const from = fmtDateISO(weekStart)
-      const to = fmtDateISO(addDays(weekStart, 6))
-      const params = new URLSearchParams({ from, to })
-      if (selectedEmployee !== 'all') params.set('employee_id', selectedEmployee)
+    fetchEntries()
+  }, [fetchEntries])
 
-      const res = await fetch(`/api/time/entries?${params}`)
-      if (res.ok) {
-        const data = await res.json()
-        setEntries(data.entries || [])
-      }
-    }
-    load()
-  }, [moduleEnabled, weekStart, selectedEmployee])
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    if (!moduleEnabled) return
+    refreshRef.current = setInterval(fetchEntries, 30000)
+    return () => { if (refreshRef.current) clearInterval(refreshRef.current) }
+  }, [moduleEnabled, fetchEntries])
 
   const weekEnd = addDays(weekStart, 6)
 
   const totalHours = useMemo(() => {
-    return entries.reduce((sum, e) => sum + (e.duration_minutes || 0), 0) / 60
+    return entries.reduce((sum, e) => {
+      if (e.clocked_out_at) return sum + (e.duration_minutes || 0)
+      return sum + computeLiveMinutes(e)
+    }, 0) / 60
   }, [entries])
 
   const completedCount = useMemo(() => {
-    return entries.filter(e => e.clocked_out_at).length
+    return entries.filter(e => e.clocked_out_at || e.status === 'completed').length
   }, [entries])
 
   const pendingCount = useMemo(() => {
-    return entries.filter(e => !e.clocked_out_at).length
+    return entries.filter(e => !e.clocked_out_at && (e.status === 'active' || e.status === 'paused')).length
   }, [entries])
 
   const estimatedCost = useMemo(() => {
     return entries.reduce((sum, e) => {
-      const hours = (e.duration_minutes || 0) / 60
+      const mins = e.clocked_out_at ? (e.duration_minutes || 0) : computeLiveMinutes(e)
       const rate = e.hourly_rate || 0
-      return sum + hours * rate
+      return sum + (mins / 60) * rate
     }, 0)
   }, [entries])
 
-  // Group by employee
+  // Group by employee, active/paused entries first
   const grouped = useMemo(() => {
-    const map: Record<string, { name: string; entries: TimeEntry[] }> = {}
+    const map: Record<string, { name: string; color: string | null; entries: TimeEntry[] }> = {}
     for (const e of entries) {
       const key = e.employee_name || 'Unknown'
-      if (!map[key]) map[key] = { name: key, entries: [] }
+      if (!map[key]) map[key] = { name: key, color: e.employee_color || null, entries: [] }
       map[key].entries.push(e)
+    }
+    // Sort entries within each group: active/paused first
+    for (const g of Object.values(map)) {
+      g.entries.sort((a, b) => {
+        const aActive = !a.clocked_out_at ? 0 : 1
+        const bActive = !b.clocked_out_at ? 0 : 1
+        if (aActive !== bActive) return aActive - bActive
+        return new Date(b.clocked_in_at).getTime() - new Date(a.clocked_in_at).getTime()
+      })
     }
     return Object.values(map)
   }, [entries])
@@ -282,6 +345,9 @@ export default function TimesheetsPage() {
             {grouped.map((group) => (
               <div key={group.name} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                  {group.color && (
+                    <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: group.color }} />
+                  )}
                   <Users className="w-4 h-4 text-gray-500" />
                   <h3 className="font-semibold text-gray-900 dark:text-white">{group.name}</h3>
                   <span className="text-sm text-gray-500">({group.entries.length})</span>
@@ -311,39 +377,57 @@ export default function TimesheetsPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {group.entries.map((entry) => (
-                        <tr key={entry.id} className="border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                          <td className="px-4 py-3 text-gray-900 dark:text-white">
-                            {new Date(entry.clocked_in_at).toLocaleDateString(fr ? 'fr-CA' : 'en-CA')}
-                          </td>
-                          <td className="px-4 py-3 text-gray-900 dark:text-white">
-                            {entry.jobs?.title || '-'}
-                            {entry.jobs?.customers?.name && (
-                              <span className="text-gray-400 text-xs ml-1">({entry.jobs.customers.name})</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                            {fmtTime(entry.clocked_in_at)}
-                          </td>
-                          <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
-                            {entry.clocked_out_at ? fmtTime(entry.clocked_out_at) : '-'}
-                          </td>
-                          <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
-                            {fmtDuration(entry.duration_minutes)}
-                          </td>
-                          <td className="px-4 py-3">
-                            {entry.clocked_out_at ? (
-                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                {fr ? 'Complete' : 'Completed'}
-                              </span>
-                            ) : (
-                              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
-                                {fr ? 'En cours' : 'Active'}
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                      {group.entries.map((entry) => {
+                        const isActive = !entry.clocked_out_at && entry.status !== 'paused'
+                        const isPaused = entry.status === 'paused'
+                        const isLive = isActive || isPaused
+
+                        return (
+                          <tr key={entry.id} className={`border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 ${isLive ? 'bg-emerald-50/50 dark:bg-emerald-900/10' : ''}`}>
+                            <td className="px-4 py-3 text-gray-900 dark:text-white">
+                              {new Date(entry.clocked_in_at).toLocaleDateString(fr ? 'fr-CA' : 'en-CA')}
+                            </td>
+                            <td className="px-4 py-3 text-gray-900 dark:text-white">
+                              {entry.jobs?.title || '-'}
+                              {entry.jobs?.customers?.name && (
+                                <span className="text-gray-400 text-xs ml-1">({entry.jobs.customers.name})</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                              {fmtTime(entry.clocked_in_at)}
+                            </td>
+                            <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+                              {entry.clocked_out_at ? fmtTime(entry.clocked_out_at) : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
+                              {isLive ? (
+                                <LiveTimer entry={entry} />
+                              ) : (
+                                fmtDuration(entry.duration_minutes)
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              {isActive && (
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                                  <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                                  {fr ? 'En cours' : 'Active'}
+                                </span>
+                              )}
+                              {isPaused && (
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                                  <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+                                  {fr ? 'En pause' : 'Paused'}
+                                </span>
+                              )}
+                              {!isLive && (
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                                  {fr ? 'Complete' : 'Completed'}
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
