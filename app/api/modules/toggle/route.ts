@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminClient, getAuthedUser, UNAUTHORIZED } from '@/lib/supabase-server'
 import { canEnableModule, getDependents, type ModuleKey } from '@/lib/modules'
 
-const VALID_KEYS: ModuleKey[] = ['recurring_contracts', 'team_management', 'time_tracking']
+const VALID_KEYS: ModuleKey[] = ['recurring_contracts', 'time_tracking']
 
 export async function POST(req: NextRequest) {
   const user = await getAuthedUser(req)

@@ -75,7 +75,7 @@ export const PLAN_LIMITS: Record<PlanName, PlanLimits> = {
     fullReports: true,
     completionNotifications: true,
     showGestivioBranding: false,
-    availableModules: ['recurring_contracts', 'team_management', 'time_tracking'],
+    availableModules: ['recurring_contracts', 'time_tracking'],
   },
   croissance: {
     maxUsers: 15,
@@ -98,7 +98,7 @@ export const PLAN_LIMITS: Record<PlanName, PlanLimits> = {
     fullReports: true,
     completionNotifications: true,
     showGestivioBranding: false,
-    availableModules: ['recurring_contracts', 'team_management', 'time_tracking'],
+    availableModules: ['recurring_contracts', 'time_tracking'],
   },
 }
 

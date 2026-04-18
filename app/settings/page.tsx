@@ -1292,8 +1292,8 @@ export default function SettingsPage() {
                       const Icon = ICON_MAP[mod.icon] || FileText
                       const enabled = isModuleEnabled(enabledModules, plan.plan, mod.key)
                       const check = canEnableModule(enabledModules, plan.plan, mod.key)
-                      const planTooLow = !check.allowed && check.reason && !mod.requiresModule
-                      const depMissing = !check.allowed && check.reason && mod.requiresModule && enabledModules?.[mod.requiresModule] !== true
+                      const planTooLow = !check.allowed && !!check.reason
+                      const depMissing = false
 
                       return (
                         <div

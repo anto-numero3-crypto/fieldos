@@ -1,12 +1,11 @@
-export type ModuleKey = 'recurring_contracts' | 'team_management' | 'time_tracking'
+export type ModuleKey = 'recurring_contracts' | 'time_tracking'
 
 export interface Module {
   key: ModuleKey
   name: { fr: string; en: string }
   description: { fr: string; en: string }
-  icon: string // lucide-react icon name
+  icon: string
   requiredPlan: 'pro' | 'croissance'
-  requiresModule?: ModuleKey
   category: 'operations' | 'integrations'
 }
 
@@ -20,20 +19,11 @@ export const MODULES: Module[] = [
     category: 'operations',
   },
   {
-    key: 'team_management',
-    name: { fr: "Gestion d'équipe", en: 'Team management' },
-    description: { fr: 'Invitez des employés, assignez des interventions et gérez les accès.', en: 'Invite employees, assign jobs and manage access.' },
-    icon: 'Users',
-    requiredPlan: 'pro',
-    category: 'operations',
-  },
-  {
     key: 'time_tracking',
     name: { fr: 'Suivi du temps', en: 'Time tracking' },
     description: { fr: 'Poinçonnage mobile et feuilles de temps automatiques pour vos employés.', en: 'Mobile punch in/out and automatic timesheets for your employees.' },
     icon: 'Clock',
     requiredPlan: 'pro',
-    requiresModule: 'team_management',
     category: 'operations',
   },
 ]
@@ -65,14 +55,9 @@ export function canEnableModule(
   if (planOrder.indexOf(orgPlan) < planOrder.indexOf(mod.requiredPlan)) {
     return { allowed: false, reason: { fr: `Disponible avec le plan ${mod.requiredPlan === 'pro' ? 'Pro' : 'Croissance'}`, en: `Available with ${mod.requiredPlan === 'pro' ? 'Pro' : 'Growth'} plan` } }
   }
-  if (mod.requiresModule && enabledModules?.[mod.requiresModule] !== true) {
-    const dep = MODULES.find(m => m.key === mod.requiresModule)
-    return { allowed: false, reason: { fr: `Nécessite le module \u00ab ${dep?.name.fr} \u00bb`, en: `Requires "${dep?.name.en}" module` } }
-  }
   return { allowed: true }
 }
 
-// Get dependents of a module (modules that require it)
 export function getDependents(key: ModuleKey): ModuleKey[] {
-  return MODULES.filter(m => m.requiresModule === key).map(m => m.key)
+  return []
 }
