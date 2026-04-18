@@ -57,16 +57,12 @@ export default function EmployeeJobDetailPage() {
       const meData = await meRes.json()
       setEmpName(`${meData.employee.first_name} ${meData.employee.last_name}`)
 
-      // Load job
-      const { data: jobData } = await supabase
-        .from('jobs')
-        .select('id, title, description, status, scheduled_date, start_time, end_time, service_address, internal_notes, customers(name, phone, email)')
-        .eq('id', id)
-        .eq('assigned_employee_id', meData.employee.id)
-        .single()
-
+      // Load job via server-side API (bypasses RLS)
+      const jobRes = await fetch(`/api/employees/my-jobs/${id}`)
+      if (!jobRes.ok) { router.push('/employee'); return }
+      const { job: jobData } = await jobRes.json()
       if (!jobData) { router.push('/employee'); return }
-      setJob(jobData as unknown as Job)
+      setJob(jobData as Job)
       setNotes(jobData.internal_notes || '')
       setLoading(false)
     }
@@ -75,13 +71,21 @@ export default function EmployeeJobDetailPage() {
 
   const markComplete = async () => {
     if (!job) return
-    const { error } = await supabase.from('jobs').update({ status: 'completed' }).eq('id', id)
-    if (!error) setJob({ ...job, status: 'completed' })
+    const res = await fetch(`/api/employees/my-jobs/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'completed' }),
+    })
+    if (res.ok) setJob({ ...job, status: 'completed' })
   }
 
   const saveNotes = async () => {
     setSavingNotes(true)
-    await supabase.from('jobs').update({ internal_notes: notes || null }).eq('id', id)
+    await fetch(`/api/employees/my-jobs/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ internal_notes: notes || '' }),
+    })
     setSavingNotes(false)
   }
 

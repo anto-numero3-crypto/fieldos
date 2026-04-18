@@ -82,8 +82,12 @@ export default function EmployeeDashboard() {
   }, [router])
 
   const markComplete = async (jobId: string) => {
-    const { error } = await supabase.from('jobs').update({ status: 'completed' }).eq('id', jobId)
-    if (!error) {
+    const res = await fetch(`/api/employees/my-jobs/${jobId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'completed' }),
+    })
+    if (res.ok) {
       setTodayJobs(prev => prev.map(j => j.id === jobId ? { ...j, status: 'completed' } : j))
       setUpcomingJobs(prev => prev.map(j => j.id === jobId ? { ...j, status: 'completed' } : j))
     }
