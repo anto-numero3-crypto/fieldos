@@ -13,7 +13,7 @@ import { toast } from 'sonner'
 import {
   Loader2, FileText, Calendar, DollarSign, Briefcase, Send,
   Zap, ChevronRight, CheckCircle, Clock, XCircle, Edit,
-  Trash2, ArrowLeft, Receipt, Printer, Eye, PenLine, X,
+  Trash2, ArrowLeft, Receipt, Printer, Eye, PenLine, X, Type,
 } from 'lucide-react'
 import SignaturePad from '@/components/SignaturePad'
 
@@ -816,6 +816,33 @@ export default function ContractDetailPage() {
               <div className="flex items-center justify-center py-2">
                 <Loader2 className="h-5 w-5 text-indigo-500 animate-spin" />
               </div>
+            )}
+            {!signingOwner && signatureName.trim() && (
+              <button
+                type="button"
+                disabled={!signatureName.trim()}
+                onClick={() => {
+                  // Quick typed signature fallback
+                  const canvas = document.createElement('canvas')
+                  canvas.width = 400
+                  canvas.height = 150
+                  const ctx = canvas.getContext('2d')
+                  if (ctx) {
+                    ctx.fillStyle = '#ffffff'
+                    ctx.fillRect(0, 0, 400, 150)
+                    ctx.fillStyle = '#000000'
+                    ctx.font = 'italic 32px Georgia, "Times New Roman", serif'
+                    ctx.textAlign = 'center'
+                    ctx.textBaseline = 'middle'
+                    ctx.fillText(signatureName.trim(), 200, 75)
+                    handleOwnerSign(canvas.toDataURL('image/png'))
+                  }
+                }}
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                <Type className="h-3.5 w-3.5" />
+                {fr ? 'Ou signer avec votre nom tap\u00e9' : 'Or sign with your typed name'}
+              </button>
             )}
           </div>
         </div>

@@ -60,6 +60,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: updateErr.message }, { status: 500 })
   }
 
+  // Save owner signature to organization for reuse
+  await supabase
+    .from('organizations')
+    .update({ owner_signature: signature })
+    .eq('id', org.id)
+
   // Send emails
   const resendKey = process.env.RESEND_API_KEY
   if (resendKey) {

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { useLanguage } from '@/lib/LanguageContext'
-import { Eraser, Check, Type } from 'lucide-react'
+import { Eraser, Check, Type, Upload, PenLine } from 'lucide-react'
 
 interface SignaturePadProps {
   onSave: (dataUrl: string) => void
@@ -10,6 +10,8 @@ interface SignaturePadProps {
   width?: number
   height?: number
 }
+
+type TabKey = 'draw' | 'type' | 'upload'
 
 export default function SignaturePad({ onSave, onClear, width, height = 150 }: SignaturePadProps) {
   const { lang } = useLanguage()
@@ -21,6 +23,8 @@ export default function SignaturePad({ onSave, onClear, width, height = 150 }: S
   const [hasDrawn, setHasDrawn] = useState(false)
   const [typedName, setTypedName] = useState('')
   const [canvasWidth, setCanvasWidth] = useState(width || 400)
+  const [activeTab, setActiveTab] = useState<TabKey>('draw')
+  const [uploadPreview, setUploadPreview] = useState<string | null>(null)
 
   // Responsive width
   useEffect(() => {
@@ -97,6 +101,8 @@ export default function SignaturePad({ onSave, onClear, width, height = 150 }: S
   const handleClear = () => {
     initCanvas()
     setHasDrawn(false)
+    setUploadPreview(null)
+    setTypedName('')
     onClear()
   }
 
@@ -113,10 +119,8 @@ export default function SignaturePad({ onSave, onClear, width, height = 150 }: S
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-    // Clear and draw white background
     ctx.fillStyle = '#ffffff'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
-    // Render name in italic serif
     ctx.fillStyle = '#000000'
     ctx.font = `italic 32px "Georgia", "Times New Roman", serif`
     ctx.textAlign = 'center'
@@ -125,68 +129,197 @@ export default function SignaturePad({ onSave, onClear, width, height = 150 }: S
     setHasDrawn(true)
   }
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 500 * 1024) {
+      alert(fr ? 'Fichier trop volumineux (max 500 Ko)' : 'File too large (max 500KB)')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+      const dataUrl = reader.result as string
+      setUploadPreview(dataUrl)
+      // Draw onto canvas
+      const img = new Image()
+      img.onload = () => {
+        const canvas = canvasRef.current
+        if (!canvas) return
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        const scale = Math.min(canvas.width * 0.8 / img.width, canvas.height * 0.8 / img.height, 1)
+        const w = img.width * scale
+        const h = img.height * scale
+        const x = (canvas.width - w) / 2
+        const y = (canvas.height - h) / 2
+        ctx.drawImage(img, x, y, w, h)
+        setHasDrawn(true)
+      }
+      img.src = dataUrl
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const useUploadedSignature = () => {
+    if (!uploadPreview) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const dataUrl = canvas.toDataURL('image/png')
+    onSave(dataUrl)
+  }
+
+  const tabs: { key: TabKey; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { key: 'draw', label: fr ? 'Dessiner' : 'Draw', icon: PenLine },
+    { key: 'type', label: fr ? 'Taper' : 'Type', icon: Type },
+    { key: 'upload', label: fr ? 'Importer' : 'Upload', icon: Upload },
+  ]
+
   return (
     <div ref={containerRef} className="w-full max-w-[400px]">
-      <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
-        <canvas
-          ref={canvasRef}
-          width={canvasWidth}
-          height={height}
-          className="cursor-crosshair touch-none w-full"
-          style={{ display: 'block' }}
-          onMouseDown={startDraw}
-          onMouseMove={draw}
-          onMouseUp={stopDraw}
-          onMouseLeave={stopDraw}
-          onTouchStart={startDraw}
-          onTouchMove={draw}
-          onTouchEnd={stopDraw}
-        />
-      </div>
-      <div className="flex gap-2 mt-2">
-        <button
-          type="button"
-          onClick={handleClear}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-        >
-          <Eraser className="h-3.5 w-3.5" />
-          {fr ? 'Effacer' : 'Clear'}
-        </button>
-        <button
-          type="button"
-          onClick={handleConfirm}
-          disabled={!hasDrawn}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-        >
-          <Check className="h-3.5 w-3.5" />
-          {fr ? 'Confirmer' : 'Confirm'}
-        </button>
+      {/* Tabs */}
+      <div className="flex gap-1 mb-2">
+        {tabs.map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => { setActiveTab(key); handleClear() }}
+            className={[
+              'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+              activeTab === key
+                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                : 'bg-gray-50 text-gray-500 border border-gray-100 hover:bg-gray-100',
+            ].join(' ')}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* Type name fallback */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <p className="text-xs text-gray-500 mb-2">
-          {fr ? 'Ou tapez votre nom' : 'Or type your name'}
-        </p>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={typedName}
-            onChange={(e) => setTypedName(e.target.value)}
-            placeholder={fr ? 'Votre nom' : 'Your name'}
-            className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 outline-none"
-          />
-          <button
-            type="button"
-            onClick={renderTypedSignature}
-            disabled={!typedName.trim()}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-          >
-            <Type className="h-3.5 w-3.5" />
-            {fr ? 'Appliquer' : 'Apply'}
-          </button>
-        </div>
-      </div>
+      {/* Draw tab */}
+      {activeTab === 'draw' && (
+        <>
+          <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+            <canvas
+              ref={canvasRef}
+              width={canvasWidth}
+              height={height}
+              className="cursor-crosshair touch-none w-full"
+              style={{ display: 'block' }}
+              onMouseDown={startDraw}
+              onMouseMove={draw}
+              onMouseUp={stopDraw}
+              onMouseLeave={stopDraw}
+              onTouchStart={startDraw}
+              onTouchMove={draw}
+              onTouchEnd={stopDraw}
+            />
+          </div>
+          <div className="flex gap-2 mt-2">
+            <button
+              type="button"
+              onClick={handleClear}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              <Eraser className="h-3.5 w-3.5" />
+              {fr ? 'Effacer' : 'Clear'}
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={!hasDrawn}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            >
+              <Check className="h-3.5 w-3.5" />
+              {fr ? 'Confirmer' : 'Confirm'}
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Type tab */}
+      {activeTab === 'type' && (
+        <>
+          <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+            <canvas
+              ref={canvasRef}
+              width={canvasWidth}
+              height={height}
+              className="w-full"
+              style={{ display: 'block' }}
+            />
+          </div>
+          <div className="flex gap-2 mt-2">
+            <input
+              type="text"
+              value={typedName}
+              onChange={(e) => setTypedName(e.target.value)}
+              placeholder={fr ? 'Votre nom' : 'Your name'}
+              className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => { renderTypedSignature(); setTimeout(handleConfirm, 50) }}
+              disabled={!typedName.trim()}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            >
+              <Check className="h-3.5 w-3.5" />
+              {fr ? 'Appliquer' : 'Apply'}
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Upload tab */}
+      {activeTab === 'upload' && (
+        <>
+          <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+            <canvas
+              ref={canvasRef}
+              width={canvasWidth}
+              height={height}
+              className="w-full"
+              style={{ display: 'block' }}
+            />
+          </div>
+          {!uploadPreview ? (
+            <div className="mt-2">
+              <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
+                <Upload className="h-3.5 w-3.5" />
+                {fr ? 'Choisir un fichier' : 'Choose file'}
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+              <span className="text-xs text-gray-400 ml-2">PNG, JPG, WebP (max 500 Ko)</span>
+            </div>
+          ) : (
+            <div className="flex gap-2 mt-2">
+              <button
+                type="button"
+                onClick={handleClear}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                <Eraser className="h-3.5 w-3.5" />
+                {fr ? 'Effacer' : 'Clear'}
+              </button>
+              <button
+                type="button"
+                onClick={useUploadedSignature}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition-colors"
+              >
+                <Check className="h-3.5 w-3.5" />
+                {fr ? 'Utiliser cette signature' : 'Use this signature'}
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }

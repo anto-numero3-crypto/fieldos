@@ -203,8 +203,8 @@ export default function ContractApprovalPage() {
           .print-view { display: none !important; }
         }
         @media print {
-          @page { size: letter; margin: 0.6in; }
-          html, body { background: white !important; margin: 0 !important; padding: 0 !important; }
+          @page { size: letter; margin: 0.5in; }
+          html, body { background: white !important; margin: 0 !important; padding: 0 !important; font-size: 10px !important; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .web-view, nav, header, .no-print { display: none !important; }
           .print-view {
@@ -212,215 +212,212 @@ export default function ContractApprovalPage() {
             flex-direction: column !important;
             min-height: 100vh !important;
             background: white !important;
-            box-shadow: none !important;
-            border: none !important;
-            border-radius: 0 !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
+            box-shadow: none !important; border: none !important; border-radius: 0 !important;
+            padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 100% !important;
+            line-height: 1.3 !important;
           }
           .print-footer { page-break-inside: avoid; margin-top: auto; }
+          .contract-section, .pricing-table, .signature-block { page-break-inside: avoid; break-inside: avoid; }
         }
       `}} />
 
       {/* ===== PRINT VIEW ===== */}
-      <div className="print-view" style={{ flexDirection: 'column', minHeight: '100vh', fontFamily: "-apple-system, 'Segoe UI', sans-serif", color: '#111', padding: 0 }}>
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+      <div className="print-view" style={{ flexDirection: 'column', minHeight: '100vh', fontFamily: "-apple-system, 'Segoe UI', sans-serif", color: '#111', padding: 0, lineHeight: 1.3 }}>
+        {/* Header — compact 60px max */}
+        <div className="contract-section" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', maxHeight: '60px', overflow: 'hidden' }}>
           <div>
             {org?.logo_url && (
-              <img src={org.logo_url} alt={bizName} style={{ maxWidth: '180px', maxHeight: '80px', objectFit: 'contain', marginBottom: '8px', display: 'block' }} />
+              <img src={org.logo_url} alt={bizName} style={{ maxWidth: '120px', maxHeight: '40px', objectFit: 'contain', display: 'block', marginBottom: '2px' }} />
             )}
             {!org?.logo_url && (
-              <div style={{ fontSize: '20px', fontWeight: 800, marginBottom: '4px' }}>{bizName}</div>
+              <div style={{ fontSize: '14px', fontWeight: 800, marginBottom: '2px' }}>{bizName}</div>
             )}
-            <div style={{ fontSize: '11px', color: '#555', lineHeight: 1.6 }}>
-              {org?.address && <>{org.address}<br /></>}
-              {(org?.city || org?.state || org?.zip) && <>{[org?.city, org?.state].filter(Boolean).join(', ')} {org?.zip}</>}
-              {org?.phone && <><br />{org.phone}</>}
-              {org?.email && <><br />{org.email}</>}
+            <div style={{ fontSize: '8px', color: '#555', lineHeight: 1.3 }}>
+              {(() => {
+                const addressLine = org?.address && org.address.includes(',')
+                  ? org.address
+                  : [org?.address, org?.city, org?.state, org?.zip].filter(Boolean).join(', ')
+                return addressLine ? <>{addressLine}</> : null
+              })()}
+              {(org?.phone || org?.email) && (
+                <>{org?.address ? <br /> : ''}{[org?.phone, org?.email].filter(Boolean).join(' \u00B7 ')}</>
+              )}
               {org?.tax_number && <><br />TPS/TVQ: {org.tax_number}</>}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '2px', color: '#111', marginBottom: '12px' }}>
+            <div style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '1px', color: '#111', marginBottom: '4px' }}>
               {fr ? 'CONTRAT DE SERVICE' : 'SERVICE CONTRACT'}
             </div>
-            <div style={{ border: '1px solid #ddd', borderRadius: '6px', padding: '12px 16px', textAlign: 'left', fontSize: '12px', lineHeight: 1.8 }}>
+            <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '4px 8px', textAlign: 'left', fontSize: '9px', lineHeight: 1.4 }}>
               <div><strong>{fr ? 'Contrat' : 'Contract'}:</strong> {contract.title}</div>
-              <div><strong>{fr ? 'Début' : 'Start'}:</strong> {fmtDate(contract.start_date, lang)}</div>
-              <div><strong>{fr ? 'Fin' : 'End'}:</strong> {fmtDate(contract.end_date, lang)}</div>
+              <div><strong>{fr ? 'D\u00e9but' : 'Start'}:</strong> {fmtDate(contract.start_date, lang)} &mdash; <strong>{fr ? 'Fin' : 'End'}:</strong> {fmtDate(contract.end_date, lang)}</div>
             </div>
           </div>
         </div>
 
-        <div style={{ borderTop: '2px solid #000', marginBottom: '20px' }} />
+        <div style={{ borderTop: '2px solid #000', marginBottom: '6px' }} />
 
-        {/* Client */}
+        {/* Client — one line */}
         {contract.customers && (
-          <div style={{ marginBottom: '20px' }}>
-            <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
-              {fr ? 'CLIENT' : 'CLIENT'}
+          <div className="contract-section" style={{ marginBottom: '6px' }}>
+            <div style={{ fontSize: '8px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '2px' }}>
+              {fr ? 'CONTRAT POUR' : 'CONTRACT FOR'}
             </div>
-            <div style={{ fontSize: '13px', fontWeight: 700 }}>{contract.customers.name}</div>
-            {contract.customers.address && <div style={{ fontSize: '11px', color: '#555' }}>{contract.customers.address}</div>}
-            {contract.customers.phone && <div style={{ fontSize: '11px', color: '#555' }}>{contract.customers.phone}</div>}
-            {contract.customers.email && <div style={{ fontSize: '11px', color: '#555' }}>{contract.customers.email}</div>}
+            <div style={{ fontSize: '9px', color: '#333' }}>
+              <strong>{contract.customers.name}</strong>
+              {contract.customers.phone && <> &middot; {contract.customers.phone}</>}
+              {contract.customers.email && <> &middot; {contract.customers.email}</>}
+              {contract.customers.address && <> &middot; {contract.customers.address}</>}
+            </div>
           </div>
         )}
 
         {/* Service description */}
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
+        <div className="contract-section" style={{ marginBottom: '6px' }}>
+          <div style={{ fontSize: '8px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '2px' }}>
             {fr ? 'DESCRIPTION DU SERVICE' : 'SERVICE DESCRIPTION'}
           </div>
-          <div style={{ fontSize: '13px', fontWeight: 600 }}>{contract.service_name}</div>
+          <div style={{ fontSize: '9px', fontWeight: 600 }}>{contract.service_name}</div>
           {contract.service_description && (
-            <div style={{ fontSize: '12px', color: '#555', marginTop: '4px' }}>{contract.service_description}</div>
+            <div style={{ fontSize: '9px', color: '#555', marginTop: '2px' }}>{contract.service_description}</div>
           )}
         </div>
 
-        {/* Schedule */}
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
+        {/* Schedule — one line */}
+        <div className="contract-section" style={{ marginBottom: '6px' }}>
+          <div style={{ fontSize: '8px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '2px' }}>
             {fr ? 'HORAIRE' : 'SCHEDULE'}
           </div>
-          <div style={{ fontSize: '12px', color: '#333', lineHeight: 1.8 }}>
-            <div>{fr ? 'Récurrence' : 'Recurrence'}: {getRecurrenceLabel(contract.recurrence_type, lang)}</div>
-            <div>{fr ? 'Période' : 'Period'}: {fmtDate(contract.start_date, lang)} - {fmtDate(contract.end_date, lang)}</div>
+          <div style={{ fontSize: '9px', color: '#333', lineHeight: 1.3 }}>
+            <div>
+              {fr ? 'R\u00e9currence' : 'Recurrence'}: {getRecurrenceLabel(contract.recurrence_type, lang)} &middot; {fr ? 'P\u00e9riode' : 'Period'}: {fmtDate(contract.start_date, lang)} &mdash; {fmtDate(contract.end_date, lang)}
+            </div>
             {previewDates.length > 0 && (
-              <div style={{ marginTop: '4px' }}>
-                <span style={{ fontWeight: 600 }}>{fr ? 'Premières dates:' : 'First dates:'}</span>{' '}
-                {previewDates.map((d) => fmtDate(d, lang, 'short')).join(', ')}
-                ...
+              <div>
+                {fr ? 'Prochaines dates' : 'Next dates'}: {previewDates.map((d) => fmtDate(d, lang, 'short')).join(', ')}...
               </div>
             )}
           </div>
         </div>
 
-        {/* Pricing table */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
+        {/* Pricing table — compact */}
+        <table className="pricing-table" style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '6px' }}>
           <thead>
             <tr style={{ background: '#1f2937', color: 'white' }}>
-              <th style={{ textAlign: 'left', padding: '10px 12px', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</th>
-              <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '10px', textTransform: 'uppercase', width: '120px' }}>{fr ? 'Prix/visite' : 'Price/visit'}</th>
-              <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '10px', textTransform: 'uppercase', width: '120px' }}>{fr ? 'Sous-total' : 'Subtotal'}</th>
+              <th style={{ textAlign: 'left', padding: '3px 6px', fontSize: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</th>
+              <th style={{ textAlign: 'right', padding: '3px 6px', fontSize: '8px', textTransform: 'uppercase', width: '100px' }}>{fr ? 'Prix/visite' : 'Price/visit'}</th>
+              <th style={{ textAlign: 'right', padding: '3px 6px', fontSize: '8px', textTransform: 'uppercase', width: '100px' }}>{fr ? 'Sous-total' : 'Subtotal'}</th>
             </tr>
           </thead>
           <tbody>
             <tr style={{ borderBottom: '1px solid #eee' }}>
-              <td style={{ padding: '10px 12px', fontSize: '12px' }}>{contract.service_name}</td>
-              <td style={{ textAlign: 'right', padding: '10px 12px', fontSize: '12px' }}>{fmtMoney(contract.price_per_visit, lang)}</td>
-              <td style={{ textAlign: 'right', padding: '10px 12px', fontSize: '12px', fontWeight: 600 }}>{fmtMoney(subtotal, lang)}</td>
+              <td style={{ padding: '3px 6px', fontSize: '9px' }}>{contract.service_name}</td>
+              <td style={{ textAlign: 'right', padding: '3px 6px', fontSize: '9px' }}>{fmtMoney(contract.price_per_visit, lang)}</td>
+              <td style={{ textAlign: 'right', padding: '3px 6px', fontSize: '9px', fontWeight: 600 }}>{fmtMoney(subtotal, lang)}</td>
             </tr>
           </tbody>
         </table>
 
         {/* Totals */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
-          <div style={{ width: '250px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: '12px', color: '#555' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '6px' }}>
+          <div style={{ width: '200px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9px', color: '#555' }}>
               <span>{fr ? 'Sous-total' : 'Subtotal'}</span><span>{fmtMoney(subtotal, lang)}</span>
             </div>
             {includeTps && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: '12px', color: '#555' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9px', color: '#555' }}>
                 <span>TPS (5%)</span><span>{fmtMoney(tpsAmount, lang)}</span>
               </div>
             )}
             {includeTvq && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: '12px', color: '#555' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9px', color: '#555' }}>
                 <span>TVQ (9,975%)</span><span>{fmtMoney(tvqAmount, lang)}</span>
               </div>
             )}
-            <div style={{ borderTop: '2px solid #000', marginTop: '8px', paddingTop: '8px', display: 'flex', justifyContent: 'space-between', fontSize: '16px', fontWeight: 800 }}>
+            <div style={{ borderTop: '2px solid #000', marginTop: '4px', paddingTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 800 }}>
               <span>TOTAL</span><span>{fmtMoney(totalWithTaxes, lang)}</span>
             </div>
           </div>
         </div>
 
-        {/* Payment terms */}
-        <div style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
-            {fr ? 'MODALITÉS DE PAIEMENT' : 'PAYMENT TERMS'}
-          </div>
-          <div style={{ fontSize: '12px', color: '#555' }}>
-            {fr ? `Facturation: ${getBillingTypeLabel(contract.billing_type, lang)}` : `Billing: ${getBillingTypeLabel(contract.billing_type, lang)}`}
+        {/* Payment terms — one line */}
+        <div className="contract-section" style={{ marginBottom: '6px' }}>
+          <div style={{ fontSize: '9px', color: '#555' }}>
+            {fr ? 'Facturation' : 'Billing'}: {getBillingTypeLabel(contract.billing_type, lang)}
             {contract.billing_frequency && (
-              <span> - {fr ? 'Fréquence' : 'Frequency'}: {getBillingFrequencyLabel(contract.billing_frequency, lang)}</span>
+              <> &middot; {fr ? 'Fr\u00e9quence' : 'Frequency'}: {getBillingFrequencyLabel(contract.billing_frequency, lang)}</>
             )}
           </div>
           {contract.notes && (
-            <div style={{ fontSize: '11px', color: '#555', marginTop: '8px', fontStyle: 'italic' }}>{contract.notes}</div>
+            <div style={{ fontSize: '8px', color: '#555', marginTop: '2px', fontStyle: 'italic' }}>{contract.notes}</div>
           )}
         </div>
 
-        {/* Signature block for print */}
-        <div style={{ marginBottom: '24px', marginTop: '20px' }}>
-          <div style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px', borderBottom: '2px solid #000', paddingBottom: '4px' }}>
+        {/* Signature block — two columns, max 80px height */}
+        <div className="signature-block" style={{ marginBottom: '6px', marginTop: '6px', maxHeight: '80px' }}>
+          <div style={{ fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', borderBottom: '1px solid #000', paddingBottom: '2px' }}>
             SIGNATURES
           </div>
-          <div style={{ display: 'flex', gap: '40px' }}>
+          <div style={{ display: 'flex', gap: '20px' }}>
             {/* Owner / Business */}
-            <div style={{ flex: 1, border: '1px solid #ddd', borderRadius: '6px', padding: '16px' }}>
-              <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '8px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
                 {fr ? `Pour ${bizName}` : `For ${bizName}`}
               </div>
               {contract.owner_signature ? (
                 <>
-                  <img src={contract.owner_signature} alt="Owner signature" style={{ maxWidth: '200px', maxHeight: '80px', objectFit: 'contain', display: 'block', marginBottom: '8px' }} />
-                  <div style={{ fontSize: '12px', fontWeight: 600 }}>{contract.owner_signed_name}</div>
-                  <div style={{ fontSize: '10px', color: '#888' }}>
+                  <img src={contract.owner_signature} alt="Owner signature" style={{ maxWidth: '120px', maxHeight: '40px', objectFit: 'contain', display: 'block', marginBottom: '2px' }} />
+                  <div style={{ borderBottom: '1px solid #000', width: '150px', marginBottom: '2px' }} />
+                  <div style={{ fontSize: '9px', fontWeight: 600 }}>{contract.owner_signed_name}</div>
+                  <div style={{ fontSize: '8px', color: '#666' }}>
                     {contract.owner_signed_at ? fmtDate(contract.owner_signed_at, lang) : ''}
                   </div>
                 </>
               ) : (
-                <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: '11px', color: '#999', fontStyle: 'italic' }}>
+                <>
+                  <div style={{ borderBottom: '1px solid #000', width: '150px', marginTop: '20px', marginBottom: '2px' }} />
+                  <span style={{ fontSize: '8px', color: '#999', fontStyle: 'italic' }}>
                     {fr ? 'En attente de signature' : 'Awaiting signature'}
                   </span>
-                </div>
+                </>
               )}
             </div>
             {/* Client */}
-            <div style={{ flex: 1, border: '1px solid #ddd', borderRadius: '6px', padding: '16px' }}>
-              <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '8px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
                 Client
               </div>
               {contract.client_signature ? (
                 <>
-                  <img src={contract.client_signature} alt="Client signature" style={{ maxWidth: '200px', maxHeight: '80px', objectFit: 'contain', display: 'block', marginBottom: '8px' }} />
-                  <div style={{ fontSize: '12px', fontWeight: 600 }}>{contract.client_signed_name}</div>
-                  <div style={{ fontSize: '10px', color: '#888' }}>
+                  <img src={contract.client_signature} alt="Client signature" style={{ maxWidth: '120px', maxHeight: '40px', objectFit: 'contain', display: 'block', marginBottom: '2px' }} />
+                  <div style={{ borderBottom: '1px solid #000', width: '150px', marginBottom: '2px' }} />
+                  <div style={{ fontSize: '9px', fontWeight: 600 }}>{contract.client_signed_name}</div>
+                  <div style={{ fontSize: '8px', color: '#666' }}>
                     {contract.client_signed_at ? fmtDate(contract.client_signed_at, lang) : ''}
                   </div>
                 </>
               ) : (
-                <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: '11px', color: '#999', fontStyle: 'italic' }}>
+                <>
+                  <div style={{ borderBottom: '1px solid #000', width: '150px', marginTop: '20px', marginBottom: '2px' }} />
+                  <span style={{ fontSize: '8px', color: '#999', fontStyle: 'italic' }}>
                     {fr ? 'En attente de signature' : 'Awaiting signature'}
                   </span>
-                </div>
+                </>
               )}
             </div>
-          </div>
-          <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '10px', color: '#999' }}>
-            {fr
-              ? `Document signé électroniquement via Gestivio · Réf: ${contract.id}`
-              : `Document signed electronically via Gestivio · Ref: ${contract.id}`}
           </div>
         </div>
 
         {/* Spacer */}
         <div style={{ flex: 1 }} />
 
-        {/* Footer */}
-        <div className="print-footer" style={{ borderTop: '1px solid #ddd', paddingTop: '12px', textAlign: 'center' }}>
-          <div style={{ fontSize: '11px', color: '#888', fontStyle: 'italic', marginBottom: '4px' }}>
-            {fr ? 'Merci pour votre confiance.' : 'Thank you for your business.'}
-          </div>
-          <div style={{ fontSize: '10px', color: '#999' }}>
-            {bizName}{org?.phone ? ` \u00B7 ${org.phone}` : ''}{org?.email ? ` \u00B7 ${org.email}` : ''}
+        {/* Footer — legal ref pinned to bottom */}
+        <div className="print-footer" style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '7px', color: '#999' }}>
+            {fr
+              ? `Document sign\u00e9 \u00e9lectroniquement via Gestivio \u00B7 R\u00e9f: ${contract.id.slice(0, 8)}`
+              : `Document signed electronically via Gestivio \u00B7 Ref: ${contract.id.slice(0, 8)}`}
           </div>
         </div>
       </div>
@@ -544,8 +541,8 @@ export default function ContractApprovalPage() {
                 </div>
                 <p className="text-xs text-gray-400 text-center mt-4">
                   {fr
-                    ? `Document signé électroniquement via Gestivio · Réf: ${contract.id}`
-                    : `Document signed electronically via Gestivio · Ref: ${contract.id}`}
+                    ? `Document sign\u00e9 \u00e9lectroniquement via Gestivio \u00B7 R\u00e9f: ${contract.id.slice(0, 8)}`
+                    : `Document signed electronically via Gestivio \u00B7 Ref: ${contract.id.slice(0, 8)}`}
                 </p>
               </div>
 
