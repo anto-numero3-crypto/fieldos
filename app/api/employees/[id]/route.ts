@@ -57,7 +57,7 @@ export async function PATCH(
     .single()
   if (!emp) return NextResponse.json({ error: 'Employee not found' }, { status: 404 })
 
-  const allowed = ['first_name', 'last_name', 'phone', 'color', 'status'] as const
+  const allowed = ['first_name', 'last_name', 'phone', 'color', 'status', 'hourly_rate'] as const
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
   for (const key of allowed) {
     if (body[key] !== undefined) updates[key] = body[key]

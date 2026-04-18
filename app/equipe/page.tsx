@@ -14,7 +14,7 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import {
   Users, Plus, X, Mail, Phone, UserPlus, Lock, Shield, Send,
-  MoreHorizontal, Edit2, UserX, Loader2,
+  MoreHorizontal, Edit2, UserX, Loader2, DollarSign, RefreshCw,
 } from 'lucide-react'
 
 interface Employee {
@@ -26,6 +26,8 @@ interface Employee {
   status: string
   phone: string | null
   color: string
+  invite_token: string | null
+  hourly_rate: number | null
   created_at: string
 }
 
@@ -51,12 +53,16 @@ export default function TeamPage() {
   const [fEmail, setFEmail] = useState('')
   const [fPhone, setFPhone] = useState('')
   const [fColor, setFColor] = useState('#6366f1')
+  const [fHourlyRate, setFHourlyRate] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
 
   const loadEmployees = async () => {
+    console.log('[team-ui] loading employees')
     const res = await fetch('/api/employees')
     if (res.ok) {
       const data = await res.json()
+      console.log('[team-ui] loaded', data.employees?.length, 'employees')
       setEmployees(data.employees || [])
     }
     setLoading(false)
@@ -81,46 +87,51 @@ export default function TeamPage() {
 
   const moduleEnabled = isModuleEnabled(orgModules, plan.plan, 'team_management')
 
-  const openInviteModal = () => {
+  const openCreateModal = () => {
+    console.log('[team-ui] opening create modal')
     setEditEmployee(null)
     setFFirstName('')
     setFLastName('')
     setFEmail('')
     setFPhone('')
-    setFormError(null)
     setFColor('#6366f1')
+    setFHourlyRate('')
+    setFormError(null)
     setModalOpen(true)
   }
 
   const openEditModal = (emp: Employee) => {
+    console.log('[team-ui] opening edit modal for:', emp.id)
     setEditEmployee(emp)
     setFFirstName(emp.first_name)
     setFLastName(emp.last_name)
     setFEmail(emp.email)
     setFPhone(emp.phone || '')
     setFColor(emp.color || '#6366f1')
+    setFHourlyRate(emp.hourly_rate != null ? String(emp.hourly_rate) : '')
+    setFormError(null)
     setModalOpen(true)
   }
 
-  const [formError, setFormError] = useState<string | null>(null)
-
   const handleSubmit = async () => {
-    console.log('[invite-ui] submit clicked', { fFirstName, fLastName, fEmail, fPhone, fColor, editEmployee: !!editEmployee })
+    console.log('[team-ui] submit clicked', { fFirstName, fLastName, fEmail, fPhone, fColor, fHourlyRate, editEmployee: !!editEmployee })
     setFormError(null)
     if (!fFirstName.trim() || !fLastName.trim()) {
-      console.log('[invite-ui] missing name fields')
+      console.log('[team-ui] missing name fields')
       setFormError(fr ? 'Prénom et nom requis' : 'First and last name required')
       return
     }
     if (!editEmployee && !fEmail.trim()) {
-      console.log('[invite-ui] missing email')
+      console.log('[team-ui] missing email')
       setFormError(fr ? 'Courriel requis' : 'Email required')
       return
     }
     setSubmitting(true)
 
+    const hourlyRateNum = fHourlyRate.trim() ? parseFloat(fHourlyRate.trim()) : undefined
+
     if (editEmployee) {
-      // Update
+      console.log('[team-ui] updating employee:', editEmployee.id)
       const res = await fetch(`/api/employees/${editEmployee.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -129,22 +140,24 @@ export default function TeamPage() {
           last_name: fLastName.trim(),
           phone: fPhone.trim() || null,
           color: fColor,
+          hourly_rate: hourlyRateNum ?? null,
         }),
       })
       if (res.ok) {
+        console.log('[team-ui] update success')
         toast.success(fr ? 'Employé mis à jour' : 'Employee updated')
         setModalOpen(false)
         await loadEmployees()
       } else {
         const err = await res.json()
+        console.log('[team-ui] update error:', err)
         toast.error(err.error || 'Error')
       }
     } else {
-      // Invite
-      if (!fEmail.trim()) { setSubmitting(false); setFormError(fr ? 'Courriel requis' : 'Email required'); return }
-      console.log('[invite-ui] calling /api/employees/invite...')
+      // Create employee (no invite email)
+      console.log('[team-ui] calling POST /api/employees (create only)...')
       try {
-        const res = await fetch('/api/employees/invite', {
+        const res = await fetch('/api/employees', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -153,12 +166,13 @@ export default function TeamPage() {
             email: fEmail.trim(),
             phone: fPhone.trim() || undefined,
             color: fColor,
+            hourlyRate: hourlyRateNum,
           }),
         })
         const data = await res.json()
-        console.log('[invite-ui] response:', res.status, data)
+        console.log('[team-ui] create response:', res.status, data)
         if (res.ok) {
-          toast.success(fr ? 'Invitation envoyée!' : 'Invitation sent!')
+          toast.success(fr ? 'Membre ajouté' : 'Member added')
           setModalOpen(false)
           await loadEmployees()
         } else {
@@ -167,7 +181,7 @@ export default function TeamPage() {
           setFormError(errMsg)
         }
       } catch (err) {
-        console.error('[invite-ui] fetch exception:', err)
+        console.error('[team-ui] fetch exception:', err)
         const errMsg = err instanceof Error ? err.message : String(err)
         toast.error(errMsg)
         setFormError(errMsg)
@@ -176,7 +190,25 @@ export default function TeamPage() {
     setSubmitting(false)
   }
 
+  const sendInvite = async (empId: string) => {
+    console.log('[invite-ui] sending invite for employee:', empId)
+    const res = await fetch('/api/employees/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ employeeId: empId }),
+    })
+    const data = await res.json()
+    console.log('[invite-ui] invite response:', res.status, data)
+    if (res.ok) {
+      toast.success(fr ? 'Invitation envoyée!' : 'Invitation sent!')
+      await loadEmployees()
+    } else {
+      toast.error(data.error || 'Error')
+    }
+  }
+
   const deactivate = async (emp: Employee) => {
+    console.log('[team-ui] deactivate clicked:', emp.id)
     const result = await confirm({
       title: fr ? 'Désactiver cet employé?' : 'Deactivate this employee?',
       description: fr
@@ -187,30 +219,27 @@ export default function TeamPage() {
     })
     if (!result.confirmed) return
 
-    const res = await fetch(`/api/employees/${emp.id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/employees/${emp.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'inactive' }),
+    })
     if (res.ok) {
       toast.success(fr ? 'Employé désactivé' : 'Employee deactivated')
       await loadEmployees()
     }
   }
 
-  const resendInvite = async (emp: Employee) => {
-    const res = await fetch('/api/employees/invite', {
-      method: 'POST',
+  const reactivate = async (emp: Employee) => {
+    console.log('[team-ui] reactivate clicked:', emp.id)
+    const res = await fetch(`/api/employees/${emp.id}`, {
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        firstName: emp.first_name,
-        lastName: emp.last_name,
-        email: emp.email,
-        phone: emp.phone || undefined,
-        color: emp.color,
-      }),
+      body: JSON.stringify({ status: 'invited' }),
     })
     if (res.ok) {
-      toast.success(fr ? 'Invitation renvoyée' : 'Invitation resent')
-    } else {
-      // If duplicate, just deactivate old and re-invite
-      toast.error(fr ? 'Impossible de renvoyer' : 'Could not resend')
+      toast.success(fr ? 'Employé réactivé' : 'Employee reactivated')
+      await loadEmployees()
     }
   }
 
@@ -260,11 +289,11 @@ export default function TeamPage() {
       title={fr ? 'Équipe' : 'Team'}
       actions={
         <button
-          onClick={openInviteModal}
+          onClick={openCreateModal}
           className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
         >
           <UserPlus className="w-4 h-4" />
-          {fr ? 'Inviter un employé' : 'Invite employee'}
+          {fr ? 'Ajouter un membre' : 'Add member'}
         </button>
       }
     >
@@ -294,94 +323,117 @@ export default function TeamPage() {
         <EmptyState
           icon={Users}
           title={fr ? 'Aucun employé' : 'No employees'}
-          description={fr ? "Invitez votre premier employé pour commencer." : 'Invite your first employee to get started.'}
+          description={fr ? "Ajoutez votre premier membre d'équipe pour commencer." : 'Add your first team member to get started.'}
           actions={[{
-            label: fr ? 'Inviter un employé' : 'Invite employee',
-            onClick: openInviteModal,
+            label: fr ? 'Ajouter un membre' : 'Add member',
+            onClick: openCreateModal,
             variant: 'primary' as const,
           }]}
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {employees.map((emp) => (
-            <Link
-              href={`/equipe/${emp.id}`}
+            <div
               key={emp.id}
-              className="relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 cursor-pointer hover:shadow-md transition-shadow block"
+              className="relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5"
             >
               {/* Actions menu */}
               <div className="absolute top-4 right-4">
                 <button
-                  onClick={() => setMenuOpen(menuOpen === emp.id ? null : emp.id)}
+                  onClick={() => { console.log('[team-ui] menu toggle:', emp.id); setMenuOpen(menuOpen === emp.id ? null : emp.id) }}
                   className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400"
                 >
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
                 {menuOpen === emp.id && (
-                  <div className="absolute right-0 mt-1 w-44 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
+                  <div className="absolute right-0 mt-1 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
                     <button
-                      onClick={() => { setMenuOpen(null); openEditModal(emp) }}
+                      onClick={() => { console.log('[team-ui] edit clicked:', emp.id); setMenuOpen(null); openEditModal(emp) }}
                       className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                     >
                       <Edit2 className="w-3.5 h-3.5" /> {fr ? 'Modifier' : 'Edit'}
                     </button>
-                    {emp.status === 'invited' && (
+                    {emp.status === 'invited' && !emp.invite_token && (
                       <button
-                        onClick={() => { setMenuOpen(null); resendInvite(emp) }}
+                        onClick={() => { console.log('[team-ui] send invite clicked:', emp.id); setMenuOpen(null); sendInvite(emp.id) }}
                         className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                       >
-                        <Send className="w-3.5 h-3.5" /> {fr ? "Renvoyer l'invitation" : 'Resend invite'}
+                        <Send className="w-3.5 h-3.5" /> {fr ? "Envoyer l'invitation" : 'Send invitation'}
                       </button>
                     )}
-                    <button
-                      onClick={() => { setMenuOpen(null); deactivate(emp) }}
-                      className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    >
-                      <UserX className="w-3.5 h-3.5" /> {fr ? 'Désactiver' : 'Deactivate'}
-                    </button>
+                    {emp.status === 'invited' && emp.invite_token && (
+                      <button
+                        onClick={() => { console.log('[team-ui] resend invite clicked:', emp.id); setMenuOpen(null); sendInvite(emp.id) }}
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" /> {fr ? "Renvoyer l'invitation" : 'Resend invitation'}
+                      </button>
+                    )}
+                    {emp.status !== 'inactive' ? (
+                      <button
+                        onClick={() => { console.log('[team-ui] deactivate clicked:', emp.id); setMenuOpen(null); deactivate(emp) }}
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      >
+                        <UserX className="w-3.5 h-3.5" /> {fr ? 'Désactiver' : 'Deactivate'}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => { console.log('[team-ui] reactivate clicked:', emp.id); setMenuOpen(null); reactivate(emp) }}
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" /> {fr ? 'Réactiver' : 'Reactivate'}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-3 mb-3">
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm"
-                  style={{ backgroundColor: emp.color || '#6366f1' }}
-                >
-                  {emp.first_name[0]}{emp.last_name[0]}
+              <Link href={`/equipe/${emp.id}`} className="block">
+                <div className="flex items-center gap-3 mb-3">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm"
+                    style={{ backgroundColor: emp.color || '#6366f1' }}
+                  >
+                    {emp.first_name[0]}{emp.last_name[0]}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 dark:text-white truncate">
+                      {emp.first_name} {emp.last_name}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{emp.email}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 dark:text-white truncate">
-                    {emp.first_name} {emp.last_name}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{emp.email}</p>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                    emp.status === 'active'
-                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
-                      : emp.status === 'invited'
-                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                      : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-                  }`}
-                >
-                  {emp.status === 'active' ? (fr ? 'Actif' : 'Active') : emp.status === 'invited' ? (fr ? 'Invité' : 'Invited') : (fr ? 'Inactif' : 'Inactive')}
-                </span>
-                {emp.phone && (
-                  <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                    <Phone className="w-3 h-3" /> {emp.phone}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                      emp.status === 'active'
+                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
+                        : emp.status === 'invited'
+                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
+                        : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                    }`}
+                  >
+                    {emp.status === 'active' ? (fr ? 'Actif' : 'Active') : emp.status === 'invited' ? (fr ? 'Invité' : 'Invited') : (fr ? 'Inactif' : 'Inactive')}
                   </span>
-                )}
-              </div>
-            </Link>
+                  {emp.phone && (
+                    <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                      <Phone className="w-3 h-3" /> {emp.phone}
+                    </span>
+                  )}
+                  {emp.hourly_rate != null && (
+                    <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                      <DollarSign className="w-3 h-3" /> {emp.hourly_rate}$/h
+                    </span>
+                  )}
+                </div>
+              </Link>
+            </div>
           ))}
         </div>
       )}
 
-      {/* Invite / Edit Modal */}
+      {/* Create / Edit Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={() => setModalOpen(false)}>
           <div
@@ -392,7 +444,7 @@ export default function TeamPage() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {editEmployee
                   ? (fr ? 'Modifier l\'employé' : 'Edit employee')
-                  : (fr ? 'Inviter un employé' : 'Invite employee')}
+                  : (fr ? 'Ajouter un membre' : 'Add member')}
               </h3>
               <button onClick={() => setModalOpen(false)} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
                 <X className="w-5 h-5 text-gray-400" />
@@ -459,6 +511,24 @@ export default function TeamPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {fr ? 'Taux horaire' : 'Hourly rate'} ({fr ? 'optionnel' : 'optional'})
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={fHourlyRate}
+                    onChange={(e) => setFHourlyRate(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {fr ? 'Couleur' : 'Color'}
                 </label>
                 <div className="flex gap-2">
@@ -495,7 +565,7 @@ export default function TeamPage() {
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                 {editEmployee
                   ? (fr ? 'Enregistrer' : 'Save')
-                  : (fr ? 'Envoyer l\'invitation' : 'Send invitation')}
+                  : (fr ? 'Ajouter' : 'Add')}
               </button>
             </div>
           </div>

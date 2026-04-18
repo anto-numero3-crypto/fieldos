@@ -23,6 +23,7 @@ interface Employee {
   status: string
   phone: string | null
   color: string
+  hourly_rate: number | null
   created_at: string
 }
 
@@ -58,6 +59,7 @@ export default function EmployeeProfilePage() {
   const [fLastName, setFLastName] = useState('')
   const [fPhone, setFPhone] = useState('')
   const [fColor, setFColor] = useState('#6366f1')
+  const [fHourlyRate, setFHourlyRate] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -74,6 +76,7 @@ export default function EmployeeProfilePage() {
         setFLastName(emp.last_name)
         setFPhone(emp.phone || '')
         setFColor(emp.color || '#6366f1')
+        setFHourlyRate(emp.hourly_rate != null ? String(emp.hourly_rate) : '')
       }
       if (jobsRes.ok) {
         const data = await jobsRes.json()
@@ -94,6 +97,7 @@ export default function EmployeeProfilePage() {
         last_name: fLastName.trim(),
         phone: fPhone.trim() || null,
         color: fColor,
+        hourly_rate: fHourlyRate.trim() ? parseFloat(fHourlyRate.trim()) : null,
       }),
     })
     if (res.ok) {
@@ -400,6 +404,24 @@ export default function EmployeeProfilePage() {
                   onChange={(e) => setFPhone(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {fr ? 'Taux horaire' : 'Hourly rate'}
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={fHourlyRate}
+                    onChange={(e) => setFHourlyRate(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  />
+                </div>
               </div>
 
               <div>
