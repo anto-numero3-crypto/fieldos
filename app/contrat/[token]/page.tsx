@@ -71,13 +71,16 @@ export default function ContractApprovalPage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data, error } = await supabasePublic
-        .from('contracts')
-        .select('*, customers(name, email)')
-        .eq('approval_token', token)
-        .maybeSingle()
+      // Use server-side API to bypass RLS (customers are not authenticated)
+      const res = await fetch(`/api/contracts/public/${token}`)
+      if (!res.ok) {
+        setNotFound(true)
+        setLoading(false)
+        return
+      }
+      const { contract: data, org: orgData } = await res.json()
 
-      if (error || !data) {
+      if (!data) {
         setNotFound(true)
         setLoading(false)
         return
@@ -88,13 +91,6 @@ export default function ContractApprovalPage() {
       if (['approved', 'active'].includes(data.status)) {
         setApproved(true)
       }
-
-      // Fetch org info
-      const { data: orgData } = await supabasePublic
-        .from('organizations')
-        .select('name, phone, email, logo_url')
-        .eq('id', data.org_id)
-        .maybeSingle()
 
       if (orgData) setOrg(orgData)
       setLoading(false)
