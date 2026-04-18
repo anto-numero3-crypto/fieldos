@@ -294,6 +294,7 @@ export default function SettingsPage() {
   const [googleLoading, setGoogleLoading] = useState(false)
 
   // Notifications
+  const [notifAppPrefs, setNotifAppPrefs] = useState<Record<string, boolean>>({})
   const [notifEmailPrefs, setNotifEmailPrefs] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
@@ -359,6 +360,7 @@ export default function SettingsPage() {
           state: org.state || '',
           zip: org.zip || '',
         })
+        if (org.notification_app_prefs) setNotifAppPrefs(org.notification_app_prefs as Record<string, boolean>)
         if (org.notification_email_prefs) setNotifEmailPrefs(org.notification_email_prefs as Record<string, boolean>)
         if (org.ai_agent_name)   setAgentName(org.ai_agent_name)
         if (org.ai_agent_greeting) setAgentGreeting(org.ai_agent_greeting)
@@ -422,6 +424,7 @@ export default function SettingsPage() {
       ai_agent_name: agentName,
       ai_agent_greeting: agentGreeting,
       service_types: agentServices ? agentServices.split(',').map((s) => s.trim()).filter(Boolean) : [],
+      notification_app_prefs: notifAppPrefs,
       notification_email_prefs: notifEmailPrefs,
       // Coordinates are derived purely from geocoding. If the address changed
       // we null them so the dashboard re-geocodes on next load.
@@ -1069,7 +1072,10 @@ export default function SettingsPage() {
                         <p className="text-xs text-gray-400">{sub}</p>
                       </div>
                       <div className="w-16 flex justify-center">
-                        <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-emerald-100 text-emerald-600 text-xs">✓</span>
+                        <Toggle
+                          checked={notifAppPrefs[key] !== false}
+                          onChange={(v) => setNotifAppPrefs(prev => ({ ...prev, [key]: v }))}
+                        />
                       </div>
                       <div className="w-16 flex justify-center">
                         <Toggle
@@ -1081,7 +1087,7 @@ export default function SettingsPage() {
                   ))}
                 </div>
               </div>
-              <p className="text-xs text-gray-400 mt-3">{fr ? 'Les notifications dans l\'app sont toujours actives. Vous pouvez désactiver les courriels individuellement.' : 'In-app notifications are always on. You can disable emails individually.'}</p>
+              <p className="text-xs text-gray-400 mt-3">{fr ? 'Activez ou désactivez chaque notification dans l\'app et par courriel individuellement.' : 'Enable or disable each notification in-app and by email individually.'}</p>
             </div>
             <SaveBar saved={saved} error={error} saving={saving} onSave={saveSettings} fr={fr} />
           </div>

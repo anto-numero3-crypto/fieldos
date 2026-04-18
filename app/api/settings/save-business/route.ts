@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
     ai_agent_name: body.ai_agent_name,
     ai_agent_greeting: body.ai_agent_greeting,
     service_types: body.service_types,
+    notification_app_prefs: body.notification_app_prefs ?? null,
     notification_email_prefs: body.notification_email_prefs ?? null,
     // Caller is responsible for passing these as either numbers or null.
     location_lat: body.location_lat ?? null,
