@@ -7,19 +7,11 @@ export async function GET(req: NextRequest) {
 
   const sb = adminClient()
 
-  // Find employee
-  const { data: emp } = await sb
-    .from('employees')
-    .select('id, email')
-    .eq('user_id', user.id)
-    .eq('status', 'active')
-    .maybeSingle()
-  if (!emp) return NextResponse.json({ entry: null })
-
+  // Query by user_id directly — works for both employees and team_members
   const { data: entry } = await sb
     .from('time_entries')
     .select('*, jobs(id, title, customers(name))')
-    .eq('team_member_id', emp.id)
+    .eq('user_id', user.id)
     .is('clocked_out_at', null)
     .maybeSingle()
 

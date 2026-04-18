@@ -5,40 +5,23 @@ export async function POST(req: NextRequest) {
   const user = await getAuthedUser(req)
   if (!user) return UNAUTHORIZED()
 
-  const body = await req.json()
-  const entryId: string = body.entryId
-
+  const { entryId } = await req.json() as { entryId?: string }
   if (!entryId) return NextResponse.json({ error: 'missing entryId' }, { status: 400 })
 
   const sb = adminClient()
 
-  // Find employee
-  const { data: emp } = await sb
-    .from('employees')
-    .select('id, email')
-    .eq('user_id', user.id)
-    .eq('status', 'active')
-    .maybeSingle()
-  if (!emp) return NextResponse.json({ error: 'not_employee' }, { status: 403 })
-
-  // Find the entry and verify ownership
   const { data: entry } = await sb
     .from('time_entries')
     .select('*')
     .eq('id', entryId)
+    .eq('user_id', user.id)
     .maybeSingle()
 
   if (!entry) return NextResponse.json({ error: 'entry_not_found' }, { status: 404 })
-  if (entry.team_member_id !== emp.id) {
-    return NextResponse.json({ error: 'not_your_entry' }, { status: 403 })
-  }
 
   const { data: updated, error } = await sb
     .from('time_entries')
-    .update({
-      status: 'paused',
-      pause_started_at: new Date().toISOString(),
-    })
+    .update({ status: 'paused', pause_started_at: new Date().toISOString() })
     .eq('id', entryId)
     .select('*')
     .single()

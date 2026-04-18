@@ -28,18 +28,16 @@ export async function POST(req: NextRequest) {
 
   const teamMemberId = tm?.id || null
 
-  // Check no active entry
-  if (teamMemberId) {
-    const { data: active } = await sb
-      .from('time_entries')
-      .select('*')
-      .eq('team_member_id', teamMemberId)
-      .is('clocked_out_at', null)
-      .maybeSingle()
+  // Check no active entry (by user_id — works regardless of team_member_id)
+  const { data: active } = await sb
+    .from('time_entries')
+    .select('*')
+    .eq('user_id', user.id)
+    .is('clocked_out_at', null)
+    .maybeSingle()
 
-    if (active) {
-      return NextResponse.json({ error: 'already_clocked_in', activeEntry: active }, { status: 400 })
-    }
+  if (active) {
+    return NextResponse.json({ error: 'already_clocked_in', activeEntry: active }, { status: 400 })
   }
 
   // Insert new time entry

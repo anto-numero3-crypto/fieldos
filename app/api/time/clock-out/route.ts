@@ -13,26 +13,15 @@ export async function POST(req: NextRequest) {
 
   const sb = adminClient()
 
-  // Find employee
-  const { data: emp } = await sb
-    .from('employees')
-    .select('id, email')
-    .eq('user_id', user.id)
-    .eq('status', 'active')
-    .maybeSingle()
-  if (!emp) return NextResponse.json({ error: 'not_employee' }, { status: 403 })
-
-  // Find the entry and verify ownership
+  // Find the entry and verify ownership via user_id
   const { data: entry } = await sb
     .from('time_entries')
     .select('*')
     .eq('id', entryId)
+    .eq('user_id', user.id)
     .maybeSingle()
 
   if (!entry) return NextResponse.json({ error: 'entry_not_found' }, { status: 404 })
-  if (entry.team_member_id !== emp.id) {
-    return NextResponse.json({ error: 'not_your_entry' }, { status: 403 })
-  }
 
   // Calculate final pause chunk if currently paused
   let totalPaused = entry.paused_duration_minutes || 0

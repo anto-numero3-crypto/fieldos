@@ -5,46 +5,28 @@ export async function POST(req: NextRequest) {
   const user = await getAuthedUser(req)
   if (!user) return UNAUTHORIZED()
 
-  const body = await req.json()
-  const entryId: string = body.entryId
-
+  const { entryId } = await req.json() as { entryId?: string }
   if (!entryId) return NextResponse.json({ error: 'missing entryId' }, { status: 400 })
 
   const sb = adminClient()
 
-  // Find employee
-  const { data: emp } = await sb
-    .from('employees')
-    .select('id, email')
-    .eq('user_id', user.id)
-    .eq('status', 'active')
-    .maybeSingle()
-  if (!emp) return NextResponse.json({ error: 'not_employee' }, { status: 403 })
-
-  // Find the entry and verify ownership
   const { data: entry } = await sb
     .from('time_entries')
     .select('*')
     .eq('id', entryId)
+    .eq('user_id', user.id)
     .maybeSingle()
 
   if (!entry) return NextResponse.json({ error: 'entry_not_found' }, { status: 404 })
-  if (entry.team_member_id !== emp.id) {
-    return NextResponse.json({ error: 'not_your_entry' }, { status: 403 })
-  }
 
-  // Calculate pause duration
-  const pauseStart = entry.pause_started_at ? new Date(entry.pause_started_at).getTime() : Date.now()
-  const pauseChunk = Math.round((Date.now() - pauseStart) / 60000)
-  const totalPaused = (entry.paused_duration_minutes || 0) + pauseChunk
+  const pausedMins = entry.pause_started_at
+    ? Math.round((Date.now() - new Date(entry.pause_started_at).getTime()) / 60000)
+    : 0
+  const totalPaused = (entry.paused_duration_minutes || 0) + pausedMins
 
   const { data: updated, error } = await sb
     .from('time_entries')
-    .update({
-      status: 'active',
-      paused_duration_minutes: totalPaused,
-      pause_started_at: null,
-    })
+    .update({ status: 'active', pause_started_at: null, paused_duration_minutes: totalPaused })
     .eq('id', entryId)
     .select('*')
     .single()

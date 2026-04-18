@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const to = url.searchParams.get('to')
   const employeeId = url.searchParams.get('employee_id')
 
-  // Verify this user is an org owner
+  // Verify org owner
   const { data: org } = await sb
     .from('organizations')
     .select('id')
@@ -19,48 +19,81 @@ export async function GET(req: NextRequest) {
     .maybeSingle()
   if (!org) return NextResponse.json({ error: 'not_owner' }, { status: 403 })
 
-  // Get all employees for this org
+  // Get employees for this org (with their user_ids for matching time_entries)
   const { data: orgEmployees } = await sb
     .from('employees')
-    .select('id, email, first_name, last_name, hourly_rate, color')
+    .select('id, user_id, email, first_name, last_name, hourly_rate, color')
     .eq('org_id', org.id)
+  if (!orgEmployees?.length) return NextResponse.json({ entries: [] })
 
-  if (!orgEmployees || orgEmployees.length === 0) {
-    return NextResponse.json({ entries: [] })
-  }
-
-  // Build employee lookup by id
-  const empById: Record<string, { email: string; first_name: string; last_name: string; hourly_rate: number | null; color: string | null }> = {}
+  // Build lookup by user_id (time_entries stores user_id)
+  const empByUserId: Record<string, typeof orgEmployees[0]> = {}
+  const empById: Record<string, typeof orgEmployees[0]> = {}
   for (const e of orgEmployees) {
-    empById[e.id] = { email: e.email, first_name: e.first_name, last_name: e.last_name, hourly_rate: e.hourly_rate, color: e.color }
+    if (e.user_id) empByUserId[e.user_id] = e
+    empById[e.id] = e
   }
 
-  // Filter by specific employee if requested
-  const targetEmployeeIds = employeeId ? [employeeId] : orgEmployees.map(e => e.id)
+  // Determine which user_ids to query
+  let targetUserIds: string[]
+  if (employeeId) {
+    const emp = empById[employeeId]
+    targetUserIds = emp?.user_id ? [emp.user_id] : []
+  } else {
+    targetUserIds = orgEmployees.filter(e => e.user_id).map(e => e.user_id!)
+  }
 
-  // Query time_entries joined via team_member_id = employees.id
+  // Also include entries by team_member_id for legacy compatibility
+  const targetTmEmails = employeeId
+    ? [empById[employeeId]?.email].filter(Boolean) as string[]
+    : orgEmployees.map(e => e.email)
+  const { data: tms } = await sb
+    .from('team_members')
+    .select('id, email')
+    .in('email', targetTmEmails)
+  const tmIds = (tms || []).map(t => t.id)
+
+  // Query: entries where user_id matches OR team_member_id matches
+  const orParts: string[] = []
+  if (targetUserIds.length) orParts.push(`user_id.in.(${targetUserIds.join(',')})`)
+  if (tmIds.length) orParts.push(`team_member_id.in.(${tmIds.join(',')})`)
+  if (!orParts.length) return NextResponse.json({ entries: [] })
+
   let query = sb
     .from('time_entries')
     .select('*, jobs(id, title, customers(name))')
-    .in('team_member_id', targetEmployeeIds)
+    .or(orParts.join(','))
     .order('clocked_in_at', { ascending: false })
 
   if (from) query = query.gte('clocked_in_at', `${from}T00:00:00`)
   if (to) query = query.lte('clocked_in_at', `${to}T23:59:59`)
 
   const { data: entries, error } = await query
-
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  // Enrich with employee info
+  // Build team_member email lookup
+  const tmEmailById: Record<string, string> = {}
+  for (const t of tms || []) tmEmailById[t.id] = t.email
+
   const enriched = (entries || []).map(e => {
-    const empInfo = empById[e.team_member_id]
+    // Try matching by user_id first, then by team_member_id email
+    let emp = e.user_id ? empByUserId[e.user_id] : undefined
+    if (!emp && e.team_member_id) {
+      const tmEmail = tmEmailById[e.team_member_id]
+      if (tmEmail) emp = orgEmployees.find(em => em.email === tmEmail)
+    }
     return {
       ...e,
-      employee_name: empInfo ? `${empInfo.first_name} ${empInfo.last_name}` : 'Unknown',
-      employee_color: empInfo?.color || null,
-      hourly_rate: empInfo?.hourly_rate || null,
+      employee_name: emp ? `${emp.first_name} ${emp.last_name}` : 'Unknown',
+      employee_color: emp?.color || null,
+      hourly_rate: emp?.hourly_rate || null,
     }
   })
 
-  return NextResponse.json({ entries: enriched })
+  // Deduplicate by id (in case both conditions matched same entry)
+  const seen = new Set<string>()
+  const unique = enriched.filter(e => { if (seen.has(e.id)) return false; seen.add(e.id); return true })
+
+  return NextResponse.json({ entries: unique })
 }
