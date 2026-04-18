@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
       { source: '/press', destination: '/contact', permanent: true },
       { source: '/careers', destination: '/contact', permanent: true },
       { source: '/billing', destination: '/settings?tab=billing', permanent: true },
+      { source: '/team', destination: '/equipe', permanent: true },
     ]
   },
   async headers() {

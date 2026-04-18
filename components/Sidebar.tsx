@@ -47,7 +47,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     {
       label: fr ? 'Affaires' : 'Business',
       items: [
-        { href: '/team',     label: fr ? 'Équipe' : 'Team',             icon: Users2 },
+        { href: '/equipe',   label: fr ? 'Équipe' : 'Team',             icon: Users2 },
         ...(isModuleEnabled(orgModules, orgPlan, 'time_tracking') ? [{ href: '/timesheets', label: fr ? 'Feuilles de temps' : 'Timesheets', icon: Clock }] : []),
         { href: '/reports',  label: fr ? 'Rapports' : 'Reports',        icon: BarChart3 },
         { href: '/insights', label: fr ? 'Analyses IA' : 'AI Insights', icon: Lightbulb },
