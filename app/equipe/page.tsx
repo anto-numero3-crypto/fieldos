@@ -6,14 +6,12 @@ import AppLayout from '@/components/AppLayout'
 import { useLanguage } from '@/lib/LanguageContext'
 import { usePlan } from '@/lib/hooks/usePlan'
 import { normalizePlan } from '@/lib/plan-limits'
-import { isModuleEnabled } from '@/lib/modules'
-import UpgradePrompt from '@/components/UpgradePrompt'
 import EmptyState from '@/components/EmptyState'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import {
-  Users, Plus, X, Mail, Phone, UserPlus, Lock, Shield, Send,
+  Users, Plus, X, Mail, Phone, UserPlus, Send,
   MoreHorizontal, Edit2, UserX, Loader2, DollarSign, RefreshCw,
 } from 'lucide-react'
 
@@ -42,7 +40,6 @@ export default function TeamPage() {
 
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
-  const [orgModules, setOrgModules] = useState<Record<string, boolean> | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [editEmployee, setEditEmployee] = useState<Employee | null>(null)
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
@@ -73,19 +70,10 @@ export default function TeamPage() {
       const { data: auth } = await supabase.auth.getUser()
       if (!auth.user) return
 
-      const { data: org } = await supabase
-        .from('organizations')
-        .select('enabled_modules')
-        .eq('owner_user_id', auth.user.id)
-        .single()
-
-      setOrgModules(org?.enabled_modules || null)
       await loadEmployees()
     }
     init()
   }, [])
-
-  const moduleEnabled = isModuleEnabled(orgModules, plan.plan, 'team_management')
 
   const openCreateModal = () => {
     console.log('[team-ui] opening create modal')
@@ -244,45 +232,6 @@ export default function TeamPage() {
   }
 
   const activeCount = employees.filter(e => e.status !== 'inactive').length
-
-  // Not enabled
-  if (!plan.loading && !moduleEnabled) {
-    if (normalizedPlan === 'demarrage') {
-      return (
-        <AppLayout title={fr ? 'Équipe' : 'Team'}>
-          <UpgradePrompt
-            feature={fr ? "Gestion d'équipe" : 'Team management'}
-            requiredPlan="pro"
-          />
-        </AppLayout>
-      )
-    }
-
-    return (
-      <AppLayout title={fr ? 'Équipe' : 'Team'}>
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-          <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center mb-4">
-            <Lock className="w-8 h-8 text-indigo-500" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            {fr ? "Module Gestion d'équipe" : 'Team Management Module'}
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md">
-            {fr
-              ? "Activez le module Gestion d'équipe dans Paramètres pour inviter des employés et leur assigner des interventions."
-              : 'Enable the Team Management module in Settings to invite employees and assign jobs to them.'}
-          </p>
-          <a
-            href="/settings"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-          >
-            <Shield className="w-4 h-4" />
-            {fr ? 'Paramètres → Modules' : 'Settings → Modules'}
-          </a>
-        </div>
-      </AppLayout>
-    )
-  }
 
   return (
     <AppLayout

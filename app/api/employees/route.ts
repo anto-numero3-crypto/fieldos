@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminClient, getAuthedUser, UNAUTHORIZED } from '@/lib/supabase-server'
 import { normalizePlan } from '@/lib/plan-limits'
-import { isModuleEnabled } from '@/lib/modules'
 
 export async function POST(req: NextRequest) {
   console.log('[employees-create] POST handler called')
@@ -35,10 +34,6 @@ export async function POST(req: NextRequest) {
     if (plan === 'demarrage') {
       return NextResponse.json({ error: 'Team management requires Pro or Croissance plan' }, { status: 403 })
     }
-    if (!isModuleEnabled(org.enabled_modules, org.plan, 'team_management')) {
-      return NextResponse.json({ error: 'Team management module is not enabled.' }, { status: 403 })
-    }
-
     if (plan === 'pro') {
       const { count } = await sb
         .from('employees')
