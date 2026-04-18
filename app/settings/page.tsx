@@ -294,12 +294,7 @@ export default function SettingsPage() {
   const [googleLoading, setGoogleLoading] = useState(false)
 
   // Notifications
-  const [notifJobCreated, setNotifJobCreated]         = useState(true)
-  const [notifJobComplete, setNotifJobComplete]       = useState(true)
-  const [notifInvoicePaid, setNotifInvoicePaid]       = useState(true)
-  const [notifOverdueInvoice, setNotifOverdueInvoice] = useState(true)
-  const [notifNewCustomer, setNotifNewCustomer]       = useState(false)
-  const [notifEmail, setNotifEmail]                   = useState(true)
+  const [notifEmailPrefs, setNotifEmailPrefs] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     const init = async () => {
@@ -364,6 +359,7 @@ export default function SettingsPage() {
           state: org.state || '',
           zip: org.zip || '',
         })
+        if (org.notification_email_prefs) setNotifEmailPrefs(org.notification_email_prefs as Record<string, boolean>)
         if (org.ai_agent_name)   setAgentName(org.ai_agent_name)
         if (org.ai_agent_greeting) setAgentGreeting(org.ai_agent_greeting)
         if (org.service_types)   setAgentServices(Array.isArray(org.service_types) ? org.service_types.join(', ') : '')
@@ -426,6 +422,7 @@ export default function SettingsPage() {
       ai_agent_name: agentName,
       ai_agent_greeting: agentGreeting,
       service_types: agentServices ? agentServices.split(',').map((s) => s.trim()).filter(Boolean) : [],
+      notification_email_prefs: notifEmailPrefs,
       // Coordinates are derived purely from geocoding. If the address changed
       // we null them so the dashboard re-geocodes on next load.
       location_lat: null as number | null,
@@ -1044,20 +1041,47 @@ export default function SettingsPage() {
           <div className="space-y-6">
             <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
               <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Préférences de notifications' : 'Notification preferences'}</h2>
-              <p className="text-sm text-gray-400 mb-5">{fr ? 'Choisissez quels événements déclenchent des notifications dans l\'app et par email.' : 'Choose which events trigger notifications in the app and by email.'}</p>
+              <p className="text-sm text-gray-400 mb-5">{fr ? 'Choisissez quels événements vous notifient dans l\'app et par courriel.' : 'Choose which events notify you in-app and by email.'}</p>
 
-              <div className="rounded-xl bg-gray-50 px-5 py-4 mb-4">
-                <NotifRow label={fr ? 'Notifications par courriel' : 'Email notifications'} sub={fr ? 'Recevoir toutes les notifications par courriel également' : 'Receive all notifications by email as well'} checked={notifEmail} onChange={setNotifEmail} />
+              <div className="rounded-xl border border-gray-100 overflow-hidden">
+                <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <span>{fr ? 'Événement' : 'Event'}</span>
+                  <span className="w-16 text-center">{fr ? 'App' : 'App'}</span>
+                  <span className="w-16 text-center">{fr ? 'Courriel' : 'Email'}</span>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {[
+                    { key: 'job_created',       label: fr ? 'Nouvelle intervention créée'          : 'New job created',              sub: fr ? "Quand un bon de travail est ajouté"                    : 'When a work order is added' },
+                    { key: 'job_completed',      label: fr ? 'Intervention terminée'                : 'Job completed',                sub: fr ? "Quand un technicien complète une intervention"         : 'When a technician completes a job' },
+                    { key: 'invoice_paid',       label: fr ? 'Facture payée'                        : 'Invoice paid',                 sub: fr ? "Quand un client paie une facture"                      : 'When a customer pays an invoice' },
+                    { key: 'invoice_overdue',    label: fr ? 'Facture en retard'                    : 'Invoice overdue',              sub: fr ? "Quand une facture dépasse son échéance"                : 'When an invoice passes its due date' },
+                    { key: 'new_customer',       label: fr ? 'Nouveau client'                       : 'New customer',                 sub: fr ? "Quand un nouveau client est créé"                      : 'When a new customer is created' },
+                    { key: 'employee_joined',    label: fr ? "Employé rejoint l'équipe"             : 'Employee joined team',         sub: fr ? "Quand un employé accepte son invitation"               : 'When an employee accepts their invite' },
+                    { key: 'employee_clock_in',  label: fr ? 'Employé débute une intervention'      : 'Employee clocked in',          sub: fr ? "Quand un technicien commence à travailler"             : 'When a technician starts working' },
+                    { key: 'employee_clock_out', label: fr ? 'Employé termine une intervention'     : 'Employee clocked out',         sub: fr ? "Quand un technicien termine son temps"                 : 'When a technician finishes' },
+                    { key: 'contract_approved',  label: fr ? 'Contrat approuvé par le client'       : 'Contract approved by client',  sub: fr ? "Quand un client approuve un contrat"                   : 'When a client approves a contract' },
+                    { key: 'contract_sent',      label: fr ? 'Contrat envoyé'                       : 'Contract sent',                sub: fr ? "Confirmation d'envoi d'un contrat"                     : 'Confirmation a contract was sent' },
+                    { key: 'booking_received',   label: fr ? 'Nouvelle réservation reçue'           : 'New booking received',         sub: fr ? "Quand un client réserve en ligne"                      : 'When a client books online' },
+                  ].map(({ key, label, sub }) => (
+                    <div key={key} className="grid grid-cols-[1fr_auto_auto] gap-2 items-center px-5 py-3">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{label}</p>
+                        <p className="text-xs text-gray-400">{sub}</p>
+                      </div>
+                      <div className="w-16 flex justify-center">
+                        <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-emerald-100 text-emerald-600 text-xs">✓</span>
+                      </div>
+                      <div className="w-16 flex justify-center">
+                        <Toggle
+                          checked={notifEmailPrefs[key] !== false}
+                          onChange={(v) => setNotifEmailPrefs(prev => ({ ...prev, [key]: v }))}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">{fr ? "Déclencheurs d'événements" : 'Event triggers'}</h3>
-              <div className="rounded-xl border border-gray-100 px-5 divide-y divide-gray-50">
-                <NotifRow label={fr ? 'Nouvelle intervention créée' : 'New job created'} sub={fr ? "Quand un nouveau bon de travail est ajouté" : 'When a new work order is added'} checked={notifJobCreated} onChange={setNotifJobCreated} />
-                <NotifRow label={fr ? 'Intervention terminée' : 'Job completed'} sub={fr ? 'Quand un technicien marque une intervention comme terminée' : 'When a technician marks a job complete'} checked={notifJobComplete} onChange={setNotifJobComplete} />
-                <NotifRow label={fr ? 'Facture payée' : 'Invoice paid'} sub={fr ? 'Quand un client paie une facture' : 'When a customer pays an invoice'} checked={notifInvoicePaid} onChange={setNotifInvoicePaid} />
-                <NotifRow label={fr ? 'Facture en retard' : 'Invoice overdue'} sub={fr ? "Quand une facture dépasse sa date d'échéance" : 'When an invoice passes its due date'} checked={notifOverdueInvoice} onChange={setNotifOverdueInvoice} />
-                <NotifRow label={fr ? 'Nouveau client ajouté' : 'New customer added'} sub={fr ? 'Quand un nouveau client est créé' : 'When a new customer is created'} checked={notifNewCustomer} onChange={setNotifNewCustomer} />
-              </div>
+              <p className="text-xs text-gray-400 mt-3">{fr ? 'Les notifications dans l\'app sont toujours actives. Vous pouvez désactiver les courriels individuellement.' : 'In-app notifications are always on. You can disable emails individually.'}</p>
             </div>
             <SaveBar saved={saved} error={error} saving={saving} onSave={saveSettings} fr={fr} />
           </div>
