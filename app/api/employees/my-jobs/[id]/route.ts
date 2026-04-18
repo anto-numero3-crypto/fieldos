@@ -83,5 +83,25 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { error } = await sb.from('jobs').update(update).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Auto clock-out any active time entry when job is completed
+  if (body.status === 'completed') {
+    const now = new Date().toISOString()
+    const { data: activeEntries } = await sb
+      .from('time_entries')
+      .select('id, clocked_in_at')
+      .eq('job_id', id)
+      .is('clocked_out_at', null)
+    if (activeEntries && activeEntries.length > 0) {
+      for (const entry of activeEntries) {
+        const durationMinutes = Math.round((Date.now() - new Date(entry.clocked_in_at).getTime()) / 60000)
+        await sb.from('time_entries').update({
+          clocked_out_at: now,
+          duration_minutes: durationMinutes,
+        }).eq('id', entry.id)
+      }
+    }
+  }
+
   return NextResponse.json({ ok: true })
 }

@@ -1,14 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '../supabase'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtDate } from '@/lib/format'
+import { isModuleEnabled } from '@/lib/modules'
 import {
   Wrench, LogOut, Briefcase, MapPin, Clock, CheckCircle, ChevronRight,
-  Calendar, Loader2, User,
+  Calendar, Loader2, User, Square,
 } from 'lucide-react'
 
 interface Employee {
@@ -17,7 +18,7 @@ interface Employee {
   last_name: string
   email: string
   color: string
-  organizations: { id: string; name: string; plan: string } | null
+  organizations: { id: string; name: string; plan: string; enabled_modules?: Record<string, boolean> } | null
 }
 
 interface Job {
@@ -32,6 +33,14 @@ interface Job {
   customers: { name: string; phone: string | null } | null
 }
 
+interface TimeEntry {
+  id: string
+  job_id: string | null
+  clocked_in_at: string
+  clocked_out_at: string | null
+  jobs?: { id: string; title: string; customers?: { name: string } | null } | null
+}
+
 const STATUS_BADGE: Record<string, string> = {
   scheduled:        'bg-blue-100 text-blue-800',
   in_progress:      'bg-green-100 text-green-800',
@@ -39,6 +48,14 @@ const STATUS_BADGE: Record<string, string> = {
   completed:        'bg-gray-100 text-gray-600',
   complete:         'bg-gray-100 text-gray-600',
   cancelled:        'bg-gray-100 text-gray-400',
+}
+
+function formatElapsed(ms: number): string {
+  const totalSec = Math.floor(ms / 1000)
+  const h = Math.floor(totalSec / 3600)
+  const m = Math.floor((totalSec % 3600) / 60)
+  const s = totalSec % 60
+  return `${h}h ${String(m).padStart(2, '0')}min ${String(s).padStart(2, '0')}s`
 }
 
 export default function EmployeeDashboard() {
@@ -51,6 +68,15 @@ export default function EmployeeDashboard() {
   const [upcomingJobs, setUpcomingJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Time tracking
+  const [timeEnabled, setTimeEnabled] = useState(false)
+  const [activeEntry, setActiveEntry] = useState<TimeEntry | null>(null)
+  const [elapsed, setElapsed] = useState(0)
+  const [clockOutLoading, setClockOutLoading] = useState(false)
+  const [clockOutNotes, setClockOutNotes] = useState('')
+  const [showClockOutForm, setShowClockOutForm] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
   useEffect(() => {
     const init = async () => {
       const { data: auth } = await supabase.auth.getUser()
@@ -59,7 +85,6 @@ export default function EmployeeDashboard() {
       // Check if user is an employee
       const meRes = await fetch('/api/employees/me')
       if (!meRes.ok) {
-        // Not an employee — redirect to owner dashboard
         router.push('/dashboard')
         return
       }
@@ -68,8 +93,18 @@ export default function EmployeeDashboard() {
       const emp = meData.employee as Employee
       setEmployee(emp)
 
-      // Fetch jobs via server-side API (bypasses RLS — employee can't query
-      // jobs directly because jobs.user_id belongs to the owner, not the employee)
+      // Check time tracking module
+      const org = emp.organizations
+      if (org && isModuleEnabled(org.enabled_modules || null, org.plan || null, 'time_tracking')) {
+        setTimeEnabled(true)
+        const activeRes = await fetch('/api/time/active')
+        if (activeRes.ok) {
+          const activeData = await activeRes.json()
+          if (activeData.entry) setActiveEntry(activeData.entry)
+        }
+      }
+
+      // Fetch jobs
       const jobsRes = await fetch('/api/employees/my-jobs')
       if (jobsRes.ok) {
         const jobsData = await jobsRes.json()
@@ -80,6 +115,39 @@ export default function EmployeeDashboard() {
     }
     init()
   }, [router])
+
+  // Live timer
+  useEffect(() => {
+    if (activeEntry && !activeEntry.clocked_out_at) {
+      const start = new Date(activeEntry.clocked_in_at).getTime()
+      const tick = () => setElapsed(Date.now() - start)
+      tick()
+      timerRef.current = setInterval(tick, 1000)
+      return () => { if (timerRef.current) clearInterval(timerRef.current) }
+    } else {
+      setElapsed(0)
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [activeEntry])
+
+  const clockOut = useCallback(async () => {
+    if (!activeEntry) return
+    setClockOutLoading(true)
+    try {
+      const res = await fetch('/api/time/clock-out', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entryId: activeEntry.id, notes: clockOutNotes || undefined }),
+      })
+      if (res.ok) {
+        setActiveEntry(null)
+        setShowClockOutForm(false)
+        setClockOutNotes('')
+      }
+    } finally {
+      setClockOutLoading(false)
+    }
+  }, [activeEntry, clockOutNotes])
 
   const markComplete = async (jobId: string) => {
     const res = await fetch(`/api/employees/my-jobs/${jobId}`, {
@@ -100,12 +168,12 @@ export default function EmployeeDashboard() {
 
   const statusLabel = (s: string) => {
     const map: Record<string, { fr: string; en: string }> = {
-      scheduled: { fr: 'Planifié', en: 'Scheduled' },
+      scheduled: { fr: 'Planifie', en: 'Scheduled' },
       in_progress: { fr: 'En cours', en: 'In progress' },
-      needs_completion: { fr: 'À compléter', en: 'Needs completion' },
-      completed: { fr: 'Complété', en: 'Completed' },
-      complete: { fr: 'Complété', en: 'Completed' },
-      cancelled: { fr: 'Annulé', en: 'Cancelled' },
+      needs_completion: { fr: 'A completer', en: 'Needs completion' },
+      completed: { fr: 'Complete', en: 'Completed' },
+      complete: { fr: 'Complete', en: 'Completed' },
+      cancelled: { fr: 'Annule', en: 'Cancelled' },
     }
     return map[s]?.[fr ? 'fr' : 'en'] || s
   }
@@ -117,6 +185,8 @@ export default function EmployeeDashboard() {
       </div>
     )
   }
+
+  const jobTitle = activeEntry?.jobs?.title || (fr ? 'Intervention' : 'Job')
 
   const JobCard = ({ job }: { job: Job }) => (
     <Link
@@ -162,7 +232,7 @@ export default function EmployeeDashboard() {
           className="mt-3 w-full flex items-center justify-center gap-2 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-lg text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
         >
           <CheckCircle className="w-4 h-4" />
-          {fr ? 'Marquer comme complété' : 'Mark as completed'}
+          {fr ? 'Marquer comme complete' : 'Mark as completed'}
         </button>
       )}
     </Link>
@@ -186,7 +256,7 @@ export default function EmployeeDashboard() {
             <button
               onClick={logout}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
-              title={fr ? 'Déconnexion' : 'Log out'}
+              title={fr ? 'Deconnexion' : 'Log out'}
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -195,6 +265,63 @@ export default function EmployeeDashboard() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-8">
+        {/* Active time entry banner */}
+        {timeEnabled && activeEntry && !activeEntry.clocked_out_at && !showClockOutForm && (
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
+              <div>
+                <p className="font-semibold text-emerald-900 dark:text-emerald-300">
+                  {fr ? 'En cours' : 'In progress'} — {jobTitle}
+                </p>
+                <p className="text-sm text-emerald-700 dark:text-emerald-400 font-mono">
+                  {formatElapsed(elapsed)}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowClockOutForm(true)}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors"
+            >
+              {fr ? 'Terminer' : 'Stop'}
+            </button>
+          </div>
+        )}
+
+        {timeEnabled && activeEntry && showClockOutForm && (
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
+              <p className="font-semibold text-emerald-900 dark:text-emerald-300">
+                {jobTitle} — {formatElapsed(elapsed)}
+              </p>
+            </div>
+            <textarea
+              value={clockOutNotes}
+              onChange={(e) => setClockOutNotes(e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+              placeholder={fr ? 'Notes (optionnel)...' : 'Notes (optional)...'}
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={clockOut}
+                disabled={clockOutLoading}
+                className="flex-1 flex items-center justify-center gap-2 bg-red-500 text-white py-2 rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+              >
+                {clockOutLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Square className="w-4 h-4" />}
+                {fr ? 'Confirmer' : 'Confirm'}
+              </button>
+              <button
+                onClick={() => setShowClockOutForm(false)}
+                className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                {fr ? 'Annuler' : 'Cancel'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Greeting */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -219,7 +346,7 @@ export default function EmployeeDashboard() {
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 text-center">
               <Briefcase className="w-10 h-10 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                {fr ? "Aucune intervention assignée aujourd'hui" : 'No jobs assigned today'}
+                {fr ? "Aucune intervention assignee aujourd'hui" : 'No jobs assigned today'}
               </p>
             </div>
           ) : (
@@ -242,7 +369,7 @@ export default function EmployeeDashboard() {
           {upcomingJobs.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 text-center">
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                {fr ? 'Aucune intervention à venir' : 'No upcoming jobs'}
+                {fr ? 'Aucune intervention a venir' : 'No upcoming jobs'}
               </p>
             </div>
           ) : (

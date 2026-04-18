@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
 
   const { data: emp, error } = await sb
     .from('employees')
-    .select('*, organizations(id, name, plan)')
+    .select('*, organizations(id, name, plan, enabled_modules)')
     .eq('user_id', user.id)
     .eq('status', 'active')
     .single()

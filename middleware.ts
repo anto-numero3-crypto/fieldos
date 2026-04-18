@@ -4,7 +4,7 @@ import { createServerClient } from '@supabase/ssr'
 const PROTECTED_PREFIXES = [
   '/dashboard', '/customers', '/jobs', '/invoices', '/quotes',
   '/schedule', '/team', '/reports', '/settings', '/assistant',
-  '/notifications', '/insights', '/equipe', '/employee',
+  '/notifications', '/insights', '/equipe', '/employee', '/feuilles-de-temps',
 ]
 
 function isProtected(pathname: string): boolean {
