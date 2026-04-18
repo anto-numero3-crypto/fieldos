@@ -76,7 +76,7 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
       const { data: job, error: jobErr } = await supabase.from('jobs').insert({
         user_id: auth.user.id,
         customer_id: quote.customer_id || null,
-        title: quote.title || (fr ? 'Emploi (depuis devis)' : 'Job (from quote)'),
+        title: quote.title || (fr ? 'Intervention (depuis devis)' : 'Job (from quote)'),
         description: quote.notes || null,
         scheduled_date: date,
         start_time: time || null,
@@ -87,7 +87,7 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
       }).select('id').single()
 
       if (jobErr || !job) {
-        toast.error(jobErr?.message || (fr ? "Échec de la création de l'emploi" : 'Failed to create job'))
+        toast.error(jobErr?.message || (fr ? "Échec de la création de l'intervention" : 'Failed to create job'))
         return
       }
 
@@ -108,7 +108,7 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
         console.error('[convert] quote status update failed:', qErr)
       }
 
-      toast.success(fr ? 'Emploi créé avec succès' : 'Job created successfully')
+      toast.success(fr ? 'Intervention créée avec succès' : 'Job created successfully')
       onConverted?.(job.id)
       onClose()
       router.push(`/jobs/${job.id}`)
@@ -126,7 +126,7 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
               <Briefcase className="h-4 w-4" />
             </div>
-            <h3 className="text-base font-semibold text-gray-900">{fr ? 'Convertir en emploi' : 'Convert to job'}</h3>
+            <h3 className="text-base font-semibold text-gray-900">{fr ? 'Convertir en intervention' : 'Convert to job'}</h3>
           </div>
           <button onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"><X className="h-4 w-4" /></button>
         </div>
@@ -138,7 +138,7 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? "Date de l'emploi *" : 'Job date *'}</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? "Date de l'intervention *" : 'Job date *'}</label>
               <input
                 type="date"
                 value={date}
@@ -189,7 +189,7 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
             className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
           >
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {submitting ? (fr ? 'Création…' : 'Creating…') : (fr ? "Créer l'emploi" : 'Create job')}
+            {submitting ? (fr ? 'Création…' : 'Creating…') : (fr ? "Créer l'intervention" : 'Create job')}
           </button>
         </div>
       </div>

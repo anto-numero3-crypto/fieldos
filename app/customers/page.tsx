@@ -164,7 +164,7 @@ export default function CustomersPage() {
     const { confirmed } = await confirm({
       title: fr ? 'Supprimer ce client ?' : 'Delete this customer?',
       description: fr
-        ? 'Cette action est irréversible. Tous les emplois et factures associés seront dissociés.'
+        ? 'Cette action est irréversible. Tous les interventions et factures associés seront dissociés.'
         : 'This cannot be undone. All associated jobs and invoices will be unlinked.',
       confirmLabel: fr ? 'Supprimer' : 'Delete',
     })

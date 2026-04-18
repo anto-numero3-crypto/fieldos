@@ -432,7 +432,7 @@ function ReportsPageInner() {
             <EmptyState
               icon={BarChart3}
               title={fr ? 'Pas encore de données' : 'No data yet'}
-              description={fr ? 'Les rapports apparaîtront une fois que vous aurez des factures et emplois.' : 'Reports will appear once you have invoices and jobs.'}
+              description={fr ? 'Les rapports apparaîtront une fois que vous aurez des factures et interventions.' : 'Reports will appear once you have invoices and jobs.'}
             />
           </div>
         </div>
@@ -568,7 +568,7 @@ function ReportsPageInner() {
         {/* Jobs per month + AR aging */}
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Emplois terminés par mois' : 'Completed jobs per month'}</h2>
+            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Interventions terminées par mois' : 'Completed jobs per month'}</h2>
             <p className="text-xs text-gray-400 mb-5">{fr ? '12 derniers mois · status = Terminé (par updated_at)' : 'Last 12 months · status = Complete (by updated_at)'}</p>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={completedJobsByMonth()} barSize={24}>

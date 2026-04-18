@@ -178,7 +178,7 @@ export default function JobsPage() {
 
   const deleteJob = async (id: string) => {
     const { confirmed } = await confirm({
-      title: fr ? 'Supprimer cet emploi ?' : 'Delete this job?',
+      title: fr ? 'Supprimer cette intervention ?' : 'Delete this job?',
       description: fr ? 'Cette action est irréversible.' : 'This cannot be undone.',
       confirmLabel: fr ? 'Supprimer' : 'Delete',
     })
@@ -306,9 +306,9 @@ export default function JobsPage() {
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
             <EmptyState
               icon={Briefcase}
-              title={fr ? 'Aucun emploi' : 'No jobs'}
-              description={fr ? 'Créez votre premier emploi ou attendez une réservation en ligne.' : 'Create your first job or wait for an online booking.'}
-              actions={[{ label: fr ? 'Créer un emploi' : 'Create a job', onClick: openAddJob, variant: 'primary' }]}
+              title={fr ? 'Aucune intervention' : 'No jobs'}
+              description={fr ? 'Créez votre première intervention ou attendez une réservation en ligne.' : 'Create your first job or wait for an online booking.'}
+              actions={[{ label: fr ? 'Créer une intervention' : 'Create a job', onClick: openAddJob, variant: 'primary' }]}
             />
           </div>
         ) : filtered.length === 0 ? (

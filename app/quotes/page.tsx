@@ -299,7 +299,7 @@ export default function QuotesPage() {
                               <button
                                 onClick={() => setConvertingQuote(q)}
                                 className="inline-flex items-center gap-1 rounded-lg bg-violet-50 hover:bg-violet-100 px-2 py-1.5 text-xs font-semibold text-violet-700"
-                                title={fr ? 'Convertir en emploi' : 'Convert to job'}
+                                title={fr ? 'Convertir en intervention' : 'Convert to job'}
                               >
                                 <Briefcase className="h-3.5 w-3.5" /> {fr ? 'Convertir' : 'Convert'}
                               </button>

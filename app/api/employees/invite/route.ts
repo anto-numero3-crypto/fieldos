@@ -93,8 +93,9 @@ export async function POST(req: NextRequest) {
 
   // Send invite email
   const inviteLink = `https://gestivio.ca/invite/${inviteToken}`
+  console.log('[invite] sending email to:', email.toLowerCase().trim())
   try {
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: 'Gestivio <noreply@gestivio.ca>',
       to: email.toLowerCase().trim(),
       subject: `Vous avez été invité à rejoindre ${org.name || 'une entreprise'} sur Gestivio`,
@@ -122,9 +123,10 @@ export async function POST(req: NextRequest) {
         </div>
       `,
     })
-  } catch (emailErr) {
-    console.error('[employee invite] email failed:', emailErr)
-    // Don't fail the request — the employee was created, owner can resend
+    console.log('[invite] email sent:', result)
+  } catch (err) {
+    console.error('[invite] email error:', err)
+    return NextResponse.json({ error: 'Failed to send invite email' }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true, employee })

@@ -227,7 +227,7 @@ export default function JobDetailPage() {
 
   const deleteJob = async () => {
     const { confirmed } = await confirm({
-      title: fr ? 'Supprimer cet emploi ?' : 'Delete this job?',
+      title: fr ? 'Supprimer cette intervention ?' : 'Delete this job?',
       description: fr ? 'Cette action est irréversible.' : 'This cannot be undone.',
       confirmLabel: fr ? 'Supprimer' : 'Delete',
     })

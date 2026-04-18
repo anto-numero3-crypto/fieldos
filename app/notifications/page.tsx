@@ -35,7 +35,7 @@ function getTypeIcon(fr: boolean): IconMap {
     invoice_paid:      { Icon: DollarSign,  bg: 'bg-emerald-50', fg: 'text-emerald-600', label: fr ? 'Paiement' : 'Payment' },
     invoice_overdue:   { Icon: AlertCircle, bg: 'bg-red-50',     fg: 'text-red-600',     label: fr ? 'Facture' : 'Invoice' },
     new_customer:      { Icon: UserPlus,    bg: 'bg-blue-50',    fg: 'text-blue-600',    label: fr ? 'Client' : 'Customer' },
-    job_completed:     { Icon: Briefcase,   bg: 'bg-emerald-50', fg: 'text-emerald-600', label: fr ? 'Emploi' : 'Job' },
+    job_completed:     { Icon: Briefcase,   bg: 'bg-emerald-50', fg: 'text-emerald-600', label: fr ? 'Intervention' : 'Job' },
     payment_failed:    { Icon: XCircle,     bg: 'bg-red-50',     fg: 'text-red-600',     label: fr ? 'Paiement' : 'Payment' },
     trial_ending:      { Icon: Clock,       bg: 'bg-orange-50',  fg: 'text-orange-600',  label: fr ? 'Essai' : 'Trial' },
     success:           { Icon: CheckCircle, bg: 'bg-emerald-50', fg: 'text-emerald-600', label: fr ? 'Succès' : 'Success' },
@@ -52,7 +52,7 @@ function getFilterTypes(fr: boolean): Array<{ value: string; label: string }> {
     { value: 'invoice_paid',      label: fr ? 'Paiements reçus' : 'Payments received' },
     { value: 'invoice_overdue',   label: fr ? 'Factures en retard' : 'Overdue invoices' },
     { value: 'new_customer',      label: fr ? 'Nouveaux clients' : 'New customers' },
-    { value: 'job_completed',     label: fr ? 'Emplois complétés' : 'Completed jobs' },
+    { value: 'job_completed',     label: fr ? 'Interventions complétées' : 'Completed jobs' },
     { value: 'payment_failed',    label: fr ? 'Paiements échoués' : 'Failed payments' },
     { value: 'trial_ending',      label: fr ? 'Essai' : 'Trial' },
   ]

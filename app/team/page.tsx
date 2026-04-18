@@ -213,7 +213,7 @@ export default function TeamPage() {
             <EmptyState
               icon={Users2}
               title={fr ? "Aucun membre d'équipe" : 'No team members'}
-              description={fr ? 'Invitez vos techniciens pour leur assigner des emplois.' : 'Invite your technicians so you can assign them jobs.'}
+              description={fr ? 'Invitez vos techniciens pour leur assigner des interventions.' : 'Invite your technicians so you can assign them jobs.'}
               actions={[{ label: fr ? 'Inviter un membre' : 'Invite a member', onClick: openAdd, variant: 'primary' }]}
             />
           </div>

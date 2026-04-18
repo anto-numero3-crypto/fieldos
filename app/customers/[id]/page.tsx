@@ -79,7 +79,7 @@ export default function CustomerDetailPage() {
 
   const TAB_LABELS: Record<string, string> = {
     overview: fr ? 'Aperçu' : 'Overview',
-    jobs: fr ? 'Emplois' : 'Jobs',
+    jobs: fr ? 'Interventions' : 'Jobs',
     invoices: fr ? 'Factures' : 'Invoices',
     quotes: fr ? 'Devis' : 'Quotes',
     bookings: fr ? 'Réservations' : 'Bookings',
@@ -177,7 +177,7 @@ export default function CustomerDetailPage() {
     const { confirmed } = await confirm({
       title: fr ? 'Supprimer ce client ?' : 'Delete this customer?',
       description: fr
-        ? 'Cette action est irréversible. Tous les emplois et factures associés seront dissociés.'
+        ? 'Cette action est irréversible. Tous les interventions et factures associés seront dissociés.'
         : 'This cannot be undone. All associated jobs and invoices will be unlinked.',
       confirmLabel: fr ? 'Supprimer' : 'Delete',
     })
@@ -300,7 +300,7 @@ export default function CustomerDetailPage() {
           {/* Quick actions */}
           <div className="mt-5 flex flex-wrap gap-2">
             <Link href={`/jobs?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
-              <Briefcase className="h-3.5 w-3.5 text-violet-500" /> {fr ? 'Nouvel emploi' : 'New job'}
+              <Briefcase className="h-3.5 w-3.5 text-violet-500" /> {fr ? 'Nouvelle intervention' : 'New job'}
             </Link>
             <Link href={`/invoices/new?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
               <DollarSign className="h-3.5 w-3.5 text-emerald-500" /> {fr ? 'Nouvelle facture' : 'New invoice'}
@@ -361,15 +361,15 @@ export default function CustomerDetailPage() {
         {tab === 'jobs' && (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Emplois' : 'Jobs'} ({jobs.length})</h2>
+              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Interventions' : 'Jobs'} ({jobs.length})</h2>
               <Link href={`/jobs?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
-                <Plus className="h-3.5 w-3.5" /> {fr ? 'Nouvel emploi' : 'New job'}
+                <Plus className="h-3.5 w-3.5" /> {fr ? 'Nouvelle intervention' : 'New job'}
               </Link>
             </div>
             {jobs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Briefcase className="h-8 w-8 text-gray-300 mb-2" />
-                <p className="text-sm text-gray-400">{fr ? 'Aucun emploi pour ce client' : 'No jobs for this customer'}</p>
+                <p className="text-sm text-gray-400">{fr ? 'Aucune intervention pour ce client' : 'No jobs for this customer'}</p>
               </div>
             ) : (
               <ul className="divide-y divide-gray-50">

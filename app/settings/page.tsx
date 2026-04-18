@@ -629,7 +629,7 @@ export default function SettingsPage() {
     const { confirmed } = await confirm({
       title: fr ? 'Déconnecter Google Calendar ?' : 'Disconnect Google Calendar?',
       description: fr
-        ? 'Les nouveaux emplois ne seront plus synchronisés. Les événements déjà créés resteront dans votre calendrier.'
+        ? 'Les nouvelles interventions ne seront plus synchronisées. Les événements déjà créés resteront dans votre calendrier.'
         : 'New jobs will no longer sync. Events already created will remain in your calendar.',
       confirmLabel: fr ? 'Déconnecter' : 'Disconnect',
     })

@@ -11,6 +11,7 @@ import UpgradePrompt from '@/components/UpgradePrompt'
 import EmptyState from '@/components/EmptyState'
 import { useConfirm } from '@/components/ui/confirm-dialog'
 import { toast } from 'sonner'
+import Link from 'next/link'
 import {
   Users, Plus, X, Mail, Phone, UserPlus, Lock, Shield, Send,
   MoreHorizontal, Edit2, UserX, Loader2,
@@ -278,9 +279,10 @@ export default function TeamPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {employees.map((emp) => (
-            <div
+            <Link
+              href={`/equipe/${emp.id}`}
               key={emp.id}
-              className="relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow"
+              className="relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 cursor-pointer hover:shadow-md transition-shadow block"
             >
               {/* Actions menu */}
               <div className="absolute top-4 right-4">
@@ -349,7 +351,7 @@ export default function TeamPage() {
                   </span>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
