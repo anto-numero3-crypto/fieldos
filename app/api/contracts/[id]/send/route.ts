@@ -77,5 +77,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
   }
 
+  // In-app notification to owner
+  try {
+    await supabase.from('notifications').insert({
+      user_id: user.id,
+      type: 'success',
+      title: `Contrat envoyé — ${contract.title}`,
+      body: `Le contrat a été envoyé à ${customer.email} pour approbation.`,
+      link: `/contrats/${id}`,
+    })  } catch (_) { /* non-blocking */ }
+
   return NextResponse.json({ success: true })
 }

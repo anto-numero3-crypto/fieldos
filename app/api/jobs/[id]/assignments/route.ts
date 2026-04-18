@@ -116,56 +116,37 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     await sb.from('jobs').update({ assigned_to: null }).eq('id', id)
   }
 
-  // Send notification emails to newly assigned employees
+  // In-app notifications for newly assigned employees
   const newlyAdded = body.employee_ids.filter((eid) => !existingIds.has(eid))
-  for (const empId of newlyAdded) {
-    // Look up the employee's email and find matching team_member for notification
-    const { data: emp } = await sb
-      .from('employees')
-      .select('email')
-      .eq('id', empId)
-      .maybeSingle()
-    if (emp?.email) {
-      const { data: tm } = await sb
-        .from('team_members')
-        .select('id')
-        .eq('email', emp.email)
-        .maybeSingle()
-      if (tm) {
-        // Temporarily set assigned_to so notification handler can find the member
-        await sb.from('jobs').update({ assigned_to: tm.id }).eq('id', id)
-        try {
-          const origin = req.headers.get('origin') || req.nextUrl.origin
-          await fetch(`${origin}/api/notifications/job-assigned`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              cookie: req.headers.get('cookie') || '',
-            },
-            body: JSON.stringify({ jobId: id }),
-          })
-        } catch (err) {
-          console.error('[job-assignments] notification error for employee', empId, err)
-        }
-      }
-    }
-  }
+  if (newlyAdded.length > 0) {
+    try {
+      // Fetch job details for the notification
+      const { data: jobDetails } = await sb
+        .from('jobs')
+        .select('title, scheduled_date')
+        .eq('id', id)
+        .single()
+      const jobTitle = jobDetails?.title || job.title || 'une intervention'
+      const dateStr = jobDetails?.scheduled_date
+        ? new Date(jobDetails.scheduled_date + 'T12:00:00').toLocaleDateString('fr-CA')
+        : ''
 
-  // Restore assigned_to to first employee's team_member
-  if (body.employee_ids.length > 0) {
-    const { data: firstEmp } = await sb
-      .from('employees')
-      .select('email')
-      .eq('id', body.employee_ids[0])
-      .maybeSingle()
-    if (firstEmp?.email) {
-      const { data: tm } = await sb
-        .from('team_members')
-        .select('id')
-        .eq('email', firstEmp.email)
-        .maybeSingle()
-      await sb.from('jobs').update({ assigned_to: tm?.id || null }).eq('id', id)
-    }
+      for (const empId of newlyAdded) {
+        const { data: emp } = await sb
+          .from('employees')
+          .select('user_id')
+          .eq('id', empId)
+          .maybeSingle()
+        if (emp?.user_id) {
+          await sb.from('notifications').insert({
+            user_id: emp.user_id,
+            type: 'info',
+            title: 'Nouvelle intervention assignée',
+            body: `Vous avez été assigné à ${jobTitle}${dateStr ? ` le ${dateStr}` : ''}.`,
+            link: `/employee/jobs/${id}`,
+          })        }
+      }
+    } catch (_) { /* non-blocking */ }
   }
 
   // Return updated assignments

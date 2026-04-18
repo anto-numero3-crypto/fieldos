@@ -98,6 +98,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   await supabase.from('contracts').update(updates).eq('id', id)
 
+  // Notify owner
+  if (generated > 0) {
+    try {
+      await supabase.from('notifications').insert({
+        user_id: org.owner_user_id,
+        type: 'success',
+        title: `${generated} interventions générées`,
+        body: `Les interventions du contrat ${contract.title || contract.service_name} ont été créées dans votre calendrier.`,
+        link: `/contrats/${id}`,
+      })    } catch (_) { /* non-blocking */ }
+  }
+
   return NextResponse.json({
     generated,
     skipped: existingDates.size,

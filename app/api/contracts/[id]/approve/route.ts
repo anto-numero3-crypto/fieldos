@@ -49,6 +49,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: updateErr.message }, { status: 500 })
   }
 
+  // In-app notification to owner
+  try {
+    const org = contract.organizations as { owner_user_id: string } | null
+    const customer = contract.customers as { name: string } | null
+    if (org?.owner_user_id) {
+      await supabase.from('notifications').insert({
+        user_id: org.owner_user_id,
+        type: 'success',
+        title: `Contrat approuvé — ${contract.title}`,
+        body: `${customer?.name || name} a approuvé votre contrat. Vous pouvez maintenant générer les interventions.`,
+        link: `/contrats/${id}`,
+      })    }
+  } catch (_) { /* non-blocking */ }
+
   // Send confirmation emails
   const resendKey = process.env.RESEND_API_KEY
   if (resendKey) {

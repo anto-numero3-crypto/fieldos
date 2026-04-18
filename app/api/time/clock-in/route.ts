@@ -56,5 +56,36 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Notify org owner
+  try {
+    const { data: empFull } = await sb
+      .from('employees')
+      .select('first_name, last_name, org_id')
+      .eq('user_id', user.id)
+      .single()
+    if (empFull?.org_id) {
+      const { data: org } = await sb
+        .from('organizations')
+        .select('owner_user_id')
+        .eq('id', empFull.org_id)
+        .single()
+      if (org?.owner_user_id) {
+        const empName = `${empFull.first_name} ${empFull.last_name}`.trim()
+        let jobTitle = ''
+        if (jobId) {
+          const { data: j } = await sb.from('jobs').select('title').eq('id', jobId).single()
+          jobTitle = j?.title || ''
+        }
+        await sb.from('notifications').insert({
+          user_id: org.owner_user_id,
+          type: 'info',
+          title: `${empName} a débuté une intervention`,
+          body: `${empName} a commencé à travailler${jobTitle ? ` sur ${jobTitle}` : ''}.`,
+          link: '/feuilles-de-temps',
+        })      }
+    }
+  } catch (_) { /* non-blocking */ }
+
   return NextResponse.json({ ok: true, entry })
 }

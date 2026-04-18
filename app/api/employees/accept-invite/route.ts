@@ -67,5 +67,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: updateErr.message }, { status: 500 })
   }
 
+  // Notify org owner
+  try {
+    const { data: empFull } = await sb
+      .from('employees')
+      .select('org_id')
+      .eq('id', emp.id)
+      .single()
+    if (empFull?.org_id) {
+      const { data: org } = await sb
+        .from('organizations')
+        .select('owner_user_id')
+        .eq('id', empFull.org_id)
+        .single()
+      if (org?.owner_user_id) {
+        const fullName = `${emp.first_name} ${emp.last_name}`.trim()
+        await sb.from('notifications').insert({
+          user_id: org.owner_user_id,
+          type: 'success',
+          title: `${fullName} a rejoint votre équipe`,
+          body: `${fullName} a accepté l'invitation et peut maintenant accéder à l'application.`,
+          link: '/equipe',
+        })      }
+    }
+  } catch (_) { /* non-blocking */ }
+
   return NextResponse.json({ ok: true })
 }
