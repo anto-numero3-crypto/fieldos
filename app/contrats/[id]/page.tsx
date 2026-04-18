@@ -13,8 +13,9 @@ import { toast } from 'sonner'
 import {
   Loader2, FileText, Calendar, DollarSign, Briefcase, Send,
   Zap, ChevronRight, CheckCircle, Clock, XCircle, Edit,
-  Trash2, ArrowLeft, Receipt, Printer, Eye,
+  Trash2, ArrowLeft, Receipt, Printer, Eye, PenLine, X,
 } from 'lucide-react'
+import SignaturePad from '@/components/SignaturePad'
 
 interface Contract {
   id: string
@@ -34,6 +35,13 @@ interface Contract {
   approval_token: string
   approved_at: string | null
   approved_by_name: string | null
+  owner_signature: string | null
+  owner_signed_at: string | null
+  owner_signed_name: string | null
+  client_signature: string | null
+  client_signed_at: string | null
+  client_signed_name: string | null
+  fully_executed_at: string | null
   notes: string | null
   internal_notes: string | null
   jobs_generated_count: number
@@ -69,6 +77,8 @@ const STATUS_BADGE: Record<string, string> = {
   draft: 'bg-gray-100 text-gray-700',
   sent: 'bg-blue-50 text-blue-700',
   approved: 'bg-emerald-50 text-emerald-700',
+  client_signed: 'bg-blue-50 text-blue-700',
+  fully_executed: 'bg-emerald-50 text-emerald-700',
   active: 'bg-indigo-50 text-indigo-700',
   expired: 'bg-amber-50 text-amber-700',
   cancelled: 'bg-red-50 text-red-700',
@@ -76,10 +86,12 @@ const STATUS_BADGE: Record<string, string> = {
 
 const STATUS_LABEL_FR: Record<string, string> = {
   draft: 'Brouillon', sent: 'Envoy\u00e9', approved: 'Approuv\u00e9',
+  client_signed: 'Sign\u00e9 par le client', fully_executed: '\u2713 Enti\u00e8rement sign\u00e9',
   active: 'Actif', expired: 'Expir\u00e9', cancelled: 'Annul\u00e9',
 }
 const STATUS_LABEL_EN: Record<string, string> = {
   draft: 'Draft', sent: 'Sent', approved: 'Approved',
+  client_signed: 'Signed by client', fully_executed: '\u2713 Fully signed',
   active: 'Active', expired: 'Expired', cancelled: 'Cancelled',
 }
 
@@ -121,6 +133,11 @@ export default function ContractDetailPage() {
   // Billing tab state
   const [selectedJobs, setSelectedJobs] = useState<string[]>([])
   const [creatingInvoice, setCreatingInvoice] = useState(false)
+
+  // Signature state
+  const [showSignModal, setShowSignModal] = useState(false)
+  const [signatureName, setSignatureName] = useState('')
+  const [signingOwner, setSigningOwner] = useState(false)
 
   useEffect(() => {
     loadContract()
@@ -228,6 +245,30 @@ export default function ContractDetailPage() {
     }
   }
 
+  const handleOwnerSign = async (signatureDataUrl: string) => {
+    if (!signatureName.trim() || !contract) return
+    setSigningOwner(true)
+    try {
+      const res = await fetch(`/api/contracts/${id}/owner-sign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signature: signatureDataUrl, name: signatureName.trim() }),
+      })
+      if (res.ok) {
+        toast.success(fr ? 'Contrat signé!' : 'Contract signed!')
+        setShowSignModal(false)
+        await loadContract()
+      } else {
+        const data = await res.json()
+        toast.error(data.error || 'Error')
+      }
+    } catch {
+      toast.error(fr ? 'Erreur' : 'Error')
+    } finally {
+      setSigningOwner(false)
+    }
+  }
+
   if (loading) {
     return (
       <AppLayout title={fr ? 'Contrat' : 'Contract'}>
@@ -322,7 +363,7 @@ export default function ContractDetailPage() {
                 {fr ? 'Envoyer au client' : 'Send to client'}
               </button>
             )}
-            {['approved', 'active'].includes(contract.status) && (
+            {['approved', 'active', 'client_signed', 'fully_executed'].includes(contract.status) && (
               <button
                 onClick={handleGenerate}
                 disabled={generating}
@@ -330,6 +371,15 @@ export default function ContractDetailPage() {
               >
                 {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
                 {fr ? 'G\u00e9n\u00e9rer interventions' : 'Generate jobs'}
+              </button>
+            )}
+            {!contract.owner_signed_at && !['cancelled', 'expired', 'draft'].includes(contract.status) && (
+              <button
+                onClick={() => setShowSignModal(true)}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors"
+              >
+                <PenLine className="h-4 w-4" />
+                {fr ? 'Signer le contrat' : 'Sign contract'}
               </button>
             )}
             {!['cancelled', 'expired'].includes(contract.status) && (
@@ -445,6 +495,73 @@ export default function ContractDetailPage() {
               ) : (
                 <p className="text-sm text-gray-400 py-2">{fr ? 'Non approuv\u00e9' : 'Not yet approved'}</p>
               )}
+            </div>
+
+            {/* SIGNATURES */}
+            <div className="rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-6">
+              <SectionTitle label="SIGNATURES" />
+              {contract.fully_executed_at ? (
+                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4 mb-4">
+                  <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    {fr ? 'Entièrement signé' : 'Fully signed'}
+                  </p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-500 mt-1">
+                    {fmtDate(contract.fully_executed_at, lang)}
+                  </p>
+                </div>
+              ) : null}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Owner signature */}
+                <div className="border border-gray-100 dark:border-gray-800 rounded-xl p-4">
+                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">
+                    {fr ? 'Votre signature' : 'Your signature'}
+                  </p>
+                  {contract.owner_signed_at ? (
+                    <>
+                      <img src={contract.owner_signature!} alt="Signature" className="max-h-[60px] object-contain mb-2" />
+                      <p className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-1.5">
+                        <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                        {contract.owner_signed_name}
+                      </p>
+                      <p className="text-xs text-gray-500">{fmtDate(contract.owner_signed_at, lang)}</p>
+                    </>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-400">{fr ? 'Aucune signature' : 'Not signed'}</p>
+                      <button
+                        onClick={() => setShowSignModal(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-medium hover:bg-emerald-100 transition-colors"
+                      >
+                        <PenLine className="h-3.5 w-3.5" />
+                        {fr ? 'Signez maintenant' : 'Sign now'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Client signature */}
+                <div className="border border-gray-100 dark:border-gray-800 rounded-xl p-4">
+                  <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">
+                    {fr ? 'Signature du client' : 'Client signature'}
+                  </p>
+                  {contract.client_signed_at ? (
+                    <>
+                      <img src={contract.client_signature!} alt="Client signature" className="max-h-[60px] object-contain mb-2" />
+                      <p className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-1.5">
+                        <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                        {contract.client_signed_name}
+                      </p>
+                      <p className="text-xs text-gray-500">{fmtDate(contract.client_signed_at, lang)}</p>
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-400">
+                      {fr ? 'En attente du client' : 'Awaiting client'}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Notes */}
@@ -661,6 +778,48 @@ export default function ContractDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Sign Modal */}
+      {showSignModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl max-w-md w-full mx-4 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                {fr ? 'Signer le contrat' : 'Sign the contract'}
+              </h2>
+              <button onClick={() => setShowSignModal(false)} className="text-gray-400 hover:text-gray-600">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                {fr ? 'Votre nom' : 'Your name'} *
+              </label>
+              <input
+                type="text"
+                value={signatureName}
+                onChange={(e) => setSignatureName(e.target.value)}
+                placeholder={fr ? 'Votre nom complet' : 'Your full name'}
+                className="w-full rounded-xl border border-gray-200 bg-white dark:bg-gray-800 dark:border-gray-700 px-4 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 outline-none dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                {fr ? 'Votre signature' : 'Your signature'}
+              </label>
+              <SignaturePad
+                onSave={(dataUrl) => handleOwnerSign(dataUrl)}
+                onClear={() => {}}
+              />
+            </div>
+            {signingOwner && (
+              <div className="flex items-center justify-center py-2">
+                <Loader2 className="h-5 w-5 text-indigo-500 animate-spin" />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </AppLayout>
   )
 }

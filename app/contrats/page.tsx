@@ -42,6 +42,8 @@ const STATUS_BADGE: Record<string, string> = {
   draft: 'bg-gray-100 text-gray-700',
   sent: 'bg-blue-50 text-blue-700',
   approved: 'bg-emerald-50 text-emerald-700',
+  client_signed: 'bg-blue-50 text-blue-700',
+  fully_executed: 'bg-emerald-50 text-emerald-700',
   active: 'bg-indigo-50 text-indigo-700',
   expired: 'bg-amber-50 text-amber-700',
   cancelled: 'bg-red-50 text-red-700',
@@ -49,10 +51,12 @@ const STATUS_BADGE: Record<string, string> = {
 
 const STATUS_LABEL_FR: Record<string, string> = {
   draft: 'Brouillon', sent: 'Envoy\u00e9', approved: 'Approuv\u00e9',
+  client_signed: 'Sign\u00e9 par le client', fully_executed: '\u2713 Enti\u00e8rement sign\u00e9',
   active: 'Actif', expired: 'Expir\u00e9', cancelled: 'Annul\u00e9',
 }
 const STATUS_LABEL_EN: Record<string, string> = {
   draft: 'Draft', sent: 'Sent', approved: 'Approved',
+  client_signed: 'Signed by client', fully_executed: '\u2713 Fully signed',
   active: 'Active', expired: 'Expired', cancelled: 'Cancelled',
 }
 
@@ -370,7 +374,7 @@ function ContractCard({
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {['approved', 'active'].includes(c.status) && (
+          {['approved', 'active', 'client_signed', 'fully_executed'].includes(c.status) && (
             <button
               onClick={onGenerateJobs}
               disabled={generating}

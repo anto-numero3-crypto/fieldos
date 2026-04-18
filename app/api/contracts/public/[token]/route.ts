@@ -45,6 +45,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     notes: contract.notes,
     approval_token: contract.approval_token,
     customers: contract.customers,
+    owner_signature: contract.owner_signature || null,
+    owner_signed_at: contract.owner_signed_at || null,
+    owner_signed_name: contract.owner_signed_name || null,
+    client_signature: contract.client_signature || null,
+    client_signed_at: contract.client_signed_at || null,
+    client_signed_name: contract.client_signed_name || null,
+    fully_executed_at: contract.fully_executed_at || null,
   }
 
   return NextResponse.json({ contract: publicContract, org: org || null })

@@ -1,22 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { useParams } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
 import { useLanguage } from '@/lib/LanguageContext'
 import { LanguageToggle } from '@/components/LanguageToggle'
 import { fmtMoney, fmtDate } from '@/lib/format'
 import { getRecurrenceLabel, getBillingTypeLabel, getBillingFrequencyLabel } from '@/lib/contract-labels'
 import { calculateRecurringDates } from '@/lib/recurring-dates'
+import SignaturePad from '@/components/SignaturePad'
 import {
   CheckCircle, FileText, Calendar, DollarSign, Loader2, Send,
-  MessageSquare, Wrench, AlertCircle, Printer,
+  MessageSquare, Wrench, AlertCircle, Printer, ChevronDown, Shield,
 } from 'lucide-react'
-
-const supabasePublic = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-)
 
 interface ContractData {
   id: string
@@ -39,6 +34,13 @@ interface ContractData {
   notes: string | null
   org_id: string
   customers: { name: string; email: string | null; phone: string | null; address: string | null } | null
+  owner_signature: string | null
+  owner_signed_at: string | null
+  owner_signed_name: string | null
+  client_signature: string | null
+  client_signed_at: string | null
+  client_signed_name: string | null
+  fully_executed_at: string | null
 }
 
 interface OrgData {
@@ -62,12 +64,22 @@ export default function ContractApprovalPage() {
   const [org, setOrg] = useState<OrgData | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
-  const [approved, setApproved] = useState(false)
-  const [approving, setApproving] = useState(false)
-  const [name, setName] = useState('')
+
+  // Signing state
+  const [signed, setSigned] = useState(false)
+  const [signing, setSigning] = useState(false)
+  const [signName, setSignName] = useState('')
+  const [signEmail, setSignEmail] = useState('')
+  const [confirmed, setConfirmed] = useState(false)
+  const [signatureData, setSignatureData] = useState<string | null>(null)
+  const [scrolledToBottom, setScrolledToBottom] = useState(false)
+
+  // Modification request state
   const [showModify, setShowModify] = useState(false)
   const [comments, setComments] = useState('')
   const [modifySent, setModifySent] = useState(false)
+
+  const contractScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -87,8 +99,13 @@ export default function ContractApprovalPage() {
 
       setContract(data)
 
-      if (['approved', 'active'].includes(data.status)) {
-        setApproved(true)
+      // Pre-fill signing fields
+      if (data.customers?.name) setSignName(data.customers.name)
+      if (data.customers?.email) setSignEmail(data.customers.email)
+
+      // Already signed by client?
+      if (data.client_signed_at) {
+        setSigned(true)
       }
 
       if (orgData) setOrg(orgData)
@@ -97,20 +114,40 @@ export default function ContractApprovalPage() {
     load()
   }, [token])
 
-  const handleApprove = async () => {
-    if (!name.trim() || !contract) return
-    setApproving(true)
+  // Scroll detection
+  const handleScroll = useCallback(() => {
+    const el = contractScrollRef.current
+    if (!el) return
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40
+    if (atBottom) setScrolledToBottom(true)
+  }, [])
+
+  const handleSign = async () => {
+    if (!signName.trim() || !signEmail.trim() || !signatureData || !confirmed || !contract) return
+    setSigning(true)
     try {
-      const res = await fetch(`/api/contracts/${contract.id}/approve`, {
+      const res = await fetch(`/api/contracts/${contract.id}/client-sign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, name: name.trim() }),
+        body: JSON.stringify({
+          token,
+          name: signName.trim(),
+          email: signEmail.trim(),
+          signature: signatureData,
+          confirmed: true,
+        }),
       })
       if (res.ok) {
-        setApproved(true)
+        setSigned(true)
+        // Reload contract data to get signature info
+        const refreshRes = await fetch(`/api/contracts/public/${token}`)
+        if (refreshRes.ok) {
+          const { contract: refreshed } = await refreshRes.json()
+          if (refreshed) setContract(refreshed)
+        }
       }
     } catch { /* ignore */ } finally {
-      setApproving(false)
+      setSigning(false)
     }
   }
 
@@ -131,7 +168,7 @@ export default function ContractApprovalPage() {
             {fr ? 'Contrat introuvable' : 'Contract not found'}
           </h1>
           <p className="text-gray-500">
-            {fr ? 'Ce lien est invalide ou expir\u00e9.' : 'This link is invalid or expired.'}
+            {fr ? 'Ce lien est invalide ou expiré.' : 'This link is invalid or expired.'}
           </p>
         </div>
       </div>
@@ -154,6 +191,10 @@ export default function ContractApprovalPage() {
     : []
 
   const bizName = org?.name || 'Gestivio'
+
+  const canSign = scrolledToBottom && confirmed && signatureData && signName.trim() && signEmail.trim()
+  const isSigned = signed || !!contract.client_signed_at
+  const isFullyExecuted = !!contract.fully_executed_at
 
   return (
     <>
@@ -208,7 +249,7 @@ export default function ContractApprovalPage() {
             </div>
             <div style={{ border: '1px solid #ddd', borderRadius: '6px', padding: '12px 16px', textAlign: 'left', fontSize: '12px', lineHeight: 1.8 }}>
               <div><strong>{fr ? 'Contrat' : 'Contract'}:</strong> {contract.title}</div>
-              <div><strong>{fr ? 'D\u00e9but' : 'Start'}:</strong> {fmtDate(contract.start_date, lang)}</div>
+              <div><strong>{fr ? 'Début' : 'Start'}:</strong> {fmtDate(contract.start_date, lang)}</div>
               <div><strong>{fr ? 'Fin' : 'End'}:</strong> {fmtDate(contract.end_date, lang)}</div>
             </div>
           </div>
@@ -246,11 +287,11 @@ export default function ContractApprovalPage() {
             {fr ? 'HORAIRE' : 'SCHEDULE'}
           </div>
           <div style={{ fontSize: '12px', color: '#333', lineHeight: 1.8 }}>
-            <div>{fr ? 'R\u00e9currence' : 'Recurrence'}: {getRecurrenceLabel(contract.recurrence_type, lang)}</div>
-            <div>{fr ? 'P\u00e9riode' : 'Period'}: {fmtDate(contract.start_date, lang)} - {fmtDate(contract.end_date, lang)}</div>
+            <div>{fr ? 'Récurrence' : 'Recurrence'}: {getRecurrenceLabel(contract.recurrence_type, lang)}</div>
+            <div>{fr ? 'Période' : 'Period'}: {fmtDate(contract.start_date, lang)} - {fmtDate(contract.end_date, lang)}</div>
             {previewDates.length > 0 && (
               <div style={{ marginTop: '4px' }}>
-                <span style={{ fontWeight: 600 }}>{fr ? 'Premi\u00e8res dates:' : 'First dates:'}</span>{' '}
+                <span style={{ fontWeight: 600 }}>{fr ? 'Premières dates:' : 'First dates:'}</span>{' '}
                 {previewDates.map((d) => fmtDate(d, lang, 'short')).join(', ')}
                 ...
               </div>
@@ -301,12 +342,12 @@ export default function ContractApprovalPage() {
         {/* Payment terms */}
         <div style={{ marginBottom: '24px' }}>
           <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
-            {fr ? 'MODALIT\u00c9S DE PAIEMENT' : 'PAYMENT TERMS'}
+            {fr ? 'MODALITÉS DE PAIEMENT' : 'PAYMENT TERMS'}
           </div>
           <div style={{ fontSize: '12px', color: '#555' }}>
             {fr ? `Facturation: ${getBillingTypeLabel(contract.billing_type, lang)}` : `Billing: ${getBillingTypeLabel(contract.billing_type, lang)}`}
             {contract.billing_frequency && (
-              <span> - {fr ? 'Fr\u00e9quence' : 'Frequency'}: {getBillingFrequencyLabel(contract.billing_frequency, lang)}</span>
+              <span> - {fr ? 'Fréquence' : 'Frequency'}: {getBillingFrequencyLabel(contract.billing_frequency, lang)}</span>
             )}
           </div>
           {contract.notes && (
@@ -314,21 +355,59 @@ export default function ContractApprovalPage() {
           )}
         </div>
 
-        {/* Signature lines */}
-        <div style={{ display: 'flex', gap: '60px', marginBottom: '24px', marginTop: '20px' }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ borderBottom: '1px solid #999', height: '40px' }} />
-            <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
-              {fr ? 'Signature du client' : 'Client signature'}
-            </div>
-            <div style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>Date: _______________</div>
+        {/* Signature block for print */}
+        <div style={{ marginBottom: '24px', marginTop: '20px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '16px', borderBottom: '2px solid #000', paddingBottom: '4px' }}>
+            SIGNATURES
           </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ borderBottom: '1px solid #999', height: '40px' }} />
-            <div style={{ fontSize: '11px', color: '#666', marginTop: '4px' }}>
-              {fr ? 'Signature de l\'entreprise' : 'Business signature'}
+          <div style={{ display: 'flex', gap: '40px' }}>
+            {/* Owner / Business */}
+            <div style={{ flex: 1, border: '1px solid #ddd', borderRadius: '6px', padding: '16px' }}>
+              <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
+                {fr ? `Pour ${bizName}` : `For ${bizName}`}
+              </div>
+              {contract.owner_signature ? (
+                <>
+                  <img src={contract.owner_signature} alt="Owner signature" style={{ maxWidth: '200px', maxHeight: '80px', objectFit: 'contain', display: 'block', marginBottom: '8px' }} />
+                  <div style={{ fontSize: '12px', fontWeight: 600 }}>{contract.owner_signed_name}</div>
+                  <div style={{ fontSize: '10px', color: '#888' }}>
+                    {contract.owner_signed_at ? fmtDate(contract.owner_signed_at, lang) : ''}
+                  </div>
+                </>
+              ) : (
+                <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#999', fontStyle: 'italic' }}>
+                    {fr ? 'En attente de signature' : 'Awaiting signature'}
+                  </span>
+                </div>
+              )}
             </div>
-            <div style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>Date: _______________</div>
+            {/* Client */}
+            <div style={{ flex: 1, border: '1px solid #ddd', borderRadius: '6px', padding: '16px' }}>
+              <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
+                Client
+              </div>
+              {contract.client_signature ? (
+                <>
+                  <img src={contract.client_signature} alt="Client signature" style={{ maxWidth: '200px', maxHeight: '80px', objectFit: 'contain', display: 'block', marginBottom: '8px' }} />
+                  <div style={{ fontSize: '12px', fontWeight: 600 }}>{contract.client_signed_name}</div>
+                  <div style={{ fontSize: '10px', color: '#888' }}>
+                    {contract.client_signed_at ? fmtDate(contract.client_signed_at, lang) : ''}
+                  </div>
+                </>
+              ) : (
+                <div style={{ height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#999', fontStyle: 'italic' }}>
+                    {fr ? 'En attente de signature' : 'Awaiting signature'}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '10px', color: '#999' }}>
+            {fr
+              ? `Document signé électroniquement via Gestivio · Réf: ${contract.id}`
+              : `Document signed electronically via Gestivio · Ref: ${contract.id}`}
           </div>
         </div>
 
@@ -371,21 +450,118 @@ export default function ContractApprovalPage() {
         </div>
 
         <div className="max-w-2xl mx-auto px-4 py-8">
-          {approved ? (
-            <div className="rounded-2xl bg-white border border-gray-100 p-8 text-center shadow-sm">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-                <CheckCircle className="h-8 w-8 text-emerald-600" />
+          {isSigned ? (
+            /* ===== SIGNED VIEW ===== */
+            <div className="space-y-6">
+              {/* Success banner */}
+              {!isFullyExecuted && (
+                <div className="rounded-2xl bg-white border border-gray-100 p-8 text-center shadow-sm">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+                    <CheckCircle className="h-8 w-8 text-emerald-600" />
+                  </div>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                    {fr ? 'Contrat signé!' : 'Contract signed!'}
+                  </h1>
+                  <p className="text-gray-500 max-w-md mx-auto">
+                    {fr
+                      ? `Votre signature a été enregistrée. Un email de confirmation a été envoyé à ${signEmail || contract.customers?.email || ''}.`
+                      : `Your signature has been recorded. A confirmation email has been sent to ${signEmail || contract.customers?.email || ''}.`}
+                  </p>
+                </div>
+              )}
+
+              {isFullyExecuted && (
+                <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-6 text-center">
+                  <CheckCircle className="h-8 w-8 text-emerald-600 mx-auto mb-2" />
+                  <h2 className="text-lg font-bold text-emerald-800">
+                    {fr ? 'Contrat entièrement signé' : 'Contract fully executed'}
+                  </h2>
+                  <p className="text-sm text-emerald-700 mt-1">
+                    {fr
+                      ? 'Les deux parties ont signé ce contrat.'
+                      : 'Both parties have signed this contract.'}
+                  </p>
+                </div>
+              )}
+
+              {/* Contract details summary */}
+              <div className="rounded-2xl bg-white border border-gray-100 p-6 shadow-sm">
+                <h2 className="text-lg font-bold text-gray-900 mb-4">{contract.title}</h2>
+                {contract.description && <p className="text-sm text-gray-600 mb-4">{contract.description}</p>}
+                <div className="grid gap-3">
+                  <InfoRow icon={FileText} label={fr ? 'Service' : 'Service'} value={contract.service_name} />
+                  <InfoRow icon={Calendar} label={fr ? 'Période' : 'Period'} value={`${fmtDate(contract.start_date, lang)} - ${fmtDate(contract.end_date, lang)}`} />
+                  <InfoRow icon={DollarSign} label="Total" value={fmtMoney(totalWithTaxes, lang)} />
+                </div>
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                {fr ? 'Contrat approuv\u00e9!' : 'Contract approved!'}
-              </h1>
-              <p className="text-gray-500 max-w-md mx-auto">
-                {fr
-                  ? `Merci! Le contrat "${contract.title}" a \u00e9t\u00e9 approuv\u00e9 avec succ\u00e8s. ${bizName} vous contactera bient\u00f4t.`
-                  : `Thank you! The contract "${contract.title}" has been approved successfully. ${bizName} will be in touch soon.`}
-              </p>
+
+              {/* Signature block */}
+              <div className="rounded-2xl bg-white border border-gray-100 p-6 shadow-sm">
+                <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wider">
+                  {fr ? 'Signatures' : 'Signatures'}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {/* Owner signature */}
+                  <div className="border border-gray-100 rounded-xl p-4">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">
+                      {fr ? `Pour ${bizName}` : `For ${bizName}`}
+                    </p>
+                    {contract.owner_signature ? (
+                      <>
+                        <img src={contract.owner_signature} alt="Owner signature" className="max-h-[60px] object-contain mb-2" />
+                        <p className="text-sm font-medium text-gray-900">{contract.owner_signed_name}</p>
+                        <p className="text-xs text-gray-500">
+                          {contract.owner_signed_at ? fmtDate(contract.owner_signed_at, lang) : ''}
+                        </p>
+                      </>
+                    ) : (
+                      <div className="h-[60px] flex items-center justify-center">
+                        <span className="text-xs text-gray-400 italic">
+                          {fr ? 'En attente de signature' : 'Awaiting signature'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  {/* Client signature */}
+                  <div className="border border-gray-100 rounded-xl p-4">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">Client</p>
+                    {contract.client_signature ? (
+                      <>
+                        <img src={contract.client_signature} alt="Client signature" className="max-h-[60px] object-contain mb-2" />
+                        <p className="text-sm font-medium text-gray-900">{contract.client_signed_name}</p>
+                        <p className="text-xs text-gray-500">
+                          {contract.client_signed_at ? fmtDate(contract.client_signed_at, lang) : ''}
+                        </p>
+                      </>
+                    ) : (
+                      <div className="h-[60px] flex items-center justify-center">
+                        <span className="text-xs text-gray-400 italic">
+                          {fr ? 'En attente de signature' : 'Awaiting signature'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 text-center mt-4">
+                  {fr
+                    ? `Document signé électroniquement via Gestivio · Réf: ${contract.id}`
+                    : `Document signed electronically via Gestivio · Ref: ${contract.id}`}
+                </p>
+              </div>
+
+              {/* Print button */}
+              <div className="text-center">
+                <button
+                  onClick={() => window.print()}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow-sm transition"
+                >
+                  <Printer className="h-4 w-4" />
+                  {fr ? 'Imprimer le contrat' : 'Print contract'}
+                </button>
+              </div>
             </div>
           ) : (
+            /* ===== SIGNING FLOW ===== */
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -398,130 +574,240 @@ export default function ContractApprovalPage() {
                 </p>
               </div>
 
-              {/* Contract info */}
-              <div className="rounded-2xl bg-white border border-gray-100 p-6 shadow-sm space-y-4">
-                <h2 className="text-lg font-bold text-gray-900">{contract.title}</h2>
-                {contract.description && (
-                  <p className="text-sm text-gray-600">{contract.description}</p>
-                )}
-
-                <div className="grid gap-3">
-                  <InfoRow icon={FileText} label={fr ? 'Service' : 'Service'} value={contract.service_name} />
-                  {contract.service_description && (
-                    <InfoRow icon={FileText} label={fr ? 'D\u00e9tails' : 'Details'} value={contract.service_description} />
+              {/* 1. Contract review (scrollable) */}
+              <div className="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-gray-900">
+                    {fr ? '1. Lire le contrat' : '1. Review the contract'}
+                  </h2>
+                  {!scrolledToBottom && (
+                    <span className="inline-flex items-center gap-1 text-xs text-indigo-600 animate-pulse">
+                      <ChevronDown className="h-3.5 w-3.5" />
+                      {fr ? 'Faites défiler pour lire le contrat' : 'Scroll to read the contract'}
+                    </span>
                   )}
-                  <InfoRow icon={Calendar} label={fr ? 'P\u00e9riode' : 'Period'} value={`${fmtDate(contract.start_date, lang)} - ${fmtDate(contract.end_date, lang)}`} />
-                  <InfoRow icon={Calendar} label={fr ? 'Fr\u00e9quence' : 'Frequency'} value={getRecurrenceLabel(contract.recurrence_type, lang)} />
+                  {scrolledToBottom && (
+                    <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                      <CheckCircle className="h-3.5 w-3.5" />
+                      {fr ? 'Lu' : 'Read'}
+                    </span>
+                  )}
+                </div>
+                <div
+                  ref={contractScrollRef}
+                  onScroll={handleScroll}
+                  className="max-h-[400px] overflow-y-auto p-6 space-y-4"
+                >
+                  <h3 className="text-lg font-bold text-gray-900">{contract.title}</h3>
+                  {contract.description && <p className="text-sm text-gray-600">{contract.description}</p>}
+
+                  <div className="grid gap-3">
+                    <InfoRow icon={FileText} label={fr ? 'Service' : 'Service'} value={contract.service_name} />
+                    {contract.service_description && (
+                      <InfoRow icon={FileText} label={fr ? 'Détails' : 'Details'} value={contract.service_description} />
+                    )}
+                    <InfoRow icon={Calendar} label={fr ? 'Période' : 'Period'} value={`${fmtDate(contract.start_date, lang)} - ${fmtDate(contract.end_date, lang)}`} />
+                    <InfoRow icon={Calendar} label={fr ? 'Fréquence' : 'Frequency'} value={getRecurrenceLabel(contract.recurrence_type, lang)} />
+                  </div>
+
+                  {/* Price breakdown */}
+                  <div className="border-t border-gray-100 pt-4 space-y-2">
+                    <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-indigo-600" />
+                      {fr ? 'Tarification' : 'Pricing'}
+                    </h4>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">{fr ? 'Prix par visite' : 'Price per visit'}</span>
+                      <span className="font-medium text-gray-900">{fmtMoney(contract.price_per_visit, lang)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">{fr ? 'Sous-total' : 'Subtotal'}</span>
+                      <span className="font-medium text-gray-900">{fmtMoney(subtotal, lang)}</span>
+                    </div>
+                    {includeTps && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">TPS (5%)</span>
+                        <span className="text-gray-700">{fmtMoney(tpsAmount, lang)}</span>
+                      </div>
+                    )}
+                    {includeTvq && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">TVQ (9,975%)</span>
+                        <span className="text-gray-700">{fmtMoney(tvqAmount, lang)}</span>
+                      </div>
+                    )}
+                    <div className="border-t border-gray-100 pt-2 flex justify-between text-base font-bold">
+                      <span className="text-gray-900">Total</span>
+                      <span className="text-indigo-600">{fmtMoney(totalWithTaxes, lang)}</span>
+                    </div>
+                  </div>
+
+                  {/* Billing terms */}
+                  <div className="border-t border-gray-100 pt-4 text-sm text-gray-600">
+                    <p>{fr ? 'Facturation' : 'Billing'}: {getBillingTypeLabel(contract.billing_type, lang)}
+                      {contract.billing_frequency && ` - ${getBillingFrequencyLabel(contract.billing_frequency, lang)}`}
+                    </p>
+                  </div>
+
+                  {contract.notes && (
+                    <div className="border-t border-gray-100 pt-4">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-1">Notes</h4>
+                      <p className="text-sm text-gray-600">{contract.notes}</p>
+                    </div>
+                  )}
+
+                  {/* Preview dates */}
+                  {previewDates.length > 0 && (
+                    <div className="border-t border-gray-100 pt-4">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                        {fr ? 'Premières dates prévues' : 'First scheduled dates'}
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {previewDates.map((d) => (
+                          <span key={d} className="px-2 py-1 rounded-lg bg-gray-50 text-xs text-gray-600">
+                            {fmtDate(d, lang, 'short')}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Owner signature if present */}
+                  {contract.owner_signature && (
+                    <div className="border-t border-gray-100 pt-4">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                        {fr ? `Signé par ${bizName}` : `Signed by ${bizName}`}
+                      </h4>
+                      <img src={contract.owner_signature} alt="Owner signature" className="max-h-[50px] object-contain mb-1" />
+                      <p className="text-xs text-gray-500">
+                        {contract.owner_signed_name} - {contract.owner_signed_at ? fmtDate(contract.owner_signed_at, lang) : ''}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Price breakdown */}
-              <div className="rounded-2xl bg-white border border-gray-100 p-6 shadow-sm">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-indigo-600" />
-                  {fr ? 'Tarification' : 'Pricing'}
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">{fr ? 'Prix par visite' : 'Price per visit'}</span>
-                    <span className="font-medium text-gray-900">{fmtMoney(contract.price_per_visit, lang)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">{fr ? 'Sous-total' : 'Subtotal'}</span>
-                    <span className="font-medium text-gray-900">{fmtMoney(subtotal, lang)}</span>
-                  </div>
-                  {includeTps && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">TPS (5%)</span>
-                      <span className="text-gray-700">{fmtMoney(tpsAmount, lang)}</span>
-                    </div>
-                  )}
-                  {includeTvq && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">TVQ (9,975%)</span>
-                      <span className="text-gray-700">{fmtMoney(tvqAmount, lang)}</span>
-                    </div>
-                  )}
-                  <div className="border-t border-gray-100 pt-2 flex justify-between text-base font-bold">
-                    <span className="text-gray-900">Total</span>
-                    <span className="text-indigo-600">{fmtMoney(totalWithTaxes, lang)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {contract.notes && (
-                <div className="rounded-2xl bg-white border border-gray-100 p-6 shadow-sm">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2">Notes</h3>
-                  <p className="text-sm text-gray-600">{contract.notes}</p>
-                </div>
-              )}
-
-              {/* Approve */}
-              <div className="rounded-2xl bg-white border border-gray-100 p-6 shadow-sm space-y-4">
+              {/* 2. Identity section */}
+              <div className={`rounded-2xl bg-white border border-gray-100 p-6 shadow-sm space-y-4 transition-opacity ${scrolledToBottom ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
+                <h2 className="text-sm font-semibold text-gray-900">
+                  {fr ? '2. Vos informations' : '2. Your information'}
+                </h2>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    {fr ? 'Votre nom complet' : 'Your full name'} *
+                    {fr ? 'Nom complet' : 'Full name'} *
                   </label>
                   <input
                     type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder={fr ? 'Pr\u00e9nom et nom' : 'First and last name'}
+                    value={signName}
+                    onChange={(e) => setSignName(e.target.value)}
+                    placeholder={fr ? 'Prénom et nom' : 'First and last name'}
                     className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 outline-none"
                   />
                 </div>
-                <button
-                  onClick={handleApprove}
-                  disabled={!name.trim() || approving}
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
-                >
-                  {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
-                  {fr ? 'Approuver le contrat' : 'Approve contract'}
-                </button>
-
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={() => setShowModify(!showModify)}
-                    className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                  >
-                    {fr ? 'Demander des modifications' : 'Request modifications'}
-                  </button>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    {fr ? 'Courriel' : 'Email'} *
+                  </label>
+                  <input
+                    type="email"
+                    value={signEmail}
+                    readOnly={!!contract.customers?.email}
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-600 outline-none"
+                  />
                 </div>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={confirmed}
+                    onChange={(e) => setConfirmed(e.target.checked)}
+                    className="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span className="text-sm text-gray-700">
+                    {fr
+                      ? 'Je confirme avoir lu et compris ce contrat'
+                      : 'I confirm that I have read and understood this contract'}
+                  </span>
+                </label>
+              </div>
 
-                {showModify && !modifySent && (
-                  <div className="space-y-3 pt-2 border-t border-gray-100">
-                    <textarea
-                      value={comments}
-                      onChange={(e) => setComments(e.target.value)}
-                      rows={3}
-                      placeholder={fr ? 'D\u00e9crivez les modifications souhait\u00e9es...' : 'Describe the changes you would like...'}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 outline-none resize-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setModifySent(true)}
-                      disabled={!comments.trim()}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      {fr ? 'Envoyer la demande' : 'Send request'}
-                    </button>
-                  </div>
-                )}
-                {modifySent && (
-                  <p className="text-sm text-emerald-600 text-center">
-                    {fr ? 'Votre demande a \u00e9t\u00e9 envoy\u00e9e.' : 'Your request has been sent.'}
+              {/* 3. Signature section */}
+              <div className={`rounded-2xl bg-white border border-gray-100 p-6 shadow-sm space-y-4 transition-opacity ${scrolledToBottom ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
+                <h2 className="text-sm font-semibold text-gray-900">
+                  {fr ? '3. Votre signature' : '3. Your signature'}
+                </h2>
+                <SignaturePad
+                  onSave={(dataUrl) => setSignatureData(dataUrl)}
+                  onClear={() => setSignatureData(null)}
+                />
+                {signatureData && (
+                  <p className="text-xs text-emerald-600 flex items-center gap-1">
+                    <CheckCircle className="h-3.5 w-3.5" />
+                    {fr ? 'Signature enregistrée' : 'Signature captured'}
                   </p>
                 )}
+                <div className="flex items-start gap-2 mt-3">
+                  <Shield className="h-4 w-4 text-gray-400 mt-0.5 shrink-0" />
+                  <p className="text-xs text-gray-400">
+                    {fr
+                      ? 'En signant ce document, vous consentez à utiliser une signature électronique conformément aux lois canadiennes applicables (Loi concernant le cadre juridique des technologies de l\'information du Québec).'
+                      : 'By signing this document, you consent to using an electronic signature in accordance with applicable Canadian laws (Quebec Act to establish a legal framework for information technology).'}
+                  </p>
+                </div>
               </div>
+
+              {/* 4. Submit button */}
+              <button
+                onClick={handleSign}
+                disabled={!canSign || signing}
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+              >
+                {signing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                {fr ? 'Signer et approuver le contrat' : 'Sign and approve the contract'}
+              </button>
+
+              {/* Request modifications */}
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowModify(!showModify)}
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  {fr ? 'Demander des modifications' : 'Request modifications'}
+                </button>
+              </div>
+
+              {showModify && !modifySent && (
+                <div className="rounded-2xl bg-white border border-gray-100 p-6 shadow-sm space-y-3">
+                  <textarea
+                    value={comments}
+                    onChange={(e) => setComments(e.target.value)}
+                    rows={3}
+                    placeholder={fr ? 'Décrivez les modifications souhaitées...' : 'Describe the changes you would like...'}
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 outline-none resize-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setModifySent(true)}
+                    disabled={!comments.trim()}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    {fr ? 'Envoyer la demande' : 'Send request'}
+                  </button>
+                </div>
+              )}
+              {modifySent && (
+                <p className="text-sm text-emerald-600 text-center">
+                  {fr ? 'Votre demande a été envoyée.' : 'Your request has been sent.'}
+                </p>
+              )}
             </div>
           )}
 
           {/* Footer */}
           <div className="text-center mt-8 pb-8">
             <p className="text-xs text-gray-400">
-              {fr ? 'Propuls\u00e9 par' : 'Powered by'}{' '}
+              {fr ? 'Propulsé par' : 'Powered by'}{' '}
               <a href="https://gestivio.ca" className="text-indigo-500 hover:underline">Gestivio</a>
             </p>
           </div>
