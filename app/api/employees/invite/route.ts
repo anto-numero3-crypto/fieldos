@@ -5,8 +5,6 @@ import { normalizePlan } from '@/lib/plan-limits'
 import { isModuleEnabled } from '@/lib/modules'
 import crypto from 'crypto'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function POST(req: NextRequest) {
   const user = await getAuthedUser(req)
   if (!user) return UNAUTHORIZED()
@@ -92,12 +90,19 @@ export async function POST(req: NextRequest) {
   }
 
   // Send invite email
+  if (!process.env.RESEND_API_KEY) {
+    console.error('[invite] RESEND_API_KEY is not set — cannot send invite email')
+    return NextResponse.json({ error: 'Email service not configured (RESEND_API_KEY missing)', employee }, { status: 503 })
+  }
+  const resend = new Resend(process.env.RESEND_API_KEY)
   const inviteLink = `https://gestivio.ca/invite/${inviteToken}`
-  console.log('[invite] sending email to:', email.toLowerCase().trim())
+  const toAddress = email.toLowerCase().trim()
+  console.log('[invite] sending email to:', toAddress, 'from: Gestivio <noreply@gestivio.ca>')
+  console.log('[invite] RESEND_API_KEY starts with:', process.env.RESEND_API_KEY?.slice(0, 8) + '...')
   try {
     const result = await resend.emails.send({
       from: 'Gestivio <noreply@gestivio.ca>',
-      to: email.toLowerCase().trim(),
+      to: toAddress,
       subject: `Vous avez été invité à rejoindre ${org.name || 'une entreprise'} sur Gestivio`,
       html: `
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#111827">
@@ -123,10 +128,15 @@ export async function POST(req: NextRequest) {
         </div>
       `,
     })
-    console.log('[invite] email sent:', result)
+    console.log('[invite] email sent:', JSON.stringify(result))
+    if (result.error) {
+      console.error('[invite] Resend returned error:', JSON.stringify(result.error))
+      return NextResponse.json({ error: `Email failed: ${result.error.message || JSON.stringify(result.error)}`, employee }, { status: 500 })
+    }
   } catch (err) {
-    console.error('[invite] email error:', err)
-    return NextResponse.json({ error: 'Failed to send invite email' }, { status: 500 })
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('[invite] email exception:', msg, err)
+    return NextResponse.json({ error: `Email send failed: ${msg}`, employee }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true, employee })
