@@ -568,10 +568,11 @@ export default function DashboardPage() {
   const updateBooking = async (id: string, status: 'accepted' | 'declined') => {
     setBookingActing(id)
     try {
+      const action = status === 'accepted' ? 'confirm' : 'decline'
       const res = await fetch(`/api/bookings/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ action }),
       })
       if (!res.ok) throw new Error(await res.text())
       toast.success(

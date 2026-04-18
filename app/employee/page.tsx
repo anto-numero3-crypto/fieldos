@@ -68,28 +68,42 @@ export default function EmployeeDashboard() {
       const emp = meData.employee as Employee
       setEmployee(emp)
 
-      // Fetch jobs
+      // Fetch jobs — jobs are assigned via team_members.id in assigned_to.
+      // Find the team_member that matches this employee's email to get their jobs.
+      const { data: tmMatch } = await supabase
+        .from('team_members')
+        .select('id')
+        .eq('email', emp.email)
+        .maybeSingle()
+      const assignedToId = tmMatch?.id || emp.id
+
       const today = new Date().toISOString().slice(0, 10)
       const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 
-      const { data: todayData } = await supabase
-        .from('jobs')
-        .select('id, title, description, status, scheduled_date, start_time, end_time, service_address, customers(name, phone)')
-        .eq('assigned_employee_id', emp.id)
-        .eq('scheduled_date', today)
-        .order('start_time', { ascending: true })
+      const jobSelect = 'id, title, description, status, scheduled_date, start_time, end_time, service_address, customers(name, phone)'
 
-      setTodayJobs(todayData as unknown as Job[] || [])
+      // Query both assigned_to (team_members) and assigned_employee_id (employees)
+      const [{ data: todayByTm }, { data: todayByEmp }] = await Promise.all([
+        supabase.from('jobs').select(jobSelect).eq('assigned_to', assignedToId).eq('scheduled_date', today).order('start_time', { ascending: true }),
+        supabase.from('jobs').select(jobSelect).eq('assigned_employee_id', emp.id).eq('scheduled_date', today).order('start_time', { ascending: true }),
+      ])
+      const todayIds = new Set<string>()
+      const todayAll: Job[] = []
+      for (const j of [...(todayByTm || []), ...(todayByEmp || [])] as unknown as Job[]) {
+        if (!todayIds.has(j.id)) { todayIds.add(j.id); todayAll.push(j) }
+      }
+      setTodayJobs(todayAll)
 
-      const { data: upData } = await supabase
-        .from('jobs')
-        .select('id, title, description, status, scheduled_date, start_time, end_time, service_address, customers(name, phone)')
-        .eq('assigned_employee_id', emp.id)
-        .gt('scheduled_date', today)
-        .lte('scheduled_date', nextWeek)
-        .order('scheduled_date', { ascending: true })
-
-      setUpcomingJobs(upData as unknown as Job[] || [])
+      const [{ data: upByTm }, { data: upByEmp }] = await Promise.all([
+        supabase.from('jobs').select(jobSelect).eq('assigned_to', assignedToId).gt('scheduled_date', today).lte('scheduled_date', nextWeek).order('scheduled_date', { ascending: true }),
+        supabase.from('jobs').select(jobSelect).eq('assigned_employee_id', emp.id).gt('scheduled_date', today).lte('scheduled_date', nextWeek).order('scheduled_date', { ascending: true }),
+      ])
+      const upIds = new Set<string>()
+      const upAll: Job[] = []
+      for (const j of [...(upByTm || []), ...(upByEmp || [])] as unknown as Job[]) {
+        if (!upIds.has(j.id)) { upIds.add(j.id); upAll.push(j) }
+      }
+      setUpcomingJobs(upAll)
       setLoading(false)
     }
     init()

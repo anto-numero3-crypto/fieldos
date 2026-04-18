@@ -66,7 +66,8 @@ function buildAssignmentHtml(p: {
         <a href="${p.gcalLink}" target="_blank" rel="noopener" style="display:inline-block;background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-right:8px;margin-bottom:8px">Ajouter à Google Calendar</a>
       </div>
       <p style="font-size:13px;color:#6b7280;margin-bottom:20px">📎 Ouvrez le fichier .ics joint pour l'ajouter à Apple Calendar ou Outlook.</p>
-      ${p.mapsLink ? `<a href="${p.mapsLink}" target="_blank" rel="noopener" style="display:inline-block;background:white;color:#374151;border:1px solid #d1d5db;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-bottom:20px">📍 Ouvrir dans Google Maps</a>` : ''}
+      ${p.mapsLink ? `<a href="${p.mapsLink}" target="_blank" rel="noopener" style="display:inline-block;background:white;color:#374151;border:1px solid #d1d5db;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-bottom:8px">📍 Ouvrir dans Google Maps</a><br/>` : ''}
+      <a href="https://gestivio.ca/employee" style="display:inline-block;background:white;color:#4f46e5;border:1px solid #c7d2fe;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;margin-bottom:20px">📋 Voir mes interventions sur Gestivio</a>
       <hr style="border:0;border-top:1px solid #e5e7eb;margin:24px 0" />
       <p style="font-size:12px;color:#9ca3af;margin:0">${footerParts.join(' · ')}</p>
     </div>
