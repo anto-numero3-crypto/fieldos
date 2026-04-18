@@ -428,6 +428,28 @@ export default function TeamPage() {
                   )}
                 </div>
               </Link>
+
+              {/* Invite / Reactivate buttons — visible directly on the card */}
+              {emp.status === 'invited' && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); sendInvite(emp.id) }}
+                  className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  {emp.invite_token
+                    ? (fr ? "Renvoyer l'invitation" : 'Resend invitation')
+                    : (fr ? "Envoyer l'invitation" : 'Send invitation')}
+                </button>
+              )}
+              {emp.status === 'inactive' && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); reactivate(emp) }}
+                  className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  {fr ? 'Réactiver' : 'Reactivate'}
+                </button>
+              )}
             </div>
           ))}
         </div>
