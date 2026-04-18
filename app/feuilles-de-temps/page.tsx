@@ -26,7 +26,7 @@ interface TimeEntry {
   clocked_out_at: string | null
   duration_minutes: number | null
   notes: string | null
-  status: 'active' | 'paused' | 'completed'
+  status: 'active' | 'paused' | 'completed' | 'approved'
   paused_duration_minutes: number | null
   pause_started_at: string | null
   employee_name: string
@@ -324,11 +324,11 @@ export default function TimesheetsPage() {
   const totalHours = useMemo(() => filtered.reduce((s, e) => s + entryMinutes(e), 0) / 60, [filtered])
   const estimatedCost = useMemo(() => filtered.reduce((s, e) => s + entryCost(e), 0), [filtered])
   const pendingIds = useMemo(
-    () => filtered.filter(e => e.clocked_out_at && e.status !== 'completed').map(e => e.id),
+    () => filtered.filter(e => e.clocked_out_at && e.status !== 'completed' && e.status !== 'approved').map(e => e.id),
     [filtered],
   )
   const approvedCount = useMemo(
-    () => filtered.filter(e => e.status === 'completed').length,
+    () => filtered.filter(e => e.status === 'completed' || e.status === 'approved').length,
     [filtered],
   )
 
@@ -339,7 +339,7 @@ export default function TimesheetsPage() {
       setApproving(true)
       // optimistic
       setEntries(prev =>
-        prev.map(e => (ids.includes(e.id) ? { ...e, status: 'completed' as const } : e)),
+        prev.map(e => (ids.includes(e.id) ? { ...e, status: 'approved' as const } : e)),
       )
       try {
         const res = await fetch('/api/time/approve', {
@@ -787,7 +787,7 @@ export default function TimesheetsPage() {
             {groupedByJob.map(group => {
               const groupMins = group.entries.reduce((s, e) => s + entryMinutes(e), 0)
               const groupCost = group.entries.reduce((s, e) => s + entryCost(e), 0)
-              const groupPending = group.entries.filter(e => e.clocked_out_at && e.status !== 'completed').map(e => e.id)
+              const groupPending = group.entries.filter(e => e.clocked_out_at && e.status !== 'completed' && e.status !== 'approved').map(e => e.id)
               return (
                 <div
                   key={group.jobId || '__none__'}
@@ -966,7 +966,7 @@ function EntryRow({
   showEmployee?: boolean
 }) {
   const isLive = !entry.clocked_out_at
-  const canApprove = entry.clocked_out_at && entry.status !== 'completed'
+  const canApprove = entry.clocked_out_at && entry.status !== 'completed' && entry.status !== 'approved'
   return (
     <tr className={`border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 hidden md:table-row ${isLive ? 'bg-emerald-50/50 dark:bg-emerald-900/10' : ''}`}>
       {showEmployee && (
@@ -1015,7 +1015,7 @@ function EntryCard({
   showEmployee?: boolean
 }) {
   const isLive = !entry.clocked_out_at
-  const canApprove = entry.clocked_out_at && entry.status !== 'completed'
+  const canApprove = entry.clocked_out_at && entry.status !== 'completed' && entry.status !== 'approved'
   return (
     <div className={`md:hidden px-4 py-3 ${isLive ? 'bg-emerald-50/50 dark:bg-emerald-900/10' : ''}`}>
       <div className="flex items-center justify-between mb-1">
@@ -1062,7 +1062,7 @@ function EmployeeGroup({
   approving: boolean
 }) {
   const [open, setOpen] = useState(true)
-  const pendingIds = group.entries.filter(e => e.clocked_out_at && e.status !== 'completed').map(e => e.id)
+  const pendingIds = group.entries.filter(e => e.clocked_out_at && e.status !== 'completed' && e.status !== 'approved').map(e => e.id)
 
   // Group entries by date
   const byDate = useMemo(() => {
@@ -1119,7 +1119,7 @@ function EmployeeGroup({
                 <tbody>
                   {dateEntries.map(entry => {
                     const isLive = !entry.clocked_out_at
-                    const canApprove = entry.clocked_out_at && entry.status !== 'completed'
+                    const canApprove = entry.clocked_out_at && entry.status !== 'completed' && entry.status !== 'approved'
                     return (
                       <tr key={entry.id} className={`border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 ${isLive ? 'bg-emerald-50/50 dark:bg-emerald-900/10' : ''}`}>
                         <td className="px-4 py-2 text-gray-900 dark:text-white w-1/3">
@@ -1191,9 +1191,9 @@ function WeeklyRow({
             return <td key={i} className="text-center px-3 py-3 text-gray-300 dark:text-gray-600">-</td>
           }
           const mins = dayEntries.reduce((s, e) => s + entryMinutes(e), 0)
-          const allApproved = dayEntries.every(e => e.status === 'completed')
+          const allApproved = dayEntries.every(e => e.status === 'completed' || e.status === 'approved')
           const hasActive = dayEntries.some(e => !e.clocked_out_at && e.status !== 'paused')
-          const hasPending = dayEntries.some(e => e.clocked_out_at && e.status !== 'completed')
+          const hasPending = dayEntries.some(e => e.clocked_out_at && e.status !== 'completed' && e.status !== 'approved')
 
           let cellColor = 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
           if (hasActive) cellColor = 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
@@ -1221,7 +1221,7 @@ function WeeklyRow({
               <tbody>
                 {emp.days[expandedDay]!.map(entry => {
                   const isLive = !entry.clocked_out_at
-                  const canApprove = entry.clocked_out_at && entry.status !== 'completed'
+                  const canApprove = entry.clocked_out_at && entry.status !== 'completed' && entry.status !== 'approved'
                   return (
                     <tr key={entry.id} className="border-b border-gray-100 dark:border-gray-700/50 last:border-0">
                       <td className="py-1.5 text-gray-900 dark:text-white">
