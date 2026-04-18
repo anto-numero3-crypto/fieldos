@@ -5,6 +5,7 @@ const PROTECTED_PREFIXES = [
   '/dashboard', '/customers', '/jobs', '/invoices', '/quotes',
   '/schedule', '/team', '/reports', '/settings', '/assistant',
   '/notifications', '/insights', '/equipe', '/employee', '/feuilles-de-temps',
+  '/contrats',
 ]
 
 function isProtected(pathname: string): boolean {
@@ -82,6 +83,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|login|signup|subscribe|book|invoice|quote|legal|privacy|terms|about|contact|pricing|security|accessibility|cookies|support|changelog|onboarding|invite).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|login|signup|subscribe|book|invoice|quote|contrat/|legal|privacy|terms|about|contact|pricing|security|accessibility|cookies|support|changelog|onboarding|invite).*)',
   ],
 }

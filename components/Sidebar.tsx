@@ -34,7 +34,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         { href: '/schedule/availability',  label: fr ? 'Disponibilités' : 'Availability',   icon: Clock },
         { href: '/jobs',                   label: fr ? 'Interventions' : 'Jobs',             icon: Briefcase },
         { href: '/quotes',                 label: fr ? 'Devis' : 'Quotes',                  icon: FileSignature },
-        ...(isModuleEnabled(orgModules, orgPlan, 'recurring_contracts') ? [{ href: '/contracts', label: fr ? 'Contrats' : 'Contracts', icon: FileText }] : []),
+        ...(isModuleEnabled(orgModules, orgPlan, 'recurring_contracts') ? [{ href: '/contrats', label: fr ? 'Contrats' : 'Contracts', icon: FileText }] : []),
       ],
     },
     {
