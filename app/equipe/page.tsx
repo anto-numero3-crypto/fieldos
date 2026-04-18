@@ -87,6 +87,7 @@ export default function TeamPage() {
     setFLastName('')
     setFEmail('')
     setFPhone('')
+    setFormError(null)
     setFColor('#6366f1')
     setModalOpen(true)
   }
@@ -101,8 +102,21 @@ export default function TeamPage() {
     setModalOpen(true)
   }
 
+  const [formError, setFormError] = useState<string | null>(null)
+
   const handleSubmit = async () => {
-    if (!fFirstName.trim() || !fLastName.trim()) return
+    console.log('[invite-ui] submit clicked', { fFirstName, fLastName, fEmail, fPhone, fColor, editEmployee: !!editEmployee })
+    setFormError(null)
+    if (!fFirstName.trim() || !fLastName.trim()) {
+      console.log('[invite-ui] missing name fields')
+      setFormError(fr ? 'Prénom et nom requis' : 'First and last name required')
+      return
+    }
+    if (!editEmployee && !fEmail.trim()) {
+      console.log('[invite-ui] missing email')
+      setFormError(fr ? 'Courriel requis' : 'Email required')
+      return
+    }
     setSubmitting(true)
 
     if (editEmployee) {
@@ -127,25 +141,36 @@ export default function TeamPage() {
       }
     } else {
       // Invite
-      if (!fEmail.trim()) { setSubmitting(false); return }
-      const res = await fetch('/api/employees/invite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName: fFirstName.trim(),
-          lastName: fLastName.trim(),
-          email: fEmail.trim(),
-          phone: fPhone.trim() || undefined,
-          color: fColor,
-        }),
-      })
-      if (res.ok) {
-        toast.success(fr ? 'Invitation envoyée!' : 'Invitation sent!')
-        setModalOpen(false)
-        await loadEmployees()
-      } else {
-        const err = await res.json()
-        toast.error(err.error || 'Error')
+      if (!fEmail.trim()) { setSubmitting(false); setFormError(fr ? 'Courriel requis' : 'Email required'); return }
+      console.log('[invite-ui] calling /api/employees/invite...')
+      try {
+        const res = await fetch('/api/employees/invite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstName: fFirstName.trim(),
+            lastName: fLastName.trim(),
+            email: fEmail.trim(),
+            phone: fPhone.trim() || undefined,
+            color: fColor,
+          }),
+        })
+        const data = await res.json()
+        console.log('[invite-ui] response:', res.status, data)
+        if (res.ok) {
+          toast.success(fr ? 'Invitation envoyée!' : 'Invitation sent!')
+          setModalOpen(false)
+          await loadEmployees()
+        } else {
+          const errMsg = data.error || (fr ? 'Une erreur est survenue' : 'An error occurred')
+          toast.error(errMsg)
+          setFormError(errMsg)
+        }
+      } catch (err) {
+        console.error('[invite-ui] fetch exception:', err)
+        const errMsg = err instanceof Error ? err.message : String(err)
+        toast.error(errMsg)
+        setFormError(errMsg)
       }
     }
     setSubmitting(false)
@@ -448,6 +473,12 @@ export default function TeamPage() {
                 </div>
               </div>
             </div>
+
+            {formError && (
+              <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+                {formError}
+              </div>
+            )}
 
             <div className="flex justify-end gap-3 mt-6">
               <button
