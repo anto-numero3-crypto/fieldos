@@ -46,6 +46,14 @@ export async function POST(req: NextRequest) {
     location_lat: body.location_lat ?? null,
     location_lng: body.location_lng ?? null,
   }
+  // Invoice settings (only include if present in body)
+  if (body.invoice_prefix !== undefined) payload.invoice_prefix = body.invoice_prefix
+  if (body.invoice_next_number !== undefined) payload.invoice_next_number = body.invoice_next_number
+  if (body.invoice_payment_terms !== undefined) payload.invoice_payment_terms = body.invoice_payment_terms
+  if (body.invoice_default_tps !== undefined) payload.invoice_default_tps = body.invoice_default_tps
+  if (body.invoice_default_tvq !== undefined) payload.invoice_default_tvq = body.invoice_default_tvq
+  if (body.invoice_footer_note !== undefined) payload.invoice_footer_note = body.invoice_footer_note
+
   if (typeof body.slug === 'string' && body.slug) payload.slug = body.slug
 
   const query = existing

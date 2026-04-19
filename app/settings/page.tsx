@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 import { MODULES, canEnableModule, getDependents, isModuleEnabled, type ModuleKey } from '@/lib/modules'
 
-type Tab = 'business' | 'services' | 'booking' | 'notifications' | 'account' | 'integrations' | 'billing' | 'modules'
+type Tab = 'business' | 'services' | 'booking' | 'notifications' | 'account' | 'integrations' | 'billing' | 'modules' | 'invoices'
 
 interface Service {
   id: string
@@ -297,6 +297,15 @@ export default function SettingsPage() {
   const [notifAppPrefs, setNotifAppPrefs] = useState<Record<string, boolean>>({})
   const [notifEmailPrefs, setNotifEmailPrefs] = useState<Record<string, boolean>>({})
 
+  // Invoice settings
+  const [invPrefix, setInvPrefix] = useState('FAC')
+  const [invNextNumber, setInvNextNumber] = useState(1)
+  const [invPaymentTerms, setInvPaymentTerms] = useState('net30')
+  const [invDefaultTps, setInvDefaultTps] = useState(true)
+  const [invDefaultTvq, setInvDefaultTvq] = useState(true)
+  const [invFooterNote, setInvFooterNote] = useState('')
+  const [invSaving, setInvSaving] = useState(false)
+
   useEffect(() => {
     const init = async () => {
       const { data } = await supabase.auth.getUser()
@@ -317,7 +326,7 @@ export default function SettingsPage() {
       // Handle Stripe Connect / tab return URL params
       const params = new URLSearchParams(window.location.search)
       const urlTab = params.get('tab')
-      if (urlTab === 'billing' || urlTab === 'services' || urlTab === 'booking' || urlTab === 'notifications' || urlTab === 'account' || urlTab === 'integrations' || urlTab === 'modules') {
+      if (urlTab === 'billing' || urlTab === 'services' || urlTab === 'booking' || urlTab === 'notifications' || urlTab === 'account' || urlTab === 'integrations' || urlTab === 'modules' || urlTab === 'invoices') {
         setTab(urlTab as Tab)
       }
       if (params.get('connected') === 'true') {
@@ -366,6 +375,13 @@ export default function SettingsPage() {
         if (org.ai_agent_greeting) setAgentGreeting(org.ai_agent_greeting)
         if (org.service_types)   setAgentServices(Array.isArray(org.service_types) ? org.service_types.join(', ') : '')
         if (org.enabled_modules) setEnabledModules(org.enabled_modules as Record<string, boolean>)
+        // Invoice settings
+        if (org.invoice_prefix) setInvPrefix(org.invoice_prefix)
+        if (org.invoice_next_number) setInvNextNumber(org.invoice_next_number)
+        if (org.invoice_payment_terms) setInvPaymentTerms(org.invoice_payment_terms)
+        if (org.invoice_default_tps !== undefined && org.invoice_default_tps !== null) setInvDefaultTps(org.invoice_default_tps)
+        if (org.invoice_default_tvq !== undefined && org.invoice_default_tvq !== null) setInvDefaultTvq(org.invoice_default_tvq)
+        if (org.invoice_footer_note) setInvFooterNote(org.invoice_footer_note)
       }
     }
     init()
@@ -550,6 +566,35 @@ export default function SettingsPage() {
     setConnectStatus(data)
   }
 
+  const saveInvoiceSettings = async () => {
+    if (!user) return
+    setInvSaving(true)
+    try {
+      const res = await fetch('/api/settings/save-business', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          owner_user_id: user.id,
+          invoice_prefix: invPrefix || 'FAC',
+          invoice_next_number: invNextNumber || 1,
+          invoice_payment_terms: invPaymentTerms,
+          invoice_default_tps: invDefaultTps,
+          invoice_default_tvq: invDefaultTvq,
+          invoice_footer_note: invFooterNote || null,
+        }),
+      })
+      const data = await res.json().catch(() => ({})) as { ok?: boolean; error?: string }
+      if (!res.ok || !data.ok) {
+        toast.error(data.error || (fr ? 'Erreur de sauvegarde' : 'Save failed'))
+      } else {
+        toast.success(fr ? 'Paramètres de facturation enregistrés' : 'Invoicing settings saved')
+      }
+    } catch {
+      toast.error(fr ? 'Erreur réseau' : 'Network error')
+    }
+    setInvSaving(false)
+  }
+
   const handleConnectStripe = async () => {
     if (!user) return
     setConnectLoading(true)
@@ -614,7 +659,8 @@ export default function SettingsPage() {
     { key: 'business',      label: fr ? 'Entreprise' : 'Business',                icon: Building2 },
     { key: 'services',      label: fr ? 'Services' : 'Services',                  icon: Wrench },
     { key: 'booking',       label: fr ? 'Portail de réservation' : 'Booking portal', icon: Sparkles },
-    { key: 'billing',       label: fr ? 'Facturation' : 'Billing',                icon: DollarSign },
+    { key: 'invoices',      label: fr ? 'Factures' : 'Invoicing',                  icon: FileText },
+    { key: 'billing',       label: fr ? 'Abonnement' : 'Billing',                 icon: DollarSign },
     { key: 'notifications', label: fr ? 'Notifications' : 'Notifications',        icon: Bell },
     { key: 'account',       label: fr ? 'Compte' : 'Account',                      icon: Shield },
     { key: 'modules',       label: 'Modules',                                      icon: Puzzle },
@@ -1513,6 +1559,105 @@ export default function SettingsPage() {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Invoices Settings */}
+        {tab === 'invoices' && (
+          <div className="space-y-6">
+            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Numérotation des factures' : 'Invoice numbering'}</h2>
+              <p className="text-sm text-gray-400 mb-5">{fr ? 'Configurez le préfixe et le prochain numéro de facture.' : 'Configure the prefix and next invoice number.'}</p>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{fr ? 'Préfixe' : 'Prefix'}</label>
+                  <input
+                    type="text"
+                    value={invPrefix}
+                    onChange={(e) => setInvPrefix(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 10))}
+                    placeholder="FAC"
+                    className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{fr ? 'Prochain numéro' : 'Next number'}</label>
+                  <input
+                    type="number"
+                    value={invNextNumber}
+                    onChange={(e) => setInvNextNumber(Math.max(1, parseInt(e.target.value) || 1))}
+                    min="1"
+                    className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{fr ? 'Aperçu' : 'Preview'}</label>
+                  <div className="flex items-center h-[42px] rounded-xl border border-gray-100 bg-gray-50 px-3.5 text-sm font-mono text-indigo-600 font-semibold">
+                    {invPrefix || 'FAC'}-{String(invNextNumber || 1).padStart(4, '0')}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Valeurs par défaut' : 'Default values'}</h2>
+              <p className="text-sm text-gray-400 mb-5">{fr ? 'Ces valeurs seront pré-remplies lors de la création de nouvelles factures.' : 'These values are pre-filled when creating new invoices.'}</p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{fr ? 'Conditions de paiement' : 'Payment terms'}</label>
+                  <select
+                    value={invPaymentTerms}
+                    onChange={(e) => setInvPaymentTerms(e.target.value)}
+                    className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                  >
+                    <option value="due_on_receipt">{fr ? 'Payable à réception' : 'Due on receipt'}</option>
+                    <option value="net7">{fr ? 'Net 7 jours' : 'Net 7 days'}</option>
+                    <option value="net15">{fr ? 'Net 15 jours' : 'Net 15 days'}</option>
+                    <option value="net30">{fr ? 'Net 30 jours' : 'Net 30 days'}</option>
+                    <option value="net60">{fr ? 'Net 60 jours' : 'Net 60 days'}</option>
+                  </select>
+                </div>
+
+                <div className="flex items-start justify-between py-3 border-b border-gray-50">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{fr ? 'TPS (5%)' : 'GST (5%)'}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Appliquer la TPS par défaut' : 'Apply GST by default'}</p>
+                  </div>
+                  <Toggle checked={invDefaultTps} onChange={setInvDefaultTps} />
+                </div>
+
+                <div className="flex items-start justify-between py-3 border-b border-gray-50">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{fr ? 'TVQ (9.975%)' : 'QST (9.975%)'}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Appliquer la TVQ par défaut' : 'Apply QST by default'}</p>
+                  </div>
+                  <Toggle checked={invDefaultTvq} onChange={setInvDefaultTvq} />
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Note de pied de page' : 'Footer note'}</h2>
+              <p className="text-sm text-gray-400 mb-4">{fr ? 'Apparaît au bas de chaque facture.' : 'Appears at the bottom of every invoice.'}</p>
+              <textarea
+                value={invFooterNote}
+                onChange={(e) => setInvFooterNote(e.target.value)}
+                placeholder={fr ? 'Ex: Merci pour votre confiance !' : 'e.g., Thank you for your business!'}
+                rows={3}
+                className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={saveInvoiceSettings}
+                disabled={invSaving}
+                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all"
+              >
+                <Save className="h-4 w-4" />{invSaving ? (fr ? 'Enregistrement...' : 'Saving...') : (fr ? 'Enregistrer' : 'Save')}
+              </button>
             </div>
           </div>
         )}

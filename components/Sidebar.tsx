@@ -8,7 +8,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 import {
   LayoutDashboard, Users, Briefcase, FileText, Sparkles, X, LogOut, Wrench,
   Calendar, FileSignature, BarChart3, Settings, Users2,
-  Bell, ChevronDown, Globe, Lightbulb, Megaphone, BookOpen, Clock,
+  Bell, ChevronDown, Globe, Lightbulb, Megaphone, BookOpen, Clock, Package,
 } from 'lucide-react'
 import { isModuleEnabled } from '@/lib/modules'
 
@@ -42,6 +42,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       items: [
         { href: '/customers', label: fr ? 'Clients' : 'Customers',   icon: Users },
         { href: '/invoices',  label: fr ? 'Factures' : 'Invoices',   icon: FileText },
+        { href: '/produits',  label: fr ? 'Produits' : 'Products',   icon: Package },
       ],
     },
     {

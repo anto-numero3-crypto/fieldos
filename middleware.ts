@@ -5,7 +5,7 @@ const PROTECTED_PREFIXES = [
   '/dashboard', '/customers', '/jobs', '/invoices', '/quotes',
   '/schedule', '/team', '/reports', '/settings', '/assistant',
   '/notifications', '/insights', '/equipe', '/employee', '/feuilles-de-temps',
-  '/contrats',
+  '/contrats', '/produits',
 ]
 
 function isProtected(pathname: string): boolean {

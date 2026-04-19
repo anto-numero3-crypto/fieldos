@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { Pagination } from '@/components/Pagination'
 import { usePagination } from '@/lib/hooks/usePagination'
 import { supabase } from '../supabase'
@@ -10,110 +10,191 @@ import EmptyState from '@/components/EmptyState'
 import { SkeletonText, SkeletonListRow } from '@/components/ui/skeleton'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtMoney, fmtDate } from '@/lib/format'
-import { getInvoiceDisplayStatus } from '@/lib/invoice-status'
+import { getInvoiceDisplayStatus, invoiceStatusLabel, INVOICE_STATUS_CLS } from '@/lib/invoice-status'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { FileText, Plus, X, DollarSign, Calendar, User, Briefcase, Clock, Hash, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react'
+import {
+  FileText, Plus, DollarSign, Calendar, User, Clock, Search,
+  AlertCircle, CheckCircle, Send, Eye, Printer, Download,
+  Filter, ArrowUpDown,
+} from 'lucide-react'
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
 
 interface Invoice {
-  id: string; amount: number; status: string; due_date: string | null; paid_at: string | null
-  created_at: string; invoice_number?: string
-  customers: { name: string } | null; jobs: { title: string } | null
+  id: string
+  amount: number
+  status: string
+  due_date: string | null
+  paid_at: string | null
+  created_at: string
+  invoice_number?: string
+  viewed_count?: number
+  viewed_at?: string | null
+  customers: { id: string; name: string; email?: string } | null
+  jobs: { id: string; title: string } | null
 }
-interface Customer { id: string; name: string }
-interface Job { id: string; title: string }
+
+/* ------------------------------------------------------------------ */
+/*  Component                                                          */
+/* ------------------------------------------------------------------ */
 
 export default function InvoicesPage() {
   const { lang, t } = useLanguage()
+  const fr = lang === 'fr'
   const l = t.invoices
-
-  const statusConfig: Record<string, { label: string; className: string }> = {
-    unpaid: { label: l.unpaid, className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100' },
-    sent: { label: l.unpaid, className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-100' },
-    paid: { label: l.paid, className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100' },
-    overdue: { label: l.overdue, className: 'bg-red-50 text-red-700 ring-1 ring-red-200 animate-pulse' },
-    draft: { label: 'Brouillon', className: 'bg-gray-100 text-gray-600 ring-1 ring-gray-200' },
-    cancelled: { label: 'Annulée', className: 'bg-gray-100 text-gray-500 ring-1 ring-gray-200 line-through' },
-  }
 
   const [user, setUser] = useState<{ id: string } | null>(null)
   const [invoices, setInvoices] = useState<Invoice[]>([])
-  const [customers, setCustomers] = useState<Customer[]>([])
-  const [jobs, setJobs] = useState<Job[]>([])
   const [activeFilter, setActiveFilter] = useState('all')
-  const [panelOpen, setPanelOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [dateFilter, setDateFilter] = useState('all')
+  const [sortBy, setSortBy] = useState<'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc'>('date_desc')
   const [pageLoading, setPageLoading] = useState(true)
-  const [customerId, setCustomerId] = useState('')
-  const [jobId, setJobId] = useState('')
-  const [amount, setAmount] = useState('')
-  const [dueDate, setDueDate] = useState('')
-  const [status, setStatus] = useState('unpaid')
-  const [loading, setLoading] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkSending, setBulkSending] = useState(false)
+
+  /* ---- Data fetch ---- */
+  const fetchInvoices = useCallback(async () => {
+    try {
+      const res = await fetch('/api/invoices', { cache: 'no-store' })
+      const data = await res.json()
+      setInvoices(data.invoices || [])
+    } catch {
+      setInvoices([])
+    }
+  }, [])
 
   useEffect(() => {
     const init = async () => {
       const { data } = await supabase.auth.getUser()
       if (!data.user) { window.location.href = '/login'; return }
       setUser(data.user)
-      await Promise.all([fetchInvoices(data.user.id), fetchCustomers(data.user.id), fetchJobs(data.user.id)])
+      await fetchInvoices()
       setPageLoading(false)
     }
     init()
-  }, [])
+  }, [fetchInvoices])
 
-  const fetchInvoices = async (_userId: string) => {
-    try {
-      const res = await fetch('/api/invoices', { cache: 'no-store' })
-      const data = await res.json()
-      setInvoices(data.invoices || [])
-    } catch (e) {
-      console.error('[invoices] fetch failed:', e)
-      setInvoices([])
+  /* ---- KPI calculations ---- */
+  const now = new Date()
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  const startOfYear = new Date(now.getFullYear(), 0, 1)
+
+  const totalDue = invoices.filter((i) => {
+    const s = getInvoiceDisplayStatus(i)
+    return s === 'unpaid' || s === 'sent' || s === 'overdue'
+  }).reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+
+  const totalOverdue = invoices.filter((i) => getInvoiceDisplayStatus(i) === 'overdue')
+    .reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+
+  const thisMonth = invoices.filter((i) => new Date(i.created_at) >= startOfMonth)
+    .reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+
+  const paidYTD = invoices.filter((i) => {
+    const s = getInvoiceDisplayStatus(i)
+    return s === 'paid' && i.paid_at && new Date(i.paid_at) >= startOfYear
+  }).reduce((s, i) => s + parseFloat(String(i.amount)), 0)
+
+  /* ---- Filter + Sort ---- */
+  const filtered = useMemo(() => {
+    let result = invoices
+
+    // Status filter
+    if (activeFilter !== 'all') {
+      result = result.filter((i) => getInvoiceDisplayStatus(i) === activeFilter)
     }
-  }
-  const fetchCustomers = async (userId: string) => {
-    const { data } = await supabase.from('customers').select('id, name').eq('user_id', userId)
-    setCustomers(data || [])
-  }
-  const fetchJobs = async (userId: string) => {
-    const { data } = await supabase.from('jobs').select('id, title').eq('user_id', userId)
-    setJobs(data || [])
-  }
 
-  const addInvoice = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!customerId || !amount) { toast.error(l.errorRequired); return }
-    setLoading(true)
-    const { error } = await supabase.from('invoices').insert({ user_id: user!.id, customer_id: customerId, job_id: jobId || null, amount: parseFloat(amount), due_date: dueDate || null, status })
-    if (error) { toast.error(error.message) }
-    else {
-      toast.success(l.successMsg)
-      setCustomerId(''); setJobId(''); setAmount(''); setDueDate(''); setStatus('unpaid')
-      await fetchInvoices(user!.id)
-      setPanelOpen(false)
+    // Search
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter((i) =>
+        (i.invoice_number || '').toLowerCase().includes(q) ||
+        (i.customers?.name || '').toLowerCase().includes(q) ||
+        String(i.amount).includes(q)
+      )
     }
-    setLoading(false)
-  }
 
-  const filtered = useMemo(
-    () => activeFilter === 'all' ? invoices : invoices.filter(i => getInvoiceDisplayStatus(i) === activeFilter),
-    [invoices, activeFilter]
-  )
+    // Date filter
+    if (dateFilter === 'month') {
+      result = result.filter((i) => new Date(i.created_at) >= startOfMonth)
+    } else if (dateFilter === '3months') {
+      const d = new Date(); d.setMonth(d.getMonth() - 3)
+      result = result.filter((i) => new Date(i.created_at) >= d)
+    } else if (dateFilter === 'year') {
+      result = result.filter((i) => new Date(i.created_at) >= startOfYear)
+    }
+
+    // Sort
+    result = [...result].sort((a, b) => {
+      if (sortBy === 'date_desc') return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      if (sortBy === 'date_asc') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      if (sortBy === 'amount_desc') return parseFloat(String(b.amount)) - parseFloat(String(a.amount))
+      return parseFloat(String(a.amount)) - parseFloat(String(b.amount))
+    })
+
+    return result
+  }, [invoices, activeFilter, searchQuery, dateFilter, sortBy, startOfMonth, startOfYear])
+
   const { page, setPage, range, pageSize, reset: resetPage } = usePagination(filtered.length)
   const paged = useMemo(() => filtered.slice(range.from, range.to), [filtered, range.from, range.to])
-  useEffect(() => { resetPage() }, [activeFilter, resetPage])
-  const totalAll = invoices.reduce((s, i) => s + parseFloat(String(i.amount)), 0)
-  const totalPaid = invoices.filter(i => getInvoiceDisplayStatus(i) === 'paid').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
-  const totalUnpaid = invoices.filter(i => { const d = getInvoiceDisplayStatus(i); return d === 'unpaid' || d === 'sent' }).reduce((s, i) => s + parseFloat(String(i.amount)), 0)
-  const totalOverdue = invoices.filter(i => getInvoiceDisplayStatus(i) === 'overdue').reduce((s, i) => s + parseFloat(String(i.amount)), 0)
-  const countByStatus = (s: string) => invoices.filter(i => getInvoiceDisplayStatus(i) === s).length
+  useEffect(() => { resetPage() }, [activeFilter, searchQuery, dateFilter, resetPage])
+
+  const countByStatus = (s: string) => invoices.filter((i) => getInvoiceDisplayStatus(i) === s).length
   const fmt = (n: number) => fmtMoney(n, lang)
 
+  /* ---- Bulk actions ---- */
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+  const selectAll = () => {
+    if (selected.size === paged.length) setSelected(new Set())
+    else setSelected(new Set(paged.map((i) => i.id)))
+  }
+
+  const bulkMarkPaid = async () => {
+    if (selected.size === 0) return
+    const ids = Array.from(selected)
+    await supabase.from('invoices').update({ status: 'paid', paid_at: new Date().toISOString() }).in('id', ids)
+    toast.success(fr ? `${ids.length} facture(s) marquée(s) payée(s)` : `${ids.length} invoice(s) marked as paid`)
+    setSelected(new Set())
+    fetchInvoices()
+  }
+
+  const exportCSV = () => {
+    const rows = filtered.map((i) => ({
+      number: i.invoice_number || '',
+      customer: i.customers?.name || '',
+      amount: i.amount,
+      status: getInvoiceDisplayStatus(i),
+      created: i.created_at,
+      due: i.due_date || '',
+    }))
+    const header = 'Number,Customer,Amount,Status,Created,Due\n'
+    const csv = header + rows.map((r) => `${r.number},${r.customer},${r.amount},${r.status},${r.created},${r.due}`).join('\n')
+    const blob = new Blob([csv], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `invoices-${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  /* ---- Status filters ---- */
   const statusFilters = [
-    { key: 'all', label: l.all },
-    { key: 'unpaid', label: l.unpaid },
-    { key: 'paid', label: l.paid },
-    { key: 'overdue', label: l.overdue },
+    { key: 'all', label: fr ? 'Toutes' : 'All' },
+    { key: 'draft', label: fr ? 'Brouillons' : 'Drafts' },
+    { key: 'sent', label: fr ? 'Envoyées' : 'Sent' },
+    { key: 'overdue', label: fr ? 'En retard' : 'Overdue' },
+    { key: 'paid', label: fr ? 'Payées' : 'Paid' },
   ]
 
   const AddButton = (
@@ -122,6 +203,7 @@ export default function InvoicesPage() {
     </Link>
   )
 
+  /* ---- Loading ---- */
   if (pageLoading) return (
     <AppLayout title={l.title}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-3">
@@ -134,36 +216,101 @@ export default function InvoicesPage() {
   return (
     <AppLayout title={l.title} actions={AddButton}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+
+        {/* KPI Cards */}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-6">
           {[
-            { label: l.totalInvoiced, value: fmt(totalAll), icon: DollarSign, bg: 'bg-indigo-50', color: 'text-indigo-600', count: invoices.length },
-            { label: l.paid, value: fmt(totalPaid), icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600', count: countByStatus('paid') },
-            { label: l.unpaid, value: fmt(totalUnpaid), icon: Clock, bg: 'bg-amber-50', color: 'text-amber-600', count: countByStatus('unpaid') },
-            { label: l.overdue, value: fmt(totalOverdue), icon: AlertCircle, bg: 'bg-red-50', color: 'text-red-600', count: countByStatus('overdue') },
+            { label: fr ? 'Total dû' : 'Total due', value: fmt(totalDue), icon: DollarSign, bg: 'bg-indigo-50', color: 'text-indigo-600', sub: fr ? `${countByStatus('unpaid') + countByStatus('sent')} en attente` : `${countByStatus('unpaid') + countByStatus('sent')} pending` },
+            { label: fr ? 'En retard' : 'Overdue', value: fmt(totalOverdue), icon: AlertCircle, bg: 'bg-red-50', color: 'text-red-600', sub: fr ? `${countByStatus('overdue')} facture(s)` : `${countByStatus('overdue')} invoice(s)`, highlight: totalOverdue > 0 },
+            { label: fr ? 'Ce mois' : 'This month', value: fmt(thisMonth), icon: Calendar, bg: 'bg-blue-50', color: 'text-blue-600', sub: fr ? 'facturé ce mois' : 'invoiced this month' },
+            { label: fr ? 'Payé cette année' : 'Paid this year', value: fmt(paidYTD), icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600', sub: fr ? `${countByStatus('paid')} payée(s)` : `${countByStatus('paid')} paid` },
           ].map((card) => (
-            <div key={card.label} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div key={card.label} className={`rounded-2xl border ${card.highlight ? 'border-red-200 bg-red-50/30' : 'border-gray-100 bg-white'} p-5 shadow-sm`}>
               <div className="flex items-start justify-between mb-3">
-                <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${card.bg}`}><card.icon className={`${card.color}`} style={{width:'18px',height:'18px'}} /></div>
-                <span className="text-xs text-gray-400">{l.countLabel(card.count)}</span>
+                <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${card.bg}`}>
+                  <card.icon className={card.color} style={{ width: '18px', height: '18px' }} />
+                </div>
               </div>
               <p className="text-xs font-medium text-gray-400 mb-1">{card.label}</p>
-              <p className="text-xl font-bold text-gray-900">{card.value}</p>
+              <p className={`text-xl font-bold ${card.highlight ? 'text-red-700' : 'text-gray-900'}`}>{card.value}</p>
+              <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
             </div>
           ))}
         </div>
 
-        <div className="flex items-center gap-1 mb-6 bg-gray-100 rounded-xl p-1 w-fit flex-wrap">
-          {statusFilters.map((f) => {
-            const count = f.key === 'all' ? invoices.length : countByStatus(f.key)
-            return (
-              <button key={f.key} onClick={() => setActiveFilter(f.key)} className={['flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150', activeFilter === f.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'].join(' ')}>
-                {f.label}
-                <span className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs ${activeFilter === f.key ? 'bg-gray-100 text-gray-600' : 'text-gray-400'}`}>{count}</span>
-              </button>
-            )
-          })}
+        {/* Filters Row */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
+          {/* Search */}
+          <div className="relative flex-1 max-w-sm w-full">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder={fr ? 'Rechercher client, n° facture...' : 'Search customer, invoice #...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="block w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+            />
+          </div>
+
+          {/* Status tabs */}
+          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 flex-wrap">
+            {statusFilters.map((f) => {
+              const count = f.key === 'all' ? invoices.length : countByStatus(f.key)
+              return (
+                <button
+                  key={f.key}
+                  onClick={() => setActiveFilter(f.key)}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 ${activeFilter === f.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  {f.label}
+                  <span className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs ${activeFilter === f.key ? 'bg-gray-100 text-gray-600' : 'text-gray-400'}`}>{count}</span>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Date filter */}
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+          >
+            <option value="all">{fr ? 'Toutes les dates' : 'All dates'}</option>
+            <option value="month">{fr ? 'Ce mois' : 'This month'}</option>
+            <option value="3months">{fr ? '3 derniers mois' : 'Last 3 months'}</option>
+            <option value="year">{fr ? 'Cette année' : 'This year'}</option>
+          </select>
+
+          {/* Sort */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+          >
+            <option value="date_desc">{fr ? 'Plus récentes' : 'Newest first'}</option>
+            <option value="date_asc">{fr ? 'Plus anciennes' : 'Oldest first'}</option>
+            <option value="amount_desc">{fr ? 'Montant (desc)' : 'Amount (high-low)'}</option>
+            <option value="amount_asc">{fr ? 'Montant (asc)' : 'Amount (low-high)'}</option>
+          </select>
         </div>
 
+        {/* Bulk Actions */}
+        {selected.size > 0 && (
+          <div className="flex items-center gap-3 mb-4 rounded-xl bg-indigo-50 border border-indigo-100 px-4 py-3">
+            <span className="text-sm font-medium text-indigo-700">{selected.size} {fr ? 'sélectionnée(s)' : 'selected'}</span>
+            <button onClick={bulkMarkPaid} className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors">
+              <CheckCircle className="h-3.5 w-3.5" /> {fr ? 'Marquer payées' : 'Mark paid'}
+            </button>
+            <button onClick={exportCSV} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+              <Download className="h-3.5 w-3.5" /> {fr ? 'Exporter CSV' : 'Export CSV'}
+            </button>
+            <button onClick={() => setSelected(new Set())} className="text-xs text-gray-500 hover:text-gray-700 ml-auto">
+              {fr ? 'Annuler' : 'Cancel'}
+            </button>
+          </div>
+        )}
+
+        {/* Invoice Table / List */}
         {invoices.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
             <EmptyState
@@ -176,125 +323,153 @@ export default function InvoicesPage() {
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">
             <FileText className="h-8 w-8 text-gray-300 mb-3" />
-            <p className="text-sm text-gray-500">{l.noInvoicesStatus(statusConfig[activeFilter]?.label || activeFilter)}</p>
+            <p className="text-sm text-gray-500">{fr ? 'Aucune facture trouvée' : 'No invoices found'}</p>
           </div>
         ) : (
           <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+            {/* Desktop table */}
             <div className="hidden md:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-100">
                 <thead>
                   <tr className="bg-gray-50">
-                    {[lang === 'fr' ? 'Facture #' : 'Invoice #', l.colCustomer, l.colJob, l.colAmount, l.colDueDate, l.colStatus].map(col => (
-                      <th key={col} className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{col}</th>
+                    <th className="pl-6 py-3.5 w-10">
+                      <input type="checkbox" checked={selected.size === paged.length && paged.length > 0} onChange={selectAll} className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                    </th>
+                    {[fr ? 'Facture #' : 'Invoice #', l.colCustomer, l.colAmount, l.colDueDate, l.colStatus, fr ? 'Vues' : 'Views', ''].map((col) => (
+                      <th key={col} className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{col}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {paged.map((inv) => {
-                    const cfg = statusConfig[getInvoiceDisplayStatus(inv)]
+                    const displayStatus = getInvoiceDisplayStatus(inv)
+                    const isOverdue = displayStatus === 'overdue'
                     return (
                       <tr key={inv.id} className="hover:bg-gray-50 transition-colors group cursor-pointer" onClick={() => window.location.href = `/invoices/${inv.id}`}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-indigo-600 group-hover:underline">{inv.invoice_number || `INV-${inv.id.slice(0,4).toUpperCase()}`}</span>
+                        <td className="pl-6 py-4" onClick={(e) => e.stopPropagation()}>
+                          <input type="checkbox" checked={selected.has(inv.id)} onChange={() => toggleSelect(inv.id)} className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span className="text-sm font-semibold text-indigo-600 group-hover:underline">{inv.invoice_number || `INV-${inv.id.slice(0, 4).toUpperCase()}`}</span>
+                          <p className="text-xs text-gray-400 mt-0.5">{fmtDate(inv.created_at, lang, 'short')}</p>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          {inv.customers ? (
+                            <div className="flex items-center gap-2">
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600 font-semibold text-xs">
+                                {inv.customers.name[0]?.toUpperCase()}
+                              </div>
+                              <span className="text-sm font-medium text-gray-900">{inv.customers.name}</span>
+                            </div>
+                          ) : <span className="text-gray-300">--</span>}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span className="text-sm font-bold text-gray-900">{fmt(parseFloat(String(inv.amount)))}</span>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          {inv.due_date ? (
+                            <span className={`text-sm ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+                              {fmtDate(inv.due_date, lang, 'short')}
+                            </span>
+                          ) : <span className="text-gray-300">--</span>}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${INVOICE_STATUS_CLS[displayStatus] || ''}`}>
+                            {invoiceStatusLabel(displayStatus, fr)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          {(inv.viewed_count || 0) > 0 && (
+                            <span className="inline-flex items-center gap-1 text-xs text-gray-400" title={inv.viewed_at ? fmtDate(inv.viewed_at, lang, 'short') : ''}>
+                              <Eye className="h-3.5 w-3.5" /> {inv.viewed_count}x
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {displayStatus !== 'paid' && inv.customers?.email && (
+                              <button
+                                onClick={async () => {
+                                  const res = await fetch('/api/email', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ type: 'invoice', to: inv.customers?.email, customerName: inv.customers?.name, invoiceNumber: inv.invoice_number, amount: fmt(inv.amount) }),
+                                  })
+                                  if (res.ok) { toast.success(fr ? 'Envoyée' : 'Sent'); fetchInvoices() }
+                                }}
+                                className="rounded-lg p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                title={fr ? 'Envoyer' : 'Send'}
+                              >
+                                <Send className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                            <button onClick={() => window.print()} className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors" title={fr ? 'Imprimer' : 'Print'}>
+                              <Printer className="h-3.5 w-3.5" />
+                            </button>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          <span className="flex items-center gap-1.5"><User className="h-3.5 w-3.5 text-gray-300" />{inv.customers?.name || <span className="text-gray-300">—</span>}</span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {inv.jobs ? <span className="flex items-center gap-1.5"><Briefcase className="h-3.5 w-3.5 text-gray-300" />{inv.jobs.title}</span> : <span className="text-gray-300">—</span>}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap"><span className="text-sm font-semibold text-gray-900">{fmt(parseFloat(String(inv.amount)))}</span></td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {inv.due_date ? <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-gray-300" />{fmtDate(inv.due_date, lang)}</span> : <span className="text-gray-300">—</span>}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap"><span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${cfg?.className || ''}`}>{cfg?.label || inv.status}</span></td>
                       </tr>
                     )
                   })}
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile cards */}
             <div className="md:hidden divide-y divide-gray-100">
-              {filtered.map((inv) => {
-                const cfg = statusConfig[inv.status]
+              {paged.map((inv) => {
+                const displayStatus = getInvoiceDisplayStatus(inv)
+                const isOverdue = displayStatus === 'overdue'
                 return (
                   <Link key={inv.id} href={`/invoices/${inv.id}`} className="block p-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <div>
-                        <p className="text-xs font-semibold text-indigo-600 mb-0.5">{inv.invoice_number || `INV-${inv.id.slice(0,4).toUpperCase()}`}</p>
-                        <p className="text-base font-bold text-gray-900">{fmt(parseFloat(String(inv.amount)))}</p>
+                      <div className="flex items-center gap-3">
+                        {inv.customers && (
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600 font-bold text-sm">
+                            {inv.customers.name[0]?.toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-xs font-semibold text-indigo-600 mb-0.5">{inv.invoice_number || `INV-${inv.id.slice(0, 4).toUpperCase()}`}</p>
+                          <p className="text-sm font-semibold text-gray-900">{inv.customers?.name || '--'}</p>
+                        </div>
                       </div>
-                      <span className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${cfg?.className || ''}`}>{cfg?.label || inv.status}</span>
+                      <div className="text-right">
+                        <p className="text-base font-bold text-gray-900">{fmt(parseFloat(String(inv.amount)))}</p>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold mt-0.5 ${INVOICE_STATUS_CLS[displayStatus] || ''}`}>
+                          {invoiceStatusLabel(displayStatus, fr)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="space-y-0.5 text-xs text-gray-400">
-                      {inv.customers && <p className="flex items-center gap-1"><User className="h-3 w-3" />{inv.customers.name}</p>}
-                      {inv.jobs && <p className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{inv.jobs.title}</p>}
-                      {inv.due_date && <p className="flex items-center gap-1"><Calendar className="h-3 w-3" />{inv.due_date}</p>}
+                    <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
+                      {inv.due_date && (
+                        <span className={`flex items-center gap-1 ${isOverdue ? 'text-red-500 font-semibold' : ''}`}>
+                          <Calendar className="h-3 w-3" /> {fmtDate(inv.due_date, lang, 'short')}
+                        </span>
+                      )}
+                      {(inv.viewed_count || 0) > 0 && (
+                        <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {inv.viewed_count}x</span>
+                      )}
                     </div>
                   </Link>
                 )
               })}
             </div>
+
             <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} />
+          </div>
+        )}
+
+        {/* Export CSV button at bottom */}
+        {filtered.length > 0 && (
+          <div className="flex justify-end mt-4">
+            <button onClick={exportCSV} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+              <Download className="h-3.5 w-3.5" /> {fr ? 'Exporter CSV' : 'Export CSV'}
+            </button>
           </div>
         )}
       </div>
 
-      {panelOpen && (
-        <>
-          <div className="fixed inset-0 z-30 bg-gray-900/50 backdrop-blur-sm fade-in" onClick={() => setPanelOpen(false)} />
-          <div className="fixed inset-y-0 right-0 z-40 w-full max-w-md bg-white shadow-2xl slide-over flex flex-col">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-              <div><h2 className="text-base font-semibold text-gray-900">{l.panelTitle}</h2><p className="text-xs text-gray-400 mt-0.5">{l.panelSub}</p></div>
-              <button type="button" onClick={() => setPanelOpen(false)} className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"><X className="h-5 w-5" /></button>
-            </div>
-            <form onSubmit={addInvoice} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{l.labelCustomer} <span className="text-red-500">*</span></label>
-                <div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <select value={customerId} onChange={(e) => setCustomerId(e.target.value)} required className="block w-full appearance-none rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
-                    <option value="">{l.selectCustomer}</option>
-                    {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{l.labelJob}</label>
-                <div className="relative"><Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <select value={jobId} onChange={(e) => setJobId(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
-                    <option value="">{l.noJobLinked}</option>
-                    {jobs.map((j) => <option key={j.id} value={j.id}>{j.title}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{l.labelAmount} <span className="text-red-500">*</span></label>
-                <div className="relative"><DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="number" step="0.01" min="0" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} required className="block w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" /></div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{l.labelDueDate}</label>
-                <div className="relative"><Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" /></div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{l.labelStatus}</label>
-                <select value={status} onChange={(e) => setStatus(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
-                  <option value="unpaid">{l.selectUnpaid}</option>
-                  <option value="paid">{l.selectPaid}</option>
-                  <option value="overdue">{l.selectOverdue}</option>
-                </select>
-              </div>
-            </form>
-            <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">
-              <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">{t.common.cancel}</button>
-              <button onClick={addInvoice} disabled={loading} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
-                {loading ? l.creatingBtn : l.createBtn}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
       <MobileFAB href="/invoices/new" label={l.newBtn} />
     </AppLayout>
   )

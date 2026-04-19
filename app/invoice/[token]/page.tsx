@@ -115,9 +115,13 @@ function PublicInvoiceContent() {
         if (orgData) setOrg(orgData as OrgData)
       }
 
-      // Mark as viewed (fire-and-forget, ignore errors)
+      // Mark as viewed via track-view API (fire-and-forget, ignore errors)
       if (invData.status !== 'paid') {
-        supabase.from('invoices').update({ viewed_at: new Date().toISOString() }).eq('token', token).then(() => {})
+        fetch('/api/invoices/track-view', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        }).catch(() => {})
       }
 
       setLoading(false)
