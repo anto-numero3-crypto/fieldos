@@ -4,11 +4,13 @@ import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/lib/LanguageContext'
 import {
-  Wrench, Users, Briefcase, FileText, Sparkles, CheckCircle,
+  Users, Briefcase, FileText, Sparkles, CheckCircle,
   ArrowRight, BarChart3, Shield, Zap, Check,
   ChevronRight, ChevronDown, CreditCard, Calendar, Play,
   MessageSquare, Building2, Leaf, Globe,
 } from 'lucide-react'
+import Image from 'next/image'
+import GestivioLogo from '@/components/GestivioLogo'
 
 // ── Scroll-reveal hook ────────────────────────────────────────
 function useInView(threshold = 0.12) {
@@ -125,10 +127,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600">
-                <Wrench className="h-4 w-4 text-white" strokeWidth={2.5} />
-              </div>
-              <span className="text-base font-semibold text-gray-900">Gestivio</span>
+              <GestivioLogo />
             </div>
 
             <div className="hidden md:flex items-center gap-8">
@@ -213,7 +212,7 @@ export default function LandingPage() {
               <div className="flex h-80 bg-gray-50">
                 <div className="hidden sm:flex w-48 flex-col border-r border-gray-100 bg-white px-3 py-4">
                   <div className="flex items-center gap-2 px-2 mb-5">
-                    <div className="h-6 w-6 rounded-lg bg-indigo-600 flex items-center justify-center"><Wrench className="h-3 w-3 text-white" /></div>
+                    <Image src="/logo.png" alt="Gestivio" width={24} height={24} />
                     <div className="h-3 w-16 rounded-full bg-gray-900" />
                   </div>
                   {[t.nav.dashboard, t.nav.customers, t.nav.jobs, t.nav.invoices, t.nav.assistant].map((item, i) => (
@@ -584,10 +583,7 @@ export default function LandingPage() {
             {/* Col 1 — Brand */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600">
-                  <Wrench className="h-4 w-4 text-white" strokeWidth={2.5} />
-                </div>
-                <span className="text-base font-bold text-gray-900">Gestivio</span>
+                <GestivioLogo />
               </div>
               <p className="text-sm text-gray-500 leading-relaxed mb-5">
                 {lang === 'fr'

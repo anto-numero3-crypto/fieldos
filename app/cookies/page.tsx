@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Wrench } from 'lucide-react'
+import GestivioLogo from '@/components/GestivioLogo'
 import { useLanguage } from '@/lib/LanguageContext'
 import { LanguageToggle } from '@/components/LanguageToggle'
 
@@ -81,10 +81,7 @@ export default function CookiesPage() {
       <nav className="border-b border-gray-100 px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <Link href="/" className="flex items-center gap-2.5 w-fit">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600">
-              <Wrench className="h-4 w-4 text-white" strokeWidth={2.5} />
-            </div>
-            <span className="text-base font-bold text-gray-900">Gestivio</span>
+            <GestivioLogo />
           </Link>
         </div>
       </nav>

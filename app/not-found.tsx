@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { useLanguage } from '@/lib/LanguageContext'
-import { Wrench, Home, ArrowLeft, Search } from 'lucide-react'
+import { Home, ArrowLeft, Search } from 'lucide-react'
+import GestivioLogo from '@/components/GestivioLogo'
 
 export default function NotFound() {
   const { lang } = useLanguage()
@@ -20,9 +21,7 @@ export default function NotFound() {
       <div className="text-center max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600">
-            <Wrench className="h-6 w-6 text-white" strokeWidth={2.5} />
-          </div>
+          <GestivioLogo size="lg" showText={false} />
         </div>
 
         {/* 404 */}

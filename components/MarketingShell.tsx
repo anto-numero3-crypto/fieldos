@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { ReactNode } from 'react'
-import { Wrench, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import NewsletterSignup from './NewsletterSignup'
+import GestivioLogo from '@/components/GestivioLogo'
 
 export default function MarketingShell({ children }: { children: ReactNode }) {
   return (
@@ -9,8 +10,7 @@ export default function MarketingShell({ children }: { children: ReactNode }) {
       <nav className="border-b border-gray-100 px-4 py-4 sm:px-6 lg:px-8 sticky top-0 bg-white/90 backdrop-blur-sm z-30">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600"><Wrench className="h-4 w-4 text-white" strokeWidth={2.5} /></div>
-            <span className="text-base font-bold text-gray-900">Gestivio</span>
+            <GestivioLogo />
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
             <Link href="/pricing" className="hidden sm:inline text-sm font-medium text-gray-600 hover:text-gray-900">Tarifs</Link>
@@ -30,8 +30,7 @@ export default function MarketingShell({ children }: { children: ReactNode }) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 grid gap-8 md:grid-cols-4">
           <div>
             <Link href="/" className="flex items-center gap-2 mb-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600"><Wrench className="h-4 w-4 text-white" strokeWidth={2.5} /></div>
-              <span className="text-base font-bold text-gray-900">Gestivio</span>
+              <GestivioLogo />
             </Link>
             <p className="text-sm text-gray-500">La plateforme pour les entrepreneurs en services. Fait au Québec 🍁.</p>
           </div>

@@ -4,9 +4,10 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../supabase'
 import {
-  Wrench, CheckCircle, Users, Briefcase, FileText, ArrowRight,
+  CheckCircle, Users, Briefcase, FileText, ArrowRight,
   ArrowLeft, Building2, Mail, Phone, User, Calendar, Sparkles,
 } from 'lucide-react'
+import GestivioLogo from '@/components/GestivioLogo'
 import { useLanguage } from '@/lib/LanguageContext'
 import { LanguageToggle } from '@/components/LanguageToggle'
 
@@ -97,10 +98,7 @@ export default function OnboardingPage() {
 
         {/* Logo */}
         <div className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 shadow-sm">
-            <Wrench className="h-5 w-5 text-white" strokeWidth={2.5} />
-          </div>
-          <span className="text-xl font-bold text-gray-900">Gestivio</span>
+          <GestivioLogo size="lg" />
         </div>
 
         {/* Progress */}

@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Wrench, BookOpen, MessageCircle, Mail, ChevronDown, Zap, Users, FileText, CreditCard, Settings, Briefcase } from 'lucide-react'
+import { BookOpen, MessageCircle, Mail, ChevronDown, Zap, Users, FileText, CreditCard, Settings, Briefcase } from 'lucide-react'
+import GestivioLogo from '@/components/GestivioLogo'
 import { useLanguage } from '@/lib/LanguageContext'
 import { LanguageToggle } from '@/components/LanguageToggle'
 
@@ -83,10 +84,7 @@ export default function SupportPage() {
       <nav className="border-b border-gray-100 px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600">
-              <Wrench className="h-4 w-4 text-white" strokeWidth={2.5} />
-            </div>
-            <span className="text-base font-bold text-gray-900">Gestivio</span>
+            <GestivioLogo />
           </Link>
           <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             {lang === 'fr' ? 'Se connecter' : 'Sign in'}

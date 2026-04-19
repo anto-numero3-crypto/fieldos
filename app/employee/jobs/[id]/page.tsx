@@ -8,10 +8,11 @@ import { useLanguage } from '@/lib/LanguageContext'
 import { fmtDate } from '@/lib/format'
 import { isModuleEnabled } from '@/lib/modules'
 import {
-  Wrench, LogOut, ArrowLeft, User, MapPin, Clock, Calendar,
+  LogOut, ArrowLeft, User, MapPin, Clock, Calendar,
   CheckCircle, FileText, StickyNote, Phone, ExternalLink,
   Loader2, Save, Play, Square, AlertTriangle, Pause,
 } from 'lucide-react'
+import GestivioLogo from '@/components/GestivioLogo'
 
 interface Job {
   id: string
@@ -271,10 +272,7 @@ export default function EmployeeJobDetailPage() {
       <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <Wrench className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-gray-900 dark:text-white">Gestivio</span>
+            <GestivioLogo />
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-gray-600 dark:text-gray-300 hidden sm:block">{empName}</span>

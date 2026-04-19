@@ -5,7 +5,8 @@ import { supabase } from '../supabase'
 import { toast } from 'sonner'
 import { useLanguage } from '@/lib/LanguageContext'
 import { PLAN_PRICING } from '@/lib/plan-limits'
-import { Wrench, Check, Loader2, Sparkles, Tag, X } from 'lucide-react'
+import { Check, Loader2, Sparkles, Tag, X } from 'lucide-react'
+import GestivioLogo from '@/components/GestivioLogo'
 
 interface ValidPromo {
   code: string
@@ -121,10 +122,7 @@ export default function SubscribePage() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-center justify-center gap-2.5 mb-10">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 shadow-sm">
-            <Wrench className="h-5 w-5 text-white" strokeWidth={2.5} />
-          </div>
-          <span className="text-xl font-bold text-gray-900">Gestivio</span>
+          <GestivioLogo size="lg" />
         </div>
 
         <div className="text-center max-w-2xl mx-auto mb-10">

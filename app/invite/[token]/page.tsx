@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useLanguage } from '@/lib/LanguageContext'
-import { Wrench, Lock, Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
+import { Lock, Eye, EyeOff, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
+import GestivioLogo from '@/components/GestivioLogo'
 
 interface InviteInfo {
   first_name: string
@@ -76,10 +77,7 @@ export default function InviteAcceptPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 mb-2">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-              <Wrench className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">Gestivio</span>
+            <GestivioLogo size="lg" />
           </div>
         </div>
 

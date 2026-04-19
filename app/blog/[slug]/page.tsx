@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { Wrench, ArrowLeft, Clock, Calendar, ArrowRight, Share2 } from 'lucide-react'
+import { ArrowLeft, Clock, Calendar, ArrowRight, Share2 } from 'lucide-react'
+import GestivioLogo from '@/components/GestivioLogo'
 import { buildMetadata, SITE_URL } from '@/lib/seo'
 import { getPost, POSTS } from '@/content/blog'
 import JsonLd from '@/components/JsonLd'
@@ -60,8 +61,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       <nav className="border-b border-gray-100 px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600"><Wrench className="h-4 w-4 text-white" strokeWidth={2.5} /></div>
-            <span className="text-base font-bold text-gray-900">Gestivio</span>
+            <GestivioLogo />
           </Link>
           <Link href="/signup" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Essayer gratuitement</Link>
         </div>

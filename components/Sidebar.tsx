@@ -6,11 +6,12 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/app/supabase'
 import { useLanguage } from '@/lib/LanguageContext'
 import {
-  LayoutDashboard, Users, Briefcase, FileText, Sparkles, X, LogOut, Wrench,
+  LayoutDashboard, Users, Briefcase, FileText, Sparkles, X, LogOut,
   Calendar, FileSignature, BarChart3, Settings, Users2,
   Bell, ChevronDown, Globe, Lightbulb, Megaphone, BookOpen, Clock, Package,
 } from 'lucide-react'
 import { isModuleEnabled } from '@/lib/modules'
+import GestivioLogo from '@/components/GestivioLogo'
 
 interface SidebarProps { open: boolean; onClose: () => void }
 
@@ -133,13 +134,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex h-16 shrink-0 items-center justify-between px-5 border-b border-gray-100 dark:border-gray-800">
           <Link href="/dashboard" className="flex items-center gap-2.5 group" onClick={onClose}>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 shadow-sm group-hover:bg-indigo-700 transition-colors">
-              <Wrench className="h-4 w-4 text-white" strokeWidth={2.5} />
-            </div>
-            <div>
-              <span className="text-base font-bold text-gray-900 dark:text-white tracking-tight">Gestivio</span>
-              <span className="ml-1.5 rounded-md bg-indigo-50 px-1.5 py-0.5 text-xs font-semibold text-indigo-600">PRO</span>
-            </div>
+            <GestivioLogo />
+            <span className="ml-1.5 rounded-md bg-indigo-50 px-1.5 py-0.5 text-xs font-semibold text-indigo-600">PRO</span>
           </Link>
           <button
             type="button"
