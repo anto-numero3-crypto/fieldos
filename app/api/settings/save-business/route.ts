@@ -54,6 +54,16 @@ export async function POST(req: NextRequest) {
   if (body.invoice_default_tvq !== undefined) payload.invoice_default_tvq = body.invoice_default_tvq
   if (body.invoice_footer_note !== undefined) payload.invoice_footer_note = body.invoice_footer_note
 
+  // Quebec legal / licence fields
+  if (body.tps_number !== undefined) payload.tps_number = body.tps_number
+  if (body.tvq_number !== undefined) payload.tvq_number = body.tvq_number
+  if (body.neq_number !== undefined) payload.neq_number = body.neq_number
+  if (body.rbq_number !== undefined) payload.rbq_number = body.rbq_number
+  if (body.cmeq_number !== undefined) payload.cmeq_number = body.cmeq_number
+  if (body.cmmtq_number !== undefined) payload.cmmtq_number = body.cmmtq_number
+  if (body.other_licence_name !== undefined) payload.other_licence_name = body.other_licence_name
+  if (body.other_licence_number !== undefined) payload.other_licence_number = body.other_licence_number
+
   if (typeof body.slug === 'string' && body.slug) payload.slug = body.slug
 
   const query = existing

@@ -297,6 +297,16 @@ export default function SettingsPage() {
   const [notifAppPrefs, setNotifAppPrefs] = useState<Record<string, boolean>>({})
   const [notifEmailPrefs, setNotifEmailPrefs] = useState<Record<string, boolean>>({})
 
+  // Quebec legal / licence fields
+  const [tpsNumber, setTpsNumber] = useState('')
+  const [tvqNumber, setTvqNumber] = useState('')
+  const [neqNumber, setNeqNumber] = useState('')
+  const [rbqNumber, setRbqNumber] = useState('')
+  const [cmeqNumber, setCmeqNumber] = useState('')
+  const [cmmtqNumber, setCmmtqNumber] = useState('')
+  const [otherLicenceName, setOtherLicenceName] = useState('')
+  const [otherLicenceNumber, setOtherLicenceNumber] = useState('')
+
   // Invoice settings
   const [invPrefix, setInvPrefix] = useState('FAC')
   const [invNextNumber, setInvNextNumber] = useState(1)
@@ -382,6 +392,15 @@ export default function SettingsPage() {
         if (org.invoice_default_tps !== undefined && org.invoice_default_tps !== null) setInvDefaultTps(org.invoice_default_tps)
         if (org.invoice_default_tvq !== undefined && org.invoice_default_tvq !== null) setInvDefaultTvq(org.invoice_default_tvq)
         if (org.invoice_footer_note) setInvFooterNote(org.invoice_footer_note)
+        // Quebec legal / licence fields
+        if (org.tps_number) setTpsNumber(org.tps_number)
+        if (org.tvq_number) setTvqNumber(org.tvq_number)
+        if (org.neq_number) setNeqNumber(org.neq_number)
+        if (org.rbq_number) setRbqNumber(org.rbq_number)
+        if (org.cmeq_number) setCmeqNumber(org.cmeq_number)
+        if (org.cmmtq_number) setCmmtqNumber(org.cmmtq_number)
+        if (org.other_licence_name) setOtherLicenceName(org.other_licence_name)
+        if (org.other_licence_number) setOtherLicenceNumber(org.other_licence_number)
       }
     }
     init()
@@ -442,6 +461,15 @@ export default function SettingsPage() {
       service_types: agentServices ? agentServices.split(',').map((s) => s.trim()).filter(Boolean) : [],
       notification_app_prefs: notifAppPrefs,
       notification_email_prefs: notifEmailPrefs,
+      // Quebec legal / licence fields
+      tps_number: tpsNumber,
+      tvq_number: tvqNumber,
+      neq_number: neqNumber,
+      rbq_number: rbqNumber,
+      cmeq_number: cmeqNumber,
+      cmmtq_number: cmmtqNumber,
+      other_licence_name: otherLicenceName,
+      other_licence_number: otherLicenceNumber,
       // Coordinates are derived purely from geocoding. If the address changed
       // we null them so the dashboard re-geocodes on next load.
       location_lat: null as number | null,
@@ -826,6 +854,53 @@ export default function SettingsPage() {
                       />
                     </label>
                   )}
+                </div>
+              )}
+            </div>
+
+            {/* Quebec legal / licence fields */}
+            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Informations légales et licences' : 'Legal information and licences'}</h2>
+              <p className="text-sm text-gray-400 mb-5">{fr ? 'Ces informations apparaissent sur vos factures imprimées.' : 'These details appear on your printed invoices.'}</p>
+
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{fr ? 'Taxes' : 'Taxes'}</p>
+              <div className="grid gap-4 sm:grid-cols-2 mb-5">
+                <InputRow label={fr ? 'Numéro de TPS (fédéral)' : 'GST Number (federal)'} value={tpsNumber} onChange={setTpsNumber} placeholder="123456789 RT0001" />
+                <InputRow label={fr ? 'Numéro de TVQ (Québec)' : 'QST Number (Quebec)'} value={tvqNumber} onChange={setTvqNumber} placeholder="1234567890 TQ0001" />
+              </div>
+
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{fr ? 'Enregistrement' : 'Registration'}</p>
+              <div className="grid gap-4 sm:grid-cols-2 mb-5">
+                <InputRow label={fr ? "NEQ \u2014 Numéro d'entreprise du Québec" : 'NEQ \u2014 Quebec Enterprise Number'} value={neqNumber} onChange={setNeqNumber} placeholder="1234567890" />
+              </div>
+
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{fr ? 'Licences' : 'Licences'}</p>
+              <div className="grid gap-4 sm:grid-cols-2 mb-5">
+                <InputRow label="Licence RBQ" value={rbqNumber} onChange={setRbqNumber} placeholder="1234-5678-01" />
+                <InputRow label="Licence CMEQ" value={cmeqNumber} onChange={setCmeqNumber} placeholder="" />
+                <InputRow label="Licence CMMTQ" value={cmmtqNumber} onChange={setCmmtqNumber} placeholder="" />
+              </div>
+
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{fr ? 'Autre licence' : 'Other licence'}</p>
+              <div className="grid gap-4 sm:grid-cols-2 mb-5">
+                <InputRow label={fr ? 'Nom de la licence' : 'Licence name'} value={otherLicenceName} onChange={setOtherLicenceName} placeholder="" />
+                <InputRow label={fr ? 'Numéro' : 'Number'} value={otherLicenceNumber} onChange={setOtherLicenceNumber} placeholder="" />
+              </div>
+
+              {/* Preview */}
+              {(tpsNumber || tvqNumber || rbqNumber || cmmtqNumber || cmeqNumber || neqNumber) && (
+                <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 mt-2">
+                  <p className="text-xs font-semibold text-gray-500 mb-1">{fr ? 'Aperçu sur facture' : 'Invoice preview'}</p>
+                  <p className="text-[11px] text-gray-400">
+                    {[
+                      tpsNumber && `N\u00B0 TPS: ${tpsNumber}`,
+                      tvqNumber && `N\u00B0 TVQ: ${tvqNumber}`,
+                      neqNumber && `NEQ: ${neqNumber}`,
+                      rbqNumber && `RBQ: ${rbqNumber}`,
+                      cmeqNumber && `CMEQ: ${cmeqNumber}`,
+                      cmmtqNumber && `CMMTQ: ${cmmtqNumber}`,
+                    ].filter(Boolean).join(' \u00B7 ')}
+                  </p>
                 </div>
               )}
             </div>
