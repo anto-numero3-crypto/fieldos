@@ -13,6 +13,13 @@ const nextConfig: NextConfig = {
       { source: '/careers', destination: '/contact', permanent: true },
       { source: '/billing', destination: '/settings?tab=billing', permanent: true },
       { source: '/team', destination: '/equipe', permanent: true },
+      { source: '/logiciel-plombier', destination: '/', permanent: true },
+      { source: '/logiciel-electricien', destination: '/', permanent: true },
+      { source: '/logiciel-cvc', destination: '/', permanent: true },
+      { source: '/logiciel-hvac', destination: '/', permanent: true },
+      { source: '/logiciel-nettoyage', destination: '/', permanent: true },
+      { source: '/logiciel-paysagiste', destination: '/', permanent: true },
+      { source: '/logiciel-renovateur', destination: '/', permanent: true },
     ]
   },
   async headers() {

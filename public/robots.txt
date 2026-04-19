@@ -16,4 +16,11 @@ Disallow: /notifications
 Disallow: /insights
 Disallow: /onboarding
 Disallow: /subscribe
+Disallow: /logiciel-plombier
+Disallow: /logiciel-electricien
+Disallow: /logiciel-cvc
+Disallow: /logiciel-hvac
+Disallow: /logiciel-nettoyage
+Disallow: /logiciel-paysagiste
+Disallow: /logiciel-renovateur
 Sitemap: https://gestivio.ca/sitemap.xml
