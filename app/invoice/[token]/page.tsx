@@ -243,12 +243,12 @@ function PublicInvoiceContent() {
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           .screen-only, .no-print, nav, header, button { display: none !important; }
           .print-only {
-            display: flex !important; flex-direction: column !important; min-height: 100vh !important;
+            display: block !important;
             background: white !important; box-shadow: none !important; border: none !important;
             border-radius: 0 !important; padding: 0 !important; margin: 0 !important;
             width: 100% !important; max-width: 100% !important;
           }
-          .print-footer { page-break-inside: avoid; margin-top: auto; }
+          .print-footer { page-break-inside: avoid; }
           .print-section { page-break-inside: avoid; break-inside: avoid; }
         }
         @media screen { .print-only { display: none !important; } }
@@ -381,7 +381,6 @@ function PublicInvoiceContent() {
           </div>
 
           {/* SPACER */}
-          <div style={{ flex: 1, minHeight: '6px', maxHeight: '30px' }} />
 
           {/* NOTES */}
           {inv.client_notes && (
