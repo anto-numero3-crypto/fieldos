@@ -2,40 +2,61 @@ interface Props {
   size?: 'sm' | 'md' | 'lg'
   showText?: boolean
   className?: string
+  forceDark?: boolean
 }
 
 const SIZES = {
-  sm: { icon: 20, gap: 'gap-1', text: 'text-sm font-semibold' },
-  md: { icon: 24, gap: 'gap-1.5', text: 'text-lg font-semibold' },
-  lg: { icon: 32, gap: 'gap-2', text: 'text-2xl font-bold' },
+  sm: { icon: 18, gap: 'gap-0.5', text: 'text-sm font-semibold' },
+  md: { icon: 22, gap: 'gap-1', text: 'text-lg font-semibold' },
+  lg: { icon: 28, gap: 'gap-1', text: 'text-2xl font-bold' },
 }
 
 function GestivioIcon({ size }: { size: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 80 80" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-      <rect x="10" y="36" width="42" height="28" rx="3" />
-      <rect x="26" y="64" width="10" height="4" />
-      <rect x="21" y="68" width="20" height="3" rx="1.5" />
-      <path d="M18 36 L18 28 L10 28 L10 18" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="10" cy="15" r="3.5" />
-      <path d="M24 36 L24 22 L18 22 L18 12" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="18" cy="9" r="3" />
-      <path d="M31 36 L31 10" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-      <circle cx="31" cy="7" r="3.5" />
-      <path d="M38 36 L38 22 L44 22 L44 12" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="44" cy="9" r="3" />
-      <path d="M44 36 L44 28 L52 28 L52 18" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-      <circle cx="52" cy="15" r="3.5" />
-      <rect x="13" y="27" width="8" height="2" rx="1" />
-      <rect x="41" y="27" width="8" height="2" rx="1" />
+    <svg width={size} height={size} viewBox="0 0 48 52" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+      {/* Monitor screen - wide, slightly rounded */}
+      <rect x="8" y="22" width="28" height="18" rx="2" />
+      {/* Stand neck */}
+      <rect x="19" y="40" width="6" height="3" />
+      {/* Stand base */}
+      <rect x="15" y="43" width="14" height="2.5" rx="1.2" />
+
+      {/* === 3 nodes from TOP of monitor === */}
+      {/* Left-top: short vertical up */}
+      <line x1="16" y1="22" x2="16" y2="14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="16" cy="12" r="2.8" />
+
+      {/* Center-top: short vertical up */}
+      <line x1="22" y1="22" x2="22" y2="10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="22" cy="8" r="2.5" />
+
+      {/* Right-top: short vertical up */}
+      <line x1="28" y1="22" x2="28" y2="14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="28" cy="12" r="2.8" />
+
+      {/* === 2 nodes from SIDES of monitor === */}
+      {/* Left side: goes left then up (L-shape) */}
+      <path d="M8 28 L4 28 L4 18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="4" cy="15.5" r="2.8" />
+
+      {/* Right side: goes right then up (L-shape) */}
+      <path d="M36 28 L40 28 L40 18" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="40" cy="15.5" r="2.8" />
+
+      {/* Small horizontal bars connecting at the top edge */}
+      <rect x="13" y="21" width="6" height="1.5" rx="0.75" />
+      <rect x="25" y="21" width="6" height="1.5" rx="0.75" />
     </svg>
   )
 }
 
-export default function GestivioLogo({ size = 'md', showText = true, className = '' }: Props) {
+export default function GestivioLogo({ size = 'md', showText = true, className = '', forceDark = false }: Props) {
   const s = SIZES[size]
+  const colorClass = forceDark
+    ? 'text-gray-900'
+    : 'text-gray-900 dark:text-white'
   return (
-    <span className={`inline-flex items-center ${s.gap} text-gray-900 dark:text-white ${className}`}>
+    <span className={`inline-flex items-center ${s.gap} ${colorClass} ${className}`}>
       <GestivioIcon size={s.icon} />
       {showText && (
         <span className={`tracking-tight ${s.text}`}>

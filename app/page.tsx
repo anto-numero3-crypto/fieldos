@@ -127,7 +127,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <GestivioLogo />
+              <GestivioLogo forceDark />
             </div>
 
             <div className="hidden md:flex items-center gap-8">
@@ -583,7 +583,7 @@ export default function LandingPage() {
             {/* Col 1 — Brand */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <GestivioLogo />
+                <GestivioLogo forceDark />
               </div>
               <p className="text-sm text-gray-500 leading-relaxed mb-5">
                 {lang === 'fr'
