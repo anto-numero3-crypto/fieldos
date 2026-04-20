@@ -39,12 +39,12 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
       <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 50 }}>
         <LanguageToggle />
       </div>
 
-      <nav className="border-b border-gray-100 px-4 py-4 sm:px-6 lg:px-8">
+      <nav className="border-b border-gray-100 dark:border-gray-800 px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <GestivioLogo />
@@ -57,10 +57,10 @@ export default function ContactPage() {
           <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-2">
             {lang === 'fr' ? 'Entrer en contact' : 'Get in touch'}
           </p>
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
             {lang === 'fr' ? 'Nous contacter' : 'Contact Us'}
           </h1>
-          <p className="text-lg text-gray-500">
+          <p className="text-lg text-gray-500 dark:text-gray-400">
             {lang === 'fr'
               ? 'Nous serions ravis de vous entendre. Notre équipe répond généralement en un jour ouvrable.'
               : 'We\'d love to hear from you. Our team typically responds within one business day.'}
@@ -89,36 +89,36 @@ export default function ContactPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">
                       {lang === 'fr' ? 'Nom complet *' : 'Full name *'}
                     </label>
                     <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
                       placeholder={lang === 'fr' ? 'Votre nom' : 'Your name'}
-                      className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+                      className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 outline-none" />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">
                       {lang === 'fr' ? 'Adresse courriel *' : 'Email address *'}
                     </label>
                     <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
                       placeholder="you@company.com"
-                      className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+                      className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 outline-none" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">
                     {lang === 'fr' ? 'Nom de l\'entreprise' : 'Company name'}
                   </label>
                   <input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })}
                     placeholder={lang === 'fr' ? 'Nom de votre entreprise (optionnel)' : 'Your business name (optional)'}
-                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+                    className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 outline-none" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">
                     {lang === 'fr' ? 'Sujet *' : 'Subject *'}
                   </label>
                   <select required value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none bg-white">
+                    className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 outline-none bg-white dark:bg-gray-900">
                     <option value="">{lang === 'fr' ? 'Choisir un sujet' : 'Select a topic'}</option>
                     <option>{lang === 'fr' ? 'Demande générale' : 'General inquiry'}</option>
                     <option>{lang === 'fr' ? 'Ventes / Tarifs' : 'Sales / Pricing'}</option>
@@ -130,12 +130,12 @@ export default function ContactPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">
                     {lang === 'fr' ? 'Message *' : 'Message *'}
                   </label>
                   <textarea required rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })}
                     placeholder={lang === 'fr' ? 'Dites-nous comment nous pouvons vous aider...' : 'Tell us how we can help...'}
-                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none resize-none" />
+                    className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 outline-none resize-none" />
                 </div>
                 {error && <p className="text-sm text-red-600">{error}</p>}
                 <button type="submit" disabled={sending}

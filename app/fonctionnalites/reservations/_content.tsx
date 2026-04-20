@@ -15,7 +15,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
         {question}
         <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && <p className="pb-4 text-sm text-gray-600 leading-relaxed">{answer}</p>}
+      {open && <p className="pb-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{answer}</p>}
     </div>
   )
 }
@@ -71,7 +71,7 @@ export default function ReservationsContent() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
                 {fr ? 'Vos clients reservent eux-memes en ligne' : 'Your clients book themselves online'}
               </h1>
               <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-xl">
@@ -89,22 +89,22 @@ export default function ReservationsContent() {
       </section>
 
       {/* Avant / Apres */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Avant : des appels pendant le travail' : 'Before: phone calls during work'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Votre telephone sonne en plein chantier. Vous devez arreter votre travail pour noter un rendez-vous ou rappeler le client plus tard (et parfois oublier).' : 'Your phone rings on the job site. You have to stop working to note an appointment or call back later (and sometimes forget).'}
               </p>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Apres : les reservations se font toutes seules' : 'After: bookings happen on their own'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Vos clients choisissent un creneau et reservent en ligne. Vous recevez une notification et la demande apparait dans votre calendrier.' : 'Your clients pick a slot and book online. You get a notification and the request appears in your calendar.'}
               </p>
             </div>
@@ -113,16 +113,16 @@ export default function ReservationsContent() {
       </section>
 
       {/* 3 Steps */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Comment ca fonctionne' : 'How it works'}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((s) => (
               <div key={s.num} className="text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-lg font-bold">{s.num}</div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">{s.title}</h3>
+                <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">{s.title}</h3>
                 <p className="mt-2 text-sm text-gray-600">{s.desc}</p>
               </div>
             ))}
@@ -131,9 +131,9 @@ export default function ReservationsContent() {
       </section>
 
       {/* Capabilities grid */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Un portail de reservation complet' : 'A complete booking portal'}
           </h2>
           <div className="grid sm:grid-cols-2 gap-6">
@@ -150,14 +150,14 @@ export default function ReservationsContent() {
       </section>
 
       {/* Detail section 1 */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Votre catalogue en vitrine' : 'Your catalog on display'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Vos clients voient vos services, leurs descriptions et les creneaux disponibles. Ils choisissent ce dont ils ont besoin sans vous appeler.' : 'Your clients see your services, their descriptions, and available slots. They choose what they need without calling you.'}
               </p>
             </div>
@@ -167,15 +167,15 @@ export default function ReservationsContent() {
       </section>
 
       {/* Detail section 2 */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupBookingPortal /></div></div></div>
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupBookingPortal /></div></div></div>
             <div className="order-1 lg:order-2">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Tout arrive dans votre tableau de bord' : 'Everything lands in your dashboard'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Chaque reservation cree automatiquement une demande dans Gestivio avec le nom, le telephone, le service et le creneau. Il ne reste qu\'a confirmer.' : 'Each booking automatically creates a request in Gestivio with the name, phone, service, and slot. All that\'s left is to confirm.'}
               </p>
             </div>
@@ -184,12 +184,12 @@ export default function ReservationsContent() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Questions frequentes' : 'Frequently asked questions'}
           </h2>
-          <div className="divide-y divide-gray-200 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="divide-y divide-gray-200 dark:divide-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
             {faqs.map((faq, i) => (
               <FaqItem key={i} question={faq.q} answer={faq.a} />
             ))}
@@ -214,7 +214,7 @@ export default function ReservationsContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl bg-indigo-600 px-8 py-14 text-center">
             <h2 className="text-3xl font-bold text-white">

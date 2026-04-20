@@ -225,14 +225,14 @@ export default function SignupPage() {
       </div>
 
       {/* Right panel */}
-      <div className="flex flex-1 flex-col justify-center items-center px-4 py-12 sm:px-8 lg:px-16 bg-gray-50">
+      <div className="flex flex-1 flex-col justify-center items-center px-4 py-12 sm:px-8 lg:px-16 bg-gray-50 dark:bg-gray-950">
         <div className="w-full max-w-sm">
           {/* Mobile header */}
           <div className="flex items-center justify-between mb-8 lg:hidden">
             <GestivioLogo />
-            <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-              <button onClick={() => setLang('en')} className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'en' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>EN</button>
-              <button onClick={() => setLang('fr')} className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'fr' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>FR</button>
+            <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-0.5">
+              <button onClick={() => setLang('en')} className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'en' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}>EN</button>
+              <button onClick={() => setLang('fr')} className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'fr' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}>FR</button>
             </div>
           </div>
 
@@ -242,13 +242,13 @@ export default function SignupPage() {
               <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
                 <Mail className="h-9 w-9 text-emerald-600" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 {fr ? 'Vérifiez votre courriel' : 'Check your email'}
               </h1>
-              <p className="text-sm text-gray-500 mb-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
                 {fr ? 'Nous avons envoyé un lien de confirmation à' : 'We sent a confirmation link to'}
               </p>
-              <p className="text-sm font-semibold text-gray-800 mb-6">{email}</p>
+              <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-6">{email}</p>
               <p className="text-xs text-gray-400 mb-8">
                 {fr
                   ? 'Vérifiez votre dossier spam si vous ne le voyez pas dans les prochaines minutes.'
@@ -292,14 +292,14 @@ export default function SignupPage() {
                     </div>
                   ))}
                 </div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {step === 1
                     ? (fr ? 'Créer votre compte' : 'Create your account')
                     : step === 2
                     ? (fr ? 'Votre entreprise' : 'Your business')
                     : (fr ? 'Une dernière chose' : 'One last thing')}
                 </h1>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {fr ? `Étape ${step} sur 3 — ${stepTitles[(step as number) - 1]}` : `Step ${step} of 3 — ${stepTitles[(step as number) - 1]}`}
                 </p>
               </div>
@@ -308,7 +308,7 @@ export default function SignupPage() {
               {step === 1 && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                       {fr ? 'Adresse courriel' : 'Email address'}
                     </label>
                     <div className="relative">
@@ -318,13 +318,13 @@ export default function SignupPage() {
                         placeholder={fr ? 'vous@entreprise.com' : 'you@company.com'}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="block w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                       {fr ? 'Mot de passe' : 'Password'}
                     </label>
                     <div className="relative">
@@ -334,7 +334,7 @@ export default function SignupPage() {
                         placeholder={fr ? 'Min. 8 caractères' : 'Min. 8 characters'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="block w-full rounded-xl border border-gray-200 bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-10 pr-10 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                       />
                       <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
                         {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -353,7 +353,7 @@ export default function SignupPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                       {fr ? 'Confirmer le mot de passe' : 'Confirm password'}
                     </label>
                     <div className="relative">
@@ -363,7 +363,7 @@ export default function SignupPage() {
                         placeholder={fr ? 'Répétez votre mot de passe' : 'Repeat your password'}
                         value={confirm}
                         onChange={(e) => setConfirm(e.target.value)}
-                        className={['block w-full rounded-xl border bg-white pl-10 pr-10 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all', confirm && confirm !== password ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-indigo-500 focus:ring-indigo-500/20'].join(' ')}
+                        className={['block w-full rounded-xl border bg-white dark:bg-gray-900 pl-10 pr-10 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all', confirm && confirm !== password ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 dark:border-gray-700 focus:border-indigo-500 focus:ring-indigo-500/20'].join(' ')}
                       />
                       <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
                         {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -396,7 +396,7 @@ export default function SignupPage() {
               {step === 2 && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                       {fr ? "Nom de l'entreprise" : 'Business name'} <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
@@ -406,13 +406,13 @@ export default function SignupPage() {
                         placeholder={fr ? 'Ex : Plomberie ABC inc.' : 'e.g. ABC Plumbing Services'}
                         value={business}
                         onChange={(e) => setBusiness(e.target.value)}
-                        className="block w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                       {fr ? 'Téléphone' : 'Phone'} <span className="text-gray-400 text-xs font-normal">({fr ? 'facultatif' : 'optional'})</span>
                     </label>
                     <div className="relative">
@@ -422,13 +422,13 @@ export default function SignupPage() {
                         placeholder="(514) 555-0123"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="block w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                       {fr ? 'Province' : 'Province'} <span className="text-gray-400 text-xs font-normal">({fr ? 'facultatif' : 'optional'})</span>
                     </label>
                     <div className="relative">
@@ -436,7 +436,7 @@ export default function SignupPage() {
                       <select
                         value={province}
                         onChange={(e) => setProvince(e.target.value)}
-                        className="block w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none"
+                        className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all appearance-none"
                       >
                         <option value="">{fr ? '— Sélectionner —' : '— Select —'}</option>
                         {provinces.map((p) => <option key={p} value={p}>{p}</option>)}
@@ -453,7 +453,7 @@ export default function SignupPage() {
                     {fr ? 'Cette information est facultative et nous aide à améliorer Gestivio.' : 'This is optional and helps us improve Gestivio.'}
                   </p>
                   {sources.map((s) => (
-                    <label key={s} className={['flex items-center gap-3 rounded-xl border px-4 py-3 cursor-pointer transition-all', source === s ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-500/20' : 'border-gray-200 bg-white hover:border-gray-300'].join(' ')}>
+                    <label key={s} className={['flex items-center gap-3 rounded-xl border px-4 py-3 cursor-pointer transition-all', source === s ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/50 ring-2 ring-indigo-500/20' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-600'].join(' ')}>
                       <input
                         type="radio"
                         name="source"
@@ -462,7 +462,7 @@ export default function SignupPage() {
                         onChange={() => setSource(s)}
                         className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
                       />
-                      <span className="text-sm text-gray-700">{s}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{s}</span>
                     </label>
                   ))}
 
@@ -533,7 +533,7 @@ export default function SignupPage() {
                 {step > 1 && (
                   <button
                     onClick={() => { setStep((step as number - 1) as Step); setError('') }}
-                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-all"
+                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
                   >
                     <ArrowLeft className="h-4 w-4" />
                     {fr ? 'Retour' : 'Back'}
@@ -542,7 +542,7 @@ export default function SignupPage() {
               </div>
 
               <div className="mt-6 text-center">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   {fr ? 'Déjà un compte ? ' : 'Already have an account? '}
                   <Link href="/login" className="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
                     {fr ? 'Se connecter' : 'Sign in'}

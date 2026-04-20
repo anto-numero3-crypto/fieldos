@@ -21,7 +21,7 @@ export default function SoumissionsContent() {
               <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-600 text-white">
                 <ClipboardList className="h-7 w-7" />
               </div>
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
                 {fr ? 'Un devis professionnel en quelques minutes' : 'A professional quote in minutes'}
               </h1>
               <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-xl">
@@ -35,7 +35,7 @@ export default function SoumissionsContent() {
                 </Link>
               </div>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                   <MockupInvoice />
@@ -47,15 +47,15 @@ export default function SoumissionsContent() {
       </section>
 
       {/* AVANT / APRES */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Le problème' : 'The problem'}
           </h2>
           <div className="grid lg:grid-cols-2 gap-12">
-            <div className="rounded-2xl border border-gray-200 p-8">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 p-8">
               <p className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-4">{fr ? 'Avant Gestivio' : 'Before Gestivio'}</p>
-              <p className="text-gray-600 italic leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-300 italic leading-relaxed">
                 {fr
                   ? 'Avant Gestivio, vous mettez des heures à préparer une soumission. Vous cherchez vos prix dans un fichier, tapez tout dans Word, calculez les taxes à la main et envoyez un PDF par courriel. Le client prend des jours à répondre et vous ne savez même pas s\'il a ouvert le document. Quand il accepte, vous devez tout retaper pour créer la facture.'
                   : 'Before Gestivio, you spend hours preparing a quote. You look up prices in a file, type everything in Word, calculate taxes by hand and send a PDF by email. The client takes days to respond and you don\'t even know if they opened the document. When they accept, you have to retype everything to create the invoice.'}
@@ -63,7 +63,7 @@ export default function SoumissionsContent() {
             </div>
             <div className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-8">
               <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide mb-4">{fr ? 'Avec Gestivio' : 'With Gestivio'}</p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Avec Gestivio, vous sélectionnez les items de votre catalogue, ajustez les quantités et votre soumission est prête en quelques minutes. Le client reçoit un lien pour approuver en ligne d\'un clic. Vous voyez quand il consulte le document. Dès son approbation, vous convertissez en facture instantanément — aucune ressaisie.'
                   : 'With Gestivio, you select items from your catalog, adjust quantities and your quote is ready in minutes. The client receives a link to approve online with one click. You see when they view the document. Upon approval, you convert to invoice instantly — no re-entry.'}
@@ -74,12 +74,12 @@ export default function SoumissionsContent() {
       </section>
 
       {/* COMMENT CA MARCHE */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
             {fr ? 'Comment ça marche' : 'How it works'}
           </h2>
-          <p className="text-center text-gray-600 mb-14 max-w-2xl mx-auto">
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-14 max-w-2xl mx-auto">
             {fr ? 'De la création à la conversion en facture, tout est fluide.' : 'From creation to invoice conversion, everything flows smoothly.'}
           </p>
           <div className="grid md:grid-cols-3 gap-8 relative">
@@ -93,8 +93,8 @@ export default function SoumissionsContent() {
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-white text-lg font-bold relative z-10">
                   {step.num}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{step.desc}</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{step.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -102,9 +102,9 @@ export default function SoumissionsContent() {
       </section>
 
       {/* CAPABILITIES GRID */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Des soumissions professionnelles en toute simplicité' : 'Professional quotes made simple'}
           </h2>
           <div className="grid sm:grid-cols-2 gap-8">
@@ -116,7 +116,7 @@ export default function SoumissionsContent() {
               { icon: Eye, title: fr ? 'Suivi du statut' : 'Status tracking', desc: fr ? 'Voyez en temps réel si votre soumission a été envoyée, vue ou approuvée par le client.' : 'See in real-time if your quote has been sent, viewed or approved by the client.' },
               { icon: Send, title: fr ? 'Portail client' : 'Client portal', desc: fr ? 'Le client consulte sa soumission sur une page dédiée avec tous les détails et le bouton d\'approbation.' : 'The client views their quote on a dedicated page with all details and the approval button.' },
             ].map((f, i) => (
-              <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors">
+              <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors">
                 <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
                   <f.icon className="h-5 w-5" />
                 </span>
@@ -131,25 +131,25 @@ export default function SoumissionsContent() {
       </section>
 
       {/* DETAILED FEATURE A */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Votre catalogue, vos prix, en quelques clics' : 'Your catalog, your prices, in a few clicks'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Votre catalogue de produits et services est au coeur de vos soumissions. Sélectionnez les items pertinents, ajustez les quantités si nécessaire et la soumission se calcule automatiquement — prix unitaires, sous-totaux, TPS, TVQ et total.'
                   : 'Your product and service catalog is at the heart of your quotes. Select the relevant items, adjust quantities if needed and the quote calculates automatically — unit prices, subtotals, GST, QST and total.'}
               </p>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Ajoutez des notes personnalisées pour chaque ligne ou pour l\'ensemble de la soumission. Votre client reçoit un document clair et professionnel qui inspire confiance.'
                   : 'Add custom notes for each line or for the entire quote. Your client receives a clear, professional document that inspires confidence.'}
               </p>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                   <MockupInvoice />
@@ -161,10 +161,10 @@ export default function SoumissionsContent() {
       </section>
 
       {/* DETAILED FEATURE B */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                   <MockupClientProfile />
@@ -172,15 +172,15 @@ export default function SoumissionsContent() {
               </div>
             </div>
             <div className="order-1 lg:order-2">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'De la soumission à la facture en un clic' : 'From quote to invoice in one click'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Dès que votre client approuve la soumission en ligne, vous pouvez la convertir en facture instantanément. Toutes les lignes, les prix, les quantités et les taxes sont préservés. Aucune ressaisie, aucune erreur possible.'
                   : 'As soon as your client approves the quote online, you can convert it to an invoice instantly. All lines, prices, quantities and taxes are preserved. No re-entry, no possible errors.'}
               </p>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'La facture hérite aussi du numéro de soumission comme référence, ce qui facilite le suivi pour vous et votre client.'
                   : 'The invoice also inherits the quote number as a reference, making tracking easier for you and your client.'}
@@ -191,12 +191,12 @@ export default function SoumissionsContent() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Questions fréquentes' : 'Frequently asked questions'}
           </h2>
-          <div className="divide-y divide-gray-200 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="divide-y divide-gray-200 dark:divide-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
             <FaqItem
               question={fr ? 'Puis-je utiliser mon catalogue de produits ?' : 'Can I use my product catalog?'}
               answer={fr ? 'Oui. Sélectionnez vos produits et services directement depuis votre catalogue pour créer une soumission en quelques clics avec les bons prix déjà remplis.' : 'Yes. Select your products and services directly from your catalog to create a quote in a few clicks with the right prices already filled in.'}
@@ -222,9 +222,9 @@ export default function SoumissionsContent() {
       </section>
 
       {/* RELATED FEATURES */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Voir aussi' : 'See also'}
           </h2>
           <div className="grid sm:grid-cols-3 gap-6">
@@ -233,8 +233,8 @@ export default function SoumissionsContent() {
               { href: '/fonctionnalites/contrats', title: fr ? 'Contrats' : 'Contracts', desc: fr ? 'Transformez un devis en contrat récurrent.' : 'Turn a quote into a recurring contract.' },
               { href: '/fonctionnalites/paiements', title: fr ? 'Paiements' : 'Payments', desc: fr ? 'Encaissez rapidement après la facturation.' : 'Collect payment quickly after invoicing.' },
             ].map((card) => (
-              <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
-                <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600">{card.title}</h3>
+              <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 dark:border-gray-800 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
+                <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600">{card.title}</h3>
                 <p className="mt-2 text-sm text-gray-600">{card.desc}</p>
                 <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-indigo-600">
                   {fr ? 'Découvrir' : 'Learn more'} <ArrowRight className="h-3.5 w-3.5" />
@@ -246,7 +246,7 @@ export default function SoumissionsContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl bg-indigo-600 px-8 py-14 text-center">
             <h2 className="text-3xl font-bold text-white">

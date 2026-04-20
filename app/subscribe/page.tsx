@@ -119,17 +119,17 @@ export default function SubscribePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-violet-50 dark:from-gray-950 dark:via-gray-950 dark:to-gray-900">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-center justify-center gap-2.5 mb-10">
           <GestivioLogo size="lg" />
         </div>
 
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3">
             {fr ? 'Votre essai gratuit est terminé' : 'Your free trial has ended'}
           </h1>
-          <p className="text-base text-gray-600">
+          <p className="text-base text-gray-600 dark:text-gray-300">
             {fr ? 'Choisissez un plan pour continuer à utiliser Gestivio' : 'Choose a plan to continue using Gestivio'}
           </p>
         </div>

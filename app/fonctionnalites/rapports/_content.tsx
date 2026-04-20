@@ -15,7 +15,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
         {question}
         <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && <p className="pb-4 text-sm text-gray-600 leading-relaxed">{answer}</p>}
+      {open && <p className="pb-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{answer}</p>}
     </div>
   )
 }
@@ -71,7 +71,7 @@ export default function RapportsContent() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
                 {fr ? 'Comprenez votre business en un coup d\'oeil' : 'Understand your business at a glance'}
               </h1>
               <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-xl">
@@ -83,28 +83,28 @@ export default function RapportsContent() {
                 </Link>
               </div>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupReports /></div></div></div>
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupReports /></div></div></div>
           </div>
         </div>
       </section>
 
       {/* Avant / Apres */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Avant : aucune visibilite sur vos chiffres' : 'Before: no visibility on your numbers'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Vous ne savez pas combien vous avez facture ce mois-ci, quels services rapportent le plus ou si votre business progresse.' : 'You don\'t know how much you billed this month, which services earn the most, or if your business is growing.'}
               </p>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Apres : des decisions eclairees' : 'After: informed decisions'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Ouvrez Gestivio et voyez instantanement vos revenus, vos tendances et les secteurs a ameliorer. Decidez en connaissance de cause.' : 'Open Gestivio and instantly see your revenue, trends, and areas for improvement. Make informed decisions.'}
               </p>
             </div>
@@ -113,16 +113,16 @@ export default function RapportsContent() {
       </section>
 
       {/* 3 Steps */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Comment ca fonctionne' : 'How it works'}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((s) => (
               <div key={s.num} className="text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-lg font-bold">{s.num}</div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">{s.title}</h3>
+                <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">{s.title}</h3>
                 <p className="mt-2 text-sm text-gray-600">{s.desc}</p>
               </div>
             ))}
@@ -131,9 +131,9 @@ export default function RapportsContent() {
       </section>
 
       {/* Capabilities grid */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Des rapports qui comptent' : 'Reports that matter'}
           </h2>
           <div className="grid sm:grid-cols-2 gap-6">
@@ -150,32 +150,32 @@ export default function RapportsContent() {
       </section>
 
       {/* Detail section 1 */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Identifiez vos meilleurs clients et services' : 'Identify your best clients and services'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Voyez quels clients generent le plus de revenus et quels services sont les plus demandes. Concentrez vos efforts la ou ca compte.' : 'See which clients generate the most revenue and which services are most requested. Focus your efforts where it matters.'}
               </p>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupReports /></div></div></div>
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupReports /></div></div></div>
           </div>
         </div>
       </section>
 
       {/* Detail section 2 */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupReports /></div></div></div>
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupReports /></div></div></div>
             <div className="order-1 lg:order-2">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Un export CSV pret pour votre comptable' : 'A CSV export ready for your accountant'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'En un clic, generez un fichier CSV propre avec toutes vos transactions. Votre comptable vous remerciera.' : 'In one click, generate a clean CSV file with all your transactions. Your accountant will thank you.'}
               </p>
             </div>
@@ -184,12 +184,12 @@ export default function RapportsContent() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Questions frequentes' : 'Frequently asked questions'}
           </h2>
-          <div className="divide-y divide-gray-200 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="divide-y divide-gray-200 dark:divide-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
             {faqs.map((faq, i) => (
               <FaqItem key={i} question={faq.q} answer={faq.a} />
             ))}
@@ -214,7 +214,7 @@ export default function RapportsContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl bg-indigo-600 px-8 py-14 text-center">
             <h2 className="text-3xl font-bold text-white">

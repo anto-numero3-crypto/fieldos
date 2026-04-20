@@ -21,7 +21,7 @@ export default function AssistantIAContent() {
               <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-600 text-white">
                 <Bot className="h-7 w-7" />
               </div>
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
                 {fr ? 'Posez n\'importe quelle question sur votre entreprise' : 'Ask any question about your business'}
               </h1>
               <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-xl">
@@ -43,15 +43,15 @@ export default function AssistantIAContent() {
       </section>
 
       {/* AVANT / APRES */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Le problème' : 'The problem'}
           </h2>
           <div className="grid lg:grid-cols-2 gap-12">
-            <div className="rounded-2xl border border-gray-200 p-8">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 p-8">
               <p className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-4">{fr ? 'Avant Gestivio' : 'Before Gestivio'}</p>
-              <p className="text-gray-600 italic leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-300 italic leading-relaxed">
                 {fr
                   ? 'Avant Gestivio, vous cherchez dans trois logiciels différents pour répondre à une simple question. "Combien ai-je facturé ce mois-ci ?" vous oblige à ouvrir votre tableur, filtrer par date et additionner manuellement. "Quand est-ce que j\'ai travaillé chez Tremblay la dernière fois ?" nécessite de fouiller dans vos courriels ou vos notes. Chaque réponse vous prend 10 minutes.'
                   : 'Before Gestivio, you search through three different software to answer a simple question. "How much did I invoice this month?" forces you to open your spreadsheet, filter by date and add up manually. "When did I last work at Tremblay\'s?" requires digging through emails or notes. Each answer takes you 10 minutes.'}
@@ -59,7 +59,7 @@ export default function AssistantIAContent() {
             </div>
             <div className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-8">
               <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide mb-4">{fr ? 'Avec Gestivio' : 'With Gestivio'}</p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Avec Gestivio, vous tapez votre question en langage naturel et l\'assistant IA vous donne la réponse en quelques secondes. Il interroge vos données en temps réel : clients, factures, interventions, paiements. Il peut même vous aider à rédiger un courriel ou à préparer une tâche.'
                   : 'With Gestivio, you type your question in natural language and the AI assistant gives you the answer in seconds. It queries your data in real-time: clients, invoices, jobs, payments. It can even help you draft an email or prepare a task.'}
@@ -70,12 +70,12 @@ export default function AssistantIAContent() {
       </section>
 
       {/* COMMENT CA MARCHE */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
             {fr ? 'Comment ça marche' : 'How it works'}
           </h2>
-          <p className="text-center text-gray-600 mb-14 max-w-2xl mx-auto">
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-14 max-w-2xl mx-auto">
             {fr ? 'Posez une question, obtenez une réponse, passez à l\'action.' : 'Ask a question, get an answer, take action.'}
           </p>
           <div className="grid md:grid-cols-3 gap-8 relative">
@@ -89,8 +89,8 @@ export default function AssistantIAContent() {
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-white text-lg font-bold relative z-10">
                   {step.num}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{step.desc}</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{step.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -98,9 +98,9 @@ export default function AssistantIAContent() {
       </section>
 
       {/* CAPABILITIES GRID */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Un assistant IA pensé pour les entrepreneurs' : 'An AI assistant built for entrepreneurs'}
           </h2>
           <div className="grid sm:grid-cols-2 gap-8">
@@ -112,7 +112,7 @@ export default function AssistantIAContent() {
               { icon: Globe, title: fr ? 'Bilingue FR + EN' : 'Bilingual FR + EN', desc: fr ? 'Posez vos questions en français ou en anglais. L\'assistant répond dans la langue de votre choix.' : 'Ask questions in French or English. The assistant responds in your chosen language.' },
               { icon: Brain, title: fr ? 'Contexte de votre entreprise' : 'Your business context', desc: fr ? 'L\'assistant comprend votre type d\'entreprise, vos services et votre historique pour des réponses pertinentes.' : 'The assistant understands your business type, services and history for relevant answers.' },
             ].map((f, i) => (
-              <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors">
+              <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors">
                 <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
                   <f.icon className="h-5 w-5" />
                 </span>
@@ -127,19 +127,19 @@ export default function AssistantIAContent() {
       </section>
 
       {/* DETAILED FEATURE A */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Vos données transformées en réponses claires' : 'Your data turned into clear answers'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Demandez "Combien ai-je facturé ce mois-ci ?" et obtenez le montant exact en une seconde. Demandez "Quel est l\'historique du client Tremblay ?" et voyez toutes les interventions, factures et paiements liés à ce client. L\'assistant comprend le contexte et vous donne des réponses précises.'
                   : 'Ask "How much did I invoice this month?" and get the exact amount in one second. Ask "What\'s Tremblay\'s history?" and see all jobs, invoices and payments linked to that client. The assistant understands context and gives you precise answers.'}
               </p>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Vous pouvez aussi poser des questions plus complexes comme "Quel est mon service le plus rentable ?" ou "Quels clients n\'ont pas été servis depuis 3 mois ?".'
                   : 'You can also ask more complex questions like "What\'s my most profitable service?" or "Which clients haven\'t been served in 3 months?".'}
@@ -153,10 +153,10 @@ export default function AssistantIAContent() {
       </section>
 
       {/* DETAILED FEATURE B */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                   <MockupDashboard />
@@ -164,15 +164,15 @@ export default function AssistantIAContent() {
               </div>
             </div>
             <div className="order-1 lg:order-2">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Un assistant qui connaît votre contexte' : 'An assistant that knows your context'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'L\'assistant comprend votre type d\'entreprise, vos services offerts et votre historique complet. Quand vous demandez "Quel est mon meilleur mois ?", il sait exactement quoi chercher dans vos données. Ses réponses sont pertinentes et adaptées à votre réalité d\'entrepreneur en services.'
                   : 'The assistant understands your business type, services offered and complete history. When you ask "What\'s my best month?", it knows exactly what to look for in your data. Its answers are relevant and adapted to your reality as a service entrepreneur.'}
               </p>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Vos données restent strictement privées et ne sont jamais utilisées pour entraîner des modèles. Tout est hébergé au Canada.'
                   : 'Your data stays strictly private and is never used to train models. Everything is hosted in Canada.'}
@@ -183,12 +183,12 @@ export default function AssistantIAContent() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Questions fréquentes' : 'Frequently asked questions'}
           </h2>
-          <div className="divide-y divide-gray-200 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="divide-y divide-gray-200 dark:divide-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
             <FaqItem
               question={fr ? 'Quelles questions puis-je poser à l\'assistant ?' : 'What questions can I ask the assistant?'}
               answer={fr ? 'Tout ce qui concerne votre entreprise : revenus du mois, historique d\'un client, interventions à venir, factures impayées, services les plus demandés, et bien plus encore.' : 'Anything about your business: monthly revenue, client history, upcoming jobs, unpaid invoices, most requested services, and much more.'}
@@ -214,9 +214,9 @@ export default function AssistantIAContent() {
       </section>
 
       {/* RELATED FEATURES */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Voir aussi' : 'See also'}
           </h2>
           <div className="grid sm:grid-cols-3 gap-6">
@@ -225,8 +225,8 @@ export default function AssistantIAContent() {
               { href: '/fonctionnalites/facturation', title: fr ? 'Facturation' : 'Invoicing', desc: fr ? 'Créez des factures avec l\'aide de l\'IA.' : 'Create invoices with AI help.' },
               { href: '/fonctionnalites/interventions', title: fr ? 'Interventions' : 'Jobs', desc: fr ? 'Gérez et planifiez vos interventions.' : 'Manage and schedule your jobs.' },
             ].map((card) => (
-              <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
-                <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600">{card.title}</h3>
+              <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 dark:border-gray-800 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
+                <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600">{card.title}</h3>
                 <p className="mt-2 text-sm text-gray-600">{card.desc}</p>
                 <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-indigo-600">
                   {fr ? 'Découvrir' : 'Learn more'} <ArrowRight className="h-3.5 w-3.5" />
@@ -238,7 +238,7 @@ export default function AssistantIAContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl bg-indigo-600 px-8 py-14 text-center">
             <h2 className="text-3xl font-bold text-white">

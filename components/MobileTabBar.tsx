@@ -51,10 +51,10 @@ export default function MobileTabBar() {
       {moreOpen && (
         <>
           <div className="fixed inset-0 z-40 bg-black/40 lg:hidden" onClick={() => setMoreOpen(false)} />
-          <div className="fixed bottom-16 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl border-t border-gray-100 px-4 pt-4 pb-6 lg:hidden">
+          <div className="fixed bottom-16 left-0 right-0 z-50 bg-white dark:bg-gray-900 rounded-t-2xl shadow-2xl border-t border-gray-100 dark:border-gray-800 px-4 pt-4 pb-6 lg:hidden">
             <div className="flex items-center justify-between mb-4 px-1">
-              <h3 className="text-sm font-semibold text-gray-900">Plus</h3>
-              <button onClick={() => setMoreOpen(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Plus</h3>
+              <button onClick={() => setMoreOpen(false)} className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -66,7 +66,7 @@ export default function MobileTabBar() {
                     key={href}
                     href={href}
                     onClick={() => setMoreOpen(false)}
-                    className={`flex flex-col items-center gap-1.5 rounded-xl p-3 transition-colors ${active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:bg-gray-50'}`}
+                    className={`flex flex-col items-center gap-1.5 rounded-xl p-3 transition-colors ${active ? 'bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                   >
                     <Icon className={`h-5 w-5 ${active ? 'text-indigo-600' : ''}`} strokeWidth={active ? 2.25 : 1.75} />
                     <span className="text-xs font-medium leading-none text-center">{label}</span>
@@ -79,7 +79,7 @@ export default function MobileTabBar() {
       )}
 
       {/* Bottom tab bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex h-16 items-center justify-around border-t border-gray-100 bg-white lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex h-16 items-center justify-around border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 lg:hidden">
         {mainTabs.map(({ href, icon: Icon, label, badge }) => {
           const active = isActive(href)
           return (

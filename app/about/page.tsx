@@ -41,12 +41,12 @@ export default function AboutPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
       <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 50 }}>
         <LanguageToggle />
       </div>
 
-      <nav className="border-b border-gray-100 px-4 py-4 sm:px-6 lg:px-8">
+      <nav className="border-b border-gray-100 dark:border-gray-800 px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <GestivioLogo />
@@ -62,14 +62,14 @@ export default function AboutPage() {
           <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-4">
             {lang === 'fr' ? 'Notre histoire' : 'Our Story'}
           </p>
-          <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl lg:text-6xl leading-tight">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl lg:text-6xl leading-tight">
             {lang === 'fr' ? (
               <>Conçu par des professionnels du service,<br />pour des professionnels du service</>
             ) : (
               <>Built by field service operators,<br />for field service operators</>
             )}
           </h1>
-          <p className="mt-6 text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-6 text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
             {lang === 'fr'
               ? 'Gestivio est né d\'une frustration. Trop de gens de métier et d\'entreprises de service talentueux étaient submergés par la paperasse, couraient après les factures et perdaient la trace de leurs contrats — tandis que leur logiciel d\'entreprise était conçu pour quelqu\'un d\'autre.'
               : 'Gestivio was born out of frustration. Too many great tradespeople and service businesses were drowning in paperwork, chasing invoices, and losing track of jobs — while their enterprise software was built for someone else.'}
@@ -94,10 +94,10 @@ export default function AboutPage() {
 
       <section className="py-20">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
             {lang === 'fr' ? 'Pourquoi nous avons créé Gestivio' : 'Why we built Gestivio'}
           </h2>
-          <div className="space-y-5 text-gray-600 leading-relaxed">
+          <div className="space-y-5 text-gray-600 dark:text-gray-300 leading-relaxed">
             <p>
               {lang === 'fr'
                 ? 'Les professionnels du service — plombiers, électriciens, techniciens CVC, nettoyeurs, paysagistes — passent des heures chaque semaine sur la paperasse, à courir après les factures et à jongler avec les horaires. La plupart des logiciels existants sont soit conçus pour un autre marché, soit disponibles uniquement en anglais, soit bien trop coûteux pour une petite entreprise.'
@@ -117,21 +117,21 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
               {lang === 'fr' ? 'Nos valeurs' : 'What we believe in'}
             </h2>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {values.map((v) => (
-              <div key={v.title} className="rounded-2xl bg-white border border-gray-100 p-6 shadow-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 mb-4">
+              <div key={v.title} className="rounded-2xl bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950 mb-4">
                   <v.icon className="h-5 w-5 text-indigo-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">{v.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{v.description}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{v.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{v.description}</p>
               </div>
             ))}
           </div>
@@ -140,24 +140,24 @@ export default function AboutPage() {
 
       <section className="py-20">
         <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
             {lang === 'fr' ? 'Prêt à nous rejoindre ?' : 'Ready to join us?'}
           </h2>
-          <p className="text-gray-500 mb-8">
+          <p className="text-gray-500 dark:text-gray-400 mb-8">
             {lang === 'fr' ? 'Commencez votre essai gratuit de 14 jours. Aucune carte de crédit requise.' : 'Start your free 14-day trial. No credit card required.'}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/login" className="rounded-xl bg-indigo-600 px-8 py-3 text-base font-semibold text-white hover:bg-indigo-700 transition-colors">
               {lang === 'fr' ? 'Essai gratuit' : 'Start free trial'}
             </Link>
-            <Link href="/contact" className="rounded-xl border border-gray-200 px-8 py-3 text-base font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+            <Link href="/contact" className="rounded-xl border border-gray-200 dark:border-gray-700 px-8 py-3 text-base font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
               {lang === 'fr' ? 'Nous contacter' : 'Contact us'}
             </Link>
           </div>
         </div>
       </section>
 
-      <footer className="border-t border-gray-100 py-8 text-center text-sm text-gray-400">
+      <footer className="border-t border-gray-100 dark:border-gray-800 py-8 text-center text-sm text-gray-400 dark:text-gray-500">
         <p>© {new Date().getFullYear()} Gestivio. {lang === 'fr' ? 'Fait avec ❤️ au Québec, Canada 🍁' : 'Made with ❤️ in Québec, Canada 🍁'}</p>
       </footer>
     </div>

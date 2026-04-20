@@ -15,7 +15,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
         {question}
         <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && <p className="pb-4 text-sm text-gray-600 leading-relaxed">{answer}</p>}
+      {open && <p className="pb-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{answer}</p>}
     </div>
   )
 }
@@ -72,7 +72,7 @@ export default function DevisContent() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
                 {fr ? 'Des devis professionnels approuves en 1 clic' : 'Professional quotes approved in 1 click'}
               </h1>
               <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-xl">
@@ -84,28 +84,28 @@ export default function DevisContent() {
                 </Link>
               </div>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupInvoice /></div></div></div>
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupInvoice /></div></div></div>
           </div>
         </div>
       </section>
 
       {/* Avant / Apres */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Avant : un processus de devis qui traine' : 'Before: a slow quoting process'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Vous redigez un devis dans Word, l\'envoyez par courriel, attendez une reponse, relancez, puis ressaisissez tout pour la facture. Des jours perdus.' : 'You draft a quote in Word, email it, wait for a response, follow up, then re-enter everything for the invoice. Days lost.'}
               </p>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Apres : du devis a la facture en minutes' : 'After: from quote to invoice in minutes'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Creez le devis depuis votre catalogue, envoyez-le en un clic, le client approuve en ligne et vous le convertissez en facture instantanement.' : 'Create the quote from your catalog, send it in one click, the client approves online, and you convert it to an invoice instantly.'}
               </p>
             </div>
@@ -114,16 +114,16 @@ export default function DevisContent() {
       </section>
 
       {/* 3 Steps */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Comment ca fonctionne' : 'How it works'}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((s) => (
               <div key={s.num} className="text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-lg font-bold">{s.num}</div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">{s.title}</h3>
+                <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">{s.title}</h3>
                 <p className="mt-2 text-sm text-gray-600">{s.desc}</p>
               </div>
             ))}
@@ -132,9 +132,9 @@ export default function DevisContent() {
       </section>
 
       {/* Capabilities grid */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Des devis professionnels en toute simplicite' : 'Professional quotes made simple'}
           </h2>
           <div className="grid sm:grid-cols-2 gap-6">
@@ -151,32 +151,32 @@ export default function DevisContent() {
       </section>
 
       {/* Detail section 1 */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Une mise en page qui inspire confiance' : 'A layout that inspires trust'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Vos devis sont generes avec votre logo, vos coordonnees et une mise en page professionnelle. Votre client recoit un document digne d\'une grande entreprise.' : 'Your quotes are generated with your logo, contact info, and professional layout. Your client receives a document worthy of a large company.'}
               </p>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupInvoice /></div></div></div>
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupInvoice /></div></div></div>
           </div>
         </div>
       </section>
 
       {/* Detail section 2 */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupInvoice /></div></div></div>
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupInvoice /></div></div></div>
             <div className="order-1 lg:order-2">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Du devis a la facture en un clic' : 'From quote to invoice in one click'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Des que votre client approuve le devis, convertissez-le en facture instantanement. Toutes les lignes, quantites, prix et taxes sont conserves.' : 'As soon as your client approves the quote, convert it to an invoice instantly. All lines, quantities, prices, and taxes are preserved.'}
               </p>
             </div>
@@ -185,12 +185,12 @@ export default function DevisContent() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Questions frequentes' : 'Frequently asked questions'}
           </h2>
-          <div className="divide-y divide-gray-200 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="divide-y divide-gray-200 dark:divide-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
             {faqs.map((faq, i) => (
               <FaqItem key={i} question={faq.q} answer={faq.a} />
             ))}
@@ -215,7 +215,7 @@ export default function DevisContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl bg-indigo-600 px-8 py-14 text-center">
             <h2 className="text-3xl font-bold text-white">

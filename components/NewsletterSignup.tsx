@@ -50,7 +50,7 @@ export default function NewsletterSignup({
           required
           onChange={(e) => setEmail(e.target.value)}
           placeholder="votre@courriel.com"
-          className="flex-1 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+          className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           disabled={state === 'loading' || state === 'success'}
         />
         <button
@@ -88,7 +88,7 @@ export default function NewsletterSignup({
             required
             onChange={(e) => setEmail(e.target.value)}
             placeholder="votre@courriel.com"
-            className="flex-1 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             disabled={state === 'loading'}
           />
           <button

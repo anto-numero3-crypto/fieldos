@@ -15,7 +15,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
         {question}
         <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && <p className="pb-4 text-sm text-gray-600 leading-relaxed">{answer}</p>}
+      {open && <p className="pb-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{answer}</p>}
     </div>
   )
 }
@@ -72,7 +72,7 @@ export default function CalendrierContent() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
                 {fr ? 'Votre agenda et vos disponibilites toujours a jour' : 'Your schedule and availability always up to date'}
               </h1>
               <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-xl">
@@ -84,28 +84,28 @@ export default function CalendrierContent() {
                 </Link>
               </div>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupCalendar /></div></div></div>
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupCalendar /></div></div></div>
           </div>
         </div>
       </section>
 
       {/* Avant / Apres */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Avant : des rendez-vous en double et des oublis' : 'Before: double bookings and forgotten appointments'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Vous gerez votre calendrier de tete ou dans un carnet. Resultat : des clients oublies, des techniciens qui se croisent et des journees mal planifiees.' : 'You manage your calendar from memory or in a notebook. Result: forgotten clients, technicians crossing paths, and poorly planned days.'}
               </p>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Apres : un calendrier visuel partage' : 'After: a shared visual calendar'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Toute votre equipe voit le meme calendrier en temps reel. Les conflits sont detectes instantanement et les clients sont toujours servis a l\'heure.' : 'Your entire team sees the same calendar in real time. Conflicts are detected instantly and clients are always served on time.'}
               </p>
             </div>
@@ -114,16 +114,16 @@ export default function CalendrierContent() {
       </section>
 
       {/* 3 Steps */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Comment ca fonctionne' : 'How it works'}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((s) => (
               <div key={s.num} className="text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-lg font-bold">{s.num}</div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">{s.title}</h3>
+                <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">{s.title}</h3>
                 <p className="mt-2 text-sm text-gray-600">{s.desc}</p>
               </div>
             ))}
@@ -132,9 +132,9 @@ export default function CalendrierContent() {
       </section>
 
       {/* Capabilities grid */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Tout ce qu\'il faut pour gerer votre calendrier' : 'Everything you need to manage your calendar'}
           </h2>
           <div className="grid sm:grid-cols-2 gap-6">
@@ -151,32 +151,32 @@ export default function CalendrierContent() {
       </section>
 
       {/* Detail section 1 */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Replanifiez en un geste' : 'Reschedule with one gesture'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Un imprevu ? Glissez l\'intervention vers un autre creneau ou un autre technicien. Tout le monde est notifie automatiquement.' : 'Something came up? Drag the job to another slot or another technician. Everyone is notified automatically.'}
               </p>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupCalendar /></div></div></div>
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupCalendar /></div></div></div>
           </div>
         </div>
       </section>
 
       {/* Detail section 2 */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupCalendar /></div></div></div>
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupCalendar /></div></div></div>
             <div className="order-1 lg:order-2">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Synchronise avec Google Calendar' : 'Synced with Google Calendar'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Connectez votre compte Google et retrouvez vos interventions Gestivio directement dans votre calendrier existant. La synchronisation est bidirectionnelle.' : 'Connect your Google account and see your Gestivio jobs directly in your existing calendar. Sync is two-way.'}
               </p>
             </div>
@@ -185,12 +185,12 @@ export default function CalendrierContent() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Questions frequentes' : 'Frequently asked questions'}
           </h2>
-          <div className="divide-y divide-gray-200 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="divide-y divide-gray-200 dark:divide-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
             {faqs.map((faq, i) => (
               <FaqItem key={i} question={faq.q} answer={faq.a} />
             ))}
@@ -215,7 +215,7 @@ export default function CalendrierContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl bg-indigo-600 px-8 py-14 text-center">
             <h2 className="text-3xl font-bold text-white">

@@ -15,7 +15,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
         {question}
         <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
-      {open && <p className="pb-4 text-sm text-gray-600 leading-relaxed">{answer}</p>}
+      {open && <p className="pb-4 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{answer}</p>}
     </div>
   )
 }
@@ -73,7 +73,7 @@ export default function TableauDeBordContent() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
                 {fr ? 'Votre business en un coup d\'oeil des que vous ouvrez l\'app' : 'Your business at a glance as soon as you open the app'}
               </h1>
               <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-xl">
@@ -85,28 +85,28 @@ export default function TableauDeBordContent() {
                 </Link>
               </div>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupDashboard /></div></div></div>
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupDashboard /></div></div></div>
           </div>
         </div>
       </section>
 
       {/* Avant / Apres */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Avant : verifier plusieurs endroits' : 'Before: checking multiple places'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Votre calendrier est quelque part, vos factures ailleurs, l\'activite de votre equipe nulle part. Vous perdez du temps a assembler les informations.' : 'Your calendar is somewhere, your invoices elsewhere, your team\'s activity nowhere. You waste time piecing information together.'}
               </p>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Apres : tout sur un seul ecran' : 'After: everything on one screen'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Ouvrez Gestivio et voyez instantanement vos KPIs, les taches du jour, les factures en retard et l\'activite de votre equipe. Agissez sans chercher.' : 'Open Gestivio and instantly see your KPIs, today\'s tasks, overdue invoices, and team activity. Act without searching.'}
               </p>
             </div>
@@ -115,16 +115,16 @@ export default function TableauDeBordContent() {
       </section>
 
       {/* 3 Steps */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Comment ca fonctionne' : 'How it works'}
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((s) => (
               <div key={s.num} className="text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-lg font-bold">{s.num}</div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">{s.title}</h3>
+                <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">{s.title}</h3>
                 <p className="mt-2 text-sm text-gray-600">{s.desc}</p>
               </div>
             ))}
@@ -133,9 +133,9 @@ export default function TableauDeBordContent() {
       </section>
 
       {/* Capabilities grid */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Tout ce que vous devez savoir, au meme endroit' : 'Everything you need to know, in one place'}
           </h2>
           <div className="grid sm:grid-cols-2 gap-6">
@@ -152,32 +152,32 @@ export default function TableauDeBordContent() {
       </section>
 
       {/* Detail section 1 */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Des KPIs qui comptent' : 'KPIs that matter'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Revenus du mois, interventions completees, paiements en attente — les chiffres les plus importants sont affiches en grand, clairs et a jour.' : 'Monthly revenue, completed jobs, pending payments — the most important numbers are displayed large, clear, and up to date.'}
               </p>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupDashboard /></div></div></div>
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupDashboard /></div></div></div>
           </div>
         </div>
       </section>
 
       {/* Detail section 2 */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupDashboard /></div></div></div>
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupDashboard /></div></div></div>
             <div className="order-1 lg:order-2">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Agissez en un clic depuis le tableau de bord' : 'Act in one click from the dashboard'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr ? 'Confirmez une reservation, relancez une facture en retard ou assignez un technicien — tout depuis le tableau de bord, sans naviguer ailleurs.' : 'Confirm a booking, follow up on an overdue invoice, or assign a technician — all from the dashboard, without navigating elsewhere.'}
               </p>
             </div>
@@ -186,12 +186,12 @@ export default function TableauDeBordContent() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Questions frequentes' : 'Frequently asked questions'}
           </h2>
-          <div className="divide-y divide-gray-200 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="divide-y divide-gray-200 dark:divide-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
             {faqs.map((faq, i) => (
               <FaqItem key={i} question={faq.q} answer={faq.a} />
             ))}
@@ -216,7 +216,7 @@ export default function TableauDeBordContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl bg-indigo-600 px-8 py-14 text-center">
             <h2 className="text-3xl font-bold text-white">

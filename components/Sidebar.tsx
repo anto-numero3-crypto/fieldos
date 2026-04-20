@@ -247,7 +247,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           )}
           <button
             onClick={handleLogout}
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-150"
+            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-950/50 hover:text-red-600 dark:hover:text-red-400 transition-all duration-150"
           >
             <LogOut className="h-4 w-4 shrink-0" />
             {fr ? 'Se déconnecter' : 'Sign out'}

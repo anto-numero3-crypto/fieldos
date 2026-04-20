@@ -21,7 +21,7 @@ export default function FacturationContent() {
               <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-600 text-white">
                 <Receipt className="h-7 w-7" />
               </div>
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
                 {fr ? 'Une facture professionnelle en moins de 30 secondes' : 'A professional invoice in under 30 seconds'}
               </h1>
               <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-xl">
@@ -35,7 +35,7 @@ export default function FacturationContent() {
                 </Link>
               </div>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                   <MockupInvoice />
@@ -47,15 +47,15 @@ export default function FacturationContent() {
       </section>
 
       {/* AVANT / APRES */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Le problème' : 'The problem'}
           </h2>
           <div className="grid lg:grid-cols-2 gap-12">
-            <div className="rounded-2xl border border-gray-200 p-8">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 p-8">
               <p className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-4">{fr ? 'Avant Gestivio' : 'Before Gestivio'}</p>
-              <p className="text-gray-600 italic leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-300 italic leading-relaxed">
                 {fr
                   ? 'Avant Gestivio, vous rentrez le soir épuisé et vous devez encore passer une heure à faire vos factures. Vous tapez tout à la main dans Word ou Excel, vous oubliez des lignes, vous mélangez les numéros de facture et vous ne savez jamais si le client a bien reçu le document. Les taxes TPS et TVQ sont calculées à la main et vous priez pour ne pas faire d\'erreur.'
                   : 'Before Gestivio, you come home exhausted in the evening and still have to spend an hour doing invoices. You type everything by hand in Word or Excel, forget line items, mix up invoice numbers and never know if the client received the document. GST and QST are calculated by hand and you hope you don\'t make mistakes.'}
@@ -63,7 +63,7 @@ export default function FacturationContent() {
             </div>
             <div className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-8">
               <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide mb-4">{fr ? 'Avec Gestivio' : 'With Gestivio'}</p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Avec Gestivio, vous décrivez simplement le travail effectué et l\'IA crée votre facture avec les bons produits de votre catalogue, les bonnes quantités et les taxes calculées automatiquement. Le numéro séquentiel est attribué, le PDF est prêt, le client reçoit un lien de paiement. Vous facturez directement depuis le chantier en moins de 30 secondes.'
                   : 'With Gestivio, you simply describe the work done and AI creates your invoice with the right products from your catalog, correct quantities and taxes calculated automatically. The sequential number is assigned, the PDF is ready, the client gets a payment link. You invoice directly from the job site in under 30 seconds.'}
@@ -74,12 +74,12 @@ export default function FacturationContent() {
       </section>
 
       {/* COMMENT CA MARCHE */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
             {fr ? 'Comment ça marche' : 'How it works'}
           </h2>
-          <p className="text-center text-gray-600 mb-14 max-w-2xl mx-auto">
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-14 max-w-2xl mx-auto">
             {fr ? 'De la description du travail au paiement reçu, en trois étapes.' : 'From work description to payment received, in three steps.'}
           </p>
           <div className="grid md:grid-cols-3 gap-8 relative">
@@ -93,8 +93,8 @@ export default function FacturationContent() {
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-white text-lg font-bold relative z-10">
                   {step.num}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{step.desc}</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{step.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -102,9 +102,9 @@ export default function FacturationContent() {
       </section>
 
       {/* CAPABILITIES GRID */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Une facturation complète et conforme' : 'Complete and compliant invoicing'}
           </h2>
           <div className="grid sm:grid-cols-2 gap-8">
@@ -118,7 +118,7 @@ export default function FacturationContent() {
               { icon: Mail, title: fr ? 'Envoi par courriel' : 'Email sending', desc: fr ? 'Envoyez la facture par courriel en un clic avec un message personnalisable.' : 'Send the invoice by email in one click with a customizable message.' },
               { icon: FileText, title: fr ? 'Export PDF' : 'PDF export', desc: fr ? 'Téléchargez un PDF professionnel avec votre logo et vos coordonnées.' : 'Download a professional PDF with your logo and contact info.' },
             ].map((f, i) => (
-              <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors">
+              <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors">
                 <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
                   <f.icon className="h-5 w-5" />
                 </span>
@@ -133,25 +133,25 @@ export default function FacturationContent() {
       </section>
 
       {/* DETAILED FEATURE A */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'L\'IA comprend votre travail et facture pour vous' : 'AI understands your work and invoices for you'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Vous n\'avez pas besoin de chercher dans votre catalogue ou de calculer quoi que ce soit. Tapez simplement "remplacement cartouche filtre + 2h main d\'oeuvre" et Gestivio crée automatiquement les lignes avec les bons prix de votre catalogue, les bonnes quantités et les taxes applicables.'
                   : 'You don\'t need to search your catalog or calculate anything. Simply type "filter cartridge replacement + 2h labor" and Gestivio automatically creates the lines with the right prices from your catalog, correct quantities and applicable taxes.'}
               </p>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'L\'IA apprend de vos factures précédentes pour devenir de plus en plus précise. Elle reconnaît vos produits les plus utilisés et les suggère en priorité.'
                   : 'AI learns from your previous invoices to become increasingly accurate. It recognizes your most-used products and suggests them first.'}
               </p>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                   <MockupInvoice />
@@ -163,10 +163,10 @@ export default function FacturationContent() {
       </section>
 
       {/* DETAILED FEATURE B */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                   <MockupReports />
@@ -174,15 +174,15 @@ export default function FacturationContent() {
               </div>
             </div>
             <div className="order-1 lg:order-2">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Sachez quand votre client consulte sa facture' : 'Know when your client views their invoice'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Le suivi "vu X fois" vous indique exactement quand votre client a ouvert sa facture et combien de fois il l\'a consultée. Vous savez ainsi s\'il l\'a reçue, s\'il l\'a lue et s\'il est temps de faire un suivi — sans relancer à l\'aveugle.'
                   : 'The "viewed X times" tracking tells you exactly when your client opened their invoice and how many times they viewed it. You know if they received it, read it and if it\'s time to follow up — without blind follow-ups.'}
               </p>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Combiné au paiement en ligne Stripe, la majorité de vos factures sont réglées le jour même sans aucun effort de votre part.'
                   : 'Combined with Stripe online payments, most of your invoices are paid the same day with no effort on your part.'}
@@ -193,12 +193,12 @@ export default function FacturationContent() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Questions fréquentes' : 'Frequently asked questions'}
           </h2>
-          <div className="divide-y divide-gray-200 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="divide-y divide-gray-200 dark:divide-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
             <FaqItem
               question={fr ? 'Les taxes TPS/TVQ sont-elles calculées automatiquement ?' : 'Are GST/QST taxes calculated automatically?'}
               answer={fr ? 'Oui. Gestivio applique automatiquement la TPS (5 %) et la TVQ (9,975 %) sur vos lignes de facture selon vos paramètres fiscaux. Vous n\'avez rien à calculer.' : 'Yes. Gestivio automatically applies GST (5%) and QST (9.975%) to your invoice lines based on your tax settings. You don\'t have to calculate anything.'}
@@ -224,9 +224,9 @@ export default function FacturationContent() {
       </section>
 
       {/* RELATED FEATURES */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Voir aussi' : 'See also'}
           </h2>
           <div className="grid sm:grid-cols-3 gap-6">
@@ -235,8 +235,8 @@ export default function FacturationContent() {
               { href: '/fonctionnalites/soumissions', title: fr ? 'Soumissions' : 'Quotes', desc: fr ? 'Créez des devis professionnels et convertissez-les en factures.' : 'Create professional quotes and convert them to invoices.' },
               { href: '/fonctionnalites/contrats', title: fr ? 'Contrats' : 'Contracts', desc: fr ? 'Gérez vos contrats avec facturation récurrente.' : 'Manage your contracts with recurring billing.' },
             ].map((card) => (
-              <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
-                <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600">{card.title}</h3>
+              <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 dark:border-gray-800 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
+                <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600">{card.title}</h3>
                 <p className="mt-2 text-sm text-gray-600">{card.desc}</p>
                 <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-indigo-600">
                   {fr ? 'Découvrir' : 'Learn more'} <ArrowRight className="h-3.5 w-3.5" />
@@ -248,7 +248,7 @@ export default function FacturationContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl bg-indigo-600 px-8 py-14 text-center">
             <h2 className="text-3xl font-bold text-white">

@@ -21,7 +21,7 @@ export default function SuiviTempsContent() {
               <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-600 text-white">
                 <Timer className="h-7 w-7" />
               </div>
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
                 {fr ? 'Des feuilles de temps qui se remplissent toutes seules' : 'Timesheets that fill themselves out'}
               </h1>
               <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-xl">
@@ -43,15 +43,15 @@ export default function SuiviTempsContent() {
       </section>
 
       {/* AVANT / APRES */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Le problème' : 'The problem'}
           </h2>
           <div className="grid lg:grid-cols-2 gap-12">
-            <div className="rounded-2xl border border-gray-200 p-8">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 p-8">
               <p className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-4">{fr ? 'Avant Gestivio' : 'Before Gestivio'}</p>
-              <p className="text-gray-600 italic leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-300 italic leading-relaxed">
                 {fr
                   ? 'Avant Gestivio, vous ramassez des bouts de papier griffonnés le vendredi soir. Vos employés ne se souviennent plus exactement de leurs heures, les pauses ne sont pas notées et vous devez tout retranscrire à la main. La paie est un casse-tête, les erreurs sont fréquentes et vous ne savez jamais vraiment combien une intervention a coûté en main-d\'oeuvre.'
                   : 'Before Gestivio, you collect scribbled slips of paper on Friday evening. Your employees don\'t remember their exact hours, breaks aren\'t noted and you have to transcribe everything by hand. Payroll is a headache, errors are frequent and you never really know how much a job cost in labor.'}
@@ -59,7 +59,7 @@ export default function SuiviTempsContent() {
             </div>
             <div className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-8">
               <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide mb-4">{fr ? 'Avec Gestivio' : 'With Gestivio'}</p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Avec Gestivio, chaque employé pointe son arrivée et son départ depuis son téléphone. Les pauses sont enregistrées, les heures sont liées aux interventions et la feuille de temps de la semaine se génère automatiquement. Vous approuvez d\'un clic et exportez un CSV prêt pour votre comptable ou votre logiciel de paie.'
                   : 'With Gestivio, each employee clocks in and out from their phone. Breaks are recorded, hours are linked to jobs and the weekly timesheet is generated automatically. You approve with one click and export a CSV ready for your accountant or payroll software.'}
@@ -70,12 +70,12 @@ export default function SuiviTempsContent() {
       </section>
 
       {/* COMMENT CA MARCHE */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
             {fr ? 'Comment ça marche' : 'How it works'}
           </h2>
-          <p className="text-center text-gray-600 mb-14 max-w-2xl mx-auto">
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-14 max-w-2xl mx-auto">
             {fr ? 'Du pointage à la paie, trois étapes sans paperasse.' : 'From punch clock to payroll, three steps without paperwork.'}
           </p>
           <div className="grid md:grid-cols-3 gap-8 relative">
@@ -89,8 +89,8 @@ export default function SuiviTempsContent() {
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-white text-lg font-bold relative z-10">
                   {step.num}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{step.desc}</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{step.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -98,9 +98,9 @@ export default function SuiviTempsContent() {
       </section>
 
       {/* CAPABILITIES GRID */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Le suivi du temps sans la paperasse' : 'Time tracking without the paperwork'}
           </h2>
           <div className="grid sm:grid-cols-2 gap-8">
@@ -112,7 +112,7 @@ export default function SuiviTempsContent() {
               { icon: Download, title: fr ? 'Export CSV' : 'CSV export', desc: fr ? 'Téléchargez un fichier CSV propre compatible avec la plupart des logiciels de comptabilité et de paie.' : 'Download a clean CSV file compatible with most accounting and payroll software.' },
               { icon: DollarSign, title: fr ? 'Calcul des coûts' : 'Cost calculation', desc: fr ? 'Voyez instantanément combien une intervention a coûté en main-d\'oeuvre selon les heures pointées.' : 'Instantly see how much a job cost in labor based on clocked hours.' },
             ].map((f, i) => (
-              <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors">
+              <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors">
                 <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
                   <f.icon className="h-5 w-5" />
                 </span>
@@ -127,19 +127,19 @@ export default function SuiviTempsContent() {
       </section>
 
       {/* DETAILED FEATURE A */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Un pointage simple comme un bouton' : 'Clocking in as simple as a button'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Début, Pause, Fin — c\'est tout ce que vos employés ont à faire. L\'interface est conçue pour être utilisée sur le terrain, même avec des gants, sous la pluie ou en plein soleil. Le chronomètre tourne en arrière-plan et enregistre automatiquement les durées.'
                   : 'Start, Pause, Stop — that\'s all your employees need to do. The interface is designed to be used in the field, even with gloves, in rain or bright sunlight. The timer runs in the background and automatically records durations.'}
               </p>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Chaque entrée de temps peut être associée à une intervention spécifique, ce qui vous permet de connaître le coût réel en main-d\'oeuvre de chaque projet.'
                   : 'Each time entry can be associated with a specific job, allowing you to know the real labor cost of each project.'}
@@ -153,10 +153,10 @@ export default function SuiviTempsContent() {
       </section>
 
       {/* DETAILED FEATURE B */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                   <MockupTeam />
@@ -164,15 +164,15 @@ export default function SuiviTempsContent() {
               </div>
             </div>
             <div className="order-1 lg:order-2">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Exportez pour votre comptable en un clic' : 'Export for your accountant in one click'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Téléchargez un fichier CSV propre avec les heures approuvées de la semaine, prêt à importer dans votre logiciel de paie ou à envoyer directement à votre comptable. Toutes les informations sont là : employé, date, heures régulières, supplémentaires et pauses.'
                   : 'Download a clean CSV file with the week\'s approved hours, ready to import into your payroll software or send directly to your accountant. All the information is there: employee, date, regular hours, overtime and breaks.'}
               </p>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Plus besoin de retranscrire des feuilles de papier. Le processus de paie qui prenait des heures se fait maintenant en quelques minutes.'
                   : 'No more transcribing paper sheets. The payroll process that took hours now takes minutes.'}
@@ -183,12 +183,12 @@ export default function SuiviTempsContent() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Questions fréquentes' : 'Frequently asked questions'}
           </h2>
-          <div className="divide-y divide-gray-200 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="divide-y divide-gray-200 dark:divide-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
             <FaqItem
               question={fr ? 'Comment mes employés pointent-ils leurs heures ?' : 'How do my employees clock their hours?'}
               answer={fr ? 'Depuis l\'application mobile, vos employés appuient sur Début pour commencer, Pause pour les pauses et Fin pour terminer. Les heures sont enregistrées automatiquement et liées à l\'intervention en cours.' : 'From the mobile app, your employees tap Start to begin, Pause for breaks and Stop to finish. Hours are recorded automatically and linked to the current job.'}
@@ -214,9 +214,9 @@ export default function SuiviTempsContent() {
       </section>
 
       {/* RELATED FEATURES */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Voir aussi' : 'See also'}
           </h2>
           <div className="grid sm:grid-cols-3 gap-6">
@@ -225,8 +225,8 @@ export default function SuiviTempsContent() {
               { href: '/fonctionnalites/interventions', title: fr ? 'Interventions' : 'Jobs', desc: fr ? 'Liez le temps aux interventions spécifiques.' : 'Link time to specific jobs.' },
               { href: '/fonctionnalites/facturation', title: fr ? 'Facturation' : 'Invoicing', desc: fr ? 'Facturez en fonction des heures réelles.' : 'Invoice based on actual hours.' },
             ].map((card) => (
-              <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
-                <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600">{card.title}</h3>
+              <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 dark:border-gray-800 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
+                <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600">{card.title}</h3>
                 <p className="mt-2 text-sm text-gray-600">{card.desc}</p>
                 <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-indigo-600">
                   {fr ? 'Découvrir' : 'Learn more'} <ArrowRight className="h-3.5 w-3.5" />
@@ -238,7 +238,7 @@ export default function SuiviTempsContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl bg-indigo-600 px-8 py-14 text-center">
             <h2 className="text-3xl font-bold text-white">

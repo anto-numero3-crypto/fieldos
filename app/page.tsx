@@ -71,16 +71,16 @@ function Reveal({ children, delay = 0, className = '' }: { children: React.React
 function FAQ({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="border-b border-gray-100 last:border-0">
+    <div className="border-b border-gray-100 dark:border-gray-800 last:border-0">
       <button
         onClick={() => setOpen(!open)}
         className="flex w-full items-center justify-between py-5 text-left"
       >
-        <span className="text-base font-semibold text-gray-900 pr-4">{q}</span>
+        <span className="text-base font-semibold text-gray-900 dark:text-white pr-4">{q}</span>
         <ChevronDown className={`h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
       <div className={`overflow-hidden transition-all duration-300 ${open ? 'max-h-96 pb-5' : 'max-h-0'}`}>
-        <p className="text-sm text-gray-500 leading-relaxed">{a}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{a}</p>
       </div>
     </div>
   )
@@ -180,7 +180,7 @@ export default function LandingPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
       {/* ── Navigation ── */}
       <MegaMenuNav />
 
@@ -206,13 +206,13 @@ export default function LandingPage() {
                 </span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 leading-[1.1]">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-white leading-[1.1]">
                 {fr
                   ? 'Gérez votre entreprise de services terrain depuis votre téléphone'
                   : 'Manage your field service business from your phone'}
               </h1>
 
-              <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-xl">
+              <p className="mt-6 text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-xl">
                 {fr
                   ? "Interventions, facturation, équipe, réservation en ligne — tout au même endroit. Propulsé par l'IA, conçu pour les entrepreneurs québécois."
                   : 'Jobs, invoicing, team, online booking — all in one place. Powered by AI, built for Quebec entrepreneurs.'}
@@ -229,7 +229,7 @@ export default function LandingPage() {
                 </Link>
                 <a
                   href="#how-it-works"
-                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200"
+                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-6 py-3.5 text-base font-semibold text-gray-700 dark:text-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
                 >
                   <Play className="h-4 w-4 text-indigo-600 fill-indigo-600" />
                   {fr ? 'Voir comment ça marche' : 'See how it works'}
@@ -244,7 +244,7 @@ export default function LandingPage() {
                   fr ? 'Données au Canada' : 'Data in Canada',
                   fr ? 'Support français' : 'French support',
                 ].map((sig) => (
-                  <span key={sig} className="inline-flex items-center gap-1.5 text-sm text-gray-500">
+                  <span key={sig} className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
                     <Check className="h-3.5 w-3.5 text-emerald-500" />
                     {sig}
                   </span>
@@ -327,7 +327,7 @@ export default function LandingPage() {
               <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">
                 {fr ? 'Plateforme' : 'Platform'}
               </p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Tout ce dont vous avez besoin' : 'Everything you need'}
               </h2>
             </div>
@@ -367,15 +367,15 @@ export default function LandingPage() {
               },
             ].map((pillar, i) => (
               <Reveal key={pillar.title} delay={i * 100}>
-                <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 h-full flex flex-col">
+                <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 h-full flex flex-col">
                   <div className="p-6 flex-1">
                     <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ${pillar.color} mb-4`}>
                       <pillar.icon className={`h-5 w-5 ${pillar.iconColor}`} />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{pillar.title}</h3>
-                    <p className="text-sm text-gray-500 leading-relaxed">{pillar.desc}</p>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{pillar.title}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{pillar.desc}</p>
                   </div>
-                  <div className="border-t border-gray-100 bg-gray-50 p-4 h-48 overflow-hidden">
+                  <div className="border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 p-4 h-48 overflow-hidden">
                     <div className="transform scale-[0.6] origin-top-left w-[166%]">
                       {pillar.mockup}
                     </div>
@@ -390,7 +390,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════
           FEATURE SHOWCASE — 4 alternating sections
       ══════════════════════════════════════════════════════════ */}
-      <section className="bg-slate-50">
+      <section className="bg-slate-50 dark:bg-gray-900">
         {showcases.map((s, i) => {
           const isEven = i % 2 === 0
           const mockups = [
@@ -407,14 +407,14 @@ export default function LandingPage() {
                   <Reveal>
                     <div className={isEven ? '' : 'lg:[direction:ltr]'}>
                       <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">{s.label}</p>
-                      <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-5">{s.title}</h2>
+                      <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white leading-tight mb-5">{s.title}</h2>
                       <ul className="space-y-3 mb-8">
                         {s.checks.map((c) => (
                           <li key={c} className="flex items-start gap-3">
                             <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100">
                               <Check className="h-3 w-3 text-indigo-600" />
                             </div>
-                            <span className="text-sm text-gray-600">{c}</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-300">{c}</span>
                           </li>
                         ))}
                       </ul>
@@ -430,7 +430,7 @@ export default function LandingPage() {
 
                   {/* Mockup */}
                   <Reveal delay={150}>
-                    <div className={`rounded-2xl border border-gray-200 bg-white shadow-lg overflow-hidden ${isEven ? '' : 'lg:[direction:ltr]'}`}>
+                    <div className={`rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-lg overflow-hidden ${isEven ? '' : 'lg:[direction:ltr]'}`}>
                       <div className="p-4 max-h-80 overflow-hidden">
                         <div className="transform scale-[0.75] origin-top-left w-[133%]">
                           {mockups[i]}
@@ -455,7 +455,7 @@ export default function LandingPage() {
               <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">
                 {fr ? 'Démarrage rapide' : 'Quick start'}
               </p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Opérationnel en 15 minutes' : 'Up and running in 15 minutes'}
               </h2>
             </div>
@@ -485,15 +485,15 @@ export default function LandingPage() {
               },
             ].map((s, i) => (
               <Reveal key={s.step} delay={i * 120}>
-                <div className="relative text-center bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                <div className="relative text-center bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-sm border border-gray-100 dark:border-gray-800">
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white shadow-lg shadow-indigo-200">
                     {s.step}
                   </div>
-                  <div className="mx-auto mb-5 mt-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50">
+                  <div className="mx-auto mb-5 mt-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950">
                     <s.icon className="h-7 w-7 text-indigo-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">{s.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{s.desc}</p>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">{s.title}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{s.desc}</p>
                 </div>
               </Reveal>
             ))}
@@ -504,14 +504,14 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════
           QUEBEC TRUST
       ══════════════════════════════════════════════════════════ */}
-      <section className="py-20 lg:py-24 bg-slate-50">
+      <section className="py-20 lg:py-24 bg-slate-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal>
             <div className="max-w-3xl mx-auto text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-5">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-5">
                 {fr ? 'Conçu pour les entrepreneurs québécois' : 'Built for Quebec entrepreneurs'}
               </h2>
-              <p className="text-lg text-gray-600 leading-relaxed">
+              <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? "Gestivio est développé au Québec, en français d'abord. Vos données restent au Canada, votre support est en français, et la plateforme est pensée pour les réalités du marché québécois."
                   : 'Gestivio is developed in Quebec, French-first. Your data stays in Canada, your support is in French, and the platform is designed for the realities of the Quebec market.'}
@@ -527,11 +527,11 @@ export default function LandingPage() {
               { icon: Globe, label: fr ? 'Bilingue FR/EN' : 'Bilingual FR/EN' },
             ].map((badge, i) => (
               <Reveal key={badge.label} delay={i * 80}>
-                <div className="flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 mb-3">
+                <div className="flex flex-col items-center rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-6 text-center shadow-sm">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950 mb-3">
                     <badge.icon className="h-5 w-5 text-indigo-600" />
                   </div>
-                  <span className="text-sm font-semibold text-gray-900">{badge.label}</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{badge.label}</span>
                 </div>
               </Reveal>
             ))}
@@ -549,14 +549,14 @@ export default function LandingPage() {
               <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">
                 {fr ? 'Tarification' : 'Pricing'}
               </p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Des prix simples et transparents' : 'Simple, transparent pricing'}
               </h2>
-              <p className="mt-4 text-lg text-gray-500">
+              <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">
                 {fr ? 'Essai gratuit de 14 jours. Aucune carte de crédit requise.' : 'Start free for 14 days. No credit card required.'}
               </p>
               {/* Billing toggle */}
-              <div className="mt-8 inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
+              <div className="mt-8 inline-flex items-center gap-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-1 shadow-sm">
                 <button
                   onClick={() => setBilling('monthly')}
                   className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${billing === 'monthly' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
@@ -585,7 +585,7 @@ export default function LandingPage() {
 
               return (
                 <Reveal key={key} delay={i * 80}>
-                  <div className={`relative flex flex-col rounded-2xl p-7 h-full ${highlighted ? 'bg-indigo-600 shadow-2xl shadow-indigo-200 ring-1 ring-indigo-500' : 'bg-white border border-gray-200 shadow-sm'}`}>
+                  <div className={`relative flex flex-col rounded-2xl p-7 h-full ${highlighted ? 'bg-indigo-600 shadow-2xl shadow-indigo-200 ring-1 ring-indigo-500' : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm'}`}>
                     {highlighted && (
                       <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-amber-900">
@@ -595,11 +595,11 @@ export default function LandingPage() {
                       </div>
                     )}
                     <div className="mb-5">
-                      <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${highlighted ? 'text-indigo-200' : 'text-gray-500'}`}>
+                      <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${highlighted ? 'text-indigo-200' : 'text-gray-500 dark:text-gray-400'}`}>
                         {fr ? p.label : p.labelEn}
                       </p>
                       <div className="flex items-end gap-1 mb-2">
-                        <span className={`text-4xl font-bold ${highlighted ? 'text-white' : 'text-gray-900'}`}>${price}</span>
+                        <span className={`text-4xl font-bold ${highlighted ? 'text-white' : 'text-gray-900 dark:text-white'}`}>${price}</span>
                         <span className={`mb-1 text-sm ${highlighted ? 'text-indigo-200' : 'text-gray-400'}`}>
                           {fr ? '/mois' : '/month'}
                         </span>
@@ -609,7 +609,7 @@ export default function LandingPage() {
                           {fr ? `Facturé $${annualTotal}/an` : `Billed $${annualTotal}/year`}
                         </p>
                       )}
-                      <p className={`text-sm mt-2 ${highlighted ? 'text-indigo-100' : 'text-gray-500'}`}>
+                      <p className={`text-sm mt-2 ${highlighted ? 'text-indigo-100' : 'text-gray-500 dark:text-gray-400'}`}>
                         {fr ? p.tagline : p.taglineEn}
                       </p>
                     </div>
@@ -617,7 +617,7 @@ export default function LandingPage() {
                       {features.map((f) => (
                         <li key={f} className="flex items-start gap-2.5 text-sm">
                           <Check className={`h-4 w-4 shrink-0 mt-0.5 ${highlighted ? 'text-indigo-200' : 'text-indigo-500'}`} />
-                          <span className={highlighted ? 'text-indigo-50' : 'text-gray-600'}>{f}</span>
+                          <span className={highlighted ? 'text-indigo-50' : 'text-gray-600 dark:text-gray-300'}>{f}</span>
                         </li>
                       ))}
                     </ul>
@@ -647,18 +647,18 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════
           FAQ
       ══════════════════════════════════════════════════════════ */}
-      <section className="py-20 lg:py-24 bg-slate-50">
+      <section className="py-20 lg:py-24 bg-slate-50 dark:bg-gray-900">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <Reveal>
             <div className="text-center mb-12">
               <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">FAQ</p>
-              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Questions fréquemment posées' : 'Frequently asked questions'}
               </h2>
             </div>
           </Reveal>
           <Reveal>
-            <div className="rounded-2xl border border-gray-100 bg-white px-6 shadow-sm">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 px-6 shadow-sm">
               {faqs.map((faq, i) => (
                 <FAQ key={i} q={faq.q} a={faq.a} />
               ))}
@@ -709,7 +709,7 @@ export default function LandingPage() {
       {/* ══════════════════════════════════════════════════════════
           FOOTER
       ══════════════════════════════════════════════════════════ */}
-      <footer className="border-t border-gray-100 bg-white pt-16 pb-8">
+      <footer className="border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 pt-16 pb-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 mb-12">
             {/* Col 1 — Brand */}
@@ -717,7 +717,7 @@ export default function LandingPage() {
               <div className="flex items-center gap-2 mb-4">
                 <GestivioLogo forceDark />
               </div>
-              <p className="text-sm text-gray-500 leading-relaxed mb-5">
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-5">
                 {fr
                   ? "La façon plus intelligente de gérer votre entreprise de services."
                   : 'The smarter way to run your field service business.'}
@@ -727,20 +727,20 @@ export default function LandingPage() {
 
             {/* Col 2 — Company */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">{fr ? 'Entreprise' : 'Company'}</h4>
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">{fr ? 'Entreprise' : 'Company'}</h4>
               <ul className="space-y-3">
                 {[
                   { label: fr ? 'À propos' : 'About Us', href: '/about' },
                   { label: fr ? 'Nous contacter' : 'Contact Us', href: '/contact' },
                 ].map((link) => (
-                  <li key={link.label}><a href={link.href} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">{link.label}</a></li>
+                  <li key={link.label}><a href={link.href} className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">{link.label}</a></li>
                 ))}
               </ul>
             </div>
 
             {/* Col 3 — Legal & Support */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">{fr ? 'Légal & Support' : 'Legal & Support'}</h4>
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">{fr ? 'Légal & Support' : 'Legal & Support'}</h4>
               <ul className="space-y-3">
                 {[
                   { label: fr ? 'Politique de confidentialité' : 'Privacy Policy', href: '/privacy' },
@@ -750,13 +750,13 @@ export default function LandingPage() {
                   { label: fr ? 'Cookies' : 'Cookie Policy', href: '/cookies' },
                   { label: fr ? "Centre d'aide" : 'Support Center', href: '/support' },
                 ].map((link) => (
-                  <li key={link.label}><a href={link.href} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">{link.label}</a></li>
+                  <li key={link.label}><a href={link.href} className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">{link.label}</a></li>
                 ))}
               </ul>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-100 pt-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-100 dark:border-gray-800 pt-8">
             <p className="text-sm text-gray-400">
               {fr ? '© 2026 Gestivio. Tous droits réservés.' : '© 2026 Gestivio. All rights reserved.'}
             </p>

@@ -78,16 +78,16 @@ function MegaMenuItem({ item, lang, onClick }: { item: MegaItem; lang: 'fr' | 'e
     <Link
       href={item.href}
       onClick={onClick}
-      className="flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-indigo-50 transition-colors group"
+      className="flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors group"
     >
-      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 group-hover:bg-indigo-100 transition-colors">
-        <item.icon className="h-4.5 w-4.5 text-gray-600 group-hover:text-indigo-600 transition-colors" />
+      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors">
+        <item.icon className="h-4.5 w-4.5 text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 transition-colors" />
       </div>
       <div>
-        <p className="text-sm font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">
+        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors">
           {lang === 'fr' ? item.title : item.titleEn}
         </p>
-        <p className="text-xs text-gray-500 mt-0.5">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
           {lang === 'fr' ? item.subtitle : item.subtitleEn}
         </p>
       </div>
@@ -99,7 +99,7 @@ function MegaMenuItem({ item, lang, onClick }: { item: MegaItem; lang: 'fr' | 'e
 function MegaColumn({ header, items, lang, onClick }: { header: { fr: string; en: string }; items: MegaItem[]; lang: 'fr' | 'en'; onClick?: () => void }) {
   return (
     <div>
-      <p className="px-3 mb-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+      <p className="px-3 mb-2 text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
         {lang === 'fr' ? header.fr : header.en}
       </p>
       <div className="space-y-0.5">
@@ -151,7 +151,7 @@ export default function MegaMenuNav() {
   const closeMobile = () => setMobileOpen(false)
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white backdrop-blur-sm" style={{ colorScheme: 'light' }}>
+    <nav className="sticky top-0 z-50 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -170,7 +170,7 @@ export default function MegaMenuNav() {
             >
               <button
                 onClick={() => setMegaOpen(!megaOpen)}
-                className="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="flex items-center gap-1 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 {lang === 'fr' ? 'Fonctionnalités' : 'Features'}
                 <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${megaOpen ? 'rotate-180' : ''}`} />
@@ -182,7 +182,7 @@ export default function MegaMenuNav() {
                   megaOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-2 pointer-events-none'
                 }`}
               >
-                <div className="w-[920px] rounded-2xl border border-gray-200 bg-white p-6 shadow-xl shadow-gray-200/50">
+                <div className="w-[920px] rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 shadow-xl shadow-gray-200/50 dark:shadow-gray-950/50">
                   <div className="grid grid-cols-4 gap-6">
                     <MegaColumn header={COL_HEADERS.terrain} items={COL_TERRAIN} lang={lang} onClick={() => setMegaOpen(false)} />
                     <MegaColumn header={COL_HEADERS.billing} items={COL_BILLING} lang={lang} onClick={() => setMegaOpen(false)} />
@@ -193,10 +193,10 @@ export default function MegaMenuNav() {
               </div>
             </div>
 
-            <Link href="/#pricing" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+            <Link href="/#pricing" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
               {lang === 'fr' ? 'Tarifs' : 'Pricing'}
             </Link>
-            <Link href="/about" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+            <Link href="/about" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
               {lang === 'fr' ? 'À propos' : 'About'}
             </Link>
           </div>
@@ -204,22 +204,22 @@ export default function MegaMenuNav() {
           {/* Right side */}
           <div className="flex items-center gap-3">
             {/* Language toggle */}
-            <div className="hidden sm:flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
+            <div className="hidden sm:flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-0.5">
               <button
                 onClick={() => setLang('en')}
-                className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'en' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'en' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
               >
                 EN
               </button>
               <button
                 onClick={() => setLang('fr')}
-                className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'fr' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'fr' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
               >
                 FR
               </button>
             </div>
 
-            <Link href="/login" className="hidden sm:block text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+            <Link href="/login" className="hidden sm:block text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
               {lang === 'fr' ? 'Se connecter' : 'Sign in'}
             </Link>
             <Link
@@ -233,10 +233,10 @@ export default function MegaMenuNav() {
             {/* Mobile hamburger */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="lg:hidden flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+              className="lg:hidden flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label="Menu"
             >
-              {mobileOpen ? <X className="h-5 w-5 text-gray-700" /> : <Menu className="h-5 w-5 text-gray-700" />}
+              {mobileOpen ? <X className="h-5 w-5 text-gray-700 dark:text-gray-300" /> : <Menu className="h-5 w-5 text-gray-700 dark:text-gray-300" />}
             </button>
           </div>
         </div>
@@ -245,13 +245,13 @@ export default function MegaMenuNav() {
       {/* ── Mobile slide-down ── */}
       <div
         className={`lg:hidden overflow-hidden transition-all duration-300 ${
-          mobileOpen ? 'max-h-[90vh] border-t border-gray-100' : 'max-h-0'
+          mobileOpen ? 'max-h-[90vh] border-t border-gray-100 dark:border-gray-800' : 'max-h-0'
         }`}
       >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-6 overflow-y-auto max-h-[80vh] bg-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-6 overflow-y-auto max-h-[80vh] bg-white dark:bg-gray-950">
           {/* Fonctionnalites sections */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">
               {lang === 'fr' ? COL_HEADERS.terrain.fr : COL_HEADERS.terrain.en}
             </p>
             {COL_TERRAIN.map((item) => (
@@ -259,7 +259,7 @@ export default function MegaMenuNav() {
             ))}
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">
               {lang === 'fr' ? COL_HEADERS.billing.fr : COL_HEADERS.billing.en}
             </p>
             {COL_BILLING.map((item) => (
@@ -267,7 +267,7 @@ export default function MegaMenuNav() {
             ))}
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">
               {lang === 'fr' ? COL_HEADERS.ai.fr : COL_HEADERS.ai.en}
             </p>
             {COL_AI.map((item) => (
@@ -275,7 +275,7 @@ export default function MegaMenuNav() {
             ))}
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">
               {lang === 'fr' ? COL_HEADERS.plus.fr : COL_HEADERS.plus.en}
             </p>
             {COL_PLUS.map((item) => (
@@ -283,32 +283,32 @@ export default function MegaMenuNav() {
             ))}
           </div>
 
-          <hr className="border-gray-100" />
+          <hr className="border-gray-100 dark:border-gray-800" />
 
           {/* Direct links */}
           <div className="space-y-1">
-            <Link href="/#pricing" onClick={closeMobile} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            <Link href="/#pricing" onClick={closeMobile} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
               {lang === 'fr' ? 'Tarifs' : 'Pricing'}
             </Link>
-            <Link href="/about" onClick={closeMobile} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            <Link href="/about" onClick={closeMobile} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
               {lang === 'fr' ? 'À propos' : 'About'}
             </Link>
-            <Link href="/login" onClick={closeMobile} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+            <Link href="/login" onClick={closeMobile} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
               {lang === 'fr' ? 'Se connecter' : 'Sign in'}
             </Link>
           </div>
 
           {/* Language toggle (mobile) */}
-          <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5 w-fit">
+          <div className="flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-0.5 w-fit">
             <button
               onClick={() => setLang('en')}
-              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${lang === 'en' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${lang === 'en' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
             >
               EN
             </button>
             <button
               onClick={() => setLang('fr')}
-              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${lang === 'fr' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${lang === 'fr' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
             >
               FR
             </button>

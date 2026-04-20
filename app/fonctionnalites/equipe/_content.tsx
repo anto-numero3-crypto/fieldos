@@ -21,7 +21,7 @@ export default function EquipeContent() {
               <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-600 text-white">
                 <Users className="h-7 w-7" />
               </div>
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
                 {fr ? 'Vos techniciens savent toujours où aller' : 'Your technicians always know where to go'}
               </h1>
               <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-xl">
@@ -35,7 +35,7 @@ export default function EquipeContent() {
                 </Link>
               </div>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                   <MockupTeam />
@@ -47,15 +47,15 @@ export default function EquipeContent() {
       </section>
 
       {/* AVANT / APRES */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Le problème' : 'The problem'}
           </h2>
           <div className="grid lg:grid-cols-2 gap-12">
-            <div className="rounded-2xl border border-gray-200 p-8">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 p-8">
               <p className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-4">{fr ? 'Avant Gestivio' : 'Before Gestivio'}</p>
-              <p className="text-gray-600 italic leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-300 italic leading-relaxed">
                 {fr
                   ? 'Avant Gestivio, vous coordonnez votre équipe par texto et appels. Chaque matin, vous passez 30 minutes à expliquer à chacun où aller, quoi apporter et quoi faire. Un technicien oublie l\'adresse, un autre ne sait pas quel matériel apporter. Vous passez votre journée au téléphone au lieu de travailler.'
                   : 'Before Gestivio, you coordinate your team by text and calls. Every morning, you spend 30 minutes explaining to everyone where to go, what to bring and what to do. One technician forgets the address, another doesn\'t know what equipment to bring. You spend your day on the phone instead of working.'}
@@ -63,7 +63,7 @@ export default function EquipeContent() {
             </div>
             <div className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-8">
               <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide mb-4">{fr ? 'Avec Gestivio' : 'With Gestivio'}</p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Avec Gestivio, chaque technicien ouvre son téléphone et voit exactement ses interventions du jour : adresses, notes, photos et horaires. Il pointe son arrivée et son départ en un tap. Vous voyez en temps réel qui est où et l\'avancement de chaque job sans passer un seul appel.'
                   : 'With Gestivio, each technician opens their phone and sees exactly their day\'s jobs: addresses, notes, photos and schedules. They punch in and out with one tap. You see in real-time who is where and each job\'s progress without making a single call.'}
@@ -74,12 +74,12 @@ export default function EquipeContent() {
       </section>
 
       {/* COMMENT CA MARCHE */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
             {fr ? 'Comment ça marche' : 'How it works'}
           </h2>
-          <p className="text-center text-gray-600 mb-14 max-w-2xl mx-auto">
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-14 max-w-2xl mx-auto">
             {fr ? 'Ajoutez votre équipe en quelques minutes et commencez à collaborer immédiatement.' : 'Add your team in a few minutes and start collaborating immediately.'}
           </p>
           <div className="grid md:grid-cols-3 gap-8 relative">
@@ -93,8 +93,8 @@ export default function EquipeContent() {
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-white text-lg font-bold relative z-10">
                   {step.num}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{step.desc}</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{step.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -102,9 +102,9 @@ export default function EquipeContent() {
       </section>
 
       {/* CAPABILITIES GRID */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Tout pour gérer votre équipe terrain' : 'Everything to manage your field team'}
           </h2>
           <div className="grid sm:grid-cols-2 gap-8">
@@ -116,7 +116,7 @@ export default function EquipeContent() {
               { icon: Clock, title: fr ? 'Pointage début/fin' : 'Punch in/out', desc: fr ? 'Vos employés pointent leur arrivée et leur départ en un tap depuis l\'application mobile.' : 'Your employees punch in and out with one tap from the mobile app.' },
               { icon: FileSpreadsheet, title: fr ? 'Feuilles de temps' : 'Timesheets', desc: fr ? 'Les feuilles de temps se génèrent automatiquement à partir des pointages de chaque employé.' : 'Timesheets are generated automatically from each employee\'s punches.' },
             ].map((f, i) => (
-              <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors">
+              <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors">
                 <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
                   <f.icon className="h-5 w-5" />
                 </span>
@@ -131,25 +131,25 @@ export default function EquipeContent() {
       </section>
 
       {/* DETAILED FEATURE A */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Un accès sécurisé pour chaque rôle' : 'Secure access for every role'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Vos techniciens accèdent uniquement aux interventions qui leur sont assignées. Ils voient l\'adresse, les notes du client, les photos et la durée estimée — rien de plus. Vos données financières, votre liste de clients complète et vos rapports restent accessibles uniquement à vous.'
                   : 'Your technicians only access the jobs assigned to them. They see the address, client notes, photos and estimated duration — nothing more. Your financial data, complete client list and reports remain accessible only to you.'}
               </p>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Vous pouvez révoquer l\'accès d\'un employé instantanément si nécessaire. Toutes les données restent dans votre compte.'
                   : 'You can revoke an employee\'s access instantly if needed. All data stays in your account.'}
               </p>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                   <MockupTeam />
@@ -161,22 +161,22 @@ export default function EquipeContent() {
       </section>
 
       {/* DETAILED FEATURE B */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1 flex justify-center">
               <MockupTimeTracker />
             </div>
             <div className="order-1 lg:order-2">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Vue mobile conçue pour le terrain' : 'Mobile view designed for the field'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'L\'interface mobile de vos techniciens est pensée pour les conditions réelles : gros boutons, texte lisible au soleil, navigation simplifiée. En un coup d\'oeil, ils voient leur prochaine intervention avec l\'adresse clickable pour la navigation GPS.'
                   : 'Your technicians\' mobile interface is designed for real conditions: big buttons, readable text in sunlight, simplified navigation. At a glance, they see their next job with a clickable address for GPS navigation.'}
               </p>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Ils peuvent aussi ajouter des notes, prendre des photos du travail complété et mettre à jour le statut de l\'intervention directement depuis le terrain.'
                   : 'They can also add notes, take photos of completed work and update the job status directly from the field.'}
@@ -187,12 +187,12 @@ export default function EquipeContent() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Questions fréquentes' : 'Frequently asked questions'}
           </h2>
-          <div className="divide-y divide-gray-200 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="divide-y divide-gray-200 dark:divide-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
             <FaqItem
               question={fr ? 'Mes techniciens voient-ils toutes les informations ?' : 'Do my technicians see all the information?'}
               answer={fr ? 'Non. Chaque technicien ne voit que les interventions qui lui sont assignées et les informations nécessaires pour les compléter. Vos données financières et votre liste de clients restent privées.' : 'No. Each technician only sees the jobs assigned to them and the information needed to complete them. Your financial data and client list stay private.'}
@@ -214,9 +214,9 @@ export default function EquipeContent() {
       </section>
 
       {/* RELATED FEATURES */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Voir aussi' : 'See also'}
           </h2>
           <div className="grid sm:grid-cols-3 gap-6">
@@ -225,8 +225,8 @@ export default function EquipeContent() {
               { href: '/fonctionnalites/interventions', title: fr ? 'Interventions' : 'Jobs', desc: fr ? 'Créez et assignez vos interventions.' : 'Create and assign your jobs.' },
               { href: '/fonctionnalites/contrats', title: fr ? 'Contrats' : 'Contracts', desc: fr ? 'Planification automatique des jobs récurrents.' : 'Automatic scheduling of recurring jobs.' },
             ].map((card) => (
-              <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
-                <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600">{card.title}</h3>
+              <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 dark:border-gray-800 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
+                <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600">{card.title}</h3>
                 <p className="mt-2 text-sm text-gray-600">{card.desc}</p>
                 <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-indigo-600">
                   {fr ? 'Découvrir' : 'Learn more'} <ArrowRight className="h-3.5 w-3.5" />
@@ -238,7 +238,7 @@ export default function EquipeContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl bg-indigo-600 px-8 py-14 text-center">
             <h2 className="text-3xl font-bold text-white">

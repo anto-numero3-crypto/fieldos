@@ -21,7 +21,7 @@ export default function ContratsContent() {
               <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-600 text-white">
                 <ClipboardCheck className="h-7 w-7" />
               </div>
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 leading-tight">
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 dark:text-white leading-tight">
                 {fr ? 'Gérez vos contrats saisonniers sans effort' : 'Manage your seasonal contracts effortlessly'}
               </h1>
               <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-xl">
@@ -43,15 +43,15 @@ export default function ContratsContent() {
       </section>
 
       {/* AVANT / APRES */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'Le problème' : 'The problem'}
           </h2>
           <div className="grid lg:grid-cols-2 gap-12">
-            <div className="rounded-2xl border border-gray-200 p-8">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 p-8">
               <p className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-4">{fr ? 'Avant Gestivio' : 'Before Gestivio'}</p>
-              <p className="text-gray-600 italic leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-300 italic leading-relaxed">
                 {fr
                   ? 'Avant Gestivio, vous gérez vos contrats saisonniers sur papier ou dans un fichier Excel. Vous oubliez de planifier certaines visites, vous ne savez plus quel client est rendu où dans son contrat et vous facturez en retard. Les renouvellements vous échappent et vous perdez des revenus récurrents par simple oubli.'
                   : 'Before Gestivio, you manage your seasonal contracts on paper or in an Excel file. You forget to schedule some visits, you don\'t know which client is where in their contract and you invoice late. Renewals slip through and you lose recurring revenue through simple oversight.'}
@@ -59,7 +59,7 @@ export default function ContratsContent() {
             </div>
             <div className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-8">
               <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide mb-4">{fr ? 'Avec Gestivio' : 'With Gestivio'}</p>
-              <p className="text-gray-700 leading-relaxed">
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Avec Gestivio, vous créez le contrat une fois et tout le reste est automatique. Les interventions sont planifiées selon la fréquence définie, la facturation suit le calendrier du contrat et vous êtes averti avant chaque renouvellement. Le client signe en ligne et tout est centralisé.'
                   : 'With Gestivio, you create the contract once and everything else is automatic. Jobs are scheduled according to the defined frequency, billing follows the contract calendar and you\'re notified before each renewal. The client signs online and everything is centralized.'}
@@ -70,12 +70,12 @@ export default function ContratsContent() {
       </section>
 
       {/* COMMENT CA MARCHE */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-4">
             {fr ? 'Comment ça marche' : 'How it works'}
           </h2>
-          <p className="text-center text-gray-600 mb-14 max-w-2xl mx-auto">
+          <p className="text-center text-gray-600 dark:text-gray-300 mb-14 max-w-2xl mx-auto">
             {fr ? 'Du contrat signé aux interventions planifiées, tout est automatisé.' : 'From signed contract to scheduled jobs, everything is automated.'}
           </p>
           <div className="grid md:grid-cols-3 gap-8 relative">
@@ -89,8 +89,8 @@ export default function ContratsContent() {
                 <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-white text-lg font-bold relative z-10">
                   {step.num}
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{step.desc}</p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{step.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -98,9 +98,9 @@ export default function ContratsContent() {
       </section>
 
       {/* CAPABILITIES GRID */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {fr ? 'La gestion de contrats simplifiée' : 'Simplified contract management'}
           </h2>
           <div className="grid sm:grid-cols-2 gap-8">
@@ -112,7 +112,7 @@ export default function ContratsContent() {
               { icon: Bell, title: fr ? 'Rappels de renouvellement' : 'Renewal reminders', desc: fr ? 'Recevez un rappel avant l\'expiration de chaque contrat pour ne jamais perdre un renouvellement.' : 'Receive a reminder before each contract expires to never lose a renewal.' },
               { icon: BarChart3, title: fr ? 'Suivi de progression' : 'Progress tracking', desc: fr ? 'Voyez en un coup d\'oeil combien d\'interventions ont été complétées sur le total du contrat.' : 'See at a glance how many jobs have been completed out of the contract total.' },
             ].map((f, i) => (
-              <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors">
+              <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors">
                 <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
                   <f.icon className="h-5 w-5" />
                 </span>
@@ -127,19 +127,19 @@ export default function ContratsContent() {
       </section>
 
       {/* DETAILED FEATURE A */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Des interventions qui se planifient toutes seules' : 'Jobs that schedule themselves'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'À partir d\'un contrat saisonnier, Gestivio génère automatiquement toutes les interventions pour la durée du contrat. Si vous avez un contrat d\'entretien de pelouse hebdomadaire d\'avril à novembre, les 30 interventions sont créées d\'un coup et assignées au bon technicien.'
                   : 'From a seasonal contract, Gestivio automatically generates all the jobs for the contract duration. If you have a weekly lawn care contract from April to November, all 30 jobs are created at once and assigned to the right technician.'}
               </p>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Si un imprévu survient, déplacez simplement l\'intervention sur le calendrier. Les suivantes restent en place.'
                   : 'If something unexpected comes up, simply move the job on the calendar. The following ones stay in place.'}
@@ -153,10 +153,10 @@ export default function ContratsContent() {
       </section>
 
       {/* DETAILED FEATURE B */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                   <MockupCalendar />
@@ -164,15 +164,15 @@ export default function ContratsContent() {
               </div>
             </div>
             <div className="order-1 lg:order-2">
-              <h2 className="text-3xl font-bold text-gray-900">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
                 {fr ? 'Signature électronique et facturation automatisées' : 'Automated e-signature and billing'}
               </h2>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Envoyez le contrat pour signature électronique directement depuis Gestivio. Le client le reçoit par courriel, le consulte et signe depuis son téléphone ou son ordinateur. C\'est légalement valide au Québec et au Canada.'
                   : 'Send the contract for e-signature directly from Gestivio. The client receives it by email, reviews and signs from their phone or computer. It\'s legally valid in Quebec and Canada.'}
               </p>
-              <p className="mt-4 text-gray-600 leading-relaxed">
+              <p className="mt-4 text-gray-600 dark:text-gray-300 leading-relaxed">
                 {fr
                   ? 'Une fois le contrat signé, la facturation récurrente démarre automatiquement. Mensuelle, trimestrielle ou à la carte — vous choisissez le rythme qui convient à votre entente.'
                   : 'Once the contract is signed, recurring billing starts automatically. Monthly, quarterly or custom — you choose the rhythm that fits your agreement.'}
@@ -183,12 +183,12 @@ export default function ContratsContent() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 dark:bg-gray-900">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Questions fréquentes' : 'Frequently asked questions'}
           </h2>
-          <div className="divide-y divide-gray-200 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="divide-y divide-gray-200 dark:divide-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
             <FaqItem
               question={fr ? 'Puis-je créer des contrats saisonniers ?' : 'Can I create seasonal contracts?'}
               answer={fr ? 'Oui. Définissez la période du contrat (ex. avril à novembre pour l\'entretien de pelouse) et les interventions seront planifiées automatiquement pour toute la saison.' : 'Yes. Define the contract period (e.g., April to November for lawn care) and jobs will be scheduled automatically for the entire season.'}
@@ -214,9 +214,9 @@ export default function ContratsContent() {
       </section>
 
       {/* RELATED FEATURES */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center mb-10">
             {fr ? 'Voir aussi' : 'See also'}
           </h2>
           <div className="grid sm:grid-cols-3 gap-6">
@@ -225,8 +225,8 @@ export default function ContratsContent() {
               { href: '/fonctionnalites/interventions', title: fr ? 'Interventions' : 'Jobs', desc: fr ? 'Planifiez et suivez chaque intervention.' : 'Plan and track every job.' },
               { href: '/fonctionnalites/soumissions', title: fr ? 'Soumissions' : 'Quotes', desc: fr ? 'Envoyez des devis avant de signer le contrat.' : 'Send quotes before signing the contract.' },
             ].map((card) => (
-              <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
-                <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600">{card.title}</h3>
+              <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 dark:border-gray-800 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
+                <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600">{card.title}</h3>
                 <p className="mt-2 text-sm text-gray-600">{card.desc}</p>
                 <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-indigo-600">
                   {fr ? 'Découvrir' : 'Learn more'} <ArrowRight className="h-3.5 w-3.5" />
@@ -238,7 +238,7 @@ export default function ContratsContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-20">
+      <section className="py-20 dark:bg-gray-950">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-2xl bg-indigo-600 px-8 py-14 text-center">
             <h2 className="text-3xl font-bold text-white">
