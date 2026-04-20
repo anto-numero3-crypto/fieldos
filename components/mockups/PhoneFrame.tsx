@@ -10,7 +10,7 @@ interface PhoneFrameProps {
 export default function PhoneFrame({ children, className = '' }: PhoneFrameProps) {
   return (
     <div
-      className={`relative w-[280px] bg-gray-900 rounded-[2.5rem] p-3 shadow-xl ${className}`}
+      className={`relative w-full max-w-[280px] mx-auto bg-gray-900 rounded-[2.5rem] p-3 shadow-xl ${className}`}
     >
       {/* Notch */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[28px] bg-gray-900 rounded-b-2xl z-10 flex items-center justify-center">

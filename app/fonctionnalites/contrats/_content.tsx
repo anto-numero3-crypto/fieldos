@@ -35,7 +35,7 @@ export default function ContratsContent() {
                 </Link>
               </div>
             </div>
-            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+            <div className="flex justify-center">
               <MockupContractApproval />
             </div>
           </div>
@@ -145,7 +145,7 @@ export default function ContratsContent() {
                   : 'If something unexpected comes up, simply move the job on the calendar. The following ones stay in place.'}
               </p>
             </div>
-            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+            <div className="flex justify-center">
               <MockupContractApproval />
             </div>
           </div>
@@ -156,8 +156,12 @@ export default function ContratsContent() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-              <MockupCalendar />
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <div className="min-w-[600px]">
+                  <MockupCalendar />
+                </div>
+              </div>
             </div>
             <div className="order-1 lg:order-2">
               <h2 className="text-3xl font-bold text-gray-900">

@@ -35,7 +35,7 @@ export default function PortailIAContent() {
                 </Link>
               </div>
             </div>
-            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+            <div className="flex justify-center">
               <MockupChat />
             </div>
           </div>
@@ -145,7 +145,7 @@ export default function PortailIAContent() {
                   : 'Each request is qualified before reaching your dashboard: service type, urgency, approximate budget and complete contact information.'}
               </p>
             </div>
-            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+            <div className="flex justify-center">
               <MockupChat />
             </div>
           </div>
@@ -156,7 +156,7 @@ export default function PortailIAContent() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+            <div className="order-2 lg:order-1 flex justify-center">
               <MockupBookingPortal />
             </div>
             <div className="order-1 lg:order-2">

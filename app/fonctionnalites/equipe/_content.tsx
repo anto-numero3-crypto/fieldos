@@ -35,8 +35,12 @@ export default function EquipeContent() {
                 </Link>
               </div>
             </div>
-            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-              <MockupTeam />
+            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <div className="min-w-[600px]">
+                  <MockupTeam />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -145,8 +149,12 @@ export default function EquipeContent() {
                   : 'You can revoke an employee\'s access instantly if needed. All data stays in your account.'}
               </p>
             </div>
-            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-              <MockupTeam />
+            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <div className="min-w-[600px]">
+                  <MockupTeam />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -156,7 +164,7 @@ export default function EquipeContent() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+            <div className="order-2 lg:order-1 flex justify-center">
               <MockupTimeTracker />
             </div>
             <div className="order-1 lg:order-2">
