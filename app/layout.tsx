@@ -45,6 +45,10 @@ export const metadata: Metadata = {
     title: "Gestivio — Logiciel de gestion pour entrepreneurs au Québec",
     description: "Gérez vos clients, interventions et factures en un seul endroit. Fait au Québec. Essai gratuit 14 jours.",
   },
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
   robots: {
     index: true,
     follow: true,
