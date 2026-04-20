@@ -27,6 +27,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/blogue/gestion-interventions-terrain`,        lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${SITE_URL}/blogue/portail-reservation-entreprise-service`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
 
+    // Feature detail pages
+    { url: `${SITE_URL}/fonctionnalites/interventions`,          lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/facturation`,            lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/paiements`,              lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/portail-ia`,             lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/equipe`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/contrats`,               lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/suivi-temps`,            lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/soumissions`,            lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/assistant-ia`,           lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+
     // Comparison pages
     { url: `${SITE_URL}/vs/jobber`,                           lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${SITE_URL}/vs/progressionlive`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.7 },

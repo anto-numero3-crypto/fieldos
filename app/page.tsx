@@ -3,14 +3,40 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/lib/LanguageContext'
-import {
-  Users, Briefcase, FileText, Sparkles, CheckCircle,
-  ArrowRight, BarChart3, Shield, Zap, Check,
-  ChevronRight, ChevronDown, CreditCard, Calendar, Play,
-  MessageSquare, Building2, Leaf, Globe,
-} from 'lucide-react'
-import Image from 'next/image'
+import { PLAN_PRICING, PLAN_LIMITS } from '@/lib/plan-limits'
+import MegaMenuNav from '@/components/MegaMenuNav'
 import GestivioLogo from '@/components/GestivioLogo'
+import PhoneFrame from '@/components/mockups/PhoneFrame'
+import MockupDashboard from '@/components/mockups/MockupDashboard'
+import MockupCalendar from '@/components/mockups/MockupCalendar'
+import MockupInvoice from '@/components/mockups/MockupInvoice'
+import MockupChat from '@/components/mockups/MockupChat'
+import {
+  ArrowRight,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Sparkles,
+  Calendar,
+  CreditCard,
+  Bot,
+  Users,
+  FileText,
+  Phone,
+  ClipboardX,
+  Moon,
+  PhoneOff,
+  UserX,
+  MapPin,
+  Shield,
+  Globe,
+  Leaf,
+  MessageSquare,
+  Zap,
+  UserPlus,
+  ListPlus,
+  Play,
+} from 'lucide-react'
 
 // ── Scroll-reveal hook ────────────────────────────────────────
 function useInView(threshold = 0.12) {
@@ -63,245 +89,300 @@ function FAQ({ q, a }: { q: string; a: string }) {
 
 // ── Main component ────────────────────────────────────────────
 export default function LandingPage() {
-  const { lang, setLang, t } = useLanguage()
-  const l = t.landing
+  const { lang } = useLanguage()
+  const fr = lang === 'fr'
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
 
-  // Feature cards per spec
-  const features = [
-    { icon: Calendar,      title: lang === 'fr' ? 'Planification intelligente'    : 'Smart Scheduling',    description: lang === 'fr' ? 'Créez, assignez et suivez vos interventions avec vue calendrier, glisser-déposer et rappels automatiques.'                       : 'Create, assign, and track jobs with calendar view, drag-and-drop scheduling, and automatic reminders.',                  color: 'bg-blue-500',    bg: 'bg-blue-50'    },
-    { icon: Sparkles,      title: lang === 'fr' ? 'Assistant IA'                  : 'AI Assistant',        description: lang === 'fr' ? "Posez n'importe quelle question sur votre activité. Obtenez des insights, rédigez des courriels, analysez vos revenus."         : 'Ask anything about your business. Get instant insights, draft follow-up emails, and analyse your revenue.',             color: 'bg-violet-500',  bg: 'bg-violet-50'  },
-    { icon: CreditCard,    title: lang === 'fr' ? 'Paiements en ligne'            : 'Online Payments',     description: lang === 'fr' ? "Envoyez des factures par courriel avec un bouton Payer maintenant. Stripe gère l'encaissement."                                  : 'Send invoices with a Pay Now button. Stripe handles the checkout — you get paid faster.',                               color: 'bg-emerald-500', bg: 'bg-emerald-50' },
-    { icon: Users,         title: lang === 'fr' ? 'Portail clients'               : 'Customer Portal',     description: lang === 'fr' ? "Vos clients peuvent réserver en ligne 24h/24 grâce au portail IA — sans que vous n'ayez à répondre au téléphone."               : 'Customers can book online 24/7 via the AI portal — no phone calls, no back-and-forth.',                                 color: 'bg-amber-500',   bg: 'bg-amber-50'   },
-    { icon: Building2,     title: lang === 'fr' ? "Gestion d'équipe"              : 'Team Management',     description: lang === 'fr' ? 'Invitez des techniciens, assignez des interventions, suivez les heures et les performances en temps réel.'                       : 'Invite technicians, assign jobs, track hours and performance in real time.',                                            color: 'bg-pink-500',    bg: 'bg-pink-50'    },
-    { icon: BarChart3,     title: lang === 'fr' ? 'Rapports en temps réel'        : 'Real-time Reports',   description: lang === 'fr' ? 'Revenus, taux de complétion, clients inactifs — tout est visible dans des tableaux de bord en direct avec filtres par période.' : 'Revenue, job completion rates, dormant customers — visible in live dashboards with date-range filters.',                  color: 'bg-cyan-500',    bg: 'bg-cyan-50'    },
+  // ── Pricing plans from plan-limits ──
+  const plans = (['demarrage', 'pro', 'croissance'] as const).map((key) => {
+    const p = PLAN_PRICING[key]
+    const lim = PLAN_LIMITS[key]
+    return { key, p, lim }
+  })
+
+  const pricingFeatures: Record<string, string[]> = {
+    demarrage: fr
+      ? ['1 utilisateur', "Jusqu'à 50 clients", '25 interventions / mois', '30 messages IA / mois', 'Facturation illimitée', 'Paiements en ligne via Stripe', 'Support courriel']
+      : ['1 user', 'Up to 50 customers', '25 jobs / month', '30 AI messages / month', 'Unlimited invoicing', 'Online payments via Stripe', 'Email support'],
+    pro: fr
+      ? ['Tout illimité + IA', "Jusqu'à 5 utilisateurs", 'Gestion d\'équipe', 'Contrats récurrents', 'Suivi du temps', 'Export CSV + rapports complets', 'Support prioritaire']
+      : ['Everything unlimited + AI', 'Up to 5 users', 'Team management', 'Recurring contracts', 'Time tracking', 'CSV export + full reports', 'Priority support'],
+    croissance: fr
+      ? ['Tout ce qui est dans Pro', "Jusqu'à 15 utilisateurs", 'Emplacements multiples', 'Marque blanche', 'SMS', 'Automatisation avancée', 'Export QuickBooks', 'Support prioritaire (1 j ouvrable)']
+      : ['Everything in Pro', 'Up to 15 users', 'Multiple locations', 'White label', 'SMS', 'Advanced automation', 'QuickBooks export', 'Priority support (1 business day)'],
+  }
+
+  // ── Feature showcase sections ──
+  const showcases = [
+    {
+      label: fr ? 'Interventions' : 'Jobs',
+      title: fr ? 'Votre journée organisée avant même de partir' : 'Your day organized before you even leave',
+      checks: fr
+        ? ['Vue calendrier avec glisser-déposer', 'Statuts en temps réel pour chaque intervention', 'Notifications et rappels automatiques']
+        : ['Calendar view with drag and drop', 'Real-time status for every job', 'Automatic notifications and reminders'],
+      href: '/fonctionnalites/interventions',
+      linkLabel: fr ? 'En savoir plus' : 'Learn more',
+    },
+    {
+      label: fr ? 'Facturation IA' : 'AI Invoicing',
+      title: fr ? "Décrivez votre travail. L'IA crée la facture." : 'Describe your work. AI creates the invoice.',
+      checks: fr
+        ? ['Factures professionnelles en 30 secondes', 'TPS/TVQ calculées automatiquement', 'Paiement en ligne Stripe intégré']
+        : ['Professional invoices in 30 seconds', 'Tax calculations built in', 'Stripe online payment integrated'],
+      href: '/fonctionnalites/facturation',
+      linkLabel: fr ? 'En savoir plus' : 'Learn more',
+    },
+    {
+      label: fr ? 'Portail IA' : 'AI Portal',
+      title: fr ? 'Vos clients réservent même quand vous dormez' : 'Your clients book even while you sleep',
+      checks: fr
+        ? ['Agent IA personnalisé à votre entreprise', 'Collecte les détails, coordonnées et disponibilités', 'Fonctionne 24h/24 en français et en anglais']
+        : ['AI agent customized to your business', 'Collects details, contact info and availability', 'Works 24/7 in French and English'],
+      href: '/fonctionnalites/portail-ia',
+      linkLabel: fr ? 'En savoir plus' : 'Learn more',
+    },
+    {
+      label: fr ? 'Équipe' : 'Team',
+      title: fr ? 'Vos techniciens savent toujours où aller' : 'Your technicians always know where to go',
+      checks: fr
+        ? ['Assignation en un clic', 'Suivi des heures et performances', 'Chaque technicien voit ses interventions du jour']
+        : ['One-click assignment', 'Time and performance tracking', 'Each technician sees their daily jobs'],
+      href: '/fonctionnalites/equipe',
+      linkLabel: fr ? 'En savoir plus' : 'Learn more',
+    },
   ]
 
-  const pricingPlans = [
-    { key: 'demarrage',  name: lang === 'fr' ? 'Démarrage' : 'Starter',  monthlyPrice: 39,  annualPrice: 35,  description: l.starterDesc,  features: l.pricingFeatures.starter,  cta: l.pricingCtaStarter,  highlighted: false, href: '/signup' },
-    { key: 'pro',        name: 'Pro',                                    monthlyPrice: 79,  annualPrice: 71,  description: l.proDesc,      features: l.pricingFeatures.pro,      cta: l.pricingCtaPro,      highlighted: true,  href: '/signup' },
-    { key: 'croissance', name: lang === 'fr' ? 'Croissance' : 'Growth',  monthlyPrice: 149, annualPrice: 134, description: l.businessDesc, features: l.pricingFeatures.business, cta: l.pricingCtaBusiness, highlighted: false, href: '/signup' },
-  ]
-
-
+  // ── FAQ data ──
   const faqs = [
     {
-      q: lang === 'fr' ? 'Puis-je essayer Gestivio gratuitement ?' : 'Can I try Gestivio for free?',
-      a: lang === 'fr' ? 'Oui ! Vous avez 14 jours d\'essai gratuit complet, sans carte de crédit requise. Vous pouvez annuler à tout moment.' : 'Yes! You get a full 14-day free trial with no credit card required. You can cancel at any time with no questions asked.',
+      q: fr ? 'Puis-je essayer Gestivio gratuitement ?' : 'Can I try Gestivio for free?',
+      a: fr ? "Oui ! Vous avez 14 jours d'essai gratuit complet, sans carte de crédit requise. Vous pouvez annuler à tout moment." : 'Yes! You get a full 14-day free trial with no credit card required. Cancel anytime.',
     },
     {
-      q: lang === 'fr' ? 'Est-ce que mes données sont sécurisées ?' : 'Is my data secure?',
-      a: lang === 'fr' ? 'Absolument. Toutes les données sont chiffrées avec AES-256 au repos et en transit. Nous sommes hébergés sur une infrastructure SOC 2 certifiée.' : 'Absolutely. All data is encrypted with AES-256 at rest and in transit. We run on SOC 2 certified infrastructure with daily backups.',
+      q: fr ? 'Est-ce que mes données sont hébergées au Canada ?' : 'Is my data hosted in Canada?',
+      a: fr ? 'Oui. Toutes vos données sont hébergées sur des serveurs canadiens, chiffrées au repos et en transit. Nous sommes conformes à la Loi 25 du Québec et à la LPRPDE.' : 'Yes. All your data is hosted on Canadian servers, encrypted at rest and in transit. We comply with Quebec Law 25 and PIPEDA.',
     },
     {
-      q: lang === 'fr' ? 'Puis-je changer de forfait à tout moment ?' : 'Can I change plans at any time?',
-      a: lang === 'fr' ? 'Oui, vous pouvez passer à un forfait supérieur ou inférieur à tout moment. Le changement est immédiat et au prorata.' : 'Yes, you can upgrade or downgrade at any time. Changes take effect immediately and billing is prorated automatically.',
+      q: fr ? 'Comment fonctionne le portail de réservation IA ?' : 'How does the AI booking portal work?',
+      a: fr ? "Vous partagez un lien avec vos clients. Ils clavardent avec votre agent IA personnalisé qui collecte les détails du service, les coordonnées et les préférences de date. La réservation apparaît dans votre tableau de bord." : 'You share a link with your customers. They chat with your branded AI agent that collects service details, contact info, and scheduling preferences. The booking appears in your dashboard automatically.',
     },
     {
-      q: lang === 'fr' ? 'Comment fonctionne le portail de réservation IA ?' : 'How does the AI booking portal work?',
-      a: lang === 'fr' ? 'Vous partagez un lien avec vos clients. Ils clavardent avec votre agent IA personnalisé qui collecte les détails du service, les coordonnées et les préférences de date. La réservation apparaît dans votre tableau de bord.' : 'You share a link with your customers. They chat with your branded AI agent that collects service details, contact info, and scheduling preferences. The booking appears in your dashboard automatically.',
+      q: fr ? 'Comment sont traités les paiements ?' : 'How are payments processed?',
+      a: fr ? "Les paiements en ligne sont traités par Stripe. Gestivio ne stocke jamais les informations de carte de crédit." : 'Online payments are processed by Stripe. Gestivio never stores credit card information.',
     },
     {
-      q: lang === 'fr' ? 'Comment sont traités les paiements ?' : 'How are payments processed?',
-      a: lang === 'fr' ? "Les paiements en ligne sont traités par Stripe, la norme de l'industrie pour les paiements sécurisés. Gestivio ne stocke jamais les informations de carte de crédit." : 'Online payments are processed by Stripe, the industry standard for secure payments. Gestivio never stores credit card information directly.',
+      q: fr ? 'Puis-je changer de forfait à tout moment ?' : 'Can I change plans at any time?',
+      a: fr ? "Oui, vous pouvez passer à un forfait supérieur ou inférieur à tout moment. Le changement est immédiat et au prorata." : 'Yes, you can upgrade or downgrade at any time. Changes are immediate and prorated.',
     },
     {
-      q: lang === 'fr' ? 'Y a-t-il une application mobile ?' : 'Is there a mobile app?',
-      a: lang === 'fr' ? "Gestivio est entièrement responsive et fonctionne parfaitement depuis votre navigateur mobile. Une application native iOS/Android est en développement." : 'Gestivio is fully responsive and works perfectly from your mobile browser. A native iOS/Android app is in development.',
-    },
-    {
-      q: lang === 'fr' ? 'Puis-je importer mes données existantes ?' : 'Can I import my existing data?',
-      a: lang === 'fr' ? "Oui, vous pouvez importer vos clients via CSV. Pour les migrations complexes, notre équipe d'onboarding vous accompagne gratuitement." : 'Yes, you can import customers via CSV. For complex migrations, our onboarding team will help you get set up at no extra cost.',
-    },
-    {
-      q: lang === 'fr' ? "Que se passe-t-il si j'annule ?" : 'What happens if I cancel?',
-      a: lang === 'fr' ? "Vous pouvez annuler à tout moment depuis vos paramètres. Votre compte reste actif jusqu'à la fin de la période de facturation et vous pouvez exporter vos données." : "You can cancel anytime from your settings. Your account stays active until the end of the billing period and you can export all your data at any time.",
+      q: fr ? 'Gestivio fonctionne-t-il sur mobile ?' : 'Does Gestivio work on mobile?',
+      a: fr ? "Oui, Gestivio est entièrement responsive et optimisé pour mobile. Vous pouvez gérer votre entreprise depuis votre téléphone." : 'Yes, Gestivio is fully responsive and optimized for mobile. You can manage your business from your phone.',
     },
   ]
 
   return (
     <div className="min-h-screen bg-white">
-
       {/* ── Navigation ── */}
-      <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/90 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <GestivioLogo forceDark />
-            </div>
+      <MegaMenuNav />
 
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features"     className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">{l.navFeatures}</a>
-              <a href="#pricing"      className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">{l.navPricing}</a>
-              <a href="#how-it-works" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">{l.navHowItWorks}</a>
-              <Link href="/signup" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
-                {lang === 'fr' ? 'Démo' : 'Book a demo'}
-              </Link>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5">
-                <button onClick={() => setLang('en')} className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'en' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>EN</button>
-                <button onClick={() => setLang('fr')} className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'fr' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>FR</button>
-              </div>
-              <Link href="/login" className="hidden sm:block text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">{l.navSignIn}</Link>
-              <Link href="/signup" className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all duration-150 hover:shadow-md">
-                {l.navGetStarted}<ChevronRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* ── Hero ── */}
-      <section className="relative overflow-hidden pb-24 pt-16 sm:pt-28">
-        {/* Animated gradient blobs */}
+      {/* ══════════════════════════════════════════════════════════
+          HERO
+      ══════════════════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden py-20 lg:py-28">
+        {/* Background blobs */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
           <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[700px] w-[900px] rounded-full bg-gradient-to-br from-indigo-100 via-violet-50 to-blue-50 opacity-70 blur-3xl" />
           <div className="absolute top-20 right-0 h-[400px] w-[400px] rounded-full bg-violet-100 opacity-40 blur-3xl" />
-          <div className="absolute bottom-0 left-0 h-[300px] w-[400px] rounded-full bg-blue-50 opacity-50 blur-3xl" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="mx-auto max-w-4xl text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl leading-[1.08]">
-            {l.heroTitle1}{' '}
-            <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
-              {l.heroTitle2}
-            </span>
-          </h1>
-
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-500 sm:text-xl leading-relaxed">{l.heroSub}</p>
-
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
-              {l.ctaPrimary}<ArrowRight className="h-4 w-4" />
-            </Link>
-            <a href="#how-it-works" className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50 hover:-translate-y-0.5 transition-all duration-200">
-              <Play className="h-4 w-4 text-indigo-600 fill-indigo-600" />{l.watchDemo}
-            </a>
-          </div>
-          <p className="mt-4 text-sm text-gray-400">{l.noCreditCard}</p>
-
-          {/* Trust badges */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
-            {[
-              { Icon: Leaf,     label: lang === 'fr' ? 'Fait au Québec'     : 'Made in Quebec' },
-              { Icon: Shield,   label: lang === 'fr' ? 'Données au Canada'  : 'Data in Canada' },
-              { Icon: Sparkles, label: lang === 'fr' ? "Propulsé par l'IA"  : 'AI-powered' },
-              { Icon: Globe,    label: lang === 'fr' ? 'Bilingue FR/EN'     : 'Fully bilingual FR/EN' },
-            ].map(({ Icon, label }) => (
-              <span key={label} className="inline-flex items-center gap-1.5 text-xs text-gray-500">
-                <Icon className="h-3.5 w-3.5 text-gray-500" />{label}
-              </span>
-            ))}
-          </div>
-
-          {/* App mockup */}
-          <div className="relative mx-auto mt-16 max-w-5xl">
-            <div className="rounded-2xl border border-gray-200 bg-white shadow-2xl shadow-gray-200/80 overflow-hidden">
-              <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-4 py-3">
-                <div className="flex gap-1.5">
-                  <div className="h-3 w-3 rounded-full bg-red-400" />
-                  <div className="h-3 w-3 rounded-full bg-amber-400" />
-                  <div className="h-3 w-3 rounded-full bg-green-400" />
-                </div>
-                <div className="mx-auto flex h-6 w-64 items-center justify-center rounded-md bg-white border border-gray-200">
-                  <span className="text-xs text-gray-400">app.gestivio.com/dashboard</span>
-                </div>
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            {/* Left copy */}
+            <div>
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 mb-6">
+                <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                <span className="text-xs font-semibold text-indigo-700">
+                  {fr ? 'Fait au Québec · Bilingue FR/EN' : 'Made in Quebec · Bilingual FR/EN'}
+                </span>
               </div>
-              <div className="flex h-80 bg-gray-50">
-                <div className="hidden sm:flex w-48 flex-col border-r border-gray-100 bg-white px-3 py-4">
-                  <div className="flex items-center gap-2 px-2 mb-5">
-                    <Image src="/logo.png" alt="Gestivio" width={24} height={24} />
-                    <div className="h-3 w-16 rounded-full bg-gray-900" />
-                  </div>
-                  {[t.nav.dashboard, t.nav.customers, t.nav.jobs, t.nav.invoices, t.nav.assistant].map((item, i) => (
-                    <div key={item} className={`flex items-center gap-2 px-2 py-2 rounded-lg mb-0.5 ${i === 0 ? 'bg-indigo-50' : ''}`}>
-                      <div className={`h-3.5 w-3.5 rounded-sm ${i === 0 ? 'bg-indigo-400' : 'bg-gray-200'}`} />
-                      <div className={`h-2.5 rounded-full ${i === 0 ? 'bg-indigo-600 w-16' : 'bg-gray-200 w-14'}`} />
-                    </div>
-                  ))}
-                </div>
-                <div className="flex-1 p-5">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                    {[
-                      { label: t.nav.customers, color: 'bg-blue-50 border-blue-100', val: '124' },
-                      { label: t.nav.jobs, color: 'bg-violet-50 border-violet-100', val: '38' },
-                      { label: t.invoices.totalInvoiced, color: 'bg-emerald-50 border-emerald-100', val: '$24k' },
-                      { label: t.dashboard.amountPaid, color: 'bg-amber-50 border-amber-100', val: '$18k' },
-                    ].map((kpi) => (
-                      <div key={kpi.label} className={`rounded-xl border ${kpi.color} p-3`}>
-                        <div className="h-2 w-12 rounded-full bg-gray-300 mb-2" />
-                        <div className="text-sm font-bold text-gray-800">{kpi.val}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-                    <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5 bg-gray-50">
-                      <div className="h-2.5 w-20 rounded-full bg-gray-300" />
-                      <div className="ml-auto h-6 w-20 rounded-lg bg-indigo-100" />
-                    </div>
-                    {['job-row-1', 'job-row-2', 'job-row-3'].map((row) => (
-                      <div key={row} className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0">
-                        <div className="h-7 w-7 rounded-full bg-gray-100 shrink-0" />
-                        <div className="flex-1">
-                          <div className="h-2.5 w-32 rounded-full bg-gray-300 mb-1" />
-                          <div className="h-2 w-20 rounded-full bg-gray-200" />
-                        </div>
-                        <div className="h-5 w-14 rounded-full bg-emerald-100" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
+
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 leading-[1.1]">
+                {fr
+                  ? 'Gérez votre entreprise de services terrain depuis votre téléphone'
+                  : 'Manage your field service business from your phone'}
+              </h1>
+
+              <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-xl">
+                {fr
+                  ? "Interventions, facturation, équipe, réservation en ligne — tout au même endroit. Propulsé par l'IA, conçu pour les entrepreneurs québécois."
+                  : 'Jobs, invoicing, team, online booking — all in one place. Powered by AI, built for Quebec entrepreneurs.'}
+              </p>
+
+              {/* CTAs */}
+              <div className="mt-8 flex flex-col sm:flex-row items-start gap-4">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200"
+                >
+                  {fr ? 'Essai gratuit 14 jours' : 'Start 14-day free trial'}
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <a
+                  href="#how-it-works"
+                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200"
+                >
+                  <Play className="h-4 w-4 text-indigo-600 fill-indigo-600" />
+                  {fr ? 'Voir comment ça marche' : 'See how it works'}
+                </a>
+              </div>
+
+              {/* Trust signals */}
+              <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2">
+                {[
+                  fr ? 'Aucune carte' : 'No credit card',
+                  fr ? '5 minutes' : '5 minutes',
+                  fr ? 'Données au Canada' : 'Data in Canada',
+                  fr ? 'Support français' : 'French support',
+                ].map((sig) => (
+                  <span key={sig} className="inline-flex items-center gap-1.5 text-sm text-gray-500">
+                    <Check className="h-3.5 w-3.5 text-emerald-500" />
+                    {sig}
+                  </span>
+                ))}
               </div>
             </div>
 
-            {/* Floating cards */}
-            <div className="absolute -left-6 top-1/3 hidden lg:block">
-              <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-xl shadow-gray-100/80">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-full bg-emerald-100 flex items-center justify-center"><CheckCircle className="h-4 w-4 text-emerald-600" /></div>
-                  <div>
-                    <p className="text-xs font-semibold text-gray-900">{lang === 'fr' ? 'Intervention terminée' : 'Job completed'}</p>
-                    <p className="text-xs text-gray-400">{lang === 'fr' ? 'Réparation CVC · il y a 2 min' : 'HVAC Repair · 2 min ago'}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="absolute -right-6 bottom-16 hidden lg:block">
-              <div className="rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-xl shadow-gray-100/80">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center"><Sparkles className="h-4 w-4 text-indigo-600" /></div>
-                  <div>
-                    <p className="text-xs font-semibold text-gray-900">{lang === 'fr' ? 'Nouvelle réservation IA' : 'New AI Booking'}</p>
-                    <p className="text-xs text-gray-400">{lang === 'fr' ? 'Plomberie · Demain 9h' : 'Plumbing · Tomorrow 9am'}</p>
-                  </div>
-                </div>
-              </div>
+            {/* Right: Phone mockup */}
+            <div className="flex justify-center lg:justify-end">
+              <PhoneFrame>
+                <MockupDashboard />
+              </PhoneFrame>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Features ── */}
-      <section id="features" className="py-24">
+      {/* ══════════════════════════════════════════════════════════
+          PAIN POINTS
+      ══════════════════════════════════════════════════════════ */}
+      <section className="py-20 lg:py-24 bg-[#0F172A]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal>
-            <div className="text-center mb-16">
-              <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">{l.featuresLabel}</p>
-              <h2 className="text-4xl font-bold text-gray-900 sm:text-5xl">{l.featuresTitle}</h2>
-              <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">{l.featuresSub}</p>
+            <div className="text-center mb-14">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white">
+                {fr ? 'Des problèmes que vous connaissez trop bien' : 'Problems you know all too well'}
+              </h2>
             </div>
           </Reveal>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((f, i) => (
-              <Reveal key={f.title} delay={i * 80}>
-                <div className="group rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-lg hover:border-gray-200 hover:-translate-y-1 transition-all duration-200 h-full">
-                  <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${f.bg} mb-4 group-hover:scale-110 transition-transform duration-200`}>
-                    <f.icon className={`h-6 w-6 ${f.color.replace('bg-', 'text-')}`} />
+
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              {
+                icon: Moon,
+                title: fr ? 'La paperasse le soir' : 'Paperwork at night',
+                desc: fr
+                  ? "Vous terminez vos interventions à 17 h, puis passez votre soirée à rédiger des factures et organiser le lendemain."
+                  : "You finish your jobs at 5 PM, then spend your evening writing invoices and organizing tomorrow.",
+              },
+              {
+                icon: PhoneOff,
+                title: fr ? 'Les appels manqués sur le terrain' : 'Missed calls on site',
+                desc: fr
+                  ? "Chaque appel manqué est un client potentiel perdu. Vous ne pouvez pas répondre au téléphone les mains dans la tuyauterie."
+                  : "Every missed call is a potential lost client. You can't answer the phone with your hands in the plumbing.",
+              },
+              {
+                icon: UserX,
+                title: fr ? 'Techniciens sans info' : 'Technicians without info',
+                desc: fr
+                  ? "Vos techniciens appellent pour demander l'adresse, le type de travail ou l'historique du client. Chaque jour."
+                  : "Your technicians call to ask for the address, job type, or customer history. Every single day.",
+              },
+            ].map((card, i) => (
+              <Reveal key={card.title} delay={i * 100}>
+                <div className="rounded-2xl bg-white/5 border border-white/10 p-7 hover:bg-white/10 transition-colors">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-500/20 mb-5">
+                    <card.icon className="h-5 w-5 text-red-400" />
                   </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">{f.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{f.description}</p>
+                  <h3 className="text-lg font-semibold text-white mb-2">{card.title}</h3>
+                  <p className="text-sm text-gray-400 leading-relaxed">{card.desc}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal>
+            <p className="text-center mt-12 text-lg font-semibold text-indigo-400">
+              {fr ? 'Gestivio règle ces problèmes.' : 'Gestivio solves these problems.'}
+            </p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          THREE PILLARS
+      ══════════════════════════════════════════════════════════ */}
+      <section className="py-20 lg:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <Reveal>
+            <div className="text-center mb-14">
+              <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">
+                {fr ? 'Plateforme' : 'Platform'}
+              </p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+                {fr ? 'Tout ce dont vous avez besoin' : 'Everything you need'}
+              </h2>
+            </div>
+          </Reveal>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            {[
+              {
+                icon: Calendar,
+                title: fr ? 'Terrain' : 'Field',
+                desc: fr
+                  ? "Planifiez vos interventions, assignez vos techniciens et suivez l'avancement en temps réel depuis votre calendrier."
+                  : 'Schedule jobs, assign technicians, and track progress in real time from your calendar.',
+                color: 'bg-blue-50',
+                iconColor: 'text-blue-600',
+                mockup: <MockupCalendar />,
+              },
+              {
+                icon: CreditCard,
+                title: fr ? 'Facturation' : 'Invoicing',
+                desc: fr
+                  ? "Créez des factures professionnelles en quelques secondes. Envoyez-les par courriel avec un bouton de paiement en ligne."
+                  : 'Create professional invoices in seconds. Send them by email with an online payment button.',
+                color: 'bg-emerald-50',
+                iconColor: 'text-emerald-600',
+                mockup: <MockupInvoice />,
+              },
+              {
+                icon: Bot,
+                title: fr ? 'Intelligence artificielle' : 'Artificial Intelligence',
+                desc: fr
+                  ? "Laissez l'IA prendre vos réservations 24h/24, répondre aux questions de vos clients et vous aider à gérer votre entreprise."
+                  : 'Let AI handle bookings 24/7, answer customer questions, and help you manage your business.',
+                color: 'bg-violet-50',
+                iconColor: 'text-violet-600',
+                mockup: <MockupChat />,
+              },
+            ].map((pillar, i) => (
+              <Reveal key={pillar.title} delay={i * 100}>
+                <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-200 h-full flex flex-col">
+                  <div className="p-6 flex-1">
+                    <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ${pillar.color} mb-4`}>
+                      <pillar.icon className={`h-5 w-5 ${pillar.iconColor}`} />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{pillar.title}</h3>
+                    <p className="text-sm text-gray-500 leading-relaxed">{pillar.desc}</p>
+                  </div>
+                  <div className="border-t border-gray-100 bg-gray-50 p-4 h-48 overflow-hidden">
+                    <div className="transform scale-[0.6] origin-top-left w-[166%]">
+                      {pillar.mockup}
+                    </div>
+                  </div>
                 </div>
               </Reveal>
             ))}
@@ -309,22 +390,102 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── How it works ── */}
-      <section id="how-it-works" className="py-24 bg-gray-50">
+      {/* ══════════════════════════════════════════════════════════
+          FEATURE SHOWCASE — 4 alternating sections
+      ══════════════════════════════════════════════════════════ */}
+      <section className="bg-slate-50">
+        {showcases.map((s, i) => {
+          const isEven = i % 2 === 0
+          const mockups = [
+            <MockupCalendar key="cal" />,
+            <MockupInvoice key="inv" />,
+            <MockupChat key="chat" />,
+            <MockupCalendar key="team" />,
+          ]
+          return (
+            <div key={s.title} className="py-20 lg:py-24">
+              <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className={`grid items-center gap-12 lg:grid-cols-2 ${isEven ? '' : 'lg:[direction:rtl]'}`}>
+                  {/* Text */}
+                  <Reveal>
+                    <div className={isEven ? '' : 'lg:[direction:ltr]'}>
+                      <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">{s.label}</p>
+                      <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-5">{s.title}</h2>
+                      <ul className="space-y-3 mb-8">
+                        {s.checks.map((c) => (
+                          <li key={c} className="flex items-start gap-3">
+                            <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100">
+                              <Check className="h-3 w-3 text-indigo-600" />
+                            </div>
+                            <span className="text-sm text-gray-600">{c}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <Link
+                        href={s.href}
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                      >
+                        {s.linkLabel}
+                        <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </Reveal>
+
+                  {/* Mockup */}
+                  <Reveal delay={150}>
+                    <div className={`rounded-2xl border border-gray-200 bg-white shadow-lg overflow-hidden ${isEven ? '' : 'lg:[direction:ltr]'}`}>
+                      <div className="p-4 max-h-80 overflow-hidden">
+                        <div className="transform scale-[0.75] origin-top-left w-[133%]">
+                          {mockups[i]}
+                        </div>
+                      </div>
+                    </div>
+                  </Reveal>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          HOW IT WORKS
+      ══════════════════════════════════════════════════════════ */}
+      <section id="how-it-works" className="py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal>
-            <div className="text-center mb-16">
-              <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">{l.howLabel}</p>
-              <h2 className="text-4xl font-bold text-gray-900 sm:text-5xl">{l.howTitle}</h2>
+            <div className="text-center mb-14">
+              <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">
+                {fr ? 'Démarrage rapide' : 'Quick start'}
+              </p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+                {fr ? 'Opérationnel en 15 minutes' : 'Up and running in 15 minutes'}
+              </h2>
             </div>
           </Reveal>
-          <div className="relative grid gap-8 md:grid-cols-3">
+
+          <div className="relative grid gap-8 md:grid-cols-3 max-w-4xl mx-auto">
             {/* Connector line */}
             <div className="absolute top-8 left-1/4 right-1/4 hidden md:block h-0.5 bg-gradient-to-r from-indigo-200 via-indigo-400 to-indigo-200" />
             {[
-              { step: '01', title: l.step1Title, description: l.step1Desc, icon: Users },
-              { step: '02', title: l.step2Title, description: l.step2Desc, icon: Briefcase },
-              { step: '03', title: l.step3Title, description: l.step3Desc, icon: FileText },
+              {
+                step: '01',
+                icon: UserPlus,
+                title: fr ? 'Créez votre compte' : 'Create your account',
+                desc: fr ? "En 2 minutes, sans carte de crédit. Votre espace est prêt immédiatement." : 'In 2 minutes, no credit card. Your workspace is ready immediately.',
+              },
+              {
+                step: '02',
+                icon: ListPlus,
+                title: fr ? 'Ajoutez vos services' : 'Add your services',
+                desc: fr ? 'Configurez vos types de services, tarifs et zones de couverture.' : 'Set up your service types, rates, and coverage areas.',
+              },
+              {
+                step: '03',
+                icon: Zap,
+                title: fr ? 'Première intervention' : 'First job',
+                desc: fr ? "Planifiez votre première intervention et envoyez votre première facture le même jour." : 'Schedule your first job and send your first invoice the same day.',
+              },
             ].map((s, i) => (
               <Reveal key={s.step} delay={i * 120}>
                 <div className="relative text-center bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
@@ -335,7 +496,7 @@ export default function LandingPage() {
                     <s.icon className="h-7 w-7 text-indigo-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">{s.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{s.description}</p>
+                  <p className="text-sm text-gray-500 leading-relaxed">{s.desc}</p>
                 </div>
               </Reveal>
             ))}
@@ -343,202 +504,160 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── AI Booking Portal Feature ── */}
-      <section className="py-24 overflow-hidden">
+      {/* ══════════════════════════════════════════════════════════
+          QUEBEC TRUST
+      ══════════════════════════════════════════════════════════ */}
+      <section className="py-20 lg:py-24 bg-slate-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            <Reveal>
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">{l.aiBookingLabel}</p>
-                <h2 className="text-4xl font-bold text-gray-900 sm:text-5xl leading-tight mb-5">{l.aiBookingTitle}</h2>
-                <p className="text-lg text-gray-500 leading-relaxed mb-8">{l.aiBookingSub}</p>
-                <ul className="space-y-3 mb-8">
-                  {[l.aiBookingF1, l.aiBookingF2, l.aiBookingF3, l.aiBookingF4].map((f) => (
-                    <li key={f} className="flex items-start gap-3">
-                      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100">
-                        <Check className="h-3 w-3 text-indigo-600" />
-                      </div>
-                      <span className="text-sm text-gray-600">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white hover:bg-indigo-700 hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-indigo-100">
-                  {l.aiBookingCta}<ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </Reveal>
-            <Reveal delay={150}>
-              <div className="relative">
-                <div className="rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-100 overflow-hidden">
-                  {/* Chat header */}
-                  <div className="flex items-center gap-3 border-b border-gray-100 bg-indigo-600 px-4 py-4">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">
-                      <Sparkles className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-white">{lang === 'fr' ? 'Alex — Assistant IA' : 'Alex — AI Assistant'}</p>
-                      <div className="flex items-center gap-1.5">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-                        <p className="text-xs text-indigo-100">{lang === 'fr' ? 'En ligne · Répond en quelques secondes' : 'Online · Responds in seconds'}</p>
-                      </div>
-                    </div>
+          <Reveal>
+            <div className="max-w-3xl mx-auto text-center mb-12">
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-5">
+                {fr ? 'Conçu pour les entrepreneurs québécois' : 'Built for Quebec entrepreneurs'}
+              </h2>
+              <p className="text-lg text-gray-600 leading-relaxed">
+                {fr
+                  ? "Gestivio est développé au Québec, en français d'abord. Vos données restent au Canada, votre support est en français, et la plateforme est pensée pour les réalités du marché québécois."
+                  : 'Gestivio is developed in Quebec, French-first. Your data stays in Canada, your support is in French, and the platform is designed for the realities of the Quebec market.'}
+              </p>
+            </div>
+          </Reveal>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl mx-auto">
+            {[
+              { icon: Leaf, label: fr ? 'Fait au Québec' : 'Made in Quebec' },
+              { icon: Shield, label: fr ? 'Données au Canada' : 'Data in Canada' },
+              { icon: MessageSquare, label: fr ? 'Support français' : 'French support' },
+              { icon: Globe, label: fr ? 'Bilingue FR/EN' : 'Bilingual FR/EN' },
+            ].map((badge, i) => (
+              <Reveal key={badge.label} delay={i * 80}>
+                <div className="flex flex-col items-center rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-sm">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 mb-3">
+                    <badge.icon className="h-5 w-5 text-indigo-600" />
                   </div>
-                  {/* Chat messages */}
-                  <div className="space-y-4 px-4 py-5">
-                    <div className="flex items-start gap-2.5">
-                      <div className="h-7 w-7 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                        <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
-                      </div>
-                      <div className="rounded-2xl rounded-tl-none bg-gray-100 px-4 py-3 max-w-xs">
-                        <p className="text-sm text-gray-800">{lang === 'fr' ? "Bonjour ! Je suis Alex. Quel service pouvons-nous faire pour vous aujourd'hui ?" : "Hi! I'm Alex. What service can we help you with today?"}</p>
-                      </div>
-                    </div>
-                    <div className="flex justify-end">
-                      <div className="rounded-2xl rounded-tr-none bg-indigo-600 px-4 py-3 max-w-xs">
-                        <p className="text-sm text-white">{lang === 'fr' ? "J'ai besoin d'une réparation de plomberie urgente." : "I need an urgent plumbing repair."}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2.5">
-                      <div className="h-7 w-7 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                        <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
-                      </div>
-                      <div className="rounded-2xl rounded-tl-none bg-gray-100 px-4 py-3 max-w-xs">
-                        <p className="text-sm text-gray-800">{lang === 'fr' ? "Bien sûr ! Pouvez-vous me dire votre nom et votre adresse ?" : "Of course! Can I get your name and service address?"}</p>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Input area */}
-                  <div className="border-t border-gray-100 px-4 py-3">
-                    <div className="flex items-center gap-2 rounded-xl bg-gray-50 border border-gray-200 px-3 py-2.5">
-                      <span className="flex-1 text-sm text-gray-400">{lang === 'fr' ? 'Écrire un message...' : 'Type a message...'}</span>
-                      <div className="h-7 w-7 rounded-lg bg-indigo-600 flex items-center justify-center">
-                        <ArrowRight className="h-3.5 w-3.5 text-white" />
-                      </div>
-                    </div>
-                  </div>
+                  <span className="text-sm font-semibold text-gray-900">{badge.label}</span>
                 </div>
-                {/* Badge */}
-                <div className="absolute -bottom-4 -right-4 rounded-xl bg-emerald-500 px-4 py-2 shadow-lg shadow-emerald-100">
-                  <p className="text-xs font-semibold text-white">{lang === 'fr' ? '✓ Réservation confirmée !' : '✓ Booking confirmed!'}</p>
-                </div>
-              </div>
-            </Reveal>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── Pricing ── */}
-      <section id="pricing" className="py-24 bg-gray-50">
+      {/* ══════════════════════════════════════════════════════════
+          PRICING
+      ══════════════════════════════════════════════════════════ */}
+      <section id="pricing" className="py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Reveal>
             <div className="text-center mb-12">
-              <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">{l.pricingLabel}</p>
-              <h2 className="text-4xl font-bold text-gray-900 sm:text-5xl">{l.pricingTitle}</h2>
-              <p className="mt-4 text-lg text-gray-500">{l.pricingSub}</p>
+              <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">
+                {fr ? 'Tarification' : 'Pricing'}
+              </p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+                {fr ? 'Des prix simples et transparents' : 'Simple, transparent pricing'}
+              </h2>
+              <p className="mt-4 text-lg text-gray-500">
+                {fr ? 'Essai gratuit de 14 jours. Aucune carte de crédit requise.' : 'Start free for 14 days. No credit card required.'}
+              </p>
               {/* Billing toggle */}
               <div className="mt-8 inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
                 <button
                   onClick={() => setBilling('monthly')}
                   className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${billing === 'monthly' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 >
-                  {l.billingMonthly}
+                  {fr ? 'Mensuel' : 'Monthly'}
                 </button>
                 <button
                   onClick={() => setBilling('annual')}
                   className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${billing === 'annual' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 >
-                  {l.billingAnnual}
-                  <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${billing === 'annual' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'}`}>{l.savePercent}</span>
+                  {fr ? 'Annuel' : 'Annual'}
+                  <span className={`rounded-full px-1.5 py-0.5 text-xs font-bold ${billing === 'annual' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'}`}>
+                    {fr ? '-10 %' : '-10%'}
+                  </span>
                 </button>
               </div>
             </div>
           </Reveal>
 
           <div className="grid gap-6 md:grid-cols-3 max-w-5xl mx-auto">
-            {pricingPlans.map((plan, i) => {
-              const price = billing === 'annual' ? plan.annualPrice : plan.monthlyPrice
-              const annualTotal = plan.annualPrice * 12
+            {plans.map(({ key, p }, i) => {
+              const highlighted = key === 'pro'
+              const price = billing === 'annual' ? p.annual : p.monthly
+              const annualTotal = p.annual * 12
+              const features = pricingFeatures[key] || []
+
               return (
-                <Reveal key={plan.key} delay={i * 80}>
-                  <div className={`relative flex flex-col rounded-2xl p-7 h-full ${plan.highlighted ? 'bg-indigo-600 shadow-2xl shadow-indigo-200 ring-1 ring-indigo-500' : 'bg-white border border-gray-200 shadow-sm'}`}>
-                    {plan.highlighted && (
+                <Reveal key={key} delay={i * 80}>
+                  <div className={`relative flex flex-col rounded-2xl p-7 h-full ${highlighted ? 'bg-indigo-600 shadow-2xl shadow-indigo-200 ring-1 ring-indigo-500' : 'bg-white border border-gray-200 shadow-sm'}`}>
+                    {highlighted && (
                       <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-amber-900">
-                          <Sparkles className="h-3 w-3" />{l.mostPopular}
+                          <Sparkles className="h-3 w-3" />
+                          {fr ? 'Plus populaire' : 'Most popular'}
                         </span>
                       </div>
                     )}
                     <div className="mb-5">
-                      <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${plan.highlighted ? 'text-indigo-200' : 'text-gray-500'}`}>{plan.name}</p>
+                      <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${highlighted ? 'text-indigo-200' : 'text-gray-500'}`}>
+                        {fr ? p.label : p.labelEn}
+                      </p>
                       <div className="flex items-end gap-1 mb-2">
-                        <span className={`text-4xl font-bold ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>${price}</span>
-                        <span className={`mb-1 text-sm ${plan.highlighted ? 'text-indigo-200' : 'text-gray-400'}`}>{l.pricingMonthly}</span>
+                        <span className={`text-4xl font-bold ${highlighted ? 'text-white' : 'text-gray-900'}`}>${price}</span>
+                        <span className={`mb-1 text-sm ${highlighted ? 'text-indigo-200' : 'text-gray-400'}`}>
+                          {fr ? '/mois' : '/month'}
+                        </span>
                       </div>
                       {billing === 'annual' && (
-                        <p className={`text-xs ${plan.highlighted ? 'text-indigo-200' : 'text-gray-400'}`}>
-                          {lang === 'fr' ? `Facturé $${annualTotal}/an` : `Billed $${annualTotal}/year`}
+                        <p className={`text-xs ${highlighted ? 'text-indigo-200' : 'text-gray-400'}`}>
+                          {fr ? `Facturé $${annualTotal}/an` : `Billed $${annualTotal}/year`}
                         </p>
                       )}
-                      <p className={`text-sm mt-2 ${plan.highlighted ? 'text-indigo-100' : 'text-gray-500'}`}>{plan.description}</p>
+                      <p className={`text-sm mt-2 ${highlighted ? 'text-indigo-100' : 'text-gray-500'}`}>
+                        {fr ? p.tagline : p.taglineEn}
+                      </p>
                     </div>
                     <ul className="space-y-2.5 mb-7 flex-1">
-                      {plan.features.map((f) => (
+                      {features.map((f) => (
                         <li key={f} className="flex items-start gap-2.5 text-sm">
-                          <Check className={`h-4 w-4 shrink-0 mt-0.5 ${plan.highlighted ? 'text-indigo-200' : 'text-indigo-500'}`} />
-                          <span className={plan.highlighted ? 'text-indigo-50' : 'text-gray-600'}>{f}</span>
+                          <Check className={`h-4 w-4 shrink-0 mt-0.5 ${highlighted ? 'text-indigo-200' : 'text-indigo-500'}`} />
+                          <span className={highlighted ? 'text-indigo-50' : 'text-gray-600'}>{f}</span>
                         </li>
                       ))}
                     </ul>
-                    <Link href={`${plan.href}?plan=${plan.key}&cycle=${billing}`} className={`inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-150 ${plan.highlighted ? 'bg-white text-indigo-700 hover:bg-indigo-50' : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:-translate-y-0.5'}`}>
-                      {plan.cta}<ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                    <Link
+                      href={`/signup?plan=${key}&cycle=${billing}`}
+                      className={`inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-150 ${highlighted ? 'bg-white text-indigo-700 hover:bg-indigo-50' : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:-translate-y-0.5'}`}
+                    >
+                      {fr ? 'Essai gratuit' : 'Start free trial'}
+                      <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
                     </Link>
                   </div>
                 </Reveal>
               )
             })}
           </div>
+
           <Reveal>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400">
-              <span>✓ {lang === 'fr' ? 'Essai gratuit 14 jours' : '14-day free trial'}</span>
-              <span>✓ {lang === 'fr' ? 'Aucune carte de crédit' : 'No credit card required'}</span>
-              <span>✓ {lang === 'fr' ? 'Annulable à tout moment' : 'Cancel anytime'}</span>
-              <span>✓ {lang === 'fr' ? 'Remboursement 30 jours' : '30-day money-back guarantee'}</span>
-              <span className="inline-flex items-center gap-1.5"><Leaf className="h-3.5 w-3.5" />{lang === 'fr' ? 'Données au Canada' : 'Data in Canada'}</span>
+              <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" />{fr ? 'Essai gratuit 14 jours' : '14-day free trial'}</span>
+              <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" />{fr ? 'Aucune carte de crédit' : 'No credit card required'}</span>
+              <span className="inline-flex items-center gap-1.5"><Check className="h-3.5 w-3.5" />{fr ? 'Annulable à tout moment' : 'Cancel anytime'}</span>
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ── Trust signals ── */}
-      <section className="py-16 bg-gray-50 border-y border-gray-100">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 md:grid-cols-3">
-            {[
-              { icon: Shield, title: l.trust1Title, description: l.trust1Desc },
-              { icon: Zap,    title: l.trust2Title, description: l.trust2Desc },
-              { icon: Sparkles, title: l.trust3Title, description: l.trust3Desc },
-            ].map((item) => (
-              <div key={item.title} className="flex gap-4">
-                <div className="shrink-0 flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50">
-                  <item.icon className="h-5 w-5 text-indigo-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{item.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── FAQ ── */}
-      <section className="py-24">
+      {/* ══════════════════════════════════════════════════════════
+          FAQ
+      ══════════════════════════════════════════════════════════ */}
+      <section className="py-20 lg:py-24 bg-slate-50">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
           <Reveal>
             <div className="text-center mb-12">
-              <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">{l.faqLabel}</p>
-              <h2 className="text-4xl font-bold text-gray-900 sm:text-5xl">{l.faqTitle}</h2>
+              <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">FAQ</p>
+              <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
+                {fr ? 'Questions fréquemment posées' : 'Frequently asked questions'}
+              </h2>
             </div>
           </Reveal>
           <Reveal>
@@ -551,8 +670,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Final CTA ── */}
-      <section className="py-24 bg-gray-50">
+      {/* ══════════════════════════════════════════════════════════
+          FINAL CTA
+      ══════════════════════════════════════════════════════════ */}
+      <section className="py-20 lg:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <Reveal>
             <div className="rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 px-8 py-16 sm:py-20 shadow-2xl shadow-indigo-200 text-center relative overflow-hidden">
@@ -562,21 +683,35 @@ export default function LandingPage() {
                 <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-white/5" />
               </div>
               <div className="relative">
-                <h2 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">{l.ctaBannerTitle}</h2>
-                <p className="mt-4 text-lg text-indigo-100 max-w-xl mx-auto">{l.ctaBannerSub}</p>
-                <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-indigo-700 hover:bg-indigo-50 transition-colors shadow-lg hover:-translate-y-0.5 duration-200">
-                    {l.ctaBannerBtn}<ArrowRight className="h-4 w-4" />
+                <h2 className="text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
+                  {fr ? "Arrêtez de gérer votre business à l'ancienne." : 'Stop managing your business the old way.'}
+                </h2>
+                <p className="mt-4 text-lg text-indigo-100 max-w-xl mx-auto">
+                  {fr
+                    ? "Rejoignez les entrepreneurs qui gèrent tout depuis leur téléphone."
+                    : 'Join the entrepreneurs who manage everything from their phone.'}
+                </p>
+                <div className="mt-10">
+                  <Link
+                    href="/signup"
+                    className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-indigo-700 hover:bg-indigo-50 transition-colors shadow-lg hover:-translate-y-0.5 duration-200"
+                  >
+                    {fr ? 'Essai gratuit 14 jours' : 'Start 14-day free trial'}
+                    <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
-                <p className="mt-5 text-sm text-indigo-200">{l.ctaBannerNote}</p>
+                <p className="mt-5 text-sm text-indigo-200">
+                  {fr ? '14 jours gratuits · Aucune carte · Annulable à tout moment' : '14 days free · No credit card · Cancel anytime'}
+                </p>
               </div>
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ── Footer ── */}
+      {/* ══════════════════════════════════════════════════════════
+          FOOTER
+      ══════════════════════════════════════════════════════════ */}
       <footer className="border-t border-gray-100 bg-white pt-16 pb-8">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 mb-12">
@@ -586,37 +721,37 @@ export default function LandingPage() {
                 <GestivioLogo forceDark />
               </div>
               <p className="text-sm text-gray-500 leading-relaxed mb-5">
-                {lang === 'fr'
+                {fr
                   ? "La façon plus intelligente de gérer votre entreprise de services."
                   : 'The smarter way to run your field service business.'}
               </p>
-              <p className="text-xs text-gray-400">{lang === 'fr' ? 'Fait au Québec, Canada' : 'Made in Québec, Canada'}</p>
+              <p className="text-xs text-gray-400">{fr ? 'Fait au Québec, Canada' : 'Made in Québec, Canada'}</p>
             </div>
 
             {/* Col 2 — Company */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">{lang === 'fr' ? 'Entreprise' : 'Company'}</h4>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">{fr ? 'Entreprise' : 'Company'}</h4>
               <ul className="space-y-3">
                 {[
-                  { label: lang === 'fr' ? 'À propos' : 'About Us', href: '/about' },
-                  { label: lang === 'fr' ? 'Nous contacter' : 'Contact Us', href: '/contact' },
+                  { label: fr ? 'À propos' : 'About Us', href: '/about' },
+                  { label: fr ? 'Nous contacter' : 'Contact Us', href: '/contact' },
                 ].map((link) => (
                   <li key={link.label}><a href={link.href} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">{link.label}</a></li>
                 ))}
               </ul>
             </div>
 
-            {/* Col 4 — Legal & Support */}
+            {/* Col 3 — Legal & Support */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">{lang === 'fr' ? 'Légal & Support' : 'Legal & Support'}</h4>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">{fr ? 'Légal & Support' : 'Legal & Support'}</h4>
               <ul className="space-y-3">
                 {[
-                  { label: lang === 'fr' ? 'Politique de confidentialité' : 'Privacy Policy', href: '/privacy' },
-                  { label: lang === 'fr' ? "Conditions d'utilisation" : 'Terms of Service', href: '/terms' },
-                  { label: lang === 'fr' ? 'Sécurité' : 'Security', href: '/security' },
-                  { label: lang === 'fr' ? 'Accessibilité' : 'Accessibility', href: '/accessibility' },
-                  { label: lang === 'fr' ? 'Cookies' : 'Cookie Policy', href: '/cookies' },
-                  { label: lang === 'fr' ? 'Centre d\'aide' : 'Support Center', href: '/support' },
+                  { label: fr ? 'Politique de confidentialité' : 'Privacy Policy', href: '/privacy' },
+                  { label: fr ? "Conditions d'utilisation" : 'Terms of Service', href: '/terms' },
+                  { label: fr ? 'Sécurité' : 'Security', href: '/security' },
+                  { label: fr ? 'Accessibilité' : 'Accessibility', href: '/accessibility' },
+                  { label: fr ? 'Cookies' : 'Cookie Policy', href: '/cookies' },
+                  { label: fr ? "Centre d'aide" : 'Support Center', href: '/support' },
                 ].map((link) => (
                   <li key={link.label}><a href={link.href} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">{link.label}</a></li>
                 ))}
@@ -625,15 +760,17 @@ export default function LandingPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-100 pt-8">
-            <p className="text-sm text-gray-400">{l.footerCopyright}</p>
+            <p className="text-sm text-gray-400">
+              {fr ? '© 2026 Gestivio. Tous droits réservés.' : '© 2026 Gestivio. All rights reserved.'}
+            </p>
             <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-400">
-              <a href="/privacy" className="hover:text-gray-600">{lang === 'fr' ? 'Confidentialité' : 'Privacy'}</a>
+              <a href="/privacy" className="hover:text-gray-600">{fr ? 'Confidentialité' : 'Privacy'}</a>
               <span>·</span>
-              <a href="/terms" className="hover:text-gray-600">{lang === 'fr' ? 'Conditions' : 'Terms'}</a>
+              <a href="/terms" className="hover:text-gray-600">{fr ? 'Conditions' : 'Terms'}</a>
               <span>·</span>
               <a href="/cookies" className="hover:text-gray-600">Cookies</a>
               <span>·</span>
-              <a href="/security" className="hover:text-gray-600">{lang === 'fr' ? 'Sécurité' : 'Security'}</a>
+              <a href="/security" className="hover:text-gray-600">{fr ? 'Sécurité' : 'Security'}</a>
             </div>
           </div>
         </div>
