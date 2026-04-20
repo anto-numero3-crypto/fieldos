@@ -5,7 +5,7 @@ import { ArrowRight, MessageSquare, Globe, Brain, Search, Sparkles, FileText, Za
 import MarketingShell from '@/components/MarketingShell'
 import FaqItem from '@/components/FaqItem'
 import { useLanguage } from '@/lib/LanguageContext'
-import { MockupChat, MockupDashboard } from '@/components/mockups'
+import { MockupAssistantChat, MockupDashboard } from '@/components/mockups'
 
 export default function AssistantIAContent() {
   const { lang } = useLanguage()
@@ -36,7 +36,7 @@ export default function AssistantIAContent() {
               </div>
             </div>
             <div className="flex justify-center">
-              <MockupChat />
+              <MockupAssistantChat />
             </div>
           </div>
         </div>
@@ -146,7 +146,7 @@ export default function AssistantIAContent() {
               </p>
             </div>
             <div className="flex justify-center">
-              <MockupChat />
+              <MockupAssistantChat />
             </div>
           </div>
         </div>

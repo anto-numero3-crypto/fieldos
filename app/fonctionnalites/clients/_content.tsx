@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { ArrowRight, User, Phone, Briefcase, FileText, StickyNote, Search, Upload, Tag, ChevronDown } from 'lucide-react'
 import MarketingShell from '@/components/MarketingShell'
+import { MockupClientProfile } from '@/components/mockups'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useState } from 'react'
 
@@ -84,9 +85,7 @@ export default function ClientsContent() {
                 </Link>
               </div>
             </div>
-            <div className="bg-gray-100 rounded-2xl h-64 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Apercu de la fonctionnalite' : 'Feature preview'}
-            </div>
+            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupClientProfile /></div></div></div>
           </div>
         </div>
       </section>
@@ -164,9 +163,7 @@ export default function ClientsContent() {
                 {fr ? 'Chaque intervention terminee, chaque facture envoyee et chaque paiement recu est automatiquement ajoute au profil du client. Aucune saisie manuelle requise.' : 'Every completed job, every sent invoice, and every received payment is automatically added to the client profile. No manual entry required.'}
               </p>
             </div>
-            <div className="bg-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Apercu de la fonctionnalite' : 'Feature preview'}
-            </div>
+            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupClientProfile /></div></div></div>
           </div>
         </div>
       </section>
@@ -175,9 +172,7 @@ export default function ClientsContent() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 bg-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Apercu de la fonctionnalite' : 'Feature preview'}
-            </div>
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupClientProfile /></div></div></div>
             <div className="order-1 lg:order-2">
               <h2 className="text-3xl font-bold text-gray-900">
                 {fr ? 'Retrouvez n\'importe quel client en 2 secondes' : 'Find any client in 2 seconds'}

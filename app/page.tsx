@@ -6,8 +6,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 import { PLAN_PRICING, PLAN_LIMITS } from '@/lib/plan-limits'
 import MegaMenuNav from '@/components/MegaMenuNav'
 import GestivioLogo from '@/components/GestivioLogo'
-import PhoneFrame from '@/components/mockups/PhoneFrame'
-import MockupDashboard from '@/components/mockups/MockupDashboard'
+import MockupMobileDashboard from '@/components/mockups/MockupMobileDashboard'
 import MockupCalendar from '@/components/mockups/MockupCalendar'
 import MockupInvoice from '@/components/mockups/MockupInvoice'
 import MockupChat from '@/components/mockups/MockupChat'
@@ -255,9 +254,7 @@ export default function LandingPage() {
 
             {/* Right: Phone mockup */}
             <div className="flex justify-center lg:justify-end">
-              <PhoneFrame>
-                <MockupDashboard />
-              </PhoneFrame>
+              <MockupMobileDashboard />
             </div>
           </div>
         </div>

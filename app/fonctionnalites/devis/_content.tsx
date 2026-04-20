@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { ArrowRight, FileText, ListChecks, Mail, CheckCircle, RefreshCw, Edit, Download, ChevronDown } from 'lucide-react'
 import MarketingShell from '@/components/MarketingShell'
+import { MockupInvoice } from '@/components/mockups'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useState } from 'react'
 
@@ -83,9 +84,7 @@ export default function DevisContent() {
                 </Link>
               </div>
             </div>
-            <div className="bg-gray-100 rounded-2xl h-64 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Apercu de la fonctionnalite' : 'Feature preview'}
-            </div>
+            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupInvoice /></div></div></div>
           </div>
         </div>
       </section>
@@ -163,9 +162,7 @@ export default function DevisContent() {
                 {fr ? 'Vos devis sont generes avec votre logo, vos coordonnees et une mise en page professionnelle. Votre client recoit un document digne d\'une grande entreprise.' : 'Your quotes are generated with your logo, contact info, and professional layout. Your client receives a document worthy of a large company.'}
               </p>
             </div>
-            <div className="bg-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Apercu de la fonctionnalite' : 'Feature preview'}
-            </div>
+            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupInvoice /></div></div></div>
           </div>
         </div>
       </section>
@@ -174,9 +171,7 @@ export default function DevisContent() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 bg-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Apercu de la fonctionnalite' : 'Feature preview'}
-            </div>
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupInvoice /></div></div></div>
             <div className="order-1 lg:order-2">
               <h2 className="text-3xl font-bold text-gray-900">
                 {fr ? 'Du devis a la facture en un clic' : 'From quote to invoice in one click'}

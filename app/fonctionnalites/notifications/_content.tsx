@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { ArrowRight, Bell, Clock, Truck, CheckCircle, FileText, CreditCard, AlertTriangle, Settings, ChevronDown } from 'lucide-react'
 import MarketingShell from '@/components/MarketingShell'
+import { MockupDashboard } from '@/components/mockups'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useState } from 'react'
 
@@ -83,9 +84,7 @@ export default function NotificationsContent() {
                 </Link>
               </div>
             </div>
-            <div className="bg-gray-100 rounded-2xl h-64 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Apercu de la fonctionnalite' : 'Feature preview'}
-            </div>
+            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupDashboard /></div></div></div>
           </div>
         </div>
       </section>
@@ -163,9 +162,7 @@ export default function NotificationsContent() {
                 {fr ? 'Quand votre client sait que vous arrivez dans 30 minutes, il vous attend sans stress. Cette communication professionnelle vous distingue de la competition.' : 'When your client knows you\'re arriving in 30 minutes, they wait without stress. This professional communication sets you apart from the competition.'}
               </p>
             </div>
-            <div className="bg-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Apercu de la fonctionnalite' : 'Feature preview'}
-            </div>
+            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupDashboard /></div></div></div>
           </div>
         </div>
       </section>
@@ -174,9 +171,7 @@ export default function NotificationsContent() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 bg-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Apercu de la fonctionnalite' : 'Feature preview'}
-            </div>
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupDashboard /></div></div></div>
             <div className="order-1 lg:order-2">
               <h2 className="text-3xl font-bold text-gray-900">
                 {fr ? 'Des rappels qui reduisent les no-shows' : 'Reminders that reduce no-shows'}

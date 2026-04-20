@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { ArrowRight, Globe, ListChecks, CalendarDays, UserPlus, Mail, LayoutDashboard, ChevronDown } from 'lucide-react'
 import MarketingShell from '@/components/MarketingShell'
+import { MockupBookingPortal } from '@/components/mockups'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useState } from 'react'
 
@@ -82,9 +83,7 @@ export default function ReservationsContent() {
                 </Link>
               </div>
             </div>
-            <div className="bg-gray-100 rounded-2xl h-64 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Apercu de la fonctionnalite' : 'Feature preview'}
-            </div>
+            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupBookingPortal /></div></div></div>
           </div>
         </div>
       </section>
@@ -162,9 +161,7 @@ export default function ReservationsContent() {
                 {fr ? 'Vos clients voient vos services, leurs descriptions et les creneaux disponibles. Ils choisissent ce dont ils ont besoin sans vous appeler.' : 'Your clients see your services, their descriptions, and available slots. They choose what they need without calling you.'}
               </p>
             </div>
-            <div className="bg-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Apercu de la fonctionnalite' : 'Feature preview'}
-            </div>
+            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupBookingPortal /></div></div></div>
           </div>
         </div>
       </section>
@@ -173,9 +170,7 @@ export default function ReservationsContent() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 bg-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Apercu de la fonctionnalite' : 'Feature preview'}
-            </div>
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupBookingPortal /></div></div></div>
             <div className="order-1 lg:order-2">
               <h2 className="text-3xl font-bold text-gray-900">
                 {fr ? 'Tout arrive dans votre tableau de bord' : 'Everything lands in your dashboard'}
