@@ -83,7 +83,7 @@ export default function ReservationsContent() {
                 </Link>
               </div>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupBookingPortal /></div></div></div>
+            <div className="flex justify-center"><MockupBookingPortal /></div>
           </div>
         </div>
       </section>
@@ -161,7 +161,7 @@ export default function ReservationsContent() {
                 {fr ? 'Vos clients voient vos services, leurs descriptions et les creneaux disponibles. Ils choisissent ce dont ils ont besoin sans vous appeler.' : 'Your clients see your services, their descriptions, and available slots. They choose what they need without calling you.'}
               </p>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupBookingPortal /></div></div></div>
+            <div className="flex justify-center"><MockupBookingPortal /></div>
           </div>
         </div>
       </section>

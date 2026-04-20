@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { ArrowRight, Upload, Download, Users, FileText, CheckCircle, Loader, Mail, ChevronDown } from 'lucide-react'
 import MarketingShell from '@/components/MarketingShell'
-import { MockupClientProfile } from '@/components/mockups'
+import { MockupImport } from '@/components/mockups'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useState } from 'react'
 
@@ -83,7 +83,7 @@ export default function ImportContent() {
                 </Link>
               </div>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupClientProfile /></div></div></div>
+            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupImport /></div></div></div>
           </div>
         </div>
       </section>
@@ -161,7 +161,7 @@ export default function ImportContent() {
                 {fr ? 'Gestivio compare vos imports avec vos donnees existantes et vous signale les doublons potentiels. Vous decidez de les ignorer ou de mettre a jour les fiches.' : 'Gestivio compares your imports with existing data and flags potential duplicates. You decide to skip or update the records.'}
               </p>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupClientProfile /></div></div></div>
+            <div className="w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupImport /></div></div></div>
           </div>
         </div>
       </section>
@@ -170,7 +170,7 @@ export default function ImportContent() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupClientProfile /></div></div></div>
+            <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupImport /></div></div></div>
             <div className="order-1 lg:order-2">
               <h2 className="text-3xl font-bold text-gray-900">
                 {fr ? 'Suivi en temps reel de votre import' : 'Real-time tracking of your import'}
