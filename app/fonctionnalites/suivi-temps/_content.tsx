@@ -5,6 +5,7 @@ import { ArrowRight, Play, Pause, Square, FileSpreadsheet, CheckCircle, Download
 import MarketingShell from '@/components/MarketingShell'
 import FaqItem from '@/components/FaqItem'
 import { useLanguage } from '@/lib/LanguageContext'
+import { MockupTimeTracker, MockupTeam } from '@/components/mockups'
 
 export default function SuiviTempsContent() {
   const { lang } = useLanguage()
@@ -34,8 +35,8 @@ export default function SuiviTempsContent() {
                 </Link>
               </div>
             </div>
-            <div className="bg-gray-100 rounded-2xl p-8 h-72 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Aperçu interactif' : 'Interactive preview'}
+            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <MockupTimeTracker />
             </div>
           </div>
         </div>
@@ -144,8 +145,8 @@ export default function SuiviTempsContent() {
                   : 'Each time entry can be associated with a specific job, allowing you to know the real labor cost of each project.'}
               </p>
             </div>
-            <div className="bg-gray-100 rounded-2xl p-8 h-64 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Aperçu interactif' : 'Interactive preview'}
+            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <MockupTimeTracker />
             </div>
           </div>
         </div>
@@ -155,8 +156,8 @@ export default function SuiviTempsContent() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 bg-gray-100 rounded-2xl p-8 h-64 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Aperçu interactif' : 'Interactive preview'}
+            <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <MockupTeam />
             </div>
             <div className="order-1 lg:order-2">
               <h2 className="text-3xl font-bold text-gray-900">

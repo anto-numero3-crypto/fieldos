@@ -5,6 +5,7 @@ import { ArrowRight, FileText, Mail, CheckCircle, RefreshCw, ListChecks, Send, E
 import MarketingShell from '@/components/MarketingShell'
 import FaqItem from '@/components/FaqItem'
 import { useLanguage } from '@/lib/LanguageContext'
+import { MockupInvoice, MockupClientProfile } from '@/components/mockups'
 
 export default function SoumissionsContent() {
   const { lang } = useLanguage()
@@ -34,8 +35,8 @@ export default function SoumissionsContent() {
                 </Link>
               </div>
             </div>
-            <div className="bg-gray-100 rounded-2xl p-8 h-72 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Aperçu interactif' : 'Interactive preview'}
+            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <MockupInvoice />
             </div>
           </div>
         </div>
@@ -144,8 +145,8 @@ export default function SoumissionsContent() {
                   : 'Add custom notes for each line or for the entire quote. Your client receives a clear, professional document that inspires confidence.'}
               </p>
             </div>
-            <div className="bg-gray-100 rounded-2xl p-8 h-64 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Aperçu interactif' : 'Interactive preview'}
+            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <MockupInvoice />
             </div>
           </div>
         </div>
@@ -155,8 +156,8 @@ export default function SoumissionsContent() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 bg-gray-100 rounded-2xl p-8 h-64 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Aperçu interactif' : 'Interactive preview'}
+            <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <MockupClientProfile />
             </div>
             <div className="order-1 lg:order-2">
               <h2 className="text-3xl font-bold text-gray-900">

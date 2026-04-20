@@ -5,6 +5,7 @@ import { ArrowRight, FileText, CreditCard, Hash, Eye, Sparkles, Mail, Receipt, D
 import MarketingShell from '@/components/MarketingShell'
 import FaqItem from '@/components/FaqItem'
 import { useLanguage } from '@/lib/LanguageContext'
+import { MockupInvoice, MockupReports } from '@/components/mockups'
 
 export default function FacturationContent() {
   const { lang } = useLanguage()
@@ -34,8 +35,8 @@ export default function FacturationContent() {
                 </Link>
               </div>
             </div>
-            <div className="bg-gray-100 rounded-2xl p-8 h-72 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Aperçu interactif' : 'Interactive preview'}
+            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <MockupInvoice />
             </div>
           </div>
         </div>
@@ -146,8 +147,8 @@ export default function FacturationContent() {
                   : 'AI learns from your previous invoices to become increasingly accurate. It recognizes your most-used products and suggests them first.'}
               </p>
             </div>
-            <div className="bg-gray-100 rounded-2xl p-8 h-64 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Aperçu interactif' : 'Interactive preview'}
+            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <MockupInvoice />
             </div>
           </div>
         </div>
@@ -157,8 +158,8 @@ export default function FacturationContent() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 bg-gray-100 rounded-2xl p-8 h-64 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Aperçu interactif' : 'Interactive preview'}
+            <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <MockupReports />
             </div>
             <div className="order-1 lg:order-2">
               <h2 className="text-3xl font-bold text-gray-900">

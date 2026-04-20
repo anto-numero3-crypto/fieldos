@@ -5,6 +5,7 @@ import { ArrowRight, Calendar, Users, Bell, RefreshCw, MapPin, Clock, CalendarDa
 import MarketingShell from '@/components/MarketingShell'
 import FaqItem from '@/components/FaqItem'
 import { useLanguage } from '@/lib/LanguageContext'
+import { MockupCalendar, MockupDashboard } from '@/components/mockups'
 
 export default function InterventionsContent() {
   const { lang } = useLanguage()
@@ -34,8 +35,8 @@ export default function InterventionsContent() {
                 </Link>
               </div>
             </div>
-            <div className="bg-gray-100 rounded-2xl p-8 h-72 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Aperçu interactif' : 'Interactive preview'}
+            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <MockupCalendar />
             </div>
           </div>
         </div>
@@ -144,8 +145,8 @@ export default function InterventionsContent() {
                   : 'Two-way sync with Google Calendar means your personal appointments are also visible, so you never double-book yourself.'}
               </p>
             </div>
-            <div className="bg-gray-100 rounded-2xl p-8 h-64 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Aperçu interactif' : 'Interactive preview'}
+            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <MockupCalendar />
             </div>
           </div>
         </div>
@@ -155,8 +156,8 @@ export default function InterventionsContent() {
       <section className="py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 bg-gray-100 rounded-2xl p-8 h-64 flex items-center justify-center text-gray-400 text-sm">
-              {fr ? 'Aperçu interactif' : 'Interactive preview'}
+            <div className="order-2 lg:order-1 rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+              <MockupDashboard />
             </div>
             <div className="order-1 lg:order-2">
               <h2 className="text-3xl font-bold text-gray-900">
