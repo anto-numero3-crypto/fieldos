@@ -196,8 +196,8 @@ export default function MegaMenuNav() {
             <Link href="/#pricing" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
               {lang === 'fr' ? 'Tarifs' : 'Pricing'}
             </Link>
-            <Link href="/blog" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
-              {lang === 'fr' ? 'Blogue' : 'Blog'}
+            <Link href="/about" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+              {lang === 'fr' ? 'À propos' : 'About'}
             </Link>
           </div>
 
@@ -290,8 +290,8 @@ export default function MegaMenuNav() {
             <Link href="/#pricing" onClick={closeMobile} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
               {lang === 'fr' ? 'Tarifs' : 'Pricing'}
             </Link>
-            <Link href="/blog" onClick={closeMobile} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
-              {lang === 'fr' ? 'Blogue' : 'Blog'}
+            <Link href="/about" onClick={closeMobile} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
+              {lang === 'fr' ? 'À propos' : 'About'}
             </Link>
             <Link href="/login" onClick={closeMobile} className="block rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
               {lang === 'fr' ? 'Se connecter' : 'Sign in'}
