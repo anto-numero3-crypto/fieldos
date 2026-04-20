@@ -37,6 +37,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/fonctionnalites/suivi-temps`,            lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${SITE_URL}/fonctionnalites/soumissions`,            lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${SITE_URL}/fonctionnalites/assistant-ia`,           lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/clients`,                lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/calendrier`,             lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/rapports`,               lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/reservations`,           lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/notifications`,          lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/import`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/tableau-de-bord`,        lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${SITE_URL}/fonctionnalites/devis`,                  lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
 
     // Comparison pages
     { url: `${SITE_URL}/vs/jobber`,                           lastModified: now, changeFrequency: 'monthly', priority: 0.7 },

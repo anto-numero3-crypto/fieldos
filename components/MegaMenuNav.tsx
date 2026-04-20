@@ -18,6 +18,11 @@ import {
   ChevronRight,
   Menu,
   X,
+  User,
+  BarChart3,
+  Bell,
+  Upload,
+  LayoutDashboard,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -36,12 +41,16 @@ const COL_TERRAIN: MegaItem[] = [
   { icon: Users, title: "Gestion d'équipe", titleEn: 'Team Management', subtitle: 'Assignez, suivez, coordonnez', subtitleEn: 'Assign, track, coordinate', href: '/fonctionnalites/equipe' },
   { icon: FileText, title: 'Contrats récurrents', titleEn: 'Recurring Contracts', subtitle: 'Gérez vos contrats saisonniers', subtitleEn: 'Manage your seasonal contracts', href: '/fonctionnalites/contrats' },
   { icon: Clock, title: 'Suivi du temps', titleEn: 'Time Tracking', subtitle: 'Feuilles de temps automatiques', subtitleEn: 'Automatic timesheets', href: '/fonctionnalites/suivi-temps' },
+  { icon: Calendar, title: 'Calendrier', titleEn: 'Calendar', subtitle: 'Votre agenda toujours à jour', subtitleEn: 'Your schedule always up to date', href: '/fonctionnalites/calendrier' },
+  { icon: User, title: 'Clients', titleEn: 'Clients', subtitle: 'Tout l\'historique en un clic', subtitleEn: 'Full history in one click', href: '/fonctionnalites/clients' },
 ]
 
 const COL_BILLING: MegaItem[] = [
   { icon: CreditCard, title: 'Facturation professionnelle', titleEn: 'Professional Invoicing', subtitle: 'Une facture en 30 secondes', subtitleEn: 'An invoice in 30 seconds', href: '/fonctionnalites/facturation' },
   { icon: Receipt, title: 'Paiements en ligne', titleEn: 'Online Payments', subtitle: 'Encaissez le jour même', subtitleEn: 'Get paid same day', href: '/fonctionnalites/paiements' },
   { icon: ClipboardList, title: 'Soumissions', titleEn: 'Estimates', subtitle: 'Des devis approuvés en 1 clic', subtitleEn: 'Quotes approved in 1 click', href: '/fonctionnalites/soumissions' },
+  { icon: BarChart3, title: 'Rapports', titleEn: 'Reports', subtitle: 'Comprenez vos chiffres', subtitleEn: 'Understand your numbers', href: '/fonctionnalites/rapports' },
+  { icon: FileText, title: 'Devis', titleEn: 'Quotes', subtitle: 'Approuvés en ligne en 1 clic', subtitleEn: 'Approved online in 1 click', href: '/fonctionnalites/devis' },
 ]
 
 const COL_AI: MegaItem[] = [
@@ -49,11 +58,18 @@ const COL_AI: MegaItem[] = [
   { icon: MessageSquare, title: 'Assistant IA', titleEn: 'AI Assistant', subtitle: 'Votre assistant toujours disponible', subtitleEn: 'Your always-available assistant', href: '/fonctionnalites/assistant-ia' },
 ]
 
+const COL_PLUS: MegaItem[] = [
+  { icon: Bell, title: 'Notifications', titleEn: 'Notifications', subtitle: 'Clients informés automatiquement', subtitleEn: 'Clients informed automatically', href: '/fonctionnalites/notifications' },
+  { icon: Upload, title: 'Import de données', titleEn: 'Data Import', subtitle: 'Migrez en quelques minutes', subtitleEn: 'Migrate in minutes', href: '/fonctionnalites/import' },
+  { icon: LayoutDashboard, title: 'Tableau de bord', titleEn: 'Dashboard', subtitle: 'Tout en un coup d\'oeil', subtitleEn: 'Everything at a glance', href: '/fonctionnalites/tableau-de-bord' },
+]
+
 // ── Column header labels ──────────────────────────────────────
 const COL_HEADERS = {
   terrain: { fr: 'Opérations terrain', en: 'Field Operations' },
   billing: { fr: 'Facturation', en: 'Billing' },
   ai: { fr: 'Intelligence artificielle', en: 'Artificial Intelligence' },
+  plus: { fr: 'Outils', en: 'Tools' },
 }
 
 // ── Mega-menu item renderer ──────────────────────────────────
@@ -166,11 +182,12 @@ export default function MegaMenuNav() {
                   megaOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-2 pointer-events-none'
                 }`}
               >
-                <div className="w-[720px] rounded-2xl border border-gray-200 bg-white p-6 shadow-xl shadow-gray-200/50">
-                  <div className="grid grid-cols-3 gap-6">
+                <div className="w-[920px] rounded-2xl border border-gray-200 bg-white p-6 shadow-xl shadow-gray-200/50">
+                  <div className="grid grid-cols-4 gap-6">
                     <MegaColumn header={COL_HEADERS.terrain} items={COL_TERRAIN} lang={lang} onClick={() => setMegaOpen(false)} />
                     <MegaColumn header={COL_HEADERS.billing} items={COL_BILLING} lang={lang} onClick={() => setMegaOpen(false)} />
                     <MegaColumn header={COL_HEADERS.ai} items={COL_AI} lang={lang} onClick={() => setMegaOpen(false)} />
+                    <MegaColumn header={COL_HEADERS.plus} items={COL_PLUS} lang={lang} onClick={() => setMegaOpen(false)} />
                   </div>
                 </div>
               </div>
@@ -254,6 +271,14 @@ export default function MegaMenuNav() {
               {lang === 'fr' ? COL_HEADERS.ai.fr : COL_HEADERS.ai.en}
             </p>
             {COL_AI.map((item) => (
+              <MegaMenuItem key={item.href} item={item} lang={lang} onClick={closeMobile} />
+            ))}
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
+              {lang === 'fr' ? COL_HEADERS.plus.fr : COL_HEADERS.plus.en}
+            </p>
+            {COL_PLUS.map((item) => (
               <MegaMenuItem key={item.href} item={item} lang={lang} onClick={closeMobile} />
             ))}
           </div>
