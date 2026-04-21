@@ -97,6 +97,42 @@ body {
   border-radius: 8px;
 }
 
+/* ─── Step wizard transitions ──────────────── */
+@keyframes stepSlideIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.step-slide-in { animation: stepSlideIn 0.32s cubic-bezier(0.16,1,0.3,1); }
+
+/* ─── Celebration pulse ────────────────────── */
+@keyframes celebrationPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.06); }
+}
+.celebration-pulse { animation: celebrationPulse 1.8s ease-in-out infinite; }
+
+/* ─── Gradient shimmer (for premium badges) ── */
+@keyframes gradientShimmer {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.gradient-shimmer {
+  background-size: 200% 200%;
+  animation: gradientShimmer 3s ease infinite;
+}
+
+/* ─── Auth panels ──────────────────────────── */
+.auth-left-panel {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #6d28d9 100%);
+}
+
+/* ─── Progress bar animated fill ───────────── */
+@keyframes progressGrow {
+  from { width: 0; }
+}
+.progress-grow { animation: progressGrow 0.5s cubic-bezier(0.16,1,0.3,1); }
+
 /* ─── Toast ─────────────────────────────────── */
 @keyframes toastIn {
   from { opacity: 0; transform: translateY(16px) scale(0.97); }

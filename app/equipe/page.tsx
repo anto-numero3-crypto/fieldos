@@ -239,7 +239,7 @@ export default function TeamPage() {
       actions={
         <button
           onClick={openCreateModal}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 shadow-sm transition-all duration-200 active:scale-[0.97]"
         >
           <UserPlus className="w-4 h-4" />
           {fr ? 'Ajouter un membre' : 'Add member'}

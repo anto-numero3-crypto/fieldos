@@ -280,18 +280,18 @@ export default function SchedulePage() {
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Prev / Today / Next */}
-            <div className="flex items-center rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
+            <div className="flex items-center rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
               <button
                 onClick={goPrev}
                 aria-label={fr ? 'Précédent' : 'Previous'}
-                className="p-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-l-xl transition-colors"
+                className="p-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-l-full transition-colors active:scale-[0.95]"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <div className="w-px h-4 bg-gray-200 dark:bg-gray-700" />
               <button
                 onClick={goToday}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="px-3.5 py-1.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
               >
                 {fr ? "Aujourd'hui" : 'Today'}
               </button>
@@ -299,14 +299,14 @@ export default function SchedulePage() {
               <button
                 onClick={goNext}
                 aria-label={fr ? 'Suivant' : 'Next'}
-                className="p-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-r-xl transition-colors"
+                className="p-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-r-full transition-colors active:scale-[0.95]"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
 
             {/* View switcher (segmented control) */}
-            <div className="flex items-center gap-0.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-0.5">
+            <div className="flex items-center gap-0.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 p-0.5">
               {(['day','week','month'] as View[]).map((v) => {
                 const active = view === v
                 const label = v === 'day' ? (fr ? 'Jour' : 'Day') : v === 'week' ? (fr ? 'Semaine' : 'Week') : (fr ? 'Mois' : 'Month')
@@ -314,7 +314,7 @@ export default function SchedulePage() {
                   <button
                     key={v}
                     onClick={() => setView(v)}
-                    className={`rounded-lg px-3 py-1.5 text-xs sm:text-sm font-semibold transition-all ${active
+                    className={`rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition-all duration-200 active:scale-[0.97] ${active
                       ? 'bg-indigo-600 text-white shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
                   >
@@ -525,7 +525,7 @@ function TimeGridView(props: {
                         key={job.id}
                         type="button"
                         onClick={() => router.push(`/jobs/${job.id}`)}
-                        className={`absolute rounded-md px-1.5 py-1 text-left overflow-hidden hover:shadow-md transition-shadow cursor-pointer ${cfg.pulse ? 'animate-pulse' : ''}`}
+                        className={`absolute rounded-lg px-1.5 py-1 text-left overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer ${cfg.pulse ? 'animate-pulse' : ''}`}
                         style={{
                           top,
                           height,
@@ -651,7 +651,7 @@ function AllDayRow(props: {
                   key={job.id}
                   type="button"
                   onClick={() => onJobClick(job.id)}
-                  className={`block w-full text-left rounded px-1.5 py-1 text-[11px] font-medium truncate hover:shadow-sm transition-shadow ${cfg.pulse ? 'animate-pulse' : ''}`}
+                  className={`block w-full text-left rounded-md px-1.5 py-1 text-[11px] font-medium truncate hover:shadow-sm transition-all duration-200 ${cfg.pulse ? 'animate-pulse' : ''}`}
                   style={{
                     backgroundColor: bg,
                     borderLeft: `3px solid ${cfg.border}`,
@@ -726,7 +726,7 @@ function MonthView(props: {
               key={i}
               type="button"
               onClick={() => onPickDay(d)}
-              className={`relative text-left min-h-[96px] border-r border-b border-gray-100 dark:border-gray-800 p-1.5 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60 ${
+              className={`relative text-left min-h-[96px] border-r border-b border-gray-100 dark:border-gray-800 p-1.5 transition-all duration-200 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20 active:scale-[0.99] ${
                 !inMonth ? 'bg-gray-50/40 dark:bg-gray-900/40' : ''
               } ${(i + 1) % 7 === 0 ? 'border-r-0' : ''} ${i >= 35 ? 'border-b-0' : ''}`}
             >
