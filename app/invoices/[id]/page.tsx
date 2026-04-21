@@ -335,7 +335,7 @@ export default function InvoiceDetailPage() {
         <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
 
           {/* ========== LEFT: Invoice Preview (60%) ========== */}
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
             {/* Preview header */}
             <div className="px-8 py-6 border-b border-gray-100">
               <div className="flex justify-between items-start">
@@ -448,7 +448,7 @@ export default function InvoiceDetailPage() {
           <div className="space-y-4">
 
             {/* Status Timeline */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">{fr ? 'Progression' : 'Progress'}</p>
               <div className="space-y-3">
                 {timelineSteps.map((step, i) => (
@@ -480,7 +480,7 @@ export default function InvoiceDetailPage() {
             </div>
 
             {/* Amount Card */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{fr ? 'Montant total' : 'Total amount'}</p>
               <p className="text-3xl font-black text-gray-900">{fmt(invoice.amount)}</p>
               {invoice.status === 'paid' && invoice.paid_at && (
@@ -489,7 +489,7 @@ export default function InvoiceDetailPage() {
             </div>
 
             {/* Actions */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5 space-y-2">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5 space-y-2">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{fr ? 'Actions' : 'Actions'}</p>
 
               {/* Mark paid */}
@@ -565,7 +565,7 @@ export default function InvoiceDetailPage() {
 
             {/* Customer Card */}
             {invoice.customers && (
-              <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+              <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{fr ? 'Client' : 'Customer'}</p>
                 <div className="flex items-start gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 font-bold text-sm">
@@ -585,7 +585,7 @@ export default function InvoiceDetailPage() {
 
             {/* Activity Log */}
             {activity.length > 0 && (
-              <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+              <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{fr ? 'Activité' : 'Activity'}</p>
                 <div className="space-y-3 max-h-60 overflow-auto">
                   {activity.map((evt) => (
@@ -610,7 +610,7 @@ export default function InvoiceDetailPage() {
       {payModalOpen && (
         <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => !paySaving && setPayModalOpen(false)} />
-          <div className="relative w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden">
+          <div className="relative w-full sm:max-w-md bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
@@ -656,7 +656,7 @@ export default function InvoiceDetailPage() {
               </div>
             </div>
             <div className="flex items-center justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-5 py-3">
-              <button type="button" onClick={() => setPayModalOpen(false)} disabled={paySaving} className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60">
+              <button type="button" onClick={() => setPayModalOpen(false)} disabled={paySaving} className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-60">
                 {fr ? 'Annuler' : 'Cancel'}
               </button>
               <button type="button" onClick={submitManualPayment} disabled={paySaving} className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60">

@@ -165,10 +165,10 @@ export default function JobDetailPage() {
         toast.success(t.success.updated)
       } else {
         const err = await res.json().catch(() => null)
-        toast.error(err?.error || 'Error')
+        toast.error(fr ? (err?.error || 'Impossible de mettre \u00e0 jour l\u2019intervention') : (err?.error || 'Could not update the job'))
       }
     } catch {
-      toast.error('Network error')
+      toast.error(fr ? 'Erreur r\u00e9seau \u2014 v\u00e9rifiez votre connexion' : 'Network error \u2014 check your connection')
     }
   }
 
@@ -331,7 +331,7 @@ export default function JobDetailPage() {
         </div>
 
         {/* Status Pipeline */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm px-6 py-4 mb-4 overflow-x-auto">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm px-6 py-4 mb-4 overflow-x-auto">
           <div className="flex items-center gap-0 min-w-max">
             {[
               { key: 'scheduled', label: tStatus('scheduled'), dot: 'bg-blue-500' },
@@ -366,14 +366,14 @@ export default function JobDetailPage() {
             })}
             {effStatus === 'cancelled' && (
               <div className="ml-4 flex items-center gap-1.5 rounded-xl bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-400">
-                <span className="h-2 w-2 rounded-full bg-gray-300" /> {fr ? 'Annulé' : 'Cancelled'}
+                <span className="h-2 w-2 rounded-full bg-gray-300" /> {fr ? 'Annul\u00e9e' : 'Cancelled'}
               </div>
             )}
           </div>
         </div>
 
         {/* Header */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6 mb-6">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6 mb-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex-1 min-w-0">
               {editMode ? (
@@ -410,7 +410,7 @@ export default function JobDetailPage() {
                   {statusDropdown && (
                     <>
                       <div className="fixed inset-0 z-10" onClick={() => setStatusDropdown(false)} />
-                      <div className="absolute left-0 top-full mt-1 z-20 w-44 rounded-xl border border-gray-100 bg-white shadow-lg py-1 slide-up">
+                      <div className="absolute left-0 top-full mt-1 z-20 w-44 rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg py-1 slide-up">
                         {Object.entries(STATUS_CFG).map(([key, cfg]) => (
                           <button key={key} onClick={() => changeStatus(key)} className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${job.status === key ? 'font-semibold text-indigo-600' : 'text-gray-700'}`}>
                             <span className={`h-2 w-2 rounded-full ${cfg.dotCls}`} />{tStatus(key)}
@@ -597,7 +597,7 @@ export default function JobDetailPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
             {/* Checklist */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
               <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div>
                   <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Liste de tâches' : 'Checklist'}</h2>
@@ -637,7 +637,7 @@ export default function JobDetailPage() {
                   value={newCheckItem}
                   onChange={(e) => setNewCheckItem(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCheckItem() } }}
-                  className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                  className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 />
                 <button onClick={addCheckItem} disabled={!newCheckItem.trim()} className="rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-40 transition-colors">
                   <Plus className="h-4 w-4" />
@@ -646,7 +646,7 @@ export default function JobDetailPage() {
             </div>
 
             {/* Internal notes */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
               <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <StickyNote className="h-4 w-4 text-amber-500" /> {fr ? 'Notes internes' : 'Internal notes'}
               </h2>
@@ -663,7 +663,7 @@ export default function JobDetailPage() {
           {/* Right sidebar */}
           <div className="space-y-4">
             {/* Invoice */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
               <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <FileText className="h-4 w-4 text-emerald-500" /> {fr ? 'Facture' : 'Invoice'}
               </h2>
@@ -693,7 +693,7 @@ export default function JobDetailPage() {
 
             {/* Multi-employee assignment */}
             {employees.length > 0 && (
-              <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+              <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
                 <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <Users className="h-4 w-4 text-indigo-500" /> {fr ? 'Techniciens assign\u00e9s' : 'Assigned technicians'}
                 </h2>
@@ -707,14 +707,14 @@ export default function JobDetailPage() {
 
             {/* Legacy single assignment (if no employees but team exists) */}
             {employees.length === 0 && team.length > 0 && (
-              <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+              <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
                 <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <User className="h-4 w-4 text-indigo-500" /> {fr ? 'Assign\u00e9 \u00e0' : 'Assigned to'}
                 </h2>
                 <select
                   value={job.assigned_to || ''}
                   onChange={(e) => assignMember(e.target.value)}
-                  className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
                   <option value="">{fr ? 'Non assign\u00e9' : 'Unassigned'}</option>
                   {team.map((m) => (
@@ -725,7 +725,7 @@ export default function JobDetailPage() {
             )}
 
             {/* Job details */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
               <h2 className="text-sm font-semibold text-gray-900 mb-3">{fr ? "Détails de l'intervention" : 'Job details'}</h2>
               <dl className="space-y-2.5 text-sm">
                 <div className="flex justify-between">
@@ -761,7 +761,7 @@ export default function JobDetailPage() {
       {completedModalOpen && (
         <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setCompletedModalOpen(false)} />
-          <div className="relative w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden">
+          <div className="relative w-full sm:max-w-md bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden">
             <div className="px-6 pt-6 pb-4 text-center">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
                 <CheckCircle className="h-7 w-7 text-emerald-600" />
@@ -777,7 +777,7 @@ export default function JobDetailPage() {
               <button
                 type="button"
                 onClick={() => setCompletedModalOpen(false)}
-                className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 {fr ? 'Plus tard' : 'Later'}
               </button>

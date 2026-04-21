@@ -33,7 +33,7 @@ export default function CancelBookingPage() {
   }
 
   const STATUS_LABELS: Record<string, string> = fr
-    ? { pending: 'En attente', confirmed: 'Confirmé', cancelled: 'Annulé', declined: 'Refusé', completed: 'Terminé' }
+    ? { pending: 'En attente', confirmed: 'Confirm\u00e9e', cancelled: 'Annul\u00e9e', declined: 'Refus\u00e9e', completed: 'Compl\u00e9t\u00e9e' }
     : { pending: 'Pending', confirmed: 'Confirmed', cancelled: 'Cancelled', declined: 'Declined', completed: 'Completed' }
 
   const REASONS: Array<{ value: string; label: string }> = fr

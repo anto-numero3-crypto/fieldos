@@ -88,7 +88,7 @@ export default function QuotesPage() {
               quoteTitle: q.title,
               amount: `$${q.total.toFixed(2)}`,
               subject: `Devis accepté — ${q.title || q.quote_number || ''}`,
-              body: `Votre devis a été accepté. Nous vous contacterons sous peu pour planifier les travaux.`,
+              body: `Votre devis a \u00e9t\u00e9 accept\u00e9. Nous vous contacterons sous peu pour planifier l\u2019intervention.`,
             }),
           })
         } catch { /* ignore */ }
@@ -222,7 +222,7 @@ export default function QuotesPage() {
             { label: fr ? 'Approuvés' : 'Approved', value: fmt(approvedValue), icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
             { label: fr ? "Taux d'acceptation" : 'Accept rate', value: `${isNaN(acceptRate) ? 0 : acceptRate.toFixed(0)}%`, icon: Tag, bg: 'bg-blue-50', color: 'text-blue-600' },
           ].map((s) => (
-            <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <div key={s.label} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
               <div className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${s.bg} mb-2`}><s.icon className={`h-4 w-4 ${s.color}`} /></div>
               <p className="text-xs text-gray-500">{s.label}</p>
               <p className="text-lg font-bold text-gray-900">{s.value}</p>
@@ -232,21 +232,21 @@ export default function QuotesPage() {
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
-          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 flex-wrap">
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 flex-wrap">
             {[{ key: 'all', label: fr ? 'Tous' : 'All', count: quotes.length }, ...Object.keys(STATUS_CLS).map((key) => ({ key, label: tStatus(key), count: counts[key] || 0 }))].map((f) => (
-              <button key={f.key} onClick={() => setFilter(f.key)} className={['flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all', filter === f.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'].join(' ')}>
-                {f.label} <span className={`h-4 min-w-4 inline-flex items-center justify-center rounded-full px-1 text-xs ${filter === f.key ? 'bg-gray-100 text-gray-600' : 'text-gray-400'}`}>{f.count}</span>
+              <button key={f.key} onClick={() => setFilter(f.key)} className={['flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all', filter === f.key ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'].join(' ')}>
+                {f.label} <span className={`h-4 min-w-4 inline-flex items-center justify-center rounded-full px-1 text-xs ${filter === f.key ? 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300' : 'text-gray-400'}`}>{f.count}</span>
               </button>
             ))}
           </div>
           <div className="relative sm:ml-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input type="text" placeholder={fr ? 'Rechercher des devis...' : 'Search quotes...'} value={search} onChange={(e) => setSearch(e.target.value)} className="block rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm w-56" />
+            <input type="text" placeholder={fr ? 'Rechercher des devis...' : 'Search quotes...'} value={search} onChange={(e) => setSearch(e.target.value)} className="block rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 pl-9 pr-4 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm w-56" />
           </div>
         </div>
 
         {quotes.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
+          <div className="rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <EmptyState
               icon={ClipboardList}
               title={fr ? 'Aucun devis' : 'No quotes'}
@@ -255,15 +255,15 @@ export default function QuotesPage() {
             />
           </div>
         ) : (
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
             <div className="hidden sm:block overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-100">
-                <thead><tr className="bg-gray-50">{(fr ? ['Devis', 'Client', 'Total', "Valide jusqu'au", 'Statut', ''] : ['Quote', 'Customer', 'Total', 'Valid until', 'Status', '']).map((c) => <th key={c} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{c}</th>)}</tr></thead>
-                <tbody className="divide-y divide-gray-50">
+              <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-800">
+                <thead><tr className="bg-gray-50 dark:bg-gray-800/50">{(fr ? ['Devis', 'Client', 'Total', "Valide jusqu'au", 'Statut', ''] : ['Quote', 'Customer', 'Total', 'Valid until', 'Status', '']).map((c) => <th key={c} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{c}</th>)}</tr></thead>
+                <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                   {paged.map((q) => {
                     const scls = STATUS_CLS[q.status]
                     return (
-                      <tr key={q.id} className="hover:bg-gray-50 transition-colors group">
+                      <tr key={q.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
                         <td className="px-5 py-4">
                           <p className="text-sm font-semibold text-gray-900">{q.title}</p>
                           {q.quote_number && <p className="text-xs text-gray-400">{q.quote_number}</p>}
@@ -343,15 +343,15 @@ export default function QuotesPage() {
       {panelOpen && (
         <>
           <div className="fixed inset-0 z-30 bg-gray-900/50 backdrop-blur-sm fade-in" onClick={() => setPanelOpen(false)} />
-          <div className="fixed inset-y-0 right-0 z-40 w-full max-w-lg bg-white shadow-2xl slide-over flex flex-col">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-              <div><h2 className="text-base font-semibold text-gray-900">{fr ? 'Nouveau devis' : 'New quote'}</h2><p className="text-xs text-gray-400 mt-0.5">{fr ? "Créez un devis professionnel avec des lignes d'articles" : 'Create a professional quote with line items'}</p></div>
+          <div className="fixed inset-y-0 right-0 z-40 w-full max-w-lg bg-white dark:bg-gray-900 shadow-2xl slide-over flex flex-col">
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 px-6 py-4">
+              <div><h2 className="text-base font-semibold text-gray-900 dark:text-white">{fr ? 'Nouveau devis' : 'New quote'}</h2><p className="text-xs text-gray-400 mt-0.5">{fr ? "Créez un devis professionnel avec des lignes d'articles" : 'Create a professional quote with line items'}</p></div>
               <button type="button" onClick={() => setPanelOpen(false)} className="rounded-lg p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"><X className="h-5 w-5" /></button>
             </div>
 
             <form onSubmit={createQuote} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Titre' : 'Title'} <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{fr ? 'Titre' : 'Title'} <span className="text-red-500">*</span></label>
                 <input type="text" placeholder={fr ? 'ex. Installation HVAC' : 'e.g. HVAC installation'} value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, title: true }))}
@@ -361,15 +361,15 @@ export default function QuotesPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Client' : 'Customer'}</label>
-                  <select value={customerId} onChange={(e) => setCustId(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{fr ? 'Client' : 'Customer'}</label>
+                  <select value={customerId} onChange={(e) => setCustId(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
                     <option value="">{fr ? 'Sélectionner un client' : 'Select a customer'}</option>
                     {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? "Valide jusqu'au" : 'Valid until'}</label>
-                  <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{fr ? "Valide jusqu'au" : 'Valid until'}</label>
+                  <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                 </div>
               </div>
 
@@ -401,7 +401,7 @@ export default function QuotesPage() {
               </div>
 
               {/* Totals */}
-              <div className="rounded-xl bg-gray-50 p-4 space-y-2">
+              <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">{fr ? 'Sous-total' : 'Subtotal'}</span>
                   <span className="font-medium">{fmt(subtotal)}</span>
@@ -424,14 +424,14 @@ export default function QuotesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Notes' : 'Notes'}</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{fr ? 'Notes' : 'Notes'}</label>
                 <textarea placeholder={fr ? 'Conditions, notes ou informations supplémentaires...' : 'Terms, notes, or additional information...'} value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               </div>
 
             </form>
 
-            <div className="flex items-center gap-3 border-t border-gray-100 px-6 py-4">
-              <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
+            <div className="flex items-center gap-3 border-t border-gray-100 dark:border-gray-800 px-6 py-4">
+              <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
               <button onClick={createQuote} disabled={loading || formInvalid} className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all">
                 {loading ? (fr ? 'Création en cours...' : 'Creating...') : (fr ? 'Créer le devis' : 'Create quote')}
               </button>

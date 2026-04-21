@@ -510,7 +510,7 @@ export default function DashboardPage() {
         out.push({
           id: `job-${j.id}`,
           kind: 'job_completed',
-          text: fr ? `Intervention terminée pour ${name}` : `Job completed for ${name}`,
+          text: fr ? `Intervention compl\u00e9t\u00e9e pour ${name}` : `Job completed for ${name}`,
           href: `/jobs/${j.id}`,
           at: j.scheduled_date || j.created_at,
         })
@@ -617,7 +617,7 @@ export default function DashboardPage() {
 
         {/* ══════ ROW 1 — KPI cards ══════ */}
         <section
-          className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 transition-all duration-500 ease-out ${
+          className={`grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 transition-all duration-500 ease-out ${
             mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
           }`}
           style={{ transitionDelay: '80ms' }}

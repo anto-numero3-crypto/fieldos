@@ -250,7 +250,7 @@ export default function ImportPage() {
 
         {/* ── Step 1: Upload ── */}
         {step === 1 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-1">{fr ? 'Sélectionner un fichier CSV' : 'Select a CSV file'}</h2>
             <p className="text-sm text-gray-500 mb-6">{fr ? "Formats acceptés : .csv — jusqu'à 5 000 lignes" : 'Accepted formats: .csv — up to 5,000 rows'}</p>
 
@@ -277,7 +277,7 @@ export default function ImportPage() {
 
         {/* ── Step 2: Mapping ── */}
         {step === 2 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-8">
             <div className="flex items-start justify-between mb-6">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-1">{fr ? 'Correspondance des colonnes' : 'Column mapping'}</h2>
@@ -301,7 +301,7 @@ export default function ImportPage() {
                       updated[i] = { ...updated[i], csvCol: e.target.value || null }
                       setMapping(updated)
                     }}
-                    className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                   >
                     <option value="">{fr ? '— Ignorer —' : '— Skip —'}</option>
                     {csvHeaders.map((h) => <option key={h} value={h}>{h}</option>)}
@@ -332,7 +332,7 @@ export default function ImportPage() {
 
         {/* ── Step 3: Validation ── */}
         {step === 3 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">{fr ? 'Résultats de validation' : 'Validation results'}</h2>
 
             <div className="grid grid-cols-3 gap-4 mb-6">
@@ -386,7 +386,7 @@ export default function ImportPage() {
 
         {/* ── Step 4: Progress ── */}
         {step === 4 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-12 text-center">
             <RefreshCw className="h-12 w-12 text-indigo-500 mx-auto mb-4 animate-spin" />
             <h2 className="text-lg font-semibold text-gray-900 mb-2">{fr ? 'Import en cours…' : 'Importing…'}</h2>
             <p className="text-sm text-gray-500 mb-6">{fr ? `${imported} client${imported !== 1 ? 's' : ''} importé${imported !== 1 ? 's' : ''}` : `${imported} customer${imported !== 1 ? 's' : ''} imported`}</p>
@@ -401,7 +401,7 @@ export default function ImportPage() {
 
         {/* ── Step 5: Done ── */}
         {step === 5 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-12 text-center">
             <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
               {errors.length === 0 ? <Check className="h-9 w-9 text-emerald-600" /> : <AlertCircle className="h-9 w-9 text-amber-600" />}
             </div>

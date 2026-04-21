@@ -424,7 +424,7 @@ export default function NewInvoicePage() {
           <div className="flex-1 lg:max-w-[60%] space-y-6">
 
             {/* A. Client Selector */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
               <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <User className="h-4 w-4 text-gray-400" /> {fr ? 'Client' : 'Customer'}
               </h2>
@@ -454,11 +454,11 @@ export default function NewInvoicePage() {
                         value={customerSearch}
                         onChange={(e) => { setCustomerSearch(e.target.value); setCustomerDropdownOpen(true) }}
                         onFocus={() => setCustomerDropdownOpen(true)}
-                        className="block w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                        className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 pl-10 pr-4 py-3 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                       />
                     </div>
                     {customerDropdownOpen && (
-                      <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg max-h-60 overflow-auto">
+                      <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg max-h-60 overflow-auto">
                         {filteredCustomers.length === 0 ? (
                           <p className="px-4 py-3 text-sm text-gray-400">{fr ? 'Aucun client trouvé' : 'No customer found'}</p>
                         ) : (
@@ -492,7 +492,7 @@ export default function NewInvoicePage() {
             </div>
 
             {/* B. Invoice Details (collapsible) */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
               <button
                 onClick={() => setDetailsOpen(!detailsOpen)}
                 className="flex items-center justify-between w-full px-6 py-4 text-left hover:bg-gray-50 transition-colors"
@@ -521,7 +521,7 @@ export default function NewInvoicePage() {
                       <select
                         value={dueDateOption}
                         onChange={(e) => handleDueDateOption(parseInt(e.target.value))}
-                        className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                       >
                         {DUE_DATE_OPTIONS.map((opt) => <option key={opt.days} value={opt.days}>{opt.label}</option>)}
                       </select>
@@ -538,7 +538,7 @@ export default function NewInvoicePage() {
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-gray-500 mb-1.5">{fr ? 'Intervention liée' : 'Linked job'}</label>
-                      <select value={jobId} onChange={(e) => setJobId(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                      <select value={jobId} onChange={(e) => setJobId(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                         <option value="">{fr ? 'Aucune' : 'None'}</option>
                         {jobs.map((j) => <option key={j.id} value={j.id}>{j.title}</option>)}
                       </select>
@@ -549,7 +549,7 @@ export default function NewInvoicePage() {
             </div>
 
             {/* C. Line Items */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                   <FileText className="h-4 w-4 text-gray-400" /> {fr ? 'Lignes de facturation' : 'Line items'}
@@ -595,10 +595,10 @@ export default function NewInvoicePage() {
                               else if (e.key === 'Enter' && productHighlight >= 0 && m[productHighlight]) { e.preventDefault(); selectProduct(line.id, m[productHighlight]) }
                               else if (e.key === 'Enter' && idx === lines.length - 1) { e.preventDefault(); addLine() }
                             }}
-                            className="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+                            className="block w-full rounded-lg border border-gray-200 px-3 py-2 text-base sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
                           />
                           {productDropdown === line.id && matches.length > 0 && (
-                            <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 bg-white shadow-lg max-h-48 overflow-auto">
+                            <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg max-h-48 overflow-auto">
                               {matches.map((p, pi) => (
                                 <button
                                   key={p.id}
@@ -656,7 +656,7 @@ export default function NewInvoicePage() {
             </div>
 
             {/* D. Subtotal / Taxes / Discount */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
               <div className="grid sm:grid-cols-2 gap-8">
                 {/* Settings */}
                 <div className="space-y-4">
@@ -671,8 +671,8 @@ export default function NewInvoicePage() {
                   {discountEnabled && (
                     <div className="flex gap-3">
                       <div className="flex rounded-lg border border-gray-200 overflow-hidden">
-                        <button onClick={() => setDiscountType('percent')} className={`px-3 py-1.5 text-xs font-semibold transition-colors ${discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>%</button>
-                        <button onClick={() => setDiscountType('fixed')} className={`px-3 py-1.5 text-xs font-semibold transition-colors ${discountType === 'fixed' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>$</button>
+                        <button onClick={() => setDiscountType('percent')} className={`px-3 py-1.5 text-xs font-semibold transition-colors ${discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'}`}>%</button>
+                        <button onClick={() => setDiscountType('fixed')} className={`px-3 py-1.5 text-xs font-semibold transition-colors ${discountType === 'fixed' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'}`}>$</button>
                       </div>
                       <input type="number" min="0" step="0.01" value={discountValue} onChange={(e) => setDiscountValue(e.target.value)} placeholder="0" className="w-24 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
                     </div>
@@ -730,7 +730,7 @@ export default function NewInvoicePage() {
             </div>
 
             {/* E. Notes */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6 space-y-4">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6 space-y-4">
               <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Notes' : 'Notes'}</h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
@@ -748,7 +748,7 @@ export default function NewInvoicePage() {
           {/* ========== RIGHT: LIVE PREVIEW (40%) ========== */}
           <div className={`lg:w-[40%] ${showPreview ? 'block' : 'hidden lg:block'}`}>
             <div className="sticky top-6">
-              <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+              <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-gray-900">{fr ? 'Aperçu' : 'Preview'}</h3>
                   <button onClick={() => setShowPreview(false)} className="lg:hidden text-gray-400 hover:text-gray-600">
@@ -834,7 +834,7 @@ export default function NewInvoicePage() {
         </div>
 
         {/* F. Fixed bottom action bar */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white px-4 py-3 sm:px-6 shadow-xl">
+        <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-50 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 sm:px-6 shadow-xl">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <button onClick={() => setShowPreview(!showPreview)} className="lg:hidden inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
@@ -847,7 +847,7 @@ export default function NewInvoicePage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={saveDraft} disabled={saving} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-all shadow-sm">
+              <button onClick={saveDraft} disabled={saving} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-60 transition-all shadow-sm">
                 <Save className="h-4 w-4" />
                 {saving ? (fr ? 'Enregistrement...' : 'Saving...') : (fr ? 'Sauvegarder brouillon' : 'Save draft')}
               </button>
@@ -862,9 +862,9 @@ export default function NewInvoicePage() {
 
       {/* G. AI Creation Modal */}
       {aiOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => !aiLoading && setAiOpen(false)} />
-          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden mx-4">
+          <div className="relative w-full sm:max-w-lg bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden sm:mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-r from-violet-100 to-indigo-100">
@@ -885,12 +885,12 @@ export default function NewInvoicePage() {
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
                 placeholder={fr ? 'Ex: Facture pour Jean Tremblay, 3 heures de plomberie à 85$/h plus 2 raccords en cuivre à 12$' : 'E.g.: Invoice for John Smith, 3 hours of plumbing at $85/hr plus 2 copper fittings at $12 each'}
-                className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
+                className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-base sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
                 disabled={aiLoading}
               />
             </div>
             <div className="flex items-center justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-6 py-3">
-              <button onClick={() => setAiOpen(false)} disabled={aiLoading} className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60">
+              <button onClick={() => setAiOpen(false)} disabled={aiLoading} className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-60">
                 {fr ? 'Annuler' : 'Cancel'}
               </button>
               <button onClick={handleAiCreate} disabled={aiLoading || !aiPrompt.trim()} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60">

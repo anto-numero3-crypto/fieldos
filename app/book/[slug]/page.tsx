@@ -485,25 +485,25 @@ export default function PublicBookingPage() {
                         value={customPreferredDate}
                         onChange={(e) => setCustomPreferredDate(e.target.value)}
                         placeholder={fr ? 'ex. Semaine du 15 mai, weekends uniquement…' : 'e.g. Week of May 15, weekends only…'}
-                        className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-base sm:text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Nom *' : 'Name *'}</label>
                         <input type="text" value={customName} onChange={(e) => setCustomName(e.target.value)}
-                          className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                          className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-base sm:text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Téléphone' : 'Phone'}</label>
                         <input type="tel" value={customPhone} onChange={(e) => setCustomPhone(e.target.value)}
-                          className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                          className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-base sm:text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                       </div>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Email *' : 'Email *'}</label>
                       <input type="email" value={customEmail} onChange={(e) => setCustomEmail(e.target.value)}
-                        className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                        className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-base sm:text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Adresse (optionnel)' : 'Address (optional)'}</label>
@@ -707,26 +707,26 @@ export default function PublicBookingPage() {
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Prénom *' : 'First name *'}</label>
                   <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                    className={`block w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${errors.firstName ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-indigo-500'}`} />
+                    className={`block w-full rounded-xl border px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${errors.firstName ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-indigo-500'}`} />
                   {errors.firstName && <p className="mt-1 text-xs text-red-500">{errors.firstName}</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Nom *' : 'Last name *'}</label>
                   <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)}
-                    className={`block w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${errors.lastName ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-indigo-500'}`} />
+                    className={`block w-full rounded-xl border px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${errors.lastName ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-indigo-500'}`} />
                   {errors.lastName && <p className="mt-1 text-xs text-red-500">{errors.lastName}</p>}
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Adresse courriel *' : 'Email address *'}</label>
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                  className={`block w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${errors.email ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-indigo-500'}`} />
+                  className={`block w-full rounded-xl border px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors ${errors.email ? 'border-red-300 bg-red-50' : 'border-gray-200 bg-white focus:border-indigo-500'}`} />
                 {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Téléphone' : 'Phone'}</label>
                 <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
-                  className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                  className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-base sm:text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Adresse (si applicable)' : 'Address (if applicable)'}</label>
@@ -736,7 +736,7 @@ export default function PublicBookingPage() {
                 <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Notes / demandes spéciales' : 'Notes / special requests'}</label>
                 <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)}
                   placeholder={fr ? 'Informations supplémentaires pour le prestataire…' : 'Additional info for the provider…'}
-                  className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
+                  className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-base sm:text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               </div>
 
               <button

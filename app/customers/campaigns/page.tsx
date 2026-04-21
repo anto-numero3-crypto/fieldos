@@ -305,7 +305,7 @@ Subject line first, then body. Keep it warm, professional, and concise.`
         <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 w-fit">
           {tabOptions.map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)}
-              className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition-all ${tab === key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+              className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition-all ${tab === key ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}>
               {label}
               {key === 'history' && campaigns.length > 0 && (
                 <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">{campaigns.length}</span>
@@ -334,7 +334,7 @@ Subject line first, then body. Keep it warm, professional, and concise.`
             <div className="lg:col-span-3 space-y-5">
 
               {/* Templates */}
-              <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
                 <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <Tag className="h-4 w-4 text-gray-400" /> {fr ? 'Modèles' : 'Templates'}
                 </h3>
@@ -353,7 +353,7 @@ Subject line first, then body. Keep it warm, professional, and concise.`
               </div>
 
               {/* Form */}
-              <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-4">
+              <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-4">
                 <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                   <MessageSquare className="h-4 w-4 text-gray-400" /> {fr ? 'Composer' : 'Compose'}
                 </h3>
@@ -369,7 +369,7 @@ Subject line first, then body. Keep it warm, professional, and concise.`
                   <label className="block text-xs font-semibold text-gray-600 mb-1.5">{fr ? 'Audience' : 'Audience'}</label>
                   <div className="relative">
                     <select value={audience} onChange={(e) => setAudience(e.target.value as AudienceType)}
-                      className="w-full appearance-none rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none bg-white pr-8">
+                      className="w-full appearance-none rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none bg-white dark:bg-gray-800 dark:text-white dark:border-gray-700 pr-8">
                       {(Object.entries(AUDIENCE_LABELS) as [AudienceType, string][]).map(([key, label]) => (
                         <option key={key} value={key}>{label}</option>
                       ))}
@@ -442,7 +442,7 @@ Subject line first, then body. Keep it warm, professional, and concise.`
 
             {/* Right: preview */}
             <div className="lg:col-span-2 space-y-4">
-              <div className="rounded-2xl border border-gray-100 bg-white p-5 sticky top-6">
+              <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sticky top-6">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4">{fr ? 'Aperçu' : 'Preview'}</h3>
                 {subject || body ? (
                   <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
@@ -464,7 +464,7 @@ Subject line first, then body. Keep it warm, professional, and concise.`
               </div>
 
               {/* Audience breakdown */}
-              <div className="rounded-2xl border border-gray-100 bg-white p-5">
+              <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
                 <h3 className="text-sm font-semibold text-gray-900 mb-3">{fr ? 'Audience' : 'Audience'}: {AUDIENCE_LABELS[audience]}</h3>
                 {recipients.length === 0 ? (
                   <p className="text-sm text-gray-400">{fr ? 'Aucun client ne correspond à ce filtre.' : 'No customers match this filter.'}</p>
@@ -493,7 +493,7 @@ Subject line first, then body. Keep it warm, professional, and concise.`
         )}
 
         {tab === 'history' && (
-          <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
             {campaigns.length === 0 ? (
               <EmptyState
                 icon={Megaphone}

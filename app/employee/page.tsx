@@ -218,12 +218,12 @@ export default function EmployeeDashboard() {
 
   const statusLabel = (s: string) => {
     const map: Record<string, { fr: string; en: string }> = {
-      scheduled: { fr: 'Planifie', en: 'Scheduled' },
+      scheduled: { fr: 'Planifi\u00e9e', en: 'Scheduled' },
       in_progress: { fr: 'En cours', en: 'In progress' },
-      needs_completion: { fr: 'A completer', en: 'Needs completion' },
-      completed: { fr: 'Complete', en: 'Completed' },
-      complete: { fr: 'Complete', en: 'Completed' },
-      cancelled: { fr: 'Annule', en: 'Cancelled' },
+      needs_completion: { fr: '\u00c0 compl\u00e9ter', en: 'Needs completion' },
+      completed: { fr: 'Compl\u00e9t\u00e9e', en: 'Completed' },
+      complete: { fr: 'Compl\u00e9t\u00e9e', en: 'Completed' },
+      cancelled: { fr: 'Annul\u00e9e', en: 'Cancelled' },
     }
     return map[s]?.[fr ? 'fr' : 'en'] || s
   }
@@ -283,7 +283,7 @@ export default function EmployeeDashboard() {
           className="mt-3 w-full flex items-center justify-center gap-2 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-lg text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
         >
           <CheckCircle className="w-4 h-4" />
-          {fr ? 'Marquer comme complete' : 'Mark as completed'}
+          {fr ? 'Marquer comme compl\u00e9t\u00e9e' : 'Mark as completed'}
         </button>
       )}
     </Link>

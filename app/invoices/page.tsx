@@ -225,14 +225,14 @@ export default function InvoicesPage() {
             { label: fr ? 'Ce mois' : 'This month', value: fmt(thisMonth), icon: Calendar, bg: 'bg-blue-50', color: 'text-blue-600', sub: fr ? 'facturé ce mois' : 'invoiced this month' },
             { label: fr ? 'Payé cette année' : 'Paid this year', value: fmt(paidYTD), icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600', sub: fr ? `${countByStatus('paid')} payée(s)` : `${countByStatus('paid')} paid` },
           ].map((card) => (
-            <div key={card.label} className={`rounded-2xl border ${card.highlight ? 'border-red-200 bg-red-50/30' : 'border-gray-100 bg-white'} p-5 shadow-sm`}>
+            <div key={card.label} className={`rounded-2xl border ${card.highlight ? 'border-red-200 dark:border-red-900 bg-red-50/30 dark:bg-red-950/20' : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900'} p-5 shadow-sm`}>
               <div className="flex items-start justify-between mb-3">
                 <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${card.bg}`}>
                   <card.icon className={card.color} style={{ width: '18px', height: '18px' }} />
                 </div>
               </div>
               <p className="text-xs font-medium text-gray-400 mb-1">{card.label}</p>
-              <p className={`text-xl font-bold ${card.highlight ? 'text-red-700' : 'text-gray-900'}`}>{card.value}</p>
+              <p className={`text-xl font-bold ${card.highlight ? 'text-red-700 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>{card.value}</p>
               <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
             </div>
           ))}
@@ -248,22 +248,22 @@ export default function InvoicesPage() {
               placeholder={fr ? 'Rechercher client, n° facture...' : 'Search customer, invoice #...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full rounded-xl border border-gray-200 bg-white pl-10 pr-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+              className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 pl-10 pr-4 py-2 text-base sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
             />
           </div>
 
           {/* Status tabs */}
-          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 flex-wrap">
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 flex-wrap">
             {statusFilters.map((f) => {
               const count = f.key === 'all' ? invoices.length : countByStatus(f.key)
               return (
                 <button
                   key={f.key}
                   onClick={() => setActiveFilter(f.key)}
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 ${activeFilter === f.key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all duration-150 ${activeFilter === f.key ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
                 >
                   {f.label}
-                  <span className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs ${activeFilter === f.key ? 'bg-gray-100 text-gray-600' : 'text-gray-400'}`}>{count}</span>
+                  <span className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs ${activeFilter === f.key ? 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300' : 'text-gray-400'}`}>{count}</span>
                 </button>
               )
             })}
@@ -273,7 +273,7 @@ export default function InvoicesPage() {
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           >
             <option value="all">{fr ? 'Toutes les dates' : 'All dates'}</option>
             <option value="month">{fr ? 'Ce mois' : 'This month'}</option>
@@ -285,7 +285,7 @@ export default function InvoicesPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-xs font-medium text-gray-700 dark:text-gray-200 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           >
             <option value="date_desc">{fr ? 'Plus récentes' : 'Newest first'}</option>
             <option value="date_asc">{fr ? 'Plus anciennes' : 'Oldest first'}</option>
@@ -301,7 +301,7 @@ export default function InvoicesPage() {
             <button onClick={bulkMarkPaid} className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 transition-colors">
               <CheckCircle className="h-3.5 w-3.5" /> {fr ? 'Marquer payées' : 'Mark paid'}
             </button>
-            <button onClick={exportCSV} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+            <button onClick={exportCSV} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
               <Download className="h-3.5 w-3.5" /> {fr ? 'Exporter CSV' : 'Export CSV'}
             </button>
             <button onClick={() => setSelected(new Set())} className="text-xs text-gray-500 hover:text-gray-700 ml-auto">
@@ -312,7 +312,7 @@ export default function InvoicesPage() {
 
         {/* Invoice Table / List */}
         {invoices.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
+          <div className="rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <EmptyState
               icon={FileText}
               title={l.noInvoices}
@@ -321,31 +321,31 @@ export default function InvoicesPage() {
             />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">
-            <FileText className="h-8 w-8 text-gray-300 mb-3" />
-            <p className="text-sm text-gray-500">{fr ? 'Aucune facture trouvée' : 'No invoices found'}</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-16 text-center">
+            <FileText className="h-8 w-8 text-gray-300 dark:text-gray-600 mb-3" />
+            <p className="text-sm text-gray-500 dark:text-gray-400">{fr ? 'Aucune facture trouvée' : 'No invoices found'}</p>
           </div>
         ) : (
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
             {/* Desktop table */}
             <div className="hidden md:block overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-100">
+              <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-800">
                 <thead>
-                  <tr className="bg-gray-50">
+                  <tr className="bg-gray-50 dark:bg-gray-800/50">
                     <th className="pl-6 py-3.5 w-10">
                       <input type="checkbox" checked={selected.size === paged.length && paged.length > 0} onChange={selectAll} className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
                     </th>
                     {[fr ? 'Facture #' : 'Invoice #', l.colCustomer, l.colAmount, l.colDueDate, l.colStatus, fr ? 'Vues' : 'Views', ''].map((col) => (
-                      <th key={col} className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{col}</th>
+                      <th key={col} className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{col}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                   {paged.map((inv) => {
                     const displayStatus = getInvoiceDisplayStatus(inv)
                     const isOverdue = displayStatus === 'overdue'
                     return (
-                      <tr key={inv.id} className="hover:bg-gray-50 transition-colors group cursor-pointer" onClick={() => window.location.href = `/invoices/${inv.id}`}>
+                      <tr key={inv.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group cursor-pointer" onClick={() => window.location.href = `/invoices/${inv.id}`}>
                         <td className="pl-6 py-4" onClick={(e) => e.stopPropagation()}>
                           <input type="checkbox" checked={selected.has(inv.id)} onChange={() => toggleSelect(inv.id)} className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
                         </td>
@@ -356,19 +356,19 @@ export default function InvoicesPage() {
                         <td className="px-4 py-4 whitespace-nowrap">
                           {inv.customers ? (
                             <div className="flex items-center gap-2">
-                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600 font-semibold text-xs">
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 font-semibold text-xs">
                                 {inv.customers.name[0]?.toUpperCase()}
                               </div>
-                              <span className="text-sm font-medium text-gray-900">{inv.customers.name}</span>
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">{inv.customers.name}</span>
                             </div>
                           ) : <span className="text-gray-300">--</span>}
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
-                          <span className="text-sm font-bold text-gray-900">{fmt(parseFloat(String(inv.amount)))}</span>
+                          <span className="text-sm font-bold text-gray-900 dark:text-white">{fmt(parseFloat(String(inv.amount)))}</span>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
                           {inv.due_date ? (
-                            <span className={`text-sm ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-500'}`}>
+                            <span className={`text-sm ${isOverdue ? 'text-red-600 font-semibold' : 'text-gray-500 dark:text-gray-400'}`}>
                               {fmtDate(inv.due_date, lang, 'short')}
                             </span>
                           ) : <span className="text-gray-300">--</span>}
@@ -416,26 +416,26 @@ export default function InvoicesPage() {
             </div>
 
             {/* Mobile cards */}
-            <div className="md:hidden divide-y divide-gray-100">
+            <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-800">
               {paged.map((inv) => {
                 const displayStatus = getInvoiceDisplayStatus(inv)
                 const isOverdue = displayStatus === 'overdue'
                 return (
-                  <Link key={inv.id} href={`/invoices/${inv.id}`} className="block p-4 hover:bg-gray-50 transition-colors">
+                  <Link key={inv.id} href={`/invoices/${inv.id}`} className="block p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div className="flex items-center gap-3">
                         {inv.customers && (
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600 font-bold text-sm">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 font-bold text-sm">
                             {inv.customers.name[0]?.toUpperCase()}
                           </div>
                         )}
                         <div>
                           <p className="text-xs font-semibold text-indigo-600 mb-0.5">{inv.invoice_number || `INV-${inv.id.slice(0, 4).toUpperCase()}`}</p>
-                          <p className="text-sm font-semibold text-gray-900">{inv.customers?.name || '--'}</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">{inv.customers?.name || '--'}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-base font-bold text-gray-900">{fmt(parseFloat(String(inv.amount)))}</p>
+                        <p className="text-base font-bold text-gray-900 dark:text-white">{fmt(parseFloat(String(inv.amount)))}</p>
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold mt-0.5 ${INVOICE_STATUS_CLS[displayStatus] || ''}`}>
                           {invoiceStatusLabel(displayStatus, fr)}
                         </span>
@@ -463,7 +463,7 @@ export default function InvoicesPage() {
         {/* Export CSV button at bottom */}
         {filtered.length > 0 && (
           <div className="flex justify-end mt-4">
-            <button onClick={exportCSV} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+            <button onClick={exportCSV} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
               <Download className="h-3.5 w-3.5" /> {fr ? 'Exporter CSV' : 'Export CSV'}
             </button>
           </div>

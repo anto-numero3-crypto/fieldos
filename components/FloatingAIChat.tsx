@@ -120,7 +120,7 @@ export default function FloatingAIChat() {
             'fixed z-50 flex flex-col bg-white border border-gray-200 shadow-2xl rounded-2xl overflow-hidden transition-all duration-300',
             expanded
               ? 'bottom-4 right-4 left-4 top-4 sm:left-auto sm:w-[480px] sm:top-4'
-              : 'bottom-20 right-4 w-[360px] max-w-[calc(100vw-2rem)] h-[480px] max-h-[calc(100vh-6rem)]',
+              : 'bottom-36 lg:bottom-20 right-4 w-[360px] max-w-[calc(100vw-2rem)] h-[480px] max-h-[calc(100vh-10rem)] lg:max-h-[calc(100vh-6rem)]',
           ].join(' ')}
         >
           {/* Header */}
@@ -217,7 +217,7 @@ export default function FloatingAIChat() {
                 onKeyDown={handleKey}
                 placeholder="Posez n'importe quelle question sur votre activité…"
                 rows={1}
-                className="flex-1 resize-none bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none max-h-24 leading-relaxed"
+                className="flex-1 resize-none bg-transparent text-base sm:text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none max-h-24 leading-relaxed"
                 style={{ minHeight: '24px' }}
               />
               <button
@@ -236,7 +236,7 @@ export default function FloatingAIChat() {
       <button
         onClick={() => setOpen(!open)}
         className={[
-          'fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg transition-all duration-300 hover:scale-105',
+          'fixed bottom-20 lg:bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg transition-all duration-300 hover:scale-105',
           open
             ? 'bg-gray-700 hover:bg-gray-800'
             : 'bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700',

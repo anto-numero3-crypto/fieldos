@@ -42,10 +42,10 @@ const fmtK = (n: number) => n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : fmt(n)
 const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number; name: string }[]; label?: string }) => {
   if (active && payload?.length) {
     return (
-      <div className="rounded-xl border border-gray-100 bg-white px-3 py-2 shadow-lg">
+      <div className="rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 shadow-lg">
         <p className="text-xs text-gray-500 mb-1">{label}</p>
         {payload.map((p, i) => (
-          <p key={i} className="text-sm font-bold text-gray-900">
+          <p key={i} className="text-sm font-bold text-gray-900 dark:text-white">
             {p.name === 'revenue' ? fmt(p.value) : p.value}
           </p>
         ))}
@@ -88,13 +88,13 @@ function DemarrageBasicReports() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
           <p className="text-xs font-medium text-gray-500 mb-1">{fr ? 'Revenus encaissés (à vie)' : 'Collected revenue (all time)'}</p>
-          <p className="text-3xl font-bold text-gray-900 tabular-nums">${revenue.toLocaleString('en', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white tabular-nums">${revenue.toLocaleString('en', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
         </div>
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
           <p className="text-xs font-medium text-gray-500 mb-1">{fr ? 'Interventions totales' : 'Total jobs'}</p>
-          <p className="text-3xl font-bold text-gray-900 tabular-nums">{jobCount}</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white tabular-nums">{jobCount}</p>
         </div>
       </div>
 
@@ -103,7 +103,7 @@ function DemarrageBasicReports() {
         <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white">
           <Lock className="h-5 w-5" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
           {fr ? 'Débloquez les rapports complets avec Pro' : 'Unlock full reports with Pro'}
         </h2>
         <p className="text-sm text-gray-600 max-w-lg mx-auto mb-5">
@@ -278,10 +278,10 @@ function ReportsPageInner() {
     const counts: Record<string, number> = { scheduled: 0, in_progress: 0, complete: 0, cancelled: 0 }
     filteredJobs.forEach((j) => { counts[j.status] = (counts[j.status] || 0) + 1 })
     return [
-      { name: fr ? 'Planifié' : 'Scheduled',     value: counts.scheduled,   color: '#3b82f6' },
-      { name: fr ? 'En cours' : 'In progress',   value: counts.in_progress, color: '#f59e0b' },
-      { name: fr ? 'Terminé' : 'Complete',       value: counts.complete,    color: '#10b981' },
-      { name: fr ? 'Annulé' : 'Cancelled',       value: counts.cancelled,   color: '#d1d5db' },
+      { name: fr ? 'Planifi\u00e9e' : 'Scheduled',     value: counts.scheduled,   color: '#3b82f6' },
+      { name: fr ? 'En cours' : 'In progress',       value: counts.in_progress, color: '#f59e0b' },
+      { name: fr ? 'Compl\u00e9t\u00e9e' : 'Completed', value: counts.complete,    color: '#10b981' },
+      { name: fr ? 'Annul\u00e9e' : 'Cancelled',     value: counts.cancelled,   color: '#d1d5db' },
     ].filter((d) => d.value > 0)
   }
 
@@ -428,7 +428,7 @@ function ReportsPageInner() {
     return (
       <AppLayout title={fr ? 'Rapports' : 'Reports'}>
         <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
+          <div className="rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <EmptyState
               icon={BarChart3}
               title={fr ? 'Pas encore de données' : 'No data yet'}
@@ -455,7 +455,7 @@ function ReportsPageInner() {
               <button
                 key={key}
                 onClick={() => setPeriod(key)}
-                className={['rounded-lg px-3.5 py-1.5 text-sm font-semibold transition-all', period === key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'].join(' ')}
+                className={['rounded-lg px-3.5 py-1.5 text-sm font-semibold transition-all', period === key ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'].join(' ')}
               >
                 {label}
               </button>
@@ -463,7 +463,7 @@ function ReportsPageInner() {
           </div>
           <button
             onClick={exportCSV}
-            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm"
           >
             <Download className="h-4 w-4" /> {fr ? 'Exporter CSV' : 'Export CSV'}
           </button>
@@ -496,12 +496,12 @@ function ReportsPageInner() {
               change: `${completionRate}% ${fr ? 'taux de complétion' : 'completion rate'}`, up: null,
             },
           ].map((card) => (
-            <div key={card.label} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div key={card.label} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm">
               <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${card.bg} mb-3`}>
                 <card.icon className={`h-5 w-5 ${card.color}`} />
               </div>
               <p className="text-xs font-medium text-gray-500">{card.label}</p>
-              <p className="text-2xl font-bold text-gray-900 tabular-nums">{card.value}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{card.value}</p>
               {card.change && (
                 <p className={`mt-1 text-xs flex items-center gap-0.5 ${card.up === true ? 'text-emerald-600' : card.up === false ? 'text-red-500' : 'text-gray-400'}`}>
                   {card.up === true && <ArrowUpRight className="h-3 w-3" />}
@@ -516,8 +516,8 @@ function ReportsPageInner() {
         {/* Charts row */}
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Revenue trend */}
-          <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Tendance des revenus' : 'Revenue trend'}</h2>
+          <div className="lg:col-span-2 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Tendance des revenus' : 'Revenue trend'}</h2>
             <p className="text-xs text-gray-400 mb-5">{fr ? 'Montant total facturé par mois' : 'Total invoiced amount per month'}</p>
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={revenueByMonth()}>
@@ -537,8 +537,8 @@ function ReportsPageInner() {
           </div>
 
           {/* Job status pie */}
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Statut des interventions' : 'Job status'}</h2>
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Statut des interventions' : 'Job status'}</h2>
             <p className="text-xs text-gray-400 mb-4">{fr ? 'Répartition pour la période' : 'Breakdown for the period'}</p>
             {jobStatusDist().length > 0 ? (
               <>
@@ -554,7 +554,7 @@ function ReportsPageInner() {
                   {jobStatusDist().map((d) => (
                     <div key={d.name} className="flex items-center justify-between text-xs">
                       <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: d.color }} />{d.name}</span>
-                      <span className="font-semibold text-gray-900">{d.value}</span>
+                      <span className="font-semibold text-gray-900 dark:text-white">{d.value}</span>
                     </div>
                   ))}
                 </div>
@@ -567,9 +567,9 @@ function ReportsPageInner() {
 
         {/* Jobs per month + AR aging */}
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Interventions terminées par mois' : 'Completed jobs per month'}</h2>
-            <p className="text-xs text-gray-400 mb-5">{fr ? '12 derniers mois · status = Terminé (par updated_at)' : 'Last 12 months · status = Complete (by updated_at)'}</p>
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Interventions compl\u00e9t\u00e9es par mois' : 'Completed jobs per month'}</h2>
+            <p className="text-xs text-gray-400 mb-5">{fr ? '12 derniers mois \u00b7 statut = Compl\u00e9t\u00e9e (par updated_at)' : 'Last 12 months \u00b7 status = Completed (by updated_at)'}</p>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={completedJobsByMonth()} barSize={24}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -582,8 +582,8 @@ function ReportsPageInner() {
           </div>
 
           {/* AR aging */}
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Vieillissement des créances' : 'AR aging'}</h2>
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Vieillissement des créances' : 'AR aging'}</h2>
             <p className="text-xs text-gray-400 mb-4">{fr ? 'Factures impayées par ancienneté (jours)' : 'Unpaid invoices by age (days)'}</p>
             <div className="space-y-3">
               {arAging().map(({ bucket, amount }) => {
@@ -604,32 +604,32 @@ function ReportsPageInner() {
 
         {/* Key metrics strip */}
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm">
             <p className="text-xs font-medium text-gray-500">{fr ? 'Taux de recouvrement' : 'Collection rate'}</p>
-            <p className="text-2xl font-bold text-gray-900 tabular-nums mt-1">{collectionRatePct}%</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums mt-1">{collectionRatePct}%</p>
             <p className="text-xs text-gray-400 mt-1">{paidInvoices.length} {fr ? 'payées sur' : 'paid of'} {filteredInvoices.length}</p>
           </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm">
             <p className="text-xs font-medium text-gray-500">{fr ? 'Délai moyen de paiement' : 'Average payment time'}</p>
-            <p className="text-2xl font-bold text-gray-900 tabular-nums mt-1">{avgDSO} <span className="text-base font-medium text-gray-500">{fr ? 'jours' : 'days'}</span></p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums mt-1">{avgDSO} <span className="text-base font-medium text-gray-500">{fr ? 'jours' : 'days'}</span></p>
             <p className="text-xs text-gray-400 mt-1">{fr ? 'Création → paiement' : 'Created → paid'}</p>
           </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm">
             <p className="text-xs font-medium text-gray-500">{fr ? 'Valeur moyenne' : 'Average value'}</p>
-            <p className="text-2xl font-bold text-gray-900 tabular-nums mt-1">{fmt(avgInvoiceValue)}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums mt-1">{fmt(avgInvoiceValue)}</p>
             <p className="text-xs text-gray-400 mt-1">{fr ? 'Par facture payée' : 'Per paid invoice'}</p>
           </div>
-          <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm">
             <p className="text-xs font-medium text-gray-500">{fr ? 'Nouveaux clients' : 'New customers'}</p>
-            <p className="text-2xl font-bold text-gray-900 tabular-nums mt-1">{filteredCustomers.length}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums mt-1">{filteredCustomers.length}</p>
             <p className="text-xs text-gray-400 mt-1">{fr ? 'Sur la période' : 'Over the period'}</p>
           </div>
         </div>
 
         {/* Revenue by service + New customers per month */}
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Revenus par service' : 'Revenue by service'}</h2>
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Revenus par service' : 'Revenue by service'}</h2>
             <p className="text-xs text-gray-400 mb-5">{fr ? 'Top 5 · factures payées' : 'Top 5 · paid invoices'}</p>
             {revenueByService().length === 0 ? (
               <div className="flex items-center justify-center h-32 text-gray-400 text-sm">{fr ? 'Aucune facture payée pour le moment' : 'No paid invoices yet'}</div>
@@ -646,8 +646,8 @@ function ReportsPageInner() {
             )}
           </div>
 
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Nouveaux clients par mois' : 'New customers per month'}</h2>
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Nouveaux clients par mois' : 'New customers per month'}</h2>
             <p className="text-xs text-gray-400 mb-5">{fr ? '12 derniers mois' : 'Last 12 months'}</p>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={newCustomersByMonth()} barSize={20}>
@@ -664,20 +664,20 @@ function ReportsPageInner() {
         {/* Top customers */}
         <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Top 10 clients par revenu' : 'Top 10 customers by revenue'}</h2>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Top 10 clients par revenu' : 'Top 10 customers by revenue'}</h2>
           </div>
           {topCustomers().length === 0 ? (
             <div className="flex items-center justify-center py-10 text-gray-400 text-sm">{fr ? 'Aucune donnée de revenus pour cette période' : 'No revenue data for this period'}</div>
           ) : (
             <table className="min-w-full">
-              <thead><tr className="bg-gray-50">{(fr ? ['Client', 'Factures', 'Revenus', '% du total'] : ['Customer', 'Invoices', 'Revenue', '% of total']).map((c) => <th key={c} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{c}</th>)}</tr></thead>
-              <tbody className="divide-y divide-gray-50">
+              <thead><tr className="bg-gray-50 dark:bg-gray-800/50">{(fr ? ['Client', 'Factures', 'Revenus', '% du total'] : ['Customer', 'Invoices', 'Revenue', '% of total']).map((c) => <th key={c} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{c}</th>)}</tr></thead>
+              <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                 {topCustomers().map((c, i) => (
-                  <tr key={c.name} className="hover:bg-gray-50 transition-colors">
+                  <tr key={c.name} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
-                        <span className="text-sm font-medium text-gray-900">{c.name}</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{c.name}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{c.invoices}</td>

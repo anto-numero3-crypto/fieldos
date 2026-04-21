@@ -137,7 +137,7 @@ export default function BookingsPage() {
           confirm: 'Réservation confirmée !',
           decline: 'Réservation refusée.',
           cancel:  'Réservation annulée.',
-          complete: 'Marqué comme terminé.',
+          complete: 'R\u00e9servation compl\u00e9t\u00e9e.',
         } : {
           confirm: 'Booking confirmed!',
           decline: 'Booking declined.',
@@ -209,10 +209,10 @@ export default function BookingsPage() {
           {[
             { label: fr ? 'En attente' : 'Pending', value: pending.length, color: 'text-amber-600', badge: pending.length > 0 },
             { label: fr ? "Confirmés aujourd'hui" : 'Confirmed today', value: confirmedToday, color: 'text-blue-600' },
-            { label: fr ? 'Terminés' : 'Completed', value: completedWeek, color: 'text-emerald-600' },
+            { label: fr ? 'Compl\u00e9t\u00e9s' : 'Completed', value: completedWeek, color: 'text-emerald-600' },
             { label: fr ? "Taux d'annulation" : 'Cancel rate', value: `${cancellationRate}%`, color: 'text-gray-600' },
           ].map((s) => (
-            <div key={s.label} className="rounded-2xl border border-gray-100 bg-white shadow-sm px-4 py-3">
+            <div key={s.label} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm px-4 py-3">
               <p className="text-xs text-gray-400 mb-0.5">{s.label}</p>
               <div className="flex items-center gap-2">
                 <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
@@ -230,7 +230,7 @@ export default function BookingsPage() {
               {fr ? 'En attente de confirmation' : 'Awaiting confirmation'}
             </h2>
             {pending.map((b) => (
-              <div key={b.id} className="rounded-2xl border border-amber-100 bg-white shadow-sm p-5">
+              <div key={b.id} className="rounded-2xl border border-amber-100 dark:border-amber-900/50 bg-white dark:bg-gray-900 shadow-sm p-5">
                 <div className="flex items-start gap-4">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 font-bold text-lg">
                     {b.customer_name[0]?.toUpperCase()}
@@ -283,7 +283,7 @@ export default function BookingsPage() {
                       value={declineReason}
                       onChange={(e) => setDeclineReason(e.target.value)}
                       placeholder={fr ? 'ex. Créneau non disponible, service non offert dans votre secteur…' : 'e.g. Slot not available, service not offered in your area…'}
-                      className="block w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm focus:border-red-300 focus:outline-none resize-none mb-2"
+                      className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2.5 py-1.5 text-sm text-gray-900 dark:text-white focus:border-red-300 focus:outline-none resize-none mb-2"
                     />
                     <div className="flex gap-2">
                       <button onClick={() => doAction(b.id, 'decline', declineReason)}
@@ -300,7 +300,7 @@ export default function BookingsPage() {
 
         {/* Empty state — no pending and no bookings at all */}
         {pending.length === 0 && bookings.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
+          <div className="rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <EmptyState
               icon={Clock}
               title={fr ? 'Aucune réservation en attente' : 'No pending bookings'}
@@ -310,7 +310,7 @@ export default function BookingsPage() {
         )}
 
         {/* ── All Bookings ── */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
             <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Toutes les réservations' : 'All bookings'}</h2>
             <div className="flex items-center gap-2">
@@ -381,7 +381,7 @@ export default function BookingsPage() {
                         </>
                       )}
                       {b.status === 'confirmed' && (
-                        <button onClick={() => doAction(b.id, 'complete')} title={fr ? 'Marquer terminé' : 'Mark completed'}
+                        <button onClick={() => doAction(b.id, 'complete')} title={fr ? 'Marquer comme compl\u00e9t\u00e9e' : 'Mark completed'}
                           className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors">
                           <CheckCircle className="h-4 w-4" />
                         </button>
@@ -413,7 +413,7 @@ export default function BookingsPage() {
         {/* Accept + assign modal */}
         {acceptingBooking && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setAcceptingBooking(null)}>
-            <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Accepter et assigner' : 'Accept and assign'}</h3>
               <p className="text-xs text-gray-500 mb-4">
                 {acceptingBooking.customer_name} · {acceptingBooking.service_name}<br />
@@ -423,7 +423,7 @@ export default function BookingsPage() {
               <select
                 value={assignTo}
                 onChange={(e) => setAssignTo(e.target.value)}
-                className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-4"
+                className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-4"
               >
                 <option value="">{fr ? 'Non assigné' : 'Unassigned'}</option>
                 {team.map((m) => (
@@ -447,7 +447,7 @@ export default function BookingsPage() {
         {/* Decline modal overlay (for table row actions) */}
         {decliningId && !pending.find((b) => b.id === decliningId) && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setDecliningId(null)}>
-            <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-base font-semibold text-gray-900 mb-3">{fr ? 'Refuser la réservation' : 'Decline the booking'}</h3>
               <textarea rows={3} value={declineReason} onChange={(e) => setDeclineReason(e.target.value)}
                 placeholder={fr ? 'Raison du refus (optionnel)…' : 'Decline reason (optional)…'}

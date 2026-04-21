@@ -515,7 +515,7 @@ function TimeGridView(props: {
                     const startMin = minutesFromTime(job.start_time) as number
                     const dur = jobDuration(job)
                     const top = Math.max(0, startMin - HOUR_START * 60)
-                    const height = Math.max(30, dur)
+                    const height = Math.max(44, dur)
                     const eff = getEffectiveJobStatus(job)
                     const cfg = JOB_STATUS_CONFIG[eff] || JOB_STATUS_CONFIG.scheduled
                     const bg = isDark ? cfg.darkBg : cfg.bg

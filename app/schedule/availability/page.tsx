@@ -253,7 +253,7 @@ function AvailabilityPageInner() {
         </div>
 
         {/* ── Section 1: Weekly Schedule ── */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
             <Clock className="h-5 w-5 text-indigo-600" />
             <h2 className="text-base font-semibold text-gray-900">{fr ? 'Horaires hebdomadaires' : 'Weekly schedule'}</h2>
@@ -313,7 +313,7 @@ function AvailabilityPageInner() {
         </div>
 
         {/* ── Section 2: Booking Settings ── */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
             <Settings className="h-5 w-5 text-indigo-600" />
             <h2 className="text-base font-semibold text-gray-900">{fr ? 'Paramètres de réservation' : 'Booking settings'}</h2>
@@ -396,7 +396,7 @@ function AvailabilityPageInner() {
         </div>
 
         {/* ── Section 3: Date Overrides ── */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <Calendar className="h-5 w-5 text-indigo-600" />
@@ -417,12 +417,12 @@ function AvailabilityPageInner() {
                   <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
                   <input type="date" value={overrideDate} onChange={(e) => setOverrideDate(e.target.value)}
                     min={new Date().toISOString().slice(0, 10)}
-                    className="block w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:outline-none" />
+                    className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2.5 py-1.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
                   <select value={overrideAvailable ? '1' : '0'} onChange={(e) => setOverrideAvailable(e.target.value === '1')}
-                    className="block w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none">
+                    className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 py-1.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none">
                     <option value="0">{fr ? 'Indisponible' : 'Unavailable'}</option>
                     <option value="1">{fr ? 'Heures spéciales' : 'Special hours'}</option>
                   </select>
@@ -432,14 +432,14 @@ function AvailabilityPageInner() {
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Début' : 'Start'}</label>
                       <select value={overrideStart} onChange={(e) => setOverrideStart(e.target.value)}
-                        className="block w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none">
+                        className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 py-1.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none">
                         {TIME_OPTIONS.map((t) => <option key={t} value={t}>{fmtTime(t)}</option>)}
                       </select>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Fin' : 'End'}</label>
                       <select value={overrideEnd} onChange={(e) => setOverrideEnd(e.target.value)}
-                        className="block w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none">
+                        className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 py-1.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none">
                         {TIME_OPTIONS.filter((t) => t > overrideStart).map((t) => <option key={t} value={t}>{fmtTime(t)}</option>)}
                       </select>
                     </div>
@@ -450,7 +450,7 @@ function AvailabilityPageInner() {
                 <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Raison (optionnel)' : 'Reason (optional)'}</label>
                 <input type="text" value={overrideReason} onChange={(e) => setOverrideReason(e.target.value)}
                   placeholder={fr ? 'ex. Congé, Vacances, Événement spécial…' : 'e.g. Day off, Vacation, Special event…'}
-                  className="block w-full rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-sm focus:border-indigo-500 focus:outline-none" />
+                  className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2.5 py-1.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none" />
               </div>
               <div className="flex gap-2">
                 <button onClick={addOverride} className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">{fr ? 'Ajouter' : 'Add'}</button>
@@ -487,7 +487,7 @@ function AvailabilityPageInner() {
         </div>
 
         {/* ── Section 4: Booking Page Settings ── */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
             <Globe className="h-5 w-5 text-indigo-600" />
             <h2 className="text-base font-semibold text-gray-900">{fr ? 'Page de réservation' : 'Booking page'}</h2>
@@ -537,7 +537,7 @@ function AvailabilityPageInner() {
         </div>
 
         {/* ── Section 5: Shareable Link ── */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
           <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
             <Globe className="h-5 w-5 text-indigo-600" />
             <h2 className="text-base font-semibold text-gray-900">{fr ? 'Lien de réservation partageable' : 'Shareable booking link'}</h2>
@@ -559,7 +559,7 @@ function AvailabilityPageInner() {
                     </a>
                     <button
                       onClick={copyLink}
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-all border ${copied ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'}`}
+                      className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-all border ${copied ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                     >
                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                       {copied ? (fr ? 'Copié !' : 'Copied!') : (fr ? 'Copier' : 'Copy')}
@@ -568,7 +568,7 @@ function AvailabilityPageInner() {
                       href={bookingUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
                     >
                       <ExternalLink className="h-4 w-4" /> {fr ? 'Ouvrir' : 'Open'}
                     </a>

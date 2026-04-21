@@ -152,7 +152,7 @@ export default function NewContractPage() {
       })
       const data = await res.json()
       if (!res.ok) {
-        toast.error(data.error || 'Error')
+        toast.error(fr ? (data.error || 'Impossible de cr\u00e9er le contrat') : (data.error || 'Could not create contract'))
         setSaving(false)
         return
       }

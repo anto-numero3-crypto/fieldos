@@ -602,7 +602,7 @@ export default function TimesheetsPage() {
 
   return (
     <AppLayout title={fr ? 'Feuilles de temps' : 'Timesheets'}>
-      <div className="space-y-5">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-5">
         {/* ---- TOP BAR ---- */}
         <div className="flex flex-col gap-3">
           {/* Row 1: search + date range + refresh indicator */}
@@ -615,7 +615,7 @@ export default function TimesheetsPage() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={fr ? 'Rechercher client, intervention, employé...' : 'Search client, job, employee...'}
-                className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-base sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
 
@@ -770,14 +770,16 @@ export default function TimesheetsPage() {
 
         {/* ---- CONTENT ---- */}
         {filtered.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
-            <Calendar className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-            <p className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1">
-              {fr ? 'Aucune heure enregistrée' : 'No hours recorded'}
-            </p>
-            <p className="text-gray-400 dark:text-gray-500 text-sm">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center py-16 px-6">
+            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950">
+              <Calendar className="h-8 w-8 text-indigo-500" />
+            </div>
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1.5">
+              {fr ? 'Aucune entr\u00e9e' : 'No entries'}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm leading-relaxed">
               {fr
-                ? 'Les heures pointées par vos employés apparaîtront ici.'
+                ? 'Les heures point\u00e9es par vos employ\u00e9s appara\u00eetront ici.'
                 : 'Hours clocked by your employees will appear here.'}
             </p>
           </div>

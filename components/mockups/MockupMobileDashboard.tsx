@@ -28,9 +28,9 @@ function useCountUp(target: number, duration: number = 1200, start: boolean = fa
 }
 
 const todayJobs = [
-  { time: '8:00', client: 'Tremblay', service: 'Deneigement', color: 'bg-blue-500', status: 'Complete', statusColor: 'text-green-600 bg-green-50' },
+  { time: '8:00', client: 'Tremblay', service: 'D\u00e9neigement', color: 'bg-blue-500', status: 'Compl\u00e9t\u00e9e', statusColor: 'text-green-600 bg-green-50' },
   { time: '10:30', client: 'Bouchard', service: 'Nettoyage', color: 'bg-green-500', status: 'En cours', statusColor: 'text-indigo-600 bg-indigo-50' },
-  { time: '14:00', client: 'Martin', service: 'Tonte', color: 'bg-purple-500', status: 'A venir', statusColor: 'text-gray-500 bg-gray-100' },
+  { time: '14:00', client: 'Martin', service: 'Tonte', color: 'bg-purple-500', status: '\u00c0 venir', statusColor: 'text-gray-500 bg-gray-100' },
 ];
 
 const recentActivity = [

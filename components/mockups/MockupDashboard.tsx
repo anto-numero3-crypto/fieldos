@@ -39,7 +39,7 @@ const navItems = [
 const chartPoints = [1800, 2400, 3100, 2800, 3600, 4320];
 
 const todayJobs = [
-  { time: '8:00', client: 'Tremblay', service: 'Déneigement', employee: 'Jean Roy', color: 'bg-blue-500', status: 'Complété', statusColor: 'text-green-600 bg-green-50' },
+  { time: '8:00', client: 'Tremblay', service: 'Déneigement', employee: 'Jean Roy', color: 'bg-blue-500', status: 'Compl\u00e9t\u00e9e', statusColor: 'text-green-600 bg-green-50' },
   { time: '10:30', client: 'Bouchard', service: 'Nettoyage', employee: 'Marie Lévesque', color: 'bg-green-500', status: 'En cours', statusColor: 'text-indigo-600 bg-indigo-50' },
   { time: '14:00', client: 'Martin', service: 'Tonte', employee: 'Tom Beaumont', color: 'bg-purple-500', status: 'À venir', statusColor: 'text-gray-500 bg-gray-100' },
 ];

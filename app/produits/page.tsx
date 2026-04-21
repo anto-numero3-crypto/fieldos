@@ -5,6 +5,7 @@ import AppLayout from '@/components/AppLayout'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtMoney } from '@/lib/format'
 import { toast } from 'sonner'
+import { useConfirm } from '@/components/ui/confirm-dialog'
 import {
   Package, Wrench, Search, Plus, Pencil, Trash2, X, Check,
   Loader2, Tag, Hash,
@@ -35,6 +36,7 @@ export default function ProduitsPage() {
   const { lang } = useLanguage()
   const fr = lang === 'fr'
 
+  const confirm = useConfirm()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<'services' | 'products'>('services')
@@ -110,13 +112,13 @@ export default function ProduitsPage() {
         }),
       })
       const data = await res.json()
-      if (!res.ok) { toast.error(data.error || 'Error'); setSubmitting(false); return }
+      if (!res.ok) { toast.error(fr ? (data.error || 'Impossible d\u2019ajouter le produit') : (data.error || 'Could not add product')); setSubmitting(false); return }
       setProducts((prev) => [data.product, ...prev])
       setNewName(''); setNewPrice(''); setNewUnit(''); setNewCategory(''); setNewDesc('')
       setAdding(false)
-      toast.success(fr ? 'Ajouté !' : 'Added!')
+      toast.success(fr ? 'Produit ajout\u00e9 !' : 'Product added!')
     } catch {
-      toast.error(fr ? 'Erreur réseau' : 'Network error')
+      toast.error(fr ? 'Erreur r\u00e9seau \u2014 v\u00e9rifiez votre connexion' : 'Network error \u2014 check your connection')
     }
     setSubmitting(false)
   }
@@ -152,25 +154,30 @@ export default function ProduitsPage() {
         }),
       })
       const data = await res.json()
-      if (!res.ok) { toast.error(data.error || 'Error'); setEditSaving(false); return }
+      if (!res.ok) { toast.error(fr ? (data.error || 'Impossible de modifier le produit') : (data.error || 'Could not update product')); setEditSaving(false); return }
       setProducts((prev) => prev.map((p) => p.id === editingId ? { ...p, ...data.product } : p))
       setEditingId(null)
-      toast.success(fr ? 'Modifié !' : 'Updated!')
+      toast.success(fr ? 'Produit modifi\u00e9 !' : 'Product updated!')
     } catch {
-      toast.error(fr ? 'Erreur réseau' : 'Network error')
+      toast.error(fr ? 'Erreur r\u00e9seau \u2014 v\u00e9rifiez votre connexion' : 'Network error \u2014 check your connection')
     }
     setEditSaving(false)
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm(fr ? 'Supprimer ce produit ?' : 'Delete this product?')) return
+    const { confirmed } = await confirm({
+      title: fr ? 'Supprimer ce produit ?' : 'Delete this product?',
+      description: fr ? 'Ce produit sera d\u00e9sactiv\u00e9 et ne sera plus disponible pour les nouvelles factures.' : 'This product will be deactivated and no longer available for new invoices.',
+      confirmLabel: fr ? 'Supprimer' : 'Delete',
+    })
+    if (!confirmed) return
     try {
       const res = await fetch(`/api/products/${id}`, { method: 'DELETE' })
-      if (!res.ok) { toast.error('Error'); return }
+      if (!res.ok) { toast.error(fr ? 'Impossible de supprimer le produit' : 'Could not delete product'); return }
       setProducts((prev) => prev.map((p) => p.id === id ? { ...p, is_active: false } : p))
-      toast.success(fr ? 'Supprimé' : 'Deleted')
+      toast.success(fr ? 'Produit supprim\u00e9' : 'Product deleted')
     } catch {
-      toast.error(fr ? 'Erreur réseau' : 'Network error')
+      toast.error(fr ? 'Erreur r\u00e9seau — v\u00e9rifiez votre connexion' : 'Network error — check your connection')
     }
   }
 
@@ -309,18 +316,26 @@ export default function ProduitsPage() {
             <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
-              {tab === 'services' ? <Wrench className="h-6 w-6 text-gray-400" /> : <Package className="h-6 w-6 text-gray-400" />}
+          <div className="flex flex-col items-center justify-center text-center py-16">
+            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950">
+              {tab === 'services' ? <Wrench className="h-8 w-8 text-indigo-500" /> : <Package className="h-8 w-8 text-indigo-500" />}
             </div>
-            <p className="text-sm text-gray-500">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1.5">
               {search
-                ? (fr ? 'Aucun résultat' : 'No results')
+                ? (fr ? 'Aucun r\u00e9sultat' : 'No results')
                 : tab === 'services'
-                  ? (fr ? 'Aucun service ajouté' : 'No services added yet')
-                  : (fr ? 'Aucun produit ajouté' : 'No products added yet')
+                  ? (fr ? 'Aucun service ajout\u00e9' : 'No services added yet')
+                  : (fr ? 'Aucun produit ajout\u00e9' : 'No products added yet')
               }
-            </p>
+            </h3>
+            {!search && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm leading-relaxed">
+                {tab === 'services'
+                  ? (fr ? 'Utilisez le formulaire ci-dessus pour ajouter votre premier service.' : 'Use the form above to add your first service.')
+                  : (fr ? 'Utilisez le formulaire ci-dessus pour ajouter votre premier produit.' : 'Use the form above to add your first product.')
+                }
+              </p>
+            )}
           </div>
         ) : (
           <div className="space-y-3">

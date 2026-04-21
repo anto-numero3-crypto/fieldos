@@ -121,10 +121,10 @@ export default function ContractsPage() {
           : `${data.generated} job(s) generated, ${data.skipped} skipped`)
         await loadContracts()
       } else {
-        toast.error(data.error || 'Error')
+        toast.error(fr ? (data.error || 'Impossible de g\u00e9n\u00e9rer les interventions') : (data.error || 'Could not generate jobs'))
       }
     } catch {
-      toast.error(fr ? 'Erreur lors de la g\u00e9n\u00e9ration' : 'Generation failed')
+      toast.error(fr ? 'Erreur lors de la g\u00e9n\u00e9ration des interventions' : 'Failed to generate jobs')
     } finally {
       setGenerating(null)
     }

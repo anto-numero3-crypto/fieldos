@@ -388,7 +388,7 @@ export default function InsightsPage() {
     return (
       <AppLayout title={fr ? 'Insights IA' : 'AI Insights'}>
         <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
+          <div className="rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <EmptyState
               icon={Lightbulb}
               title={fr ? "Pas encore d'analyses" : 'No insights yet'}
@@ -437,7 +437,7 @@ export default function InsightsPage() {
               <h3 className="text-sm font-semibold text-indigo-900">{fr ? "Résumé hebdomadaire de l'entreprise" : 'Weekly Business Summary'}</h3>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
-              <div className="rounded-xl bg-white/70 p-3">
+              <div className="rounded-xl bg-white/70 dark:bg-gray-800/70 p-3">
                 <p className="text-xs text-gray-500 mb-0.5">{fr ? 'Revenus cette semaine' : 'Revenue this week'}</p>
                 <p className="text-lg font-bold text-gray-900">{fmt(summary.revenueThisWeek)}</p>
                 {revChange !== null && (
@@ -447,17 +447,17 @@ export default function InsightsPage() {
                   </p>
                 )}
               </div>
-              <div className="rounded-xl bg-white/70 p-3">
+              <div className="rounded-xl bg-white/70 dark:bg-gray-800/70 p-3">
                 <p className="text-xs text-gray-500 mb-0.5">{fr ? 'Interventions terminées' : 'Jobs completed'}</p>
                 <p className="text-lg font-bold text-gray-900">{summary.jobsCompleted}</p>
                 <p className="text-xs text-gray-400">{summary.jobsScheduled} {fr ? 'planifiées' : 'scheduled'}</p>
               </div>
-              <div className="rounded-xl bg-white/70 p-3">
+              <div className="rounded-xl bg-white/70 dark:bg-gray-800/70 p-3">
                 <p className="text-xs text-gray-500 mb-0.5">{fr ? 'Service populaire' : 'Top service'}</p>
                 <p className="text-sm font-bold text-gray-900 truncate">{summary.topService || '—'}</p>
                 <p className="text-xs text-gray-400">{fr ? 'Le plus fréquent' : 'Most frequent'}</p>
               </div>
-              <div className="rounded-xl bg-white/70 p-3">
+              <div className="rounded-xl bg-white/70 dark:bg-gray-800/70 p-3">
                 <p className="text-xs text-gray-500 mb-0.5">{fr ? 'Meilleur client' : 'Top customer'}</p>
                 <p className="text-sm font-bold text-gray-900 truncate">{summary.topCustomer || '—'}</p>
                 <p className="text-xs text-gray-400">{fr ? 'Par revenus' : 'By revenue'}</p>
@@ -478,7 +478,7 @@ export default function InsightsPage() {
                 </a>
               </div>
             )}
-            <div className="rounded-xl bg-white/70 px-4 py-3 flex items-start gap-3">
+            <div className="rounded-xl bg-white/70 dark:bg-gray-800/70 px-4 py-3 flex items-start gap-3">
               <Zap className="h-4 w-4 text-indigo-500 mt-0.5 shrink-0" />
               <p className="text-sm text-indigo-900"><strong>{fr ? 'Action recommandée :' : 'Recommended action:'}</strong> {summary.recommendation}</p>
             </div>
@@ -498,7 +498,7 @@ export default function InsightsPage() {
           </div>
 
           {recommendations.length === 0 ? (
-            <div className="rounded-2xl border border-gray-100 bg-white p-10 text-center">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-10 text-center">
               <CheckCircle className="h-10 w-10 text-emerald-400 mx-auto mb-3" />
               <p className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Tout semble parfait !' : 'Everything looks great!'}</p>
               <p className="text-sm text-gray-400">{fr ? "Aucune recommandation critique pour le moment. Continuez votre excellent travail." : 'No critical recommendations right now. Keep up the great work.'}</p>
@@ -506,7 +506,7 @@ export default function InsightsPage() {
           ) : (
             <div className="space-y-3">
               {recommendations.map((rec) => (
-                <div key={rec.id} className="rounded-2xl border border-gray-100 bg-white p-5 hover:shadow-md transition-all duration-200">
+                <div key={rec.id} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 hover:shadow-md transition-all duration-200">
                   <div className="flex items-start gap-4">
                     <div className={`shrink-0 flex h-10 w-10 items-center justify-center rounded-xl ${rec.bg}`}>
                       <rec.icon className={`h-5 w-5 ${rec.color}`} />
@@ -542,7 +542,7 @@ export default function InsightsPage() {
         </div>
 
         {/* Ask AI section */}
-        <div className="rounded-2xl border border-gray-100 bg-white p-6">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-4 w-4 text-violet-500" />
             <h3 className="text-sm font-semibold text-gray-900">{fr ? 'Interrogez votre entreprise' : 'Ask about your business'}</h3>

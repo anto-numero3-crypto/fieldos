@@ -523,8 +523,8 @@ function PublicInvoiceContent() {
 
             {/* Line items */}
             {lineItems.length > 0 && (
-              <div className="px-6 sm:px-8 py-4 border-t border-gray-100">
-                <table className="w-full text-sm">
+              <div className="px-6 sm:px-8 py-4 border-t border-gray-100 overflow-x-auto">
+                <table className="w-full text-sm min-w-[320px]">
                   <thead>
                     <tr className="border-b border-gray-100">
                       <th className="pb-2 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Description</th>

@@ -132,7 +132,7 @@ export default function AssistantPage() {
                       key={prompt}
                       onClick={() => sendMessage(prompt)}
                       disabled={loading}
-                      className="text-left rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-150 shadow-sm"
+                      className="text-left rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-sm text-gray-600 dark:text-gray-300 hover:border-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-700 transition-all duration-150 shadow-sm"
                     >
                       {prompt}
                     </button>
@@ -156,7 +156,7 @@ export default function AssistantPage() {
                   'max-w-[82%] rounded-2xl px-4 py-3 shadow-sm',
                   msg.role === 'user'
                     ? 'bg-indigo-600 text-white rounded-tr-md'
-                    : 'bg-white border border-gray-100 text-gray-800 rounded-tl-md',
+                    : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-md',
                 ].join(' ')}>
                   {msg.role === 'assistant' ? (
                     <MessageContent content={msg.content} fr={fr} />
@@ -173,7 +173,7 @@ export default function AssistantPage() {
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-sm shadow-indigo-200">
                   <Sparkles className="h-4 w-4" />
                 </div>
-                <div className="flex items-center gap-1 rounded-2xl rounded-tl-md bg-white border border-gray-100 px-4 py-3 shadow-sm">
+                <div className="flex items-center gap-1 rounded-2xl rounded-tl-md bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 px-4 py-3 shadow-sm">
                   <div className="typing-dot h-2 w-2 rounded-full bg-gray-400" />
                   <div className="typing-dot h-2 w-2 rounded-full bg-gray-400" />
                   <div className="typing-dot h-2 w-2 rounded-full bg-gray-400" />
@@ -185,7 +185,7 @@ export default function AssistantPage() {
         </div>
 
         {/* Input bar */}
-        <div className="shrink-0 border-t border-gray-100 bg-white px-4 py-4">
+        <div className="shrink-0 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-4">
           <div className="mx-auto max-w-3xl">
             <div className="flex items-end gap-2">
               <button
@@ -205,7 +205,7 @@ export default function AssistantPage() {
                   onKeyDown={handleKeyDown}
                   rows={1}
                   disabled={loading}
-                  className="block w-full resize-none rounded-2xl border border-gray-200 bg-white px-4 py-3 pr-12 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-sm disabled:opacity-60 overflow-hidden"
+                  className="block w-full resize-none rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 pr-12 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-sm disabled:opacity-60 overflow-hidden"
                   style={{ minHeight: '48px', maxHeight: '128px' }}
                 />
                 <button

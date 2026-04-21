@@ -96,7 +96,7 @@ const STATUS_LABEL_EN: Record<string, string> = {
 }
 
 const JOB_STATUS_FR: Record<string, string> = {
-  scheduled: 'Planifi\u00e9', in_progress: 'En cours', completed: 'Termin\u00e9', cancelled: 'Annul\u00e9',
+  scheduled: 'Planifi\u00e9e', in_progress: 'En cours', completed: 'Compl\u00e9t\u00e9e', cancelled: 'Annul\u00e9e',
 }
 const JOB_STATUS_EN: Record<string, string> = {
   scheduled: 'Scheduled', in_progress: 'In progress', completed: 'Completed', cancelled: 'Cancelled',
@@ -179,10 +179,10 @@ export default function ContractDetailPage() {
         await loadContract()
       } else {
         const data = await res.json()
-        toast.error(data.error || 'Error')
+        toast.error(fr ? (data.error || 'Impossible d\u2019envoyer le contrat') : (data.error || 'Could not send the contract'))
       }
     } catch {
-      toast.error(fr ? 'Erreur lors de l\'envoi' : 'Send failed')
+      toast.error(fr ? 'Erreur lors de l\u2019envoi du contrat' : 'Failed to send the contract')
     } finally {
       setSending(false)
     }
@@ -199,10 +199,10 @@ export default function ContractDetailPage() {
           : `${data.generated} job(s) generated`)
         await loadContract()
       } else {
-        toast.error(data.error || 'Error')
+        toast.error(fr ? (data.error || 'Impossible de g\u00e9n\u00e9rer les interventions') : (data.error || 'Could not generate jobs'))
       }
     } catch {
-      toast.error(fr ? 'Erreur' : 'Error')
+      toast.error(fr ? 'Erreur lors de la g\u00e9n\u00e9ration des interventions' : 'Failed to generate jobs')
     } finally {
       setGenerating(false)
     }
@@ -236,10 +236,10 @@ export default function ContractDetailPage() {
         toast.success(fr ? 'Facture cr\u00e9\u00e9e!' : 'Invoice created!')
         router.push(`/invoices?id=${data.invoiceId}`)
       } else {
-        toast.error(data.error || 'Error')
+        toast.error(fr ? (data.error || 'Impossible de cr\u00e9er la facture') : (data.error || 'Could not create invoice'))
       }
     } catch {
-      toast.error(fr ? 'Erreur' : 'Error')
+      toast.error(fr ? 'Erreur lors de la cr\u00e9ation de la facture' : 'Failed to create invoice')
     } finally {
       setCreatingInvoice(false)
     }
@@ -260,10 +260,10 @@ export default function ContractDetailPage() {
         await loadContract()
       } else {
         const data = await res.json()
-        toast.error(data.error || 'Error')
+        toast.error(fr ? (data.error || 'Impossible de signer le contrat') : (data.error || 'Could not sign the contract'))
       }
     } catch {
-      toast.error(fr ? 'Erreur' : 'Error')
+      toast.error(fr ? 'Erreur lors de la signature' : 'Failed to sign the contract')
     } finally {
       setSigningOwner(false)
     }

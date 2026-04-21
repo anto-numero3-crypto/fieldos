@@ -222,7 +222,7 @@ export default function CustomerDetailPage() {
         </div>
 
         {/* Header card */}
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6 mb-6">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6 mb-6">
           <div className="flex items-start gap-4">
             <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-bold text-white ${getColor(customer.name)}`}>
               {initials(customer.name)}
@@ -283,7 +283,7 @@ export default function CustomerDetailPage() {
           {/* KPIs */}
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { label: fr ? 'Interventions' : 'Jobs', value: jobs.length, sub: fr ? `${completedJobs} terminée(s)` : `${completedJobs} completed`, icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
+              { label: fr ? 'Interventions' : 'Jobs', value: jobs.length, sub: fr ? `${completedJobs} compl\u00e9t\u00e9e(s)` : `${completedJobs} completed`, icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
               { label: fr ? 'Facturé' : 'Invoiced', value: fmt(totalInvoiced), sub: fr ? `${invoices.length} facture(s)` : `${invoices.length} invoice(s)`, icon: FileText, color: 'text-indigo-600', bg: 'bg-indigo-50' },
               { label: fr ? 'Payé' : 'Paid', value: fmt(totalPaid), sub: fr ? `${invoices.filter((i) => i.status === 'paid').length} payée(s)` : `${invoices.filter((i) => i.status === 'paid').length} paid`, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
               { label: fr ? 'Solde impayé' : 'Unpaid balance', value: fmt(totalUnpaid), sub: fr ? `${unpaidCount} en attente` : `${unpaidCount} pending`, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
@@ -299,17 +299,17 @@ export default function CustomerDetailPage() {
 
           {/* Quick actions */}
           <div className="mt-5 flex flex-wrap gap-2">
-            <Link href={`/jobs?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+            <Link href={`/jobs?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
               <Briefcase className="h-3.5 w-3.5 text-violet-500" /> {fr ? 'Nouvelle intervention' : 'New job'}
             </Link>
-            <Link href={`/invoices/new?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+            <Link href={`/invoices/new?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
               <DollarSign className="h-3.5 w-3.5 text-emerald-500" /> {fr ? 'Nouvelle facture' : 'New invoice'}
             </Link>
-            <Link href={`/quotes?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+            <Link href={`/quotes?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
               <FileText className="h-3.5 w-3.5 text-indigo-500" /> {fr ? 'Nouveau devis' : 'New quote'}
             </Link>
             {customer.email && (
-              <a href={`mailto:${customer.email}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+              <a href={`mailto:${customer.email}`} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
                 <Mail className="h-3.5 w-3.5 text-blue-500" /> {fr ? 'Envoyer un message' : 'Send message'}
               </a>
             )}
@@ -327,7 +327,7 @@ export default function CustomerDetailPage() {
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={['rounded-lg px-4 py-1.5 text-sm font-semibold transition-all whitespace-nowrap', tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'].join(' ')}
+                className={['rounded-lg px-4 py-1.5 text-sm font-semibold transition-all whitespace-nowrap', tab === t ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'].join(' ')}
               >
                 {TAB_LABELS[t] || t}
                 {counts[t] > 0 && <span className="ml-1.5 rounded-full bg-gray-200 px-1.5 py-0.5 text-xs">{counts[t]}</span>}
@@ -338,7 +338,7 @@ export default function CustomerDetailPage() {
 
         {/* Tab content */}
         {tab === 'overview' && (
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6 space-y-4">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6 space-y-4">
             <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Aperçu du client' : 'Customer overview'}</h2>
             {customer.notes ? (
               <div className="rounded-xl bg-amber-50 border border-amber-100 p-4">
@@ -359,7 +359,7 @@ export default function CustomerDetailPage() {
         )}
 
         {tab === 'jobs' && (
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Interventions' : 'Jobs'} ({jobs.length})</h2>
               <Link href={`/jobs?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
@@ -398,7 +398,7 @@ export default function CustomerDetailPage() {
         )}
 
         {tab === 'invoices' && (
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <div>
                 <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Factures' : 'Invoices'} ({invoices.length})</h2>
@@ -443,7 +443,7 @@ export default function CustomerDetailPage() {
         )}
 
         {tab === 'quotes' && (
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Devis' : 'Quotes'} ({quotes.length})</h2>
               <Link href={`/quotes?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
@@ -485,7 +485,7 @@ export default function CustomerDetailPage() {
         )}
 
         {tab === 'bookings' && (
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
               <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Réservations' : 'Bookings'} ({bookings.length})</h2>
             </div>
@@ -524,7 +524,7 @@ export default function CustomerDetailPage() {
 
         {tab === 'notes' && (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
               <h3 className="text-sm font-semibold text-gray-900 mb-3">{fr ? 'Ajouter une note' : 'Add a note'}</h3>
               <textarea
                 placeholder={fr ? 'Ajouter une note sur ce client...' : 'Add a note about this customer...'}
@@ -543,14 +543,14 @@ export default function CustomerDetailPage() {
             </div>
 
             {notes.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white py-12 text-center">
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-12 text-center">
                 <StickyNote className="h-8 w-8 text-gray-300 mb-2" />
                 <p className="text-sm text-gray-400">{fr ? 'Aucune note. Ajoutez votre première note ci-dessus.' : 'No notes. Add your first note above.'}</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {notes.map((note) => (
-                  <div key={note.id} className="rounded-2xl border border-gray-100 bg-white shadow-sm p-4">
+                  <div key={note.id} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-4">
                     <p className="text-sm text-gray-800 whitespace-pre-wrap">{note.content}</p>
                     <p className="text-xs text-gray-400 mt-2">{fmtDate(note.created_at)}</p>
                   </div>

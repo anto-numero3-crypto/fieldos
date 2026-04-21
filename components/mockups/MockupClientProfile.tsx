@@ -34,9 +34,9 @@ function useCountUp(target: number, duration: number = 1200) {
 }
 
 const recentInterventions = [
-  { date: '12 avr 2026', service: 'Déneigement', employee: 'Jean Roy', color: 'bg-blue-500', amount: '65,00 $', status: 'Complété' },
-  { date: '5 avr 2026', service: 'Nettoyage', employee: 'Marie Lévesque', color: 'bg-green-500', amount: '120,00 $', status: 'Complété' },
-  { date: '28 mars 2026', service: 'Déneigement', employee: 'Tom Beaumont', color: 'bg-purple-500', amount: '65,00 $', status: 'Complété' },
+  { date: '12 avr 2026', service: 'Déneigement', employee: 'Jean Roy', color: 'bg-blue-500', amount: '65,00 $', status: 'Compl\u00e9t\u00e9e' },
+  { date: '5 avr 2026', service: 'Nettoyage', employee: 'Marie Lévesque', color: 'bg-green-500', amount: '120,00 $', status: 'Compl\u00e9t\u00e9e' },
+  { date: '28 mars 2026', service: 'Déneigement', employee: 'Tom Beaumont', color: 'bg-purple-500', amount: '65,00 $', status: 'Compl\u00e9t\u00e9e' },
 ];
 
 const notes = [

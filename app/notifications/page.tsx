@@ -161,7 +161,7 @@ export default function NotificationsPage() {
         {/* Header / actions */}
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">{fr ? 'Notifications' : 'Notifications'}</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">{fr ? 'Notifications' : 'Notifications'}</h1>
             <p className="text-sm text-gray-500 mt-0.5">
               {fr
                 ? `${items.length} au total · ${unreadCount} non lue${unreadCount > 1 ? 's' : ''}`
@@ -170,11 +170,11 @@ export default function NotificationsPage() {
           </div>
           <div className="flex items-center gap-2">
             {unreadCount > 0 && (
-              <button onClick={markAllRead} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+              <button onClick={markAllRead} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
                 {fr ? 'Tout marquer comme lu' : 'Mark all as read'}
               </button>
             )}
-            <button onClick={deleteOld} className="inline-flex items-center gap-1.5 rounded-xl border border-red-100 bg-white px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">
+            <button onClick={deleteOld} className="inline-flex items-center gap-1.5 rounded-xl border border-red-100 dark:border-red-900 bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50">
               {fr ? 'Supprimer les anciennes' : 'Delete old'}
             </button>
           </div>
@@ -185,16 +185,16 @@ export default function NotificationsPage() {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           >
             {FILTER_TYPES.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
           </select>
-          <div className="inline-flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+          <div className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
             {(['all', 'unread', 'read'] as const).map((k) => (
               <button
                 key={k}
                 onClick={() => setFilterRead(k)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${filterRead === k ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${filterRead === k ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
               >
                 {k === 'all' ? (fr ? 'Toutes' : 'All') : k === 'unread' ? (fr ? 'Non lues' : 'Unread') : (fr ? 'Lues' : 'Read')}
               </button>
@@ -206,7 +206,7 @@ export default function NotificationsPage() {
         {loading ? (
           <div className="space-y-3">{[...Array(5)].map((_, i) => <SkeletonListRow key={i} />)}</div>
         ) : pageItems.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-white">
+          <div className="rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <EmptyState
               icon={Bell}
               title={fr ? 'Aucune notification' : 'No notifications'}
@@ -216,22 +216,22 @@ export default function NotificationsPage() {
             />
           </div>
         ) : (
-          <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden divide-y divide-gray-50">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden divide-y divide-gray-50 dark:divide-gray-800">
             {pageItems.map((n) => {
               const cfg = TYPE_ICON[n.type] || TYPE_ICON.info
               return (
                 <button
                   key={n.id}
                   onClick={() => markOne(n)}
-                  className={`w-full flex items-start gap-3 px-5 py-4 hover:bg-gray-50 text-left transition-colors ${!n.read ? 'bg-indigo-50/40' : ''}`}
+                  className={`w-full flex items-start gap-3 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 text-left transition-colors ${!n.read ? 'bg-indigo-50/40 dark:bg-indigo-950/30' : ''}`}
                 >
                   <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${cfg.bg}`}>
                     <cfg.Icon className={`h-4 w-4 ${cfg.fg}`} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>{n.title}</p>
-                      <span className="text-[10px] uppercase tracking-wider rounded-full bg-gray-100 text-gray-500 px-2 py-0.5">{cfg.label}</span>
+                      <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{n.title}</p>
+                      <span className="text-[10px] uppercase tracking-wider rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-0.5">{cfg.label}</span>
                     </div>
                     {n.body && <p className="text-sm text-gray-500 mt-0.5">{n.body}</p>}
                     <p className="text-xs text-gray-400 mt-1">{timeAgo(n.created_at)}</p>
@@ -243,7 +243,7 @@ export default function NotificationsPage() {
           </div>
         )}
 
-        <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
           <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} />
         </div>
 

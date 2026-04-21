@@ -8,7 +8,7 @@ import { LayoutDashboard, Briefcase, Users, FileText, MoreHorizontal, X, BarChar
 
 const mainTabs = [
   { href: '/dashboard',  icon: LayoutDashboard, label: 'Accueil' },
-  { href: '/jobs',       icon: Briefcase,       label: 'Travaux' },
+  { href: '/jobs',       icon: Briefcase,       label: 'Interventions' },
   { href: '/customers',  icon: Users,           label: 'Clients' },
   { href: '/invoices',   icon: FileText,        label: 'Factures', badge: true },
 ]

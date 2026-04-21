@@ -67,7 +67,7 @@ function InputRow({ label, sub, value, onChange, type = 'text', placeholder = ''
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-0.5">{label}</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-0.5">{label}</label>
       {sub && <p className="text-xs text-gray-400 mb-1.5">{sub}</p>}
       <input
         type={type}
@@ -728,12 +728,12 @@ export default function SettingsPage() {
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
 
         {/* Tab nav */}
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-8 overflow-x-auto">
+        <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-8 overflow-x-auto">
           {tabs.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={['flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all whitespace-nowrap', tab === key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'].join(' ')}
+              className={['flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all whitespace-nowrap', tab === key ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'].join(' ')}
             >
               <Icon className="h-4 w-4" />{label}
             </button>
@@ -743,8 +743,8 @@ export default function SettingsPage() {
         {/* Business Profile */}
         {tab === 'business' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? "Informations de l'entreprise" : 'Business information'}</h2>
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{fr ? "Informations de l'entreprise" : 'Business information'}</h2>
               <p className="text-sm text-gray-400 mb-5">{fr ? 'Ces informations apparaissent sur vos factures, devis et communications clients.' : 'This info appears on invoices, quotes, and client communications.'}</p>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -754,7 +754,7 @@ export default function SettingsPage() {
                 <InputRow label={fr ? 'Téléphone' : 'Phone'} value={bizPhone} onChange={setBizPhone} type="tel" placeholder="+1 (514) 000-0000" />
                 <InputRow label={fr ? 'Courriel professionnel' : 'Business email'} value={bizEmail} onChange={setBizEmail} type="email" placeholder="info@entreprise.com" />
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-0.5">{fr ? 'Adresse' : 'Address'}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-0.5">{fr ? 'Adresse' : 'Address'}</label>
                   <AddressAutocomplete value={bizAddress} onChange={setBizAddress} />
                 </div>
                 <InputRow label={fr ? 'Ville' : 'City'} value={bizCity} onChange={setBizCity} placeholder="Montréal" />
@@ -764,7 +764,7 @@ export default function SettingsPage() {
                 <InputRow label={fr ? 'Numéro de taxe (TPS/TVQ/TVH)' : 'Tax number (GST/QST/HST)'} value={bizTaxNum} onChange={setBizTaxNum} placeholder="123456789 RT0001" />
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Devise' : 'Currency'}</label>
-                  <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                  <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                     <option value="CAD">{fr ? 'CAD — Dollar canadien' : 'CAD — Canadian Dollar'}</option>
                     <option value="USD">{fr ? 'USD — Dollar américain' : 'USD — US Dollar'}</option>
                     <option value="EUR">EUR — Euro</option>
@@ -774,7 +774,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Fuseau horaire' : 'Timezone'}</label>
-                  <select value={timezone} onChange={(e) => setTimezone(e.target.value)} className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                  <select value={timezone} onChange={(e) => setTimezone(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                     <option value="America/Toronto">Eastern (Toronto)</option>
                     <option value="America/Vancouver">Pacific (Vancouver)</option>
                     <option value="America/Chicago">Central (Chicago)</option>
@@ -790,12 +790,12 @@ export default function SettingsPage() {
             </div>
 
             {/* Logo upload section */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? "Logo de l'entreprise" : 'Business logo'}</h2>
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{fr ? "Logo de l'entreprise" : 'Business logo'}</h2>
               <p className="text-sm text-gray-400 mb-4">{fr ? 'Apparaît sur vos factures imprimées.' : 'Appears on your printed invoices.'}</p>
 
               {normalizePlan(plan.plan) === 'demarrage' ? (
-                <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                <div className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-3">
                   <Lock className="h-5 w-5 text-gray-400 shrink-0" />
                   <p className="text-sm text-gray-500">{fr ? 'Disponible avec le plan Pro' : 'Available with Pro plan'}</p>
                 </div>
@@ -822,7 +822,7 @@ export default function SettingsPage() {
                       </button>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-8 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors">
+                    <label className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 px-4 py-8 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/30 transition-colors">
                       {logoUploading ? (
                         <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
                       ) : (
@@ -859,8 +859,8 @@ export default function SettingsPage() {
             </div>
 
             {/* Quebec legal / licence fields */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Informations légales et licences' : 'Legal information and licences'}</h2>
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Informations légales et licences' : 'Legal information and licences'}</h2>
               <p className="text-sm text-gray-400 mb-5">{fr ? 'Ces informations apparaissent sur vos factures imprimées.' : 'These details appear on your printed invoices.'}</p>
 
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{fr ? 'Taxes' : 'Taxes'}</p>
@@ -889,7 +889,7 @@ export default function SettingsPage() {
 
               {/* Preview */}
               {(tpsNumber || tvqNumber || rbqNumber || cmmtqNumber || cmeqNumber || neqNumber) && (
-                <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 mt-2">
+                <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-3 mt-2">
                   <p className="text-xs font-semibold text-gray-500 mb-1">{fr ? 'Aperçu sur facture' : 'Invoice preview'}</p>
                   <p className="text-[11px] text-gray-400">
                     {[
@@ -905,7 +905,7 @@ export default function SettingsPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between rounded-2xl border border-gray-100 bg-white shadow-sm p-5">
+            <div className="flex items-center justify-between rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
               <div>
                 <p className="text-sm font-semibold text-gray-900">{fr ? 'Compte' : 'Account'}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Connecté en tant que' : 'Signed in as'} {user?.email}</p>
@@ -919,8 +919,8 @@ export default function SettingsPage() {
         {/* Services */}
         {tab === 'services' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Vos services' : 'Your services'}</h2>
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Vos services' : 'Your services'}</h2>
               <p className="text-sm text-gray-400 mb-5">{fr ? 'Ajoutez les services que vos clients peuvent réserver en ligne. Ils apparaîtront sur votre portail de réservation.' : 'Add services clients can book online. They appear on your booking portal.'}</p>
 
               {/* Existing services */}
@@ -929,7 +929,7 @@ export default function SettingsPage() {
                   <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
                 </div>
               ) : services.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 py-8 px-4 text-center text-sm text-gray-500">
+                <div className="rounded-xl border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 py-8 px-4 text-center text-sm text-gray-500">
                   {fr ? 'Aucun service pour le moment. Ajoutez-en un ci-dessous.' : 'No services yet. Add one below.'}
                 </div>
               ) : (
@@ -965,7 +965,7 @@ export default function SettingsPage() {
               )}
 
               {/* Add new service */}
-              <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
+              <div className="rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 p-4">
                 <p className="text-sm font-semibold text-gray-900 mb-3">{fr ? 'Ajouter un service' : 'Add service'}</p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="sm:col-span-2">
@@ -975,7 +975,7 @@ export default function SettingsPage() {
                       value={newSvcName}
                       onChange={(e) => setNewSvcName(e.target.value)}
                       placeholder={fr ? 'ex. Nettoyage résidentiel standard' : 'e.g. Standard residential cleaning'}
-                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </div>
 
@@ -984,7 +984,7 @@ export default function SettingsPage() {
                     <select
                       value={newSvcCategory}
                       onChange={(e) => setNewSvcCategory(e.target.value)}
-                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     >
                       <option value="">{fr ? '— Choisir —' : '— Select —'}</option>
                       {(fr ? SERVICE_CATEGORIES_FR : SERVICE_CATEGORIES_EN).map((c) => <option key={c} value={c}>{c}</option>)}
@@ -996,7 +996,7 @@ export default function SettingsPage() {
                     <select
                       value={newSvcPricingType}
                       onChange={(e) => setNewSvcPricingType(e.target.value as Service['pricing_type'])}
-                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     >
                       <option value="fixed">{fr ? 'Prix fixe' : 'Fixed price'}</option>
                       <option value="starting_from">{fr ? 'À partir de…' : 'Starting from…'}</option>
@@ -1020,7 +1020,7 @@ export default function SettingsPage() {
                         value={newSvcPrice}
                         onChange={(e) => setNewSvcPrice(e.target.value)}
                         placeholder="150.00"
-                        className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                       />
                     </div>
                   )}
@@ -1033,7 +1033,7 @@ export default function SettingsPage() {
                         value={newSvcPriceMax}
                         onChange={(e) => setNewSvcPriceMax(e.target.value)}
                         placeholder="300.00"
-                        className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                       />
                     </div>
                   )}
@@ -1045,7 +1045,7 @@ export default function SettingsPage() {
                       value={newSvcDuration}
                       onChange={(e) => setNewSvcDuration(e.target.value)}
                       placeholder="60"
-                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </div>
 
@@ -1056,7 +1056,7 @@ export default function SettingsPage() {
                       value={newSvcBuffer}
                       onChange={(e) => setNewSvcBuffer(e.target.value)}
                       placeholder="0"
-                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </div>
 
@@ -1067,7 +1067,7 @@ export default function SettingsPage() {
                       value={newSvcPricingNote}
                       onChange={(e) => setNewSvcPricingNote(e.target.value)}
                       placeholder={fr ? "ex. Varie selon la taille et l'état du bateau" : 'e.g. Varies based on size and condition'}
-                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </div>
 
@@ -1078,7 +1078,7 @@ export default function SettingsPage() {
                       value={newSvcDesc}
                       onChange={(e) => setNewSvcDesc(e.target.value)}
                       placeholder={fr ? 'Ce que le service inclut…' : 'What the service includes…'}
-                      className="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm resize-none focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white resize-none focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </div>
                 </div>
@@ -1098,8 +1098,8 @@ export default function SettingsPage() {
         {/* Booking Portal */}
         {tab === 'booking' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Agent IA de réservation' : 'AI booking agent'}</h2>
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Agent IA de réservation' : 'AI booking agent'}</h2>
               <p className="text-sm text-gray-400 mb-5">{fr ? "Personnalisez l'agent IA qui accueille vos clients sur votre portail de réservation." : 'Customize the AI agent that greets clients on your booking portal.'}</p>
 
               <div className="space-y-4">
@@ -1111,7 +1111,7 @@ export default function SettingsPage() {
                   placeholder="Alex"
                 />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-0.5">{fr ? "Message d'accueil personnalisé (optionnel)" : 'Custom greeting (optional)'}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-0.5">{fr ? "Message d'accueil personnalisé (optionnel)" : 'Custom greeting (optional)'}</label>
                   <p className="text-xs text-gray-400 mb-1.5">{fr ? 'Remplace le message par défaut. Laissez vide pour utiliser le message par défaut.' : 'Overrides the default greeting. Leave empty to use the default.'}</p>
                   <textarea
                     value={agentGreeting}
@@ -1122,7 +1122,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-0.5">{fr ? 'Services offerts (séparés par des virgules)' : 'Services offered (comma-separated)'}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-0.5">{fr ? 'Services offerts (séparés par des virgules)' : 'Services offered (comma-separated)'}</label>
                   <p className="text-xs text-gray-400 mb-1.5">{fr ? 'Indiquez à votre agent IA quels services proposer et discuter' : 'Tell your AI agent which services to offer and discuss'}</p>
                   <input
                     type="text"
@@ -1163,12 +1163,12 @@ export default function SettingsPage() {
         {/* Notifications */}
         {tab === 'notifications' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Préférences de notifications' : 'Notification preferences'}</h2>
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Préférences de notifications' : 'Notification preferences'}</h2>
               <p className="text-sm text-gray-400 mb-5">{fr ? 'Choisissez quels événements vous notifient dans l\'app et par courriel.' : 'Choose which events notify you in-app and by email.'}</p>
 
               <div className="rounded-xl border border-gray-100 overflow-hidden">
-                <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-5 py-3 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-5 py-3 bg-gray-50 dark:bg-gray-800/50 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   <span>{fr ? 'Événement' : 'Event'}</span>
                   <span className="w-16 text-center">{fr ? 'App' : 'App'}</span>
                   <span className="w-16 text-center">{fr ? 'Courriel' : 'Email'}</span>
@@ -1176,7 +1176,7 @@ export default function SettingsPage() {
                 <div className="divide-y divide-gray-50">
                   {[
                     { key: 'job_created',       label: fr ? 'Nouvelle intervention créée'          : 'New job created',              sub: fr ? "Quand un bon de travail est ajouté"                    : 'When a work order is added' },
-                    { key: 'job_completed',      label: fr ? 'Intervention terminée'                : 'Job completed',                sub: fr ? "Quand un technicien complète une intervention"         : 'When a technician completes a job' },
+                    { key: 'job_completed',      label: fr ? 'Intervention compl\u00e9t\u00e9e'     : 'Job completed',                sub: fr ? "Quand un technicien compl\u00e8te une intervention"    : 'When a technician completes a job' },
                     { key: 'invoice_paid',       label: fr ? 'Facture payée'                        : 'Invoice paid',                 sub: fr ? "Quand un client paie une facture"                      : 'When a customer pays an invoice' },
                     { key: 'invoice_overdue',    label: fr ? 'Facture en retard'                    : 'Invoice overdue',              sub: fr ? "Quand une facture dépasse son échéance"                : 'When an invoice passes its due date' },
                     { key: 'new_customer',       label: fr ? 'Nouveau client'                       : 'New customer',                 sub: fr ? "Quand un nouveau client est créé"                      : 'When a new customer is created' },
@@ -1217,8 +1217,8 @@ export default function SettingsPage() {
         {/* Account */}
         {tab === 'account' && (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Compte' : 'Account'}</h2>
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Compte' : 'Account'}</h2>
               <p className="text-sm text-gray-400 mb-5">{fr ? 'Gérez vos sessions et paramètres de compte.' : 'Manage your sessions and account settings.'}</p>
               <div className="space-y-3">
                 {/* Sessions */}
@@ -1241,7 +1241,7 @@ export default function SettingsPage() {
                       if (err) toast.error(err.message)
                       else toast.success(fr ? 'Autres sessions déconnectées' : 'Other sessions signed out')
                     }}
-                    className="shrink-0 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="shrink-0 rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     {fr ? 'Déconnecter les autres' : 'Sign out others'}
                   </button>
@@ -1253,7 +1253,7 @@ export default function SettingsPage() {
                     <p className="text-sm font-semibold text-gray-900">{fr ? 'Notifications' : 'Notifications'}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Consulter toutes les notifications récentes sur votre compte.' : 'Review all recent notifications on your account.'}</p>
                   </div>
-                  <Link href="/notifications" className="shrink-0 rounded-xl border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                  <Link href="/notifications" className="shrink-0 rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                     {fr ? 'Voir les notifications' : 'View notifications'}
                   </Link>
                 </div>
@@ -1284,11 +1284,11 @@ export default function SettingsPage() {
         {tab === 'billing' && (
           <div className="space-y-6">
             {/* Current plan card */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-3 flex-wrap">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-base font-semibold text-gray-900">{fr ? 'Votre forfait' : 'Your plan'}</h2>
+                    <h2 className="text-base font-semibold text-gray-900 dark:text-white">{fr ? 'Votre forfait' : 'Your plan'}</h2>
                     <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${
                       plan.status === 'trial' ? 'bg-indigo-50 text-indigo-700' :
                       plan.status === 'active' ? 'bg-emerald-50 text-emerald-700' :
@@ -1323,7 +1323,7 @@ export default function SettingsPage() {
                         window.location.href = data.url
                       } catch { toast.error(fr ? 'Erreur' : 'Error') }
                     }}
-                    className="shrink-0 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                    className="shrink-0 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     {fr ? "Gérer l'abonnement" : 'Manage subscription'}
                   </button>
@@ -1429,8 +1429,8 @@ export default function SettingsPage() {
               if (mods.length === 0) return null
               const ICON_MAP: Record<string, typeof FileText> = { FileText, Users, Clock, BookOpen }
               return (
-                <div key={category} className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-                  <h2 className="text-base font-semibold text-gray-900 mb-1">
+                <div key={category} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+                  <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
                     {category === 'operations' ? (fr ? 'Opérations' : 'Operations') : (fr ? 'Intégrations' : 'Integrations')}
                   </h2>
                   <p className="text-sm text-gray-400 mb-5">
@@ -1521,8 +1521,8 @@ export default function SettingsPage() {
 
         {tab === 'integrations' && (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Services connectés' : 'Connected services'}</h2>
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Services connectés' : 'Connected services'}</h2>
               <p className="text-sm text-gray-400 mb-5">{fr ? 'Gérez les intégrations avec des outils tiers.' : 'Manage third-party integrations.'}</p>
               <div className="space-y-3">
                 {/* Stripe Connect */}
@@ -1552,7 +1552,7 @@ export default function SettingsPage() {
                       <button
                         onClick={handleStripeDashboard}
                         disabled={connectLoading}
-                        className="shrink-0 rounded-xl border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-60"
+                        className="shrink-0 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-60"
                       >
                         <ExternalLink className="h-3.5 w-3.5 inline mr-1" />
                         {fr ? 'Tableau de bord' : 'Dashboard'}
@@ -1641,8 +1641,8 @@ export default function SettingsPage() {
         {/* Invoices Settings */}
         {tab === 'invoices' && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Numérotation des factures' : 'Invoice numbering'}</h2>
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Numérotation des factures' : 'Invoice numbering'}</h2>
               <p className="text-sm text-gray-400 mb-5">{fr ? 'Configurez le préfixe et le prochain numéro de facture.' : 'Configure the prefix and next invoice number.'}</p>
 
               <div className="grid gap-4 sm:grid-cols-3">
@@ -1668,15 +1668,15 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{fr ? 'Aperçu' : 'Preview'}</label>
-                  <div className="flex items-center h-[42px] rounded-xl border border-gray-100 bg-gray-50 px-3.5 text-sm font-mono text-indigo-600 font-semibold">
+                  <div className="flex items-center h-[42px] rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 px-3.5 text-sm font-mono text-indigo-600 font-semibold">
                     {invPrefix || 'FAC'}-{String(invNextNumber || 1).padStart(4, '0')}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Valeurs par défaut' : 'Default values'}</h2>
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Valeurs par défaut' : 'Default values'}</h2>
               <p className="text-sm text-gray-400 mb-5">{fr ? 'Ces valeurs seront pré-remplies lors de la création de nouvelles factures.' : 'These values are pre-filled when creating new invoices.'}</p>
 
               <div className="space-y-4">
@@ -1685,7 +1685,7 @@ export default function SettingsPage() {
                   <select
                     value={invPaymentTerms}
                     onChange={(e) => setInvPaymentTerms(e.target.value)}
-                    className="block w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                   >
                     <option value="due_on_receipt">{fr ? 'Payable à réception' : 'Due on receipt'}</option>
                     <option value="net7">{fr ? 'Net 7 jours' : 'Net 7 days'}</option>
@@ -1713,8 +1713,8 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-6">
-              <h2 className="text-base font-semibold text-gray-900 mb-1">{fr ? 'Note de pied de page' : 'Footer note'}</h2>
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Note de pied de page' : 'Footer note'}</h2>
               <p className="text-sm text-gray-400 mb-4">{fr ? 'Apparaît au bas de chaque facture.' : 'Appears at the bottom of every invoice.'}</p>
               <textarea
                 value={invFooterNote}

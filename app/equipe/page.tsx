@@ -139,7 +139,7 @@ export default function TeamPage() {
       } else {
         const err = await res.json()
         console.log('[team-ui] update error:', err)
-        toast.error(err.error || 'Error')
+        toast.error(fr ? (err.error || 'Impossible de mettre \u00e0 jour l\u2019employ\u00e9') : (err.error || 'Could not update employee'))
       }
     } else {
       // Create employee (no invite email)
@@ -191,7 +191,7 @@ export default function TeamPage() {
       toast.success(fr ? 'Invitation envoyée!' : 'Invitation sent!')
       await loadEmployees()
     } else {
-      toast.error(data.error || 'Error')
+      toast.error(fr ? (data.error || 'Impossible d\u2019envoyer l\u2019invitation') : (data.error || 'Could not send the invitation'))
     }
   }
 
@@ -246,6 +246,7 @@ export default function TeamPage() {
         </button>
       }
     >
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Pro plan limit banner */}
       {normalizedPlan === 'pro' && (
         <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
@@ -403,12 +404,13 @@ export default function TeamPage() {
           ))}
         </div>
       )}
+      </div>
 
       {/* Create / Edit Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" onClick={() => setModalOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 px-0 sm:px-4" onClick={() => setModalOpen(false)}>
           <div
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md p-6"
+            className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-md p-6 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
@@ -432,7 +434,7 @@ export default function TeamPage() {
                     type="text"
                     value={fFirstName}
                     onChange={(e) => setFFirstName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -443,7 +445,7 @@ export default function TeamPage() {
                     type="text"
                     value={fLastName}
                     onChange={(e) => setFLastName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -459,7 +461,7 @@ export default function TeamPage() {
                       type="email"
                       value={fEmail}
                       onChange={(e) => setFEmail(e.target.value)}
-                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -475,7 +477,7 @@ export default function TeamPage() {
                     type="tel"
                     value={fPhone}
                     onChange={(e) => setFPhone(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
               </div>
@@ -493,7 +495,7 @@ export default function TeamPage() {
                     value={fHourlyRate}
                     onChange={(e) => setFHourlyRate(e.target.value)}
                     placeholder="0.00"
-                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   />
                 </div>
               </div>

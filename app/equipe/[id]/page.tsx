@@ -166,7 +166,7 @@ export default function EmployeeProfilePage() {
             : `Cannot delete: ${err.count} assigned job(s)`
         )
       } else {
-        toast.error(err.error || 'Error')
+        toast.error(fr ? (err.error || 'Impossible de supprimer l\u2019employ\u00e9') : (err.error || 'Could not delete employee'))
       }
     }
   }
