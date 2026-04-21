@@ -157,7 +157,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
 
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         {/* Top bar */}
-        <header className="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 sm:px-6 gap-3">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 sm:px-6 gap-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <button
               type="button"
@@ -294,7 +294,9 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 pb-20 lg:pb-0">
           <TrialBanner />
-          {children}
+          <div className="max-w-screen-2xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
 

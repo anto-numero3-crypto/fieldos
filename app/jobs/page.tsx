@@ -271,7 +271,7 @@ export default function JobsPage() {
   const countByStatus = (s: string) => jobs.filter((j) => getEffectiveJobStatus(j) === s).length
 
   const AddButton = (
-    <button onClick={openAddJob} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-all">
+    <button onClick={openAddJob} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 hover:shadow-md active:scale-[0.98] transition-all duration-150">
       <Plus className="h-4 w-4" /> {fr ? 'Nouvelle intervention' : 'New job'}
     </button>
   )
@@ -297,6 +297,12 @@ export default function JobsPage() {
   return (
     <AppLayout title={fr ? 'Interventions' : 'Jobs'} actions={AddButton}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+
+        {/* Page header */}
+        <div className="mb-6 border-b border-gray-100 dark:border-gray-800 pb-5">
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{fr ? 'Interventions' : 'Jobs'}</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{fr ? 'Gérez vos bons de travail' : 'Manage your work orders'}</p>
+        </div>
 
         {/* Usage bar — Démarrage plan only */}
         {isDemarrage && plan.limits.maxJobsPerMonth !== Infinity && (() => {
@@ -324,70 +330,80 @@ export default function JobsPage() {
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
-            { label: fr ? 'Actives' : 'Active', value: countByStatus('scheduled') + countByStatus('in_progress'), icon: Briefcase, bg: 'bg-blue-50', color: 'text-blue-600' },
-            { label: fr ? 'En cours' : 'In progress', value: countByStatus('in_progress'), icon: Clock, bg: 'bg-amber-50', color: 'text-amber-600' },
-            { label: fr ? 'Compl\u00e9t\u00e9es' : 'Completed', value: countByStatus('complete'), icon: CheckCircle, bg: 'bg-emerald-50', color: 'text-emerald-600' },
-            { label: fr ? 'Total' : 'Total', value: jobs.length, icon: Zap, bg: 'bg-violet-50', color: 'text-violet-600' },
+            { label: fr ? 'Actives' : 'Active', value: countByStatus('scheduled') + countByStatus('in_progress'), icon: Briefcase, bg: 'bg-blue-50 dark:bg-blue-950/40', color: 'text-blue-600 dark:text-blue-400', accent: 'border-l-blue-500' },
+            { label: fr ? 'En cours' : 'In progress', value: countByStatus('in_progress'), icon: Clock, bg: 'bg-amber-50 dark:bg-amber-950/40', color: 'text-amber-600 dark:text-amber-400', accent: 'border-l-amber-500' },
+            { label: fr ? 'Compl\u00e9t\u00e9es' : 'Completed', value: countByStatus('complete'), icon: CheckCircle, bg: 'bg-emerald-50 dark:bg-emerald-950/40', color: 'text-emerald-600 dark:text-emerald-400', accent: 'border-l-emerald-500' },
+            { label: fr ? 'Total' : 'Total', value: jobs.length, icon: Zap, bg: 'bg-violet-50 dark:bg-violet-950/40', color: 'text-violet-600 dark:text-violet-400', accent: 'border-l-violet-500' },
           ].map((s) => (
-            <div key={s.label} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
-              <div className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${s.bg} mb-2`}>
-                <s.icon className={`h-4 w-4 ${s.color}`} />
+            <div key={s.label} className={`rounded-xl border border-gray-100 dark:border-gray-800 border-l-4 ${s.accent} bg-white dark:bg-gray-900 p-5 shadow-sm hover:shadow-md transition-all duration-200`}>
+              <div className="flex items-start justify-between mb-3">
+                <div className={`inline-flex h-9 w-9 items-center justify-center rounded-xl ${s.bg}`}>
+                  <s.icon className={`${s.color}`} style={{ width: '18px', height: '18px' }} />
+                </div>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{s.label}</p>
-              <p className="text-lg font-bold text-gray-900 dark:text-white">{s.value}</p>
+              <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-1">{s.label}</p>
+              <p className="text-2xl font-bold tabular-nums text-gray-900 dark:text-white">{s.value}</p>
             </div>
           ))}
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
-          <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
             {statusFilters.map((f) => (
               <button key={f.key} onClick={() => setActiveFilter(f.key)}
-                className={['flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all', activeFilter === f.key ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'].join(' ')}>
-                {f.hex && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: f.hex }} />}
+                className={[
+                  'flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-150',
+                  activeFilter === f.key
+                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200 dark:shadow-indigo-950'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200',
+                ].join(' ')}>
+                {f.hex && <span className="h-2 w-2 rounded-full ring-2 ring-white/30" style={{ backgroundColor: activeFilter === f.key ? '#ffffff' : f.hex }} />}
                 {f.label}
-                <span className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs ${activeFilter === f.key ? 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300' : 'text-gray-400'}`}>{f.count}</span>
+                <span className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold ${activeFilter === f.key ? 'bg-white/20 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}>{f.count}</span>
               </button>
             ))}
           </div>
           <div className="relative sm:ml-auto w-full sm:w-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input type="text" placeholder={fr ? 'Rechercher…' : 'Search…'} value={search} onChange={(e) => setSearch(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 pl-9 pr-4 py-2 text-base sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm sm:w-64" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input type="text" placeholder={fr ? 'Rechercher...' : 'Search...'} value={search} onChange={(e) => setSearch(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 pl-10 pr-4 py-2.5 text-base sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-sm sm:w-72" />
           </div>
         </div>
 
         {jobs.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+          <div className="rounded-xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
             <EmptyState
               icon={Briefcase}
               title={fr ? 'Aucune intervention' : 'No jobs'}
-              description={fr ? 'Créez votre première intervention ou attendez une réservation en ligne.' : 'Create your first job or wait for an online booking.'}
-              actions={[{ label: fr ? 'Créer une intervention' : 'Create a job', onClick: openAddJob, variant: 'primary' }]}
+              description={fr ? 'Creez votre premiere intervention ou attendez une reservation en ligne.' : 'Create your first job or wait for an online booking.'}
+              actions={[{ label: fr ? 'Creer une intervention' : 'Create a job', onClick: openAddJob, variant: 'primary' }]}
             />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-16 text-center">
-            <Search className="h-8 w-8 text-gray-300 dark:text-gray-600 mb-3" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">{fr ? 'Aucun résultat pour vos filtres' : 'No results for your filters'}</p>
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-20 text-center shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 mb-4">
+              <Search className="h-6 w-6 text-gray-400 dark:text-gray-500" />
+            </div>
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{fr ? 'Aucun resultat pour vos filtres' : 'No results for your filters'}</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{fr ? 'Essayez de modifier vos criteres' : 'Try adjusting your search criteria'}</p>
           </div>
         ) : (
-          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+          <div className="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all overflow-hidden">
             <div className="hidden md:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-800">
                 <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800/50">
+                  <tr className="bg-gray-50/80 dark:bg-gray-800/60">
                     {(fr ? ['Intervention', 'Client', 'Techniciens', 'Priorité', 'Date', 'Statut', ''] : ['Job', 'Customer', 'Technicians', 'Priority', 'Date', 'Status', '']).map((col) => (
-                      <th key={col} className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{col}</th>
+                      <th key={col} className="px-5 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{col}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
-                  {paged.map((job) => {
+                <tbody className="divide-y divide-gray-50 dark:divide-gray-800/50">
+                  {paged.map((job, idx) => {
                     const effStatus = getEffectiveJobStatus(job)
                     const scls = jobBadgeCls(effStatus)
                     const pcfg = PRIORITY_CFG[job.priority || 'normal']
                     return (
-                      <tr key={job.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
+                      <tr key={job.id} className={`hover:bg-indigo-50/40 dark:hover:bg-indigo-900/10 transition-colors duration-100 group ${idx % 2 === 1 ? 'bg-gray-50/50 dark:bg-gray-800/30' : ''}`}>
                         <td className="px-5 py-4">
                           <Link href={`/jobs/${job.id}`} className="text-sm font-semibold text-gray-900 dark:text-white hover:text-indigo-600 transition-colors">{job.title}</Link>
                           {job.description && <p className="text-xs text-gray-400 mt-0.5 truncate max-w-xs">{job.description}</p>}
@@ -470,22 +486,45 @@ export default function JobsPage() {
               </table>
             </div>
 
-            <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-800">
-              {filtered.map((job) => {
+            <div className="md:hidden divide-y divide-gray-50 dark:divide-gray-800/50">
+              {paged.map((job) => {
                 const effStatus = getEffectiveJobStatus(job)
                 const scls = jobBadgeCls(effStatus)
                 const pcfg = PRIORITY_CFG[job.priority || 'normal']
+                const statusColor = JOB_COLORS[effStatus]?.hex || JOB_COLORS.scheduled.hex
+                const assigns = jobAssignments[job.id] || []
                 return (
-                  <Link key={job.id} href={`/jobs/${job.id}`} className="block p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{job.title}</p>
-                        {job.customers && <p className="flex items-center gap-1 text-xs text-gray-400 mt-0.5"><User className="h-3 w-3" />{job.customers.name}</p>}
-                        {job.scheduled_date && <p className="flex items-center gap-1 text-xs text-gray-400"><Calendar className="h-3 w-3" />{fmtDate(job.scheduled_date, lang)}</p>}
-                      </div>
-                      <div className="flex flex-col items-end gap-1 shrink-0">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scls || ''}`}>{tStatus(effStatus)}</span>
-                        <span className={`text-xs font-medium ${pcfg.cls}`}>{pcfg.icon} {pcfg.label}</span>
+                  <Link key={job.id} href={`/jobs/${job.id}`} className="block p-4 hover:bg-gray-50/80 dark:hover:bg-gray-800/40 active:scale-[0.99] transition-all duration-150">
+                    <div className="flex gap-3">
+                      {/* Colored left accent */}
+                      <div className="w-1 shrink-0 rounded-full self-stretch" style={{ backgroundColor: statusColor }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{job.title}</p>
+                            {job.customers && <p className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 mt-0.5"><User className="h-3 w-3 text-gray-300 dark:text-gray-600" />{job.customers.name}</p>}
+                          </div>
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold shrink-0 ${scls || ''}`}>{tStatus(effStatus)}</span>
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <div className="flex items-center gap-3">
+                            {job.scheduled_date && (
+                              <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+                                <Calendar className="h-3 w-3" />{fmtDate(job.scheduled_date, lang)}
+                                {job.start_time && <span className="text-gray-300 dark:text-gray-600"> {job.start_time.slice(0, 5)}</span>}
+                              </span>
+                            )}
+                            <span className={`text-xs font-medium ${pcfg.cls}`}>{pcfg.icon} {pcfg.label}</span>
+                          </div>
+                          {assigns.length > 0 && (
+                            <div className="flex items-center -space-x-1">
+                              {assigns.slice(0, 4).map((a) => (
+                                <span key={a.employee_id} className="h-5 w-5 rounded-full border-2 border-white dark:border-gray-900 shrink-0" style={{ backgroundColor: a.color }} title={`${a.first_name} ${a.last_name}`} />
+                              ))}
+                              {assigns.length > 4 && <span className="text-[10px] text-gray-400 ml-1">+{assigns.length - 4}</span>}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </Link>

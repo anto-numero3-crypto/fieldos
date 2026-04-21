@@ -55,9 +55,9 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${checked ? 'bg-indigo-600' : 'bg-gray-200'}`}
+      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${checked ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-600'}`}
     >
-      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
+      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
     </button>
   )
 }
@@ -67,14 +67,14 @@ function InputRow({ label, sub, value, onChange, type = 'text', placeholder = ''
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-0.5">{label}</label>
-      {sub && <p className="text-xs text-gray-400 mb-1.5">{sub}</p>}
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{label}</label>
+      {sub && <p className="text-xs text-gray-400 dark:text-gray-500 mb-1.5">{sub}</p>}
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+        className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
       />
     </div>
   )
@@ -82,10 +82,10 @@ function InputRow({ label, sub, value, onChange, type = 'text', placeholder = ''
 
 function NotifRow({ label, sub, checked, onChange }: { label: string; sub?: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="flex items-start justify-between py-3 border-b border-gray-50 last:border-0">
+    <div className="flex items-start justify-between py-3 border-b border-gray-50 dark:border-gray-800 last:border-0">
       <div>
-        <p className="text-sm font-medium text-gray-900">{label}</p>
-        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{label}</p>
+        {sub && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{sub}</p>}
       </div>
       <Toggle checked={checked} onChange={onChange} />
     </div>
@@ -94,11 +94,25 @@ function NotifRow({ label, sub, checked, onChange }: { label: string; sub?: stri
 
 function SaveBar({ saved, error, saving, onSave, fr }: { saved: boolean; error: string | null; saving: boolean; onSave: () => void; fr: boolean }) {
   return (
-    <div className="flex items-center justify-end gap-3 pt-2">
-      {saved && <div className="flex items-center gap-1.5 text-sm text-emerald-600"><CheckCircle className="h-4 w-4" /> {fr ? 'Enregistré !' : 'Saved!'}</div>}
-      {error && <div className="flex items-center gap-1.5 text-sm text-red-600"><AlertCircle className="h-4 w-4" />{error}</div>}
-      <button onClick={onSave} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-all">
-        <Save className="h-4 w-4" />{saving ? (fr ? 'Enregistrement...' : 'Saving...') : (fr ? 'Enregistrer' : 'Save')}
+    <div className="flex items-center justify-end gap-3 pt-3">
+      {saved && (
+        <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400 animate-in fade-in duration-200">
+          <CheckCircle className="h-4 w-4" />
+          {fr ? 'Enregistre' : 'Saved'}
+        </div>
+      )}
+      {error && (
+        <div className="flex items-center gap-1.5 text-sm font-medium text-red-600 dark:text-red-400">
+          <AlertCircle className="h-4 w-4" />{error}
+        </div>
+      )}
+      <button
+        onClick={onSave}
+        disabled={saving}
+        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-60 transition-all"
+      >
+        <Save className="h-4 w-4" />
+        {saving ? (fr ? 'Enregistrement...' : 'Saving...') : (fr ? 'Enregistrer' : 'Save')}
       </button>
     </div>
   )
@@ -728,14 +742,19 @@ export default function SettingsPage() {
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
 
         {/* Tab nav */}
-        <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-8 overflow-x-auto">
+        <div className="flex gap-0.5 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-8 overflow-x-auto snap-x snap-mandatory scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {tabs.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={['flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all whitespace-nowrap', tab === key ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'].join(' ')}
+              className={[
+                'flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold transition-all whitespace-nowrap snap-start',
+                tab === key
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
+              ].join(' ')}
             >
-              <Icon className="h-4 w-4" />{label}
+              <Icon className="h-4 w-4 shrink-0" />{label}
             </button>
           ))}
         </div>
@@ -763,7 +782,7 @@ export default function SettingsPage() {
                 <InputRow label={fr ? 'Site web' : 'Website'} value={bizWebsite} onChange={setBizWebsite} type="url" placeholder="https://votre-entreprise.com" />
                 <InputRow label={fr ? 'Numéro de taxe (TPS/TVQ/TVH)' : 'Tax number (GST/QST/HST)'} value={bizTaxNum} onChange={setBizTaxNum} placeholder="123456789 RT0001" />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Devise' : 'Currency'}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{fr ? 'Devise' : 'Currency'}</label>
                   <select value={currency} onChange={(e) => setCurrency(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                     <option value="CAD">{fr ? 'CAD — Dollar canadien' : 'CAD — Canadian Dollar'}</option>
                     <option value="USD">{fr ? 'USD — Dollar américain' : 'USD — US Dollar'}</option>
@@ -773,7 +792,7 @@ export default function SettingsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">{fr ? 'Fuseau horaire' : 'Timezone'}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{fr ? 'Fuseau horaire' : 'Timezone'}</label>
                   <select value={timezone} onChange={(e) => setTimezone(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                     <option value="America/Toronto">Eastern (Toronto)</option>
                     <option value="America/Vancouver">Pacific (Vancouver)</option>
@@ -907,8 +926,8 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
               <div>
-                <p className="text-sm font-semibold text-gray-900">{fr ? 'Compte' : 'Account'}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Connecté en tant que' : 'Signed in as'} {user?.email}</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{fr ? 'Compte' : 'Account'}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{fr ? 'Connecte en tant que' : 'Signed in as'} {user?.email}</p>
               </div>
             </div>
 
@@ -935,20 +954,20 @@ export default function SettingsPage() {
               ) : (
                 <div className="space-y-2 mb-6">
                   {services.map((svc) => (
-                    <div key={svc.id} className={`flex items-center gap-4 rounded-xl border p-4 transition-all ${svc.is_active ? 'border-gray-100 bg-white' : 'border-gray-100 bg-gray-50 opacity-70'}`}>
+                    <div key={svc.id} className={`flex items-center gap-4 rounded-xl border p-4 transition-all ${svc.is_active ? 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900' : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 opacity-70'}`}>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-gray-900 truncate">{svc.name}</p>
-                          {!svc.is_active && <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">{fr ? 'Inactif' : 'Inactive'}</span>}
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{svc.name}</p>
+                          {!svc.is_active && <span className="text-xs text-gray-500 bg-gray-200 dark:bg-gray-700 dark:text-gray-400 px-2 py-0.5 rounded-full">{fr ? 'Inactif' : 'Inactive'}</span>}
                         </div>
-                        {svc.description && <p className="text-xs text-gray-500 mt-0.5 truncate">{svc.description}</p>}
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 flex-wrap">
-                          <span className="inline-flex items-center gap-1 font-medium text-gray-700">
+                        {svc.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{svc.description}</p>}
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
+                          <span className="inline-flex items-center gap-1 font-medium text-gray-700 dark:text-gray-300">
                             <DollarSign className="h-3 w-3" />{formatPrice(svc, currency)}
                           </span>
                           <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{svc.duration_minutes} min</span>
-                          {svc.category && <span className="rounded-full bg-indigo-50 text-indigo-700 px-2 py-0.5">{svc.category}</span>}
-                          {svc.pricing_note && <span className="italic text-gray-400 truncate">{svc.pricing_note}</span>}
+                          {svc.category && <span className="rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-400 px-2 py-0.5">{svc.category}</span>}
+                          {svc.pricing_note && <span className="italic text-gray-400 dark:text-gray-500 truncate">{svc.pricing_note}</span>}
                         </div>
                       </div>
                       <Toggle checked={svc.is_active} onChange={() => toggleServiceActive(svc)} />
@@ -966,10 +985,10 @@ export default function SettingsPage() {
 
               {/* Add new service */}
               <div className="rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 p-4">
-                <p className="text-sm font-semibold text-gray-900 mb-3">{fr ? 'Ajouter un service' : 'Add service'}</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">{fr ? 'Ajouter un service' : 'Add service'}</p>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Nom du service' : 'Service name'}</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{fr ? 'Nom du service' : 'Service name'}</label>
                     <input
                       type="text"
                       value={newSvcName}
@@ -980,7 +999,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Catégorie' : 'Category'}</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{fr ? 'Catégorie' : 'Category'}</label>
                     <select
                       value={newSvcCategory}
                       onChange={(e) => setNewSvcCategory(e.target.value)}
@@ -992,7 +1011,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Type de prix' : 'Price type'}</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{fr ? 'Type de prix' : 'Price type'}</label>
                     <select
                       value={newSvcPricingType}
                       onChange={(e) => setNewSvcPricingType(e.target.value as Service['pricing_type'])}
@@ -1009,7 +1028,7 @@ export default function SettingsPage() {
 
                   {newSvcPricingType !== 'quote_required' && newSvcPricingType !== 'free' && (
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                         {newSvcPricingType === 'starting_from' ? (fr ? 'Prix minimum' : 'Minimum price') :
                          newSvcPricingType === 'hourly' ? (fr ? 'Tarif horaire' : 'Hourly rate') :
                          newSvcPricingType === 'custom_range' ? (fr ? 'Prix minimum' : 'Minimum price') :
@@ -1027,7 +1046,7 @@ export default function SettingsPage() {
 
                   {newSvcPricingType === 'custom_range' && (
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Prix maximum' : 'Maximum price'} ({currency})</label>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{fr ? 'Prix maximum' : 'Maximum price'} ({currency})</label>
                       <input
                         type="number" step="0.01" min="0"
                         value={newSvcPriceMax}
@@ -1039,7 +1058,7 @@ export default function SettingsPage() {
                   )}
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Durée (minutes)' : 'Duration (minutes)'}</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{fr ? 'Durée (minutes)' : 'Duration (minutes)'}</label>
                     <input
                       type="number" min="5" step="5"
                       value={newSvcDuration}
@@ -1050,7 +1069,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Temps tampon après (min)' : 'Buffer after (min)'}</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{fr ? 'Temps tampon après (min)' : 'Buffer after (min)'}</label>
                     <input
                       type="number" min="0" step="5"
                       value={newSvcBuffer}
@@ -1061,7 +1080,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Note de prix (optionnel)' : 'Price note (optional)'}</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{fr ? 'Note de prix (optionnel)' : 'Price note (optional)'}</label>
                     <input
                       type="text"
                       value={newSvcPricingNote}
@@ -1072,7 +1091,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Description (optionnel)' : 'Description (optional)'}</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{fr ? 'Description (optionnel)' : 'Description (optional)'}</label>
                     <textarea
                       rows={2}
                       value={newSvcDesc}
@@ -1117,8 +1136,8 @@ export default function SettingsPage() {
                     value={agentGreeting}
                     onChange={(e) => setAgentGreeting(e.target.value)}
                     rows={3}
-                    placeholder={fr ? `Bonjour ! Je suis ${agentName}, votre assistant de réservation. Comment puis-je vous aider ?` : `Hi! I'm ${agentName}, your booking assistant. How can I help you?`}
-                    className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
+                    placeholder={fr ? `Bonjour ! Je suis ${agentName}, votre assistant de reservation. Comment puis-je vous aider ?` : `Hi! I'm ${agentName}, your booking assistant. How can I help you?`}
+                    className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none transition-all"
                   />
                 </div>
                 <div>
@@ -1129,22 +1148,22 @@ export default function SettingsPage() {
                     value={agentServices}
                     onChange={(e) => setAgentServices(e.target.value)}
                     placeholder={fr ? 'Réparation HVAC, installation CA, entretien chauffage, nettoyage conduits' : 'HVAC repair, AC installation, heating maintenance, duct cleaning'}
-                    className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                   />
                 </div>
               </div>
             </div>
 
             {/* Booking link */}
-            <div className="rounded-2xl border border-indigo-100 bg-indigo-50 p-5">
+            <div className="rounded-2xl border border-indigo-100 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-950/30 p-5">
               <div className="flex items-center gap-2 mb-3">
-                <LinkIcon className="h-4 w-4 text-indigo-600" />
-                <p className="text-sm font-semibold text-indigo-900">{fr ? 'Lien de votre portail de réservation' : 'Your booking portal link'}</p>
+                <LinkIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-300">{fr ? 'Lien de votre portail de reservation' : 'Your booking portal link'}</p>
               </div>
-              <p className="text-xs text-indigo-600 mb-3">{fr ? 'Partagez ce lien avec vos clients pour qu\'ils puissent réserver via votre agent IA.' : 'Share this link with clients so they can book through your AI agent.'}</p>
+              <p className="text-xs text-indigo-600 dark:text-indigo-400/80 mb-3">{fr ? 'Partagez ce lien avec vos clients pour qu\'ils puissent reserver via votre agent IA.' : 'Share this link with clients so they can book through your AI agent.'}</p>
               <div className="flex items-center gap-2">
-                <div className="flex-1 rounded-xl bg-white border border-indigo-200 px-3 py-2 text-xs font-mono text-gray-700 truncate">
-                  {bookingLink || (fr ? 'Sauvegardez le nom de votre entreprise pour générer votre lien' : 'Save your business name to generate your link')}
+                <div className="flex-1 rounded-xl bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-800 px-3 py-2 text-xs font-mono text-gray-700 dark:text-gray-300 truncate">
+                  {bookingLink || (fr ? 'Sauvegardez le nom de votre entreprise pour generer votre lien' : 'Save your business name to generate your link')}
                 </div>
                 <button
                   onClick={copyBookingLink}
@@ -1167,13 +1186,13 @@ export default function SettingsPage() {
               <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Préférences de notifications' : 'Notification preferences'}</h2>
               <p className="text-sm text-gray-400 mb-5">{fr ? 'Choisissez quels événements vous notifient dans l\'app et par courriel.' : 'Choose which events notify you in-app and by email.'}</p>
 
-              <div className="rounded-xl border border-gray-100 overflow-hidden">
+              <div className="rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
                 <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-5 py-3 bg-gray-50 dark:bg-gray-800/50 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  <span>{fr ? 'Événement' : 'Event'}</span>
+                  <span>{fr ? 'Evenement' : 'Event'}</span>
                   <span className="w-16 text-center">{fr ? 'App' : 'App'}</span>
                   <span className="w-16 text-center">{fr ? 'Courriel' : 'Email'}</span>
                 </div>
-                <div className="divide-y divide-gray-50">
+                <div className="divide-y divide-gray-50 dark:divide-gray-800">
                   {[
                     { key: 'job_created',       label: fr ? 'Nouvelle intervention créée'          : 'New job created',              sub: fr ? "Quand un bon de travail est ajouté"                    : 'When a work order is added' },
                     { key: 'job_completed',      label: fr ? 'Intervention compl\u00e9t\u00e9e'     : 'Job completed',                sub: fr ? "Quand un technicien compl\u00e8te une intervention"    : 'When a technician completes a job' },
@@ -1189,8 +1208,8 @@ export default function SettingsPage() {
                   ].map(({ key, label, sub }) => (
                     <div key={key} className="grid grid-cols-[1fr_auto_auto] gap-2 items-center px-5 py-3">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{label}</p>
-                        <p className="text-xs text-gray-400">{sub}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{label}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{sub}</p>
                       </div>
                       <div className="w-16 flex justify-center">
                         <Toggle
@@ -1222,10 +1241,10 @@ export default function SettingsPage() {
               <p className="text-sm text-gray-400 mb-5">{fr ? 'Gérez vos sessions et paramètres de compte.' : 'Manage your sessions and account settings.'}</p>
               <div className="space-y-3">
                 {/* Sessions */}
-                <div className="flex items-start justify-between rounded-xl border border-gray-100 p-4">
+                <div className="flex items-start justify-between rounded-xl border border-gray-100 dark:border-gray-800 p-4">
                   <div className="flex-1">
-                    <p className="text-sm font-semibold text-gray-900 mb-0.5">{fr ? 'Sessions actives' : 'Active sessions'}</p>
-                    <p className="text-xs text-gray-400">{fr ? 'Vous êtes connecté sur cet appareil.' : 'You are logged in on this device.'}</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-0.5">{fr ? 'Sessions actives' : 'Active sessions'}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{fr ? 'Vous etes connecte sur cet appareil.' : 'You are logged in on this device.'}</p>
                   </div>
                   <button
                     onClick={async () => {
@@ -1248,10 +1267,10 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Activity / Notifications */}
-                <div className="flex items-start justify-between rounded-xl border border-gray-100 p-4">
+                <div className="flex items-start justify-between rounded-xl border border-gray-100 dark:border-gray-800 p-4">
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{fr ? 'Notifications' : 'Notifications'}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Consulter toutes les notifications récentes sur votre compte.' : 'Review all recent notifications on your account.'}</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{fr ? 'Notifications' : 'Notifications'}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{fr ? 'Consulter toutes les notifications recentes sur votre compte.' : 'Review all recent notifications on your account.'}</p>
                   </div>
                   <Link href="/notifications" className="shrink-0 rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                     {fr ? 'Voir les notifications' : 'View notifications'}
@@ -1260,17 +1279,17 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-red-100 bg-red-50 p-5">
-              <h3 className="text-sm font-semibold text-red-700 mb-1">{fr ? 'Zone dangereuse' : 'Danger zone'}</h3>
-              <p className="text-xs text-red-600 mb-4">
+            <div className="rounded-2xl border border-red-100 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-5">
+              <h3 className="text-sm font-semibold text-red-700 dark:text-red-400 mb-1">{fr ? 'Zone dangereuse' : 'Danger zone'}</h3>
+              <p className="text-xs text-red-600 dark:text-red-400/80 mb-4">
                 {fr
-                  ? 'Cette action est irréversible. Toutes vos données seront définitivement supprimées.'
+                  ? 'Cette action est irreversible. Toutes vos donnees seront definitivement supprimees.'
                   : 'This action is irreversible. All your data will be permanently deleted.'}
               </p>
               <button
                 onClick={handleDeleteAccount}
                 disabled={deletingAccount}
-                className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-60 transition-colors"
+                className="rounded-xl border border-red-200 dark:border-red-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 disabled:opacity-60 transition-colors"
               >
                 {deletingAccount
                   ? (fr ? 'Suppression…' : 'Deleting…')
@@ -1285,7 +1304,7 @@ export default function SettingsPage() {
           <div className="space-y-6">
             {/* Current plan card */}
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-100 flex items-start justify-between gap-3 flex-wrap">
+              <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800 flex items-start justify-between gap-3 flex-wrap">
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-base font-semibold text-gray-900 dark:text-white">{fr ? 'Votre forfait' : 'Your plan'}</h2>
@@ -1301,7 +1320,7 @@ export default function SettingsPage() {
                        plan.status === 'cancelled' ? (fr ? 'Annulé' : 'Cancelled') : (fr ? 'Expiré' : 'Expired')}
                     </span>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{getPlanDisplayName(plan.plan, lang)} — ${PLAN_PRICING[normalizePlan(plan.plan)].monthly}/{fr ? 'mois' : 'mo'}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">{getPlanDisplayName(plan.plan, lang)} — ${PLAN_PRICING[normalizePlan(plan.plan)].monthly}/{fr ? 'mois' : 'mo'}</p>
                   {plan.nextBillingAt && plan.status === 'active' && !plan.promoCodeId && (
                     <p className="text-xs text-gray-400 mt-1">{fmtDate(plan.nextBillingAt, lang)}</p>
                   )}
@@ -1331,37 +1350,42 @@ export default function SettingsPage() {
               </div>
 
               {/* Usage */}
-              <div className="px-6 py-5 grid gap-4 sm:grid-cols-3 border-b border-gray-100">
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">{fr ? 'Clients' : 'Customers'}</p>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {plan.customerCount} / {plan.limits.maxCustomers === Infinity ? '∞' : plan.limits.maxCustomers}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">{fr ? 'Utilisateurs' : 'Users'}</p>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {plan.teamMemberCount} / {plan.limits.maxUsers}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">{fr ? 'Messages IA ce mois' : 'AI messages this month'}</p>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {plan.aiMessagesThisMonth} / {plan.limits.maxAIMessages === Infinity ? '∞' : plan.limits.maxAIMessages}
-                  </p>
-                </div>
+              <div className="px-6 py-5 grid gap-4 sm:grid-cols-3 border-b border-gray-100 dark:border-gray-800">
+                {[
+                  { label: fr ? 'Clients' : 'Customers', used: plan.customerCount, max: plan.limits.maxCustomers },
+                  { label: fr ? 'Utilisateurs' : 'Users', used: plan.teamMemberCount, max: plan.limits.maxUsers },
+                  { label: fr ? 'Messages IA ce mois' : 'AI messages this month', used: plan.aiMessagesThisMonth, max: plan.limits.maxAIMessages },
+                ].map(({ label: uLabel, used, max }) => {
+                  const pct = max === Infinity ? 0 : Math.min(100, Math.round((used / (max as number)) * 100))
+                  return (
+                    <div key={uLabel}>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mb-1.5">{uLabel}</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1.5">
+                        {used} / {max === Infinity ? '...' : max}
+                      </p>
+                      <div className="h-1.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-500 ${pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-amber-500' : 'bg-indigo-500'}`}
+                          style={{ width: max === Infinity ? '0%' : `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
 
               {/* Plan switcher */}
-              <div className="px-6 pt-2 pb-4 flex items-center gap-2">
-                <button
-                  onClick={() => setBillingCycle('monthly')}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${billingCycle === 'monthly' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                >{fr ? 'Mensuel' : 'Monthly'}</button>
-                <button
-                  onClick={() => setBillingCycle('annual')}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${billingCycle === 'annual' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                >{fr ? 'Annuel' : 'Annual'} <span className="ml-1 text-emerald-600">(-10%)</span></button>
+              <div className="px-6 pt-3 pb-4 flex items-center gap-1 bg-gray-50/50 dark:bg-gray-800/30">
+                <div className="flex gap-0.5 rounded-lg bg-gray-100 dark:bg-gray-800 p-0.5">
+                  <button
+                    onClick={() => setBillingCycle('monthly')}
+                    className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${billingCycle === 'monthly' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}
+                  >{fr ? 'Mensuel' : 'Monthly'}</button>
+                  <button
+                    onClick={() => setBillingCycle('annual')}
+                    className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${billingCycle === 'annual' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}
+                  >{fr ? 'Annuel' : 'Annual'} <span className="ml-1 text-emerald-600">(-10%)</span></button>
+                </div>
               </div>
               <div className="p-6 pt-2 grid gap-4 md:grid-cols-3">
                 {(['demarrage', 'pro', 'croissance'] as const).map((p) => {
@@ -1371,10 +1395,10 @@ export default function SettingsPage() {
                   const label = fr ? info.label : info.labelEn
                   const tagline = fr ? info.tagline : info.taglineEn
                   return (
-                    <div key={p} className={`rounded-xl border p-4 ${isCurrent ? 'border-indigo-300 bg-indigo-50/40' : 'border-gray-200 bg-white'}`}>
-                      <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">{label}</p>
-                      <p className="text-xl font-bold text-gray-900 mt-1">${price}<span className="text-xs font-normal text-gray-400">/{fr ? 'mois' : 'mo'}{billingCycle === 'annual' ? (fr ? ' · facturé annuellement' : ' · billed annually') : ''}</span></p>
-                      <p className="text-xs text-gray-500 mt-1 mb-3">{tagline}</p>
+                    <div key={p} className={`rounded-xl border p-5 transition-all ${isCurrent ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50/50 dark:bg-indigo-950/30 ring-1 ring-indigo-200 dark:ring-indigo-800' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50'}`}>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">{label}</p>
+                      <p className="text-xl font-bold text-gray-900 dark:text-white mt-1.5">${price}<span className="text-xs font-normal text-gray-400 dark:text-gray-500">/{fr ? 'mois' : 'mo'}{billingCycle === 'annual' ? (fr ? ' facture annuellement' : ' billed annually') : ''}</span></p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-4">{tagline}</p>
                       {isCurrent ? (
                         <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white">{fr ? 'Forfait actuel' : 'Current plan'}</span>
                       ) : (() => {
@@ -1385,7 +1409,7 @@ export default function SettingsPage() {
                         return isTrial ? (
                           <Link
                             href={`/subscribe`}
-                            className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                            className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors"
                           >
                             {fr ? `Choisir ${label}` : `Choose ${label}`}
                           </Link>
@@ -1393,14 +1417,14 @@ export default function SettingsPage() {
                           <button
                             onClick={() => handlePlanChange(p)}
                             disabled={checkoutLoading === p}
-                            className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-60 ${
+                            className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-60 transition-colors ${
                               isUpgrade
                                 ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
                             }`}
                           >
                             {checkoutLoading === p
-                              ? (fr ? 'Chargement…' : 'Loading…')
+                              ? (fr ? 'Chargement...' : 'Loading...')
                               : isUpgrade
                                 ? (fr ? `Passer au ${label}` : `Switch to ${label}`)
                                 : (fr ? `Passer au ${label}` : `Switch to ${label}`)}
@@ -1449,15 +1473,15 @@ export default function SettingsPage() {
                       return (
                         <div
                           key={mod.key}
-                          className={`rounded-xl border p-4 flex items-start justify-between transition-all ${enabled ? 'border-emerald-200 border-l-4 border-l-emerald-500' : 'border-gray-100'}`}
+                          className={`rounded-xl border p-4 flex items-start justify-between transition-all ${enabled ? 'border-emerald-200 dark:border-emerald-800 border-l-4 border-l-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/20' : 'border-gray-100 dark:border-gray-800'}`}
                         >
                           <div className="flex items-start gap-3">
-                            <div className={`flex h-10 w-10 items-center justify-center rounded-xl shrink-0 ${enabled ? 'bg-emerald-100' : 'bg-gray-100'}`}>
-                              <Icon className={`h-5 w-5 ${enabled ? 'text-emerald-600' : 'text-gray-500'}`} />
+                            <div className={`flex h-10 w-10 items-center justify-center rounded-xl shrink-0 ${enabled ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                              <Icon className={`h-5 w-5 ${enabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'}`} />
                             </div>
                             <div>
-                              <p className="text-sm font-semibold text-gray-900">{fr ? mod.name.fr : mod.name.en}</p>
-                              <p className="text-xs text-gray-400 mt-0.5">{fr ? mod.description.fr : mod.description.en}</p>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{fr ? mod.name.fr : mod.name.en}</p>
+                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{fr ? mod.description.fr : mod.description.en}</p>
                               {planTooLow && (
                                 <div className="flex items-center gap-1.5 mt-2">
                                   <Lock className="h-3.5 w-3.5 text-amber-500" />
@@ -1504,7 +1528,7 @@ export default function SettingsPage() {
                                   setTogglingModule(null)
                                 }
                               }}
-                              className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ${enabled ? 'bg-indigo-600' : 'bg-gray-200'} ${(!check.allowed && !enabled) ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
+                              className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ${enabled ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-600'} ${(!check.allowed && !enabled) ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}`}
                             >
                               <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${enabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
                             </button>
@@ -1526,23 +1550,27 @@ export default function SettingsPage() {
               <p className="text-sm text-gray-400 mb-5">{fr ? 'Gérez les intégrations avec des outils tiers.' : 'Manage third-party integrations.'}</p>
               <div className="space-y-3">
                 {/* Stripe Connect */}
-                <div className="flex items-center justify-between rounded-xl border border-gray-100 p-4">
+                <div className="flex items-center justify-between rounded-xl border border-gray-100 dark:border-gray-800 p-4">
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${connectStatus?.connected ? 'bg-emerald-100' : 'bg-gray-100'}`}>
-                      <CreditCard className={`h-5 w-5 ${connectStatus?.connected ? 'text-emerald-600' : 'text-gray-500'}`} />
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${connectStatus?.connected ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                      <CreditCard className={`h-5 w-5 ${connectStatus?.connected ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'}`} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-gray-900">Stripe Connect</p>
-                        {connectStatus?.connected && (
-                          <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                            <CheckCircle className="h-3 w-3" /> {fr ? 'Connecté' : 'Connected'}
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Stripe Connect</p>
+                        {connectStatus?.connected ? (
+                          <span className="flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-900/50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                            <CheckCircle className="h-3 w-3" /> {fr ? 'Connecte' : 'Connected'}
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-500 dark:text-gray-400">
+                            {fr ? 'Non connecte' : 'Not connected'}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-gray-400 dark:text-gray-500">
                         {connectStatus?.connected
-                          ? (fr ? 'Paiements en ligne activés' : 'Online payments enabled')
+                          ? (fr ? 'Paiements en ligne actives' : 'Online payments enabled')
                           : (fr ? 'Acceptez les paiements en ligne de vos clients' : 'Accept online payments from customers')}
                       </p>
                     </div>
@@ -1593,24 +1621,28 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Google Calendar */}
-                <div className="flex items-center justify-between rounded-xl border border-gray-100 p-4">
+                <div className="flex items-center justify-between rounded-xl border border-gray-100 dark:border-gray-800 p-4">
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${googleConnected ? 'bg-emerald-100' : 'bg-gray-100'}`}>
-                      <Globe className={`h-5 w-5 ${googleConnected ? 'text-emerald-600' : 'text-gray-500'}`} />
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${googleConnected ? 'bg-emerald-100 dark:bg-emerald-900/50' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                      <Globe className={`h-5 w-5 ${googleConnected ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'}`} />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-gray-900">Google Calendar</p>
-                        {googleConnected && (
-                          <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                            <CheckCircle className="h-3 w-3" /> {fr ? 'Connecté' : 'Connected'}
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Google Calendar</p>
+                        {googleConnected ? (
+                          <span className="flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-900/50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                            <CheckCircle className="h-3 w-3" /> {fr ? 'Connecte' : 'Connected'}
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-500 dark:text-gray-400">
+                            {fr ? 'Non connecte' : 'Not connected'}
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-gray-400 dark:text-gray-500">
                         {googleConnected
                           ? (googleEmail
-                              ? (fr ? `Synchronisation active · ${googleEmail}` : `Sync active · ${googleEmail}`)
+                              ? (fr ? `Synchronisation active -- ${googleEmail}` : `Sync active -- ${googleEmail}`)
                               : (fr ? 'Synchronisation active' : 'Sync active'))
                           : (fr ? 'Synchronisez vos interventions avec Google Calendar automatiquement' : 'Automatically sync your jobs with Google Calendar')}
                       </p>
@@ -1647,28 +1679,28 @@ export default function SettingsPage() {
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{fr ? 'Préfixe' : 'Prefix'}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{fr ? 'Prefixe' : 'Prefix'}</label>
                   <input
                     type="text"
                     value={invPrefix}
                     onChange={(e) => setInvPrefix(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 10))}
                     placeholder="FAC"
-                    className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{fr ? 'Prochain numéro' : 'Next number'}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{fr ? 'Prochain numero' : 'Next number'}</label>
                   <input
                     type="number"
                     value={invNextNumber}
                     onChange={(e) => setInvNextNumber(Math.max(1, parseInt(e.target.value) || 1))}
                     min="1"
-                    className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                    className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{fr ? 'Aperçu' : 'Preview'}</label>
-                  <div className="flex items-center h-[42px] rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 px-3.5 text-sm font-mono text-indigo-600 font-semibold">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{fr ? 'Apercu' : 'Preview'}</label>
+                  <div className="flex items-center h-[42px] rounded-xl border border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-950/30 px-3.5 text-sm font-mono text-indigo-600 dark:text-indigo-400 font-semibold">
                     {invPrefix || 'FAC'}-{String(invNextNumber || 1).padStart(4, '0')}
                   </div>
                 </div>
@@ -1681,13 +1713,13 @@ export default function SettingsPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{fr ? 'Conditions de paiement' : 'Payment terms'}</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{fr ? 'Conditions de paiement' : 'Payment terms'}</label>
                   <select
                     value={invPaymentTerms}
                     onChange={(e) => setInvPaymentTerms(e.target.value)}
                     className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                   >
-                    <option value="due_on_receipt">{fr ? 'Payable à réception' : 'Due on receipt'}</option>
+                    <option value="due_on_receipt">{fr ? 'Payable a reception' : 'Due on receipt'}</option>
                     <option value="net7">{fr ? 'Net 7 jours' : 'Net 7 days'}</option>
                     <option value="net15">{fr ? 'Net 15 jours' : 'Net 15 days'}</option>
                     <option value="net30">{fr ? 'Net 30 jours' : 'Net 30 days'}</option>
@@ -1695,18 +1727,18 @@ export default function SettingsPage() {
                   </select>
                 </div>
 
-                <div className="flex items-start justify-between py-3 border-b border-gray-50">
+                <div className="flex items-start justify-between py-3 border-b border-gray-50 dark:border-gray-800">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{fr ? 'TPS (5%)' : 'GST (5%)'}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Appliquer la TPS par défaut' : 'Apply GST by default'}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{fr ? 'TPS (5%)' : 'GST (5%)'}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{fr ? 'Appliquer la TPS par defaut' : 'Apply GST by default'}</p>
                   </div>
                   <Toggle checked={invDefaultTps} onChange={setInvDefaultTps} />
                 </div>
 
-                <div className="flex items-start justify-between py-3 border-b border-gray-50">
+                <div className="flex items-start justify-between py-3 border-b border-gray-50 dark:border-gray-800">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{fr ? 'TVQ (9.975%)' : 'QST (9.975%)'}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{fr ? 'Appliquer la TVQ par défaut' : 'Apply QST by default'}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{fr ? 'TVQ (9.975%)' : 'QST (9.975%)'}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{fr ? 'Appliquer la TVQ par defaut' : 'Apply QST by default'}</p>
                   </div>
                   <Toggle checked={invDefaultTvq} onChange={setInvDefaultTvq} />
                 </div>
@@ -1721,7 +1753,7 @@ export default function SettingsPage() {
                 onChange={(e) => setInvFooterNote(e.target.value)}
                 placeholder={fr ? 'Ex: Merci pour votre confiance !' : 'e.g., Thank you for your business!'}
                 rows={3}
-                className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none"
+                className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none"
               />
             </div>
 

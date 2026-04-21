@@ -1,28 +1,31 @@
 'use client'
 
 // ───────────────────────────────────────────────────────────────
-// Gestivio — world-class dashboard
+// Gestivio — world-class dashboard (v3 complete redesign)
 // ───────────────────────────────────────────────────────────────
-// Single-file dashboard page. Renders inside <AppLayout>, which already
-// provides the top bar (search, notifications, language + theme toggle)
-// and the sidebar. This file focuses on a data-rich, alive dashboard
-// body: greeting, KPIs, revenue chart + activity feed, today's schedule
-// + live jobs map, stat breakdowns, and pending/overdue queues.
+// Renders inside <AppLayout>. Greeting with time-of-day, gradient
+// KPI cards, revenue area chart, today's schedule timeline,
+// activity feed, alerts/nudges, map (desktop), stat breakdowns,
+// pending bookings + overdue invoices.
 
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import {
   AlertCircle,
   ArrowDown,
+  ArrowRight,
   ArrowUp,
   ArrowUpRight,
   Briefcase,
   Calendar,
   CheckCircle,
+  Clock,
   DollarSign,
+  FileText,
   Loader2,
+  MapPin,
   Moon,
   Plus,
   Send,
@@ -155,10 +158,42 @@ const initials = (name: string | null | undefined): string => {
   return parts.map((p) => p[0]?.toUpperCase() || '').join('') || '?'
 }
 
+/** Time-of-day greeting in FR/EN */
+function getGreeting(fr: boolean): string {
+  const h = new Date().getHours()
+  if (h < 12) return fr ? 'Bonjour' : 'Good morning'
+  if (h < 18) return fr ? 'Bon apres-midi' : 'Good afternoon'
+  return fr ? 'Bonsoir' : 'Good evening'
+}
+
+// ────────── Animated counter ──────────
+function useCountUp(target: number, duration = 800): number {
+  const [current, setCurrent] = useState(0)
+  const prevTarget = useRef(0)
+  useEffect(() => {
+    const start = prevTarget.current
+    prevTarget.current = target
+    if (start === target) { setCurrent(target); return }
+    const startTime = performance.now()
+    let raf: number
+    const step = (now: number) => {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      // ease-out quad
+      const eased = 1 - (1 - progress) * (1 - progress)
+      setCurrent(Math.round(start + (target - start) * eased))
+      if (progress < 1) raf = requestAnimationFrame(step)
+    }
+    raf = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf)
+  }, [target, duration])
+  return current
+}
+
 // ────────── Component ──────────
 export default function DashboardPage() {
   const { lang } = useLanguage()
-  const { theme } = useTheme()
+  const { theme, toggleTheme } = useTheme()
   const fr = lang === 'fr'
   const isDark = theme === 'dark'
 
@@ -176,13 +211,16 @@ export default function DashboardPage() {
   const [now, setNow] = useState<Date>(new Date())
   const [period, setPeriod] = useState<Period>('30d')
 
+  // Dismissed alert IDs for nudge cards
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
+
   // Trigger staggered entrance after first paint.
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 30)
     return () => clearTimeout(t)
   }, [])
 
-  // Update clock once a minute so relative times stay fresh.
+  // Update clock once every 30s so relative times stay fresh.
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 30_000)
     return () => clearInterval(t)
@@ -239,7 +277,7 @@ export default function DashboardPage() {
         return
       }
       setUserId(data.user.id)
-      // Derive first name — try user metadata, else the bit before '@'.
+      // Derive first name
       const metaName = (data.user.user_metadata?.first_name
         || data.user.user_metadata?.full_name
         || data.user.user_metadata?.name
@@ -257,7 +295,6 @@ export default function DashboardPage() {
       }
     })
     return () => { cancelled = true }
-    // fetchAll is stable via useCallback; fr only affects fallback name
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchAll])
 
@@ -384,7 +421,6 @@ export default function DashboardPage() {
     const start = new Date(now); start.setHours(0, 0, 0, 0)
     const end = new Date(now); end.setHours(23, 59, 59, 999)
     if (jobsPeriod === 'week') {
-      // Monday → Sunday
       const dow = start.getDay()
       const diff = dow === 0 ? -6 : 1 - dow
       start.setDate(start.getDate() + diff)
@@ -393,7 +429,6 @@ export default function DashboardPage() {
       start.setDate(1)
       end.setMonth(start.getMonth() + 1, 0); end.setHours(23, 59, 59, 999)
     } else {
-      // rolling 3 months
       start.setMonth(start.getMonth() - 2, 1)
       end.setTime(Date.now()); end.setHours(23, 59, 59, 999)
     }
@@ -447,7 +482,6 @@ export default function DashboardPage() {
         if (idx >= 0) buckets[idx].value += toNum(inv.amount)
       }
     } else {
-      // 3m / 6m / 1y — monthly buckets
       const months = period === '3m' ? 3 : period === '6m' ? 6 : 12
       for (let i = months - 1; i >= 0; i--) {
         const d = new Date(nowD.getFullYear(), nowD.getMonth() - i, 1)
@@ -472,7 +506,7 @@ export default function DashboardPage() {
     [revenueSeries],
   )
 
-  // ───── Activity feed (Row 2 right) ─────
+  // ───── Activity feed ─────
   const activityItems = useMemo((): ActivityItem[] => {
     const out: ActivityItem[] = []
 
@@ -483,7 +517,7 @@ export default function DashboardPage() {
           id: `inv-paid-${inv.id}`,
           kind: 'invoice_paid',
           text: fr
-            ? `Facture ${inv.invoice_number || ''} payée par ${name}`
+            ? `Facture ${inv.invoice_number || ''} payee par ${name}`
             : `Invoice ${inv.invoice_number || ''} paid by ${name}`,
           href: `/invoices`,
           at: inv.paid_at,
@@ -495,8 +529,8 @@ export default function DashboardPage() {
           id: `inv-over-${inv.id}`,
           kind: 'invoice_overdue',
           text: fr
-            ? `Facture ${inv.invoice_number || ''} en retard — ${name}`
-            : `Invoice ${inv.invoice_number || ''} overdue — ${name}`,
+            ? `Facture ${inv.invoice_number || ''} en retard \u2014 ${name}`
+            : `Invoice ${inv.invoice_number || ''} overdue \u2014 ${name}`,
           href: `/invoices`,
           at: inv.due_date || inv.created_at,
         })
@@ -510,7 +544,7 @@ export default function DashboardPage() {
         out.push({
           id: `job-${j.id}`,
           kind: 'job_completed',
-          text: fr ? `Intervention compl\u00e9t\u00e9e pour ${name}` : `Job completed for ${name}`,
+          text: fr ? `Intervention completee pour ${name}` : `Job completed for ${name}`,
           href: `/jobs/${j.id}`,
           at: j.scheduled_date || j.created_at,
         })
@@ -522,8 +556,8 @@ export default function DashboardPage() {
         id: `book-${b.id}`,
         kind: 'new_booking',
         text: fr
-          ? `Nouvelle réservation — ${b.customer_name || 'client'} (${b.service_name || ''})`
-          : `New booking — ${b.customer_name || 'customer'} (${b.service_name || ''})`,
+          ? `Nouvelle reservation \u2014 ${b.customer_name || 'client'} (${b.service_name || ''})`
+          : `New booking \u2014 ${b.customer_name || 'customer'} (${b.service_name || ''})`,
         href: `/bookings`,
         at: b.created_at,
       })
@@ -542,7 +576,7 @@ export default function DashboardPage() {
     return out
       .filter((a) => !!a.at)
       .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
-      .slice(0, 20)
+      .slice(0, 15)
   }, [invoices, jobs, bookings, customers, today, fr])
 
   // ───── Greeting helpers ─────
@@ -556,11 +590,11 @@ export default function DashboardPage() {
   const lastSyncLabel = useMemo(() => {
     if (!lastSync) return ''
     const secs = Math.max(0, Math.floor((now.getTime() - lastSync.getTime()) / 1000))
-    if (secs < 60) return fr ? `Mis à jour il y a ${secs}s` : `Updated ${secs}s ago`
+    if (secs < 60) return fr ? `Mis a jour il y a ${secs}s` : `Updated ${secs}s ago`
     const mins = Math.floor(secs / 60)
-    if (mins < 60) return fr ? `Mis à jour il y a ${mins} min` : `Updated ${mins}m ago`
+    if (mins < 60) return fr ? `Mis a jour il y a ${mins} min` : `Updated ${mins}m ago`
     const hrs = Math.floor(mins / 60)
-    return fr ? `Mis à jour il y a ${hrs} h` : `Updated ${hrs}h ago`
+    return fr ? `Mis a jour il y a ${hrs} h` : `Updated ${hrs}h ago`
   }, [lastSync, now, fr])
 
   // ───── Bookings actions ─────
@@ -577,12 +611,12 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error(await res.text())
       toast.success(
         status === 'accepted'
-          ? (fr ? 'Réservation acceptée' : 'Booking accepted')
-          : (fr ? 'Réservation refusée' : 'Booking declined'),
+          ? (fr ? 'Reservation acceptee' : 'Booking accepted')
+          : (fr ? 'Reservation refusee' : 'Booking declined'),
       )
       if (userId) await fetchAll(userId)
     } catch {
-      toast.error(fr ? "Impossible de mettre à jour la réservation" : 'Could not update booking')
+      toast.error(fr ? "Impossible de mettre a jour la reservation" : 'Could not update booking')
     } finally {
       setBookingActing(null)
     }
@@ -601,26 +635,68 @@ export default function DashboardPage() {
       technician: j.team_members?.name || null,
     })), [todaysJobs])
 
+  // ───── Alert/Nudge data ─────
+  const overdueCount = overdueInvoices.length
+  const alertNudges = useMemo(() => {
+    const items: Array<{ id: string; type: 'overdue' | 'expiring'; count: number; message: string; href: string }> = []
+    if (overdueCount > 0) {
+      items.push({
+        id: 'overdue-invoices',
+        type: 'overdue',
+        count: overdueCount,
+        message: fr
+          ? `${overdueCount} facture${overdueCount > 1 ? 's' : ''} en retard`
+          : `${overdueCount} overdue invoice${overdueCount > 1 ? 's' : ''}`,
+        href: '/invoices?status=overdue',
+      })
+    }
+    return items
+  }, [overdueCount, fr])
+
+  // Section delay helper for staggered entrance
+  const sectionCls = (delay: number) =>
+    `transition-all duration-500 ease-out ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}`
+  const sectionStyle = (delay: number) => ({ transitionDelay: `${delay}ms` })
+
   // ───── Render ─────
   return (
     <AppLayout title={fr ? 'Tableau de bord' : 'Dashboard'}>
       <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-        {/* ══════ ROW 0 — Greeting ══════ */}
-        <GreetingRow
-          firstName={firstName}
-          dateLabel={formattedDate}
-          lastSyncLabel={lastSyncLabel}
-          fr={fr}
-          mounted={mounted}
-          loading={loading && !firstName}
-        />
+        {/* ---- ROW 0: Greeting ---- */}
+        <section className={sectionCls(0)} style={sectionStyle(0)}>
+          <GreetingRow
+            firstName={firstName}
+            dateLabel={formattedDate}
+            lastSyncLabel={lastSyncLabel}
+            fr={fr}
+            loading={loading && !firstName}
+          />
+        </section>
 
-        {/* ══════ ROW 1 — KPI cards ══════ */}
+        {/* ---- Alert nudges (contextual) ---- */}
+        {!loading && alertNudges.length > 0 && (
+          <section className={sectionCls(40)} style={sectionStyle(40)}>
+            <div className="flex flex-wrap gap-3">
+              {alertNudges
+                .filter((a) => !dismissedAlerts.has(a.id))
+                .map((a) => (
+                  <AlertNudge
+                    key={a.id}
+                    type={a.type}
+                    message={a.message}
+                    href={a.href}
+                    fr={fr}
+                    onDismiss={() => setDismissedAlerts((prev) => new Set(prev).add(a.id))}
+                  />
+                ))}
+            </div>
+          </section>
+        )}
+
+        {/* ---- ROW 1: KPI cards ---- */}
         <section
-          className={`grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 transition-all duration-500 ease-out ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-          }`}
-          style={{ transitionDelay: '80ms' }}
+          className={`grid grid-cols-2 lg:grid-cols-4 gap-4 ${sectionCls(80)}`}
+          style={sectionStyle(80)}
         >
           {loading ? (
             <>
@@ -634,7 +710,8 @@ export default function DashboardPage() {
                 tone="emerald"
                 Icon={DollarSign}
                 label={fr ? 'Revenus ce mois' : 'Revenue this month'}
-                value={fmtMoney(revenueThisMonth, lang)}
+                rawValue={revenueThisMonth}
+                displayValue={fmtMoney(revenueThisMonth, lang)}
                 trendPct={revenueTrendPct}
                 trendSuffix={fr ? 'vs mois dernier' : 'vs last month'}
               />
@@ -643,11 +720,12 @@ export default function DashboardPage() {
                 tone="blue"
                 Icon={Briefcase}
                 label={fr ? 'Interventions actives' : 'Active jobs'}
-                value={String(activeJobs)}
+                rawValue={activeJobs}
+                displayValue={String(activeJobs)}
                 subtext={
                   fr
-                    ? `${jobsToday} planifiée${jobsToday !== 1 ? 's' : ''} aujourd'hui`
-                    : `${jobsToday} scheduled today`
+                    ? `${jobsToday} aujourd'hui`
+                    : `${jobsToday} today`
                 }
               />
               <KpiCard
@@ -655,7 +733,8 @@ export default function DashboardPage() {
                 tone="violet"
                 Icon={Users}
                 label={fr ? 'Clients' : 'Customers'}
-                value={String(totalCustomers)}
+                rawValue={totalCustomers}
+                displayValue={String(totalCustomers)}
                 subtext={
                   fr
                     ? `+${newCustomersThisMonth} nouveau${newCustomersThisMonth !== 1 ? 'x' : ''} ce mois`
@@ -666,24 +745,23 @@ export default function DashboardPage() {
                 href="/invoices?status=unpaid"
                 tone="amber"
                 Icon={AlertCircle}
-                label={fr ? 'Factures impayées' : 'Unpaid invoices'}
-                value={fmtMoney(unpaidTotal, lang)}
+                label={fr ? 'Factures impayees' : 'Unpaid invoices'}
+                rawValue={unpaidTotal}
+                displayValue={fmtMoney(unpaidTotal, lang)}
                 subtext={
                   fr
-                    ? `${unpaidCount} facture${unpaidCount !== 1 ? 's' : ''} en attente`
-                    : `${unpaidCount} invoice${unpaidCount !== 1 ? 's' : ''} pending`
+                    ? `${unpaidCount} facture${unpaidCount !== 1 ? 's' : ''}`
+                    : `${unpaidCount} invoice${unpaidCount !== 1 ? 's' : ''}`
                 }
               />
             </>
           )}
         </section>
 
-        {/* ══════ ROW 2 — Revenue chart + Activity feed ══════ */}
+        {/* ---- ROW 2: Revenue chart + Activity feed ---- */}
         <section
-          className={`grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4 transition-all duration-500 ease-out ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-          }`}
-          style={{ transitionDelay: '160ms' }}
+          className={`grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 ${sectionCls(160)}`}
+          style={sectionStyle(160)}
         >
           <RevenueCard
             fr={fr}
@@ -698,12 +776,10 @@ export default function DashboardPage() {
           <ActivityFeed items={activityItems} fr={fr} loading={loading} nowTs={now.getTime()} />
         </section>
 
-        {/* ══════ ROW 3 — Today's schedule + Jobs map ══════ */}
+        {/* ---- ROW 3: Today's schedule + Jobs map (desktop) ---- */}
         <section
-          className={`grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-4 transition-all duration-500 ease-out ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-          }`}
-          style={{ transitionDelay: '240ms' }}
+          className={`grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-6 ${sectionCls(240)}`}
+          style={sectionStyle(240)}
         >
           <TodaysSchedule jobs={todaysJobs} fr={fr} lang={lang} loading={loading} dateLabel={formattedDate} />
           <div className="hidden lg:block">
@@ -711,12 +787,10 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* ══════ ROW 4 — Stat grid ══════ */}
+        {/* ---- ROW 4: Stat grid ---- */}
         <section
-          className={`grid grid-cols-1 md:grid-cols-3 gap-4 transition-all duration-500 ease-out ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-          }`}
-          style={{ transitionDelay: '320ms' }}
+          className={`grid grid-cols-1 md:grid-cols-3 gap-6 ${sectionCls(320)}`}
+          style={sectionStyle(320)}
         >
           <InvoiceBreakdownCard
             fr={fr}
@@ -740,12 +814,10 @@ export default function DashboardPage() {
           />
         </section>
 
-        {/* ══════ ROW 5 — Pending bookings + Overdue invoices ══════ */}
+        {/* ---- ROW 5: Pending bookings + Overdue invoices ---- */}
         <section
-          className={`grid grid-cols-1 md:grid-cols-2 gap-4 transition-all duration-500 ease-out ${
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-          }`}
-          style={{ transitionDelay: '400ms' }}
+          className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${sectionCls(400)}`}
+          style={sectionStyle(400)}
         >
           <PendingBookingsCard
             fr={fr}
@@ -756,42 +828,108 @@ export default function DashboardPage() {
           />
           <OverdueInvoicesCard fr={fr} lang={lang} invoices={overdueInvoices} loading={loading} today={today} />
         </section>
+
+        {/* ---- "Updated" indicator ---- */}
+        {lastSyncLabel && (
+          <div className="flex justify-center pb-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-1 text-[11px] text-gray-400 dark:text-gray-500">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              {lastSyncLabel}
+            </span>
+          </div>
+        )}
       </div>
     </AppLayout>
   )
 }
 
-// ═══════════════════════════════════════════════════════════════
+// =====================================================================
 // Sub-components
-// ═══════════════════════════════════════════════════════════════
+// =====================================================================
+
+// ────────── Alert Nudge Card ──────────
+function AlertNudge({
+  type,
+  message,
+  href,
+  fr,
+  onDismiss,
+}: {
+  type: 'overdue' | 'expiring'
+  message: string
+  href: string
+  fr: boolean
+  onDismiss: () => void
+}) {
+  const isRed = type === 'overdue'
+  return (
+    <div
+      className={`group flex items-center gap-3 rounded-xl border px-4 py-2.5 shadow-sm transition-all duration-200 hover:shadow-md ${
+        isRed
+          ? 'border-red-200 bg-red-50/80 dark:border-red-500/20 dark:bg-red-950/30'
+          : 'border-amber-200 bg-amber-50/80 dark:border-amber-500/20 dark:bg-amber-950/30'
+      }`}
+    >
+      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+        isRed
+          ? 'bg-red-100 dark:bg-red-500/15'
+          : 'bg-amber-100 dark:bg-amber-500/15'
+      }`}>
+        <AlertCircle className={`h-4 w-4 ${
+          isRed
+            ? 'text-red-600 dark:text-red-400'
+            : 'text-amber-600 dark:text-amber-400'
+        }`} />
+      </div>
+      <Link
+        href={href}
+        className={`flex-1 text-sm font-medium ${
+          isRed
+            ? 'text-red-800 dark:text-red-300'
+            : 'text-amber-800 dark:text-amber-300'
+        }`}
+      >
+        {message}
+        <ArrowRight className="ml-1.5 inline h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+      </Link>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="rounded-md p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+        aria-label={fr ? 'Fermer' : 'Dismiss'}
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  )
+}
 
 // ────────── Greeting row ──────────
 function GreetingRow({
-  firstName, dateLabel, lastSyncLabel, fr, mounted, loading,
+  firstName, dateLabel, lastSyncLabel, fr, loading,
 }: {
   firstName: string; dateLabel: string; lastSyncLabel: string
-  fr: boolean; mounted: boolean; loading: boolean
+  fr: boolean; loading: boolean
 }) {
   const { theme, toggleTheme } = useTheme()
   const isDark = theme === 'dark'
+  const greeting = getGreeting(fr)
 
   return (
-    <div
-      className={`flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 transition-all duration-500 ease-out ${
-        mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-      }`}
-    >
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
       <div className="min-w-0">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
           {loading ? (
             <span className="inline-block h-8 w-60 rounded-lg bg-gray-100 dark:bg-gray-800 animate-pulse align-middle" />
           ) : (
             <>
-              <span>{fr ? 'Bonjour, ' : 'Hi, '}</span>
+              <span>{greeting}, </span>
               <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
                 {firstName}
               </span>
-              <span className="ml-2 inline-block origin-[70%_70%] animate-wave">👋</span>
+              <span className="ml-2 inline-block origin-[70%_70%] animate-wave">
+                <span role="img" aria-label={fr ? 'salut' : 'wave'}>&#x1F44B;</span>
+              </span>
             </>
           )}
         </h1>
@@ -799,36 +937,42 @@ function GreetingRow({
           {dateLabel}
           {lastSyncLabel && (
             <span className="ml-2 hidden sm:inline text-xs text-gray-400 dark:text-gray-500">
-              · {lastSyncLabel}
+              &middot; {lastSyncLabel}
             </span>
           )}
         </p>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Link
           href="/jobs"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm transition-all"
         >
           <Plus className="h-4 w-4" />
-          {fr ? 'Nouvelle intervention' : 'New job'}
+          <span className="hidden sm:inline">{fr ? 'Intervention' : 'Job'}</span>
         </Link>
         <Link
           href="/invoices/new"
-          className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 text-sm font-medium transition-colors shadow-sm"
+          className="inline-flex items-center gap-1.5 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm transition-all"
+        >
+          <FileText className="h-4 w-4" />
+          <span className="hidden sm:inline">{fr ? 'Facture' : 'Invoice'}</span>
+        </Link>
+        <Link
+          href="/assistant"
+          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white px-4 py-2 text-sm font-medium transition-all shadow-sm hover:shadow-md"
         >
           <Sparkles className="h-4 w-4" />
-          {fr ? 'Créer une facture' : 'New invoice'}
+          <span className="hidden sm:inline">IA</span>
         </Link>
         <button
           type="button"
           onClick={toggleTheme}
-          aria-label={isDark ? (fr ? 'Passer au mode clair' : 'Switch to light mode') : (fr ? 'Passer au mode sombre' : 'Switch to dark mode')}
-          className="p-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300"
+          aria-label={isDark ? (fr ? 'Mode clair' : 'Light mode') : (fr ? 'Mode sombre' : 'Dark mode')}
+          className="group relative flex h-9 w-9 items-center justify-center rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:border-indigo-300 dark:hover:border-indigo-700 transition-all"
         >
-          {isDark
-            ? <Sun className="h-4.5 w-4.5 transition-transform duration-300 hover:rotate-12" />
-            : <Moon className="h-4.5 w-4.5 transition-transform duration-300 hover:-rotate-12" />}
+          <Sun className={`h-4 w-4 absolute transition-all duration-300 ${isDark ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-90 scale-0'}`} />
+          <Moon className={`h-4 w-4 absolute transition-all duration-300 ${isDark ? 'opacity-0 rotate-90 scale-0' : 'opacity-100 rotate-0'}`} />
         </button>
       </div>
     </div>
@@ -837,45 +981,76 @@ function GreetingRow({
 
 // ────────── KPI card ──────────
 function KpiCard({
-  href, tone, Icon, label, value, subtext, trendPct, trendSuffix,
+  href, tone, Icon, label, rawValue, displayValue, subtext, trendPct, trendSuffix,
 }: {
   href: string
   tone: 'emerald' | 'blue' | 'violet' | 'amber'
   Icon: React.ComponentType<{ className?: string }>
   label: string
-  value: string
+  rawValue: number
+  displayValue: string
   subtext?: string
   trendPct?: number
   trendSuffix?: string
 }) {
-  const tones: Record<typeof tone, { bg: string; fg: string }> = {
-    emerald: { bg: 'bg-emerald-50 dark:bg-emerald-500/10', fg: 'text-emerald-600 dark:text-emerald-400' },
-    blue:    { bg: 'bg-blue-50 dark:bg-blue-500/10',       fg: 'text-blue-600 dark:text-blue-400' },
-    violet:  { bg: 'bg-violet-50 dark:bg-violet-500/10',   fg: 'text-violet-600 dark:text-violet-400' },
-    amber:   { bg: 'bg-amber-50 dark:bg-amber-500/10',     fg: 'text-amber-600 dark:text-amber-400' },
+  const tones: Record<typeof tone, { iconBg: string; iconFg: string; gradientFrom: string; gradientTo: string }> = {
+    emerald: {
+      iconBg: 'bg-emerald-100 dark:bg-emerald-500/15',
+      iconFg: 'text-emerald-600 dark:text-emerald-400',
+      gradientFrom: 'from-emerald-50/80',
+      gradientTo: 'to-transparent',
+    },
+    blue: {
+      iconBg: 'bg-blue-100 dark:bg-blue-500/15',
+      iconFg: 'text-blue-600 dark:text-blue-400',
+      gradientFrom: 'from-blue-50/80',
+      gradientTo: 'to-transparent',
+    },
+    violet: {
+      iconBg: 'bg-violet-100 dark:bg-violet-500/15',
+      iconFg: 'text-violet-600 dark:text-violet-400',
+      gradientFrom: 'from-violet-50/80',
+      gradientTo: 'to-transparent',
+    },
+    amber: {
+      iconBg: 'bg-amber-100 dark:bg-amber-500/15',
+      iconFg: 'text-amber-600 dark:text-amber-400',
+      gradientFrom: 'from-amber-50/80',
+      gradientTo: 'to-transparent',
+    },
   }
   const t = tones[tone]
   const up = (trendPct ?? 0) >= 0
 
+  // Count-up animation
+  const animatedValue = useCountUp(rawValue)
+  // If displayValue looks like money, format the animated number. Otherwise show integer.
+  const showAnimated = typeof rawValue === 'number' && rawValue === Math.floor(rawValue) && !displayValue.includes('$')
+    ? String(animatedValue)
+    : displayValue
+
   return (
     <Link
       href={href}
-      className="group relative rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+      className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200`}
     >
-      <div className="flex items-start justify-between">
-        <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl ${t.bg}`}>
-          <Icon className={`h-5 w-5 ${t.fg}`} />
+      {/* Subtle gradient accent in corner */}
+      <div className={`pointer-events-none absolute -top-8 -right-8 h-32 w-32 rounded-full bg-gradient-to-br ${t.gradientFrom} ${t.gradientTo} dark:opacity-20 blur-xl`} />
+
+      <div className="relative flex items-start justify-between">
+        <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl ${t.iconBg}`}>
+          <Icon className={`h-5 w-5 ${t.iconFg}`} />
         </div>
         <ArrowUpRight className="h-4 w-4 text-gray-300 dark:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      <div className="mt-3 text-3xl font-bold tabular-nums text-gray-900 dark:text-white leading-tight break-words">
-        {value}
+      <div className="relative mt-4 text-3xl font-bold tabular-nums text-gray-900 dark:text-white leading-tight break-words">
+        {showAnimated}
       </div>
-      <div className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{label}</div>
+      <div className="relative mt-0.5 text-sm text-gray-500 dark:text-gray-400">{label}</div>
 
       {typeof trendPct === 'number' && (
-        <div className="mt-3 flex items-center gap-1 text-xs">
+        <div className="relative mt-3 flex items-center gap-1.5 text-xs">
           <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 font-semibold ${
             up
               ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
@@ -888,11 +1063,10 @@ function KpiCard({
         </div>
       )}
 
-      {subtext && !Number.isFinite(trendPct as number) && (
-        <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">{subtext}</div>
-      )}
-      {subtext && Number.isFinite(trendPct as number) && (
-        <div className="mt-2 text-xs text-gray-400 dark:text-gray-500 truncate">{subtext}</div>
+      {subtext && (
+        <div className={`relative ${typeof trendPct === 'number' ? 'mt-1.5' : 'mt-3'} text-xs text-gray-500 dark:text-gray-400`}>
+          {subtext}
+        </div>
       )}
     </Link>
   )
@@ -920,8 +1094,9 @@ function RevenueCard({
   ]
   const axisColor = isDark ? '#6b7280' : '#9ca3af'
   const gridColor = isDark ? '#1f2937' : '#f3f4f6'
+
   return (
-    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-5">
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
@@ -932,16 +1107,16 @@ function RevenueCard({
               {fmtMoney(total, lang)}
             </span>
             <span className="text-xs text-gray-400 dark:text-gray-500">
-              {fr ? 'payé · période' : 'paid · period'}
+              {fr ? 'paye . periode' : 'paid . period'}
             </span>
           </div>
         </div>
-        <div className="inline-flex items-center gap-0.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-0.5">
+        <div className="inline-flex items-center gap-0.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-0.5">
           {pills.map((p) => (
             <button
               key={p.key}
               onClick={() => onPeriod(p.key)}
-              className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-all ${
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${
                 period === p.key
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
@@ -953,7 +1128,7 @@ function RevenueCard({
         </div>
       </div>
 
-      <div className="mt-4 h-64 w-full">
+      <div className="mt-5 h-64 w-full">
         {loading ? (
           <Skeleton className="h-full w-full rounded-xl" />
         ) : (
@@ -961,8 +1136,8 @@ function RevenueCard({
             <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
               <defs>
                 <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#6366f1" stopOpacity={0.45} />
-                  <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                  <stop offset="0%" stopColor={isDark ? '#818cf8' : '#6366f1'} stopOpacity={0.35} />
+                  <stop offset="100%" stopColor={isDark ? '#818cf8' : '#6366f1'} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} stroke={gridColor} strokeDasharray="3 3" />
@@ -979,14 +1154,14 @@ function RevenueCard({
                 domain={[0, (max: number) => Math.max(max * 1.2, 10)]}
               />
               <Tooltip
-                cursor={{ stroke: '#6366f1', strokeWidth: 1, strokeOpacity: 0.3 }}
+                cursor={{ stroke: isDark ? '#818cf8' : '#6366f1', strokeWidth: 1, strokeOpacity: 0.3 }}
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null
                   const v = toNum(payload[0].value as number | string)
                   return (
-                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 shadow-lg">
+                    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 py-2 shadow-xl">
                       <div className="text-[11px] font-medium text-gray-400 dark:text-gray-500">{label}</div>
-                      <div className="text-sm font-semibold text-gray-900 dark:text-white tabular-nums">
+                      <div className="text-sm font-bold text-gray-900 dark:text-white tabular-nums">
                         {fmtMoney(v, lang)}
                       </div>
                     </div>
@@ -996,8 +1171,8 @@ function RevenueCard({
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke="#6366f1"
-                strokeWidth={2.25}
+                stroke={isDark ? '#818cf8' : '#6366f1'}
+                strokeWidth={2.5}
                 fill="url(#revGradient)"
                 animationDuration={700}
               />
@@ -1020,7 +1195,7 @@ function ActivityFeed({
 }) {
   const timeAgo = (iso: string): string => {
     const mins = Math.floor((nowTs - new Date(iso).getTime()) / 60000)
-    if (mins < 1) return fr ? "à l'instant" : 'just now'
+    if (mins < 1) return fr ? "a l'instant" : 'just now'
     if (mins < 60) return fr ? `il y a ${mins} min` : `${mins}m ago`
     const hrs = Math.floor(mins / 60)
     if (hrs < 24) return fr ? `il y a ${hrs} h` : `${hrs}h ago`
@@ -1028,29 +1203,34 @@ function ActivityFeed({
     return fr ? `il y a ${days} j` : `${days}d ago`
   }
 
-  const KIND_META: Record<ActivityKind, { dot: string; Icon: React.ComponentType<{ className?: string }>; fg: string; bg: string }> = {
-    invoice_paid:     { dot: 'bg-emerald-500', Icon: DollarSign,  fg: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
-    new_booking:      { dot: 'bg-blue-500',    Icon: Calendar,    fg: 'text-blue-600 dark:text-blue-400',       bg: 'bg-blue-50 dark:bg-blue-500/10' },
-    job_completed:    { dot: 'bg-violet-500',  Icon: CheckCircle, fg: 'text-violet-600 dark:text-violet-400',   bg: 'bg-violet-50 dark:bg-violet-500/10' },
-    new_customer:     { dot: 'bg-amber-500',   Icon: UserPlus,    fg: 'text-amber-600 dark:text-amber-400',     bg: 'bg-amber-50 dark:bg-amber-500/10' },
-    invoice_overdue:  { dot: 'bg-red-500',     Icon: AlertCircle, fg: 'text-red-600 dark:text-red-400',         bg: 'bg-red-50 dark:bg-red-500/10' },
+  const KIND_META: Record<ActivityKind, { Icon: React.ComponentType<{ className?: string }>; fg: string; bg: string }> = {
+    invoice_paid:     { Icon: DollarSign,  fg: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+    new_booking:      { Icon: Calendar,    fg: 'text-blue-600 dark:text-blue-400',       bg: 'bg-blue-50 dark:bg-blue-500/10' },
+    job_completed:    { Icon: CheckCircle, fg: 'text-green-600 dark:text-green-400',     bg: 'bg-green-50 dark:bg-green-500/10' },
+    new_customer:     { Icon: UserPlus,    fg: 'text-violet-600 dark:text-violet-400',   bg: 'bg-violet-50 dark:bg-violet-500/10' },
+    invoice_overdue:  { Icon: AlertCircle, fg: 'text-red-600 dark:text-red-400',         bg: 'bg-red-50 dark:bg-red-500/10' },
   }
 
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-            {fr ? 'Activité récente' : 'Recent activity'}
+            {fr ? 'Activite recente' : 'Recent activity'}
           </h2>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-            {fr ? 'Les 20 derniers événements' : 'Last 20 events'}
+            {fr ? 'Les 15 derniers evenements' : 'Last 15 events'}
           </p>
         </div>
-        <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" title={fr ? 'Live' : 'Live'} />
+        <Link
+          href="/notifications"
+          className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline"
+        >
+          {fr ? 'Voir tout' : 'See all'} &rarr;
+        </Link>
       </div>
 
-      <div className="max-h-[500px] min-h-[320px] overflow-y-auto">
+      <div className="max-h-[480px] min-h-[320px] overflow-y-auto">
         {loading ? (
           <div className="p-4 space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -1069,24 +1249,27 @@ function ActivityFeed({
               <Sparkles className="h-7 w-7 text-indigo-500 dark:text-indigo-400" />
             </div>
             <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
-              {fr ? 'Aucune activité pour l\'instant' : 'No activity yet'}
+              {fr ? "Aucune activite pour l'instant" : 'No activity yet'}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              {fr ? 'Vos événements apparaîtront ici.' : 'Your events will appear here.'}
+              {fr ? 'Vos evenements apparaitront ici.' : 'Your events will appear here.'}
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-gray-50 dark:divide-gray-800">
-            {items.map((a) => {
+          <ul className="divide-y divide-gray-50 dark:divide-gray-800/50">
+            {items.map((a, idx) => {
               const m = KIND_META[a.kind]
               return (
-                <li key={a.id}>
+                <li
+                  key={a.id}
+                  style={{ animationDelay: `${idx * 40}ms` }}
+                  className="animate-fadeIn"
+                >
                   <Link
                     href={a.href}
-                    className="flex items-start gap-3 px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
+                    className="flex items-start gap-3 px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors"
                   >
-                    <span className={`mt-1.5 inline-flex h-2 w-2 shrink-0 rounded-full ${m.dot}`} />
-                    <div className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${m.bg}`}>
+                    <div className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${m.bg}`}>
                       <m.Icon className={`h-4 w-4 ${m.fg}`} />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -1113,19 +1296,19 @@ function TodaysSchedule({
 }) {
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
             {fr ? "Agenda du jour" : "Today's schedule"}
           </h2>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 capitalize">{dateLabel}</p>
         </div>
-        <span className="inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
+        <span className="inline-flex items-center rounded-full bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-0.5 text-xs font-bold text-indigo-700 dark:text-indigo-400 tabular-nums">
           {jobs.length}
         </span>
       </div>
 
-      <div className="flex-1 max-h-[400px] overflow-y-auto">
+      <div className="flex-1 max-h-[420px] overflow-y-auto">
         {loading ? (
           <div className="p-4 space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -1140,15 +1323,15 @@ function TodaysSchedule({
             <p className="text-base font-semibold text-gray-800 dark:text-gray-100">
               {fr ? "Aucune intervention aujourd'hui" : 'No jobs today'}
             </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 mb-4">
-              {fr ? 'Votre journée est libre. Profitez-en.' : 'Your day is clear. Enjoy it.'}
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 mb-5">
+              {fr ? 'Votre journee est libre.' : 'Your day is clear.'}
             </p>
             <Link
               href="/jobs"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 text-sm font-medium transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-sm font-medium transition-colors shadow-sm"
             >
               <Plus className="h-4 w-4" />
-              {fr ? 'Créer une intervention' : 'Create a job'}
+              {fr ? 'Creer une intervention' : 'Create a job'}
             </Link>
           </div>
         ) : (
@@ -1164,26 +1347,27 @@ function TodaysSchedule({
 }
 
 function ScheduleRow({ job, fr, lang }: { job: Job; fr: boolean; lang: 'fr' | 'en' }) {
-  const statusColor: Record<string, { border: string; badge: string; label: string }> = {
-    scheduled:        { border: 'border-l-blue-500',   badge: 'bg-blue-100 text-blue-900 dark:bg-blue-950/60 dark:text-blue-300',                    label: fr ? 'Planifiée' : 'Scheduled' },
-    in_progress:      { border: 'border-l-green-500',  badge: 'bg-green-100 text-green-900 animate-pulse dark:bg-green-950/60 dark:text-green-300', label: fr ? 'En cours' : 'In progress' },
-    needs_completion: { border: 'border-l-orange-500', badge: 'bg-orange-100 text-orange-900 animate-pulse dark:bg-orange-950/60 dark:text-orange-300', label: fr ? 'À compléter' : 'Needs completion' },
-    completed:        { border: 'border-l-gray-400',   badge: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',                       label: fr ? 'Complétée' : 'Completed' },
-    complete:         { border: 'border-l-gray-400',   badge: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',                       label: fr ? 'Complétée' : 'Completed' },
-    invoiced:         { border: 'border-l-gray-400',   badge: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',                       label: fr ? 'Complétée' : 'Completed' },
-    cancelled:        { border: 'border-l-gray-300',   badge: 'bg-gray-100 text-gray-500 opacity-60 dark:bg-gray-800 dark:text-gray-500',            label: fr ? 'Annulée' : 'Cancelled' },
+  const statusConfig: Record<string, { border: string; dotColor: string; pulse: boolean; label: string }> = {
+    scheduled:        { border: 'border-l-blue-500',   dotColor: 'bg-blue-500',   pulse: false,  label: fr ? 'Planifiee' : 'Scheduled' },
+    in_progress:      { border: 'border-l-green-500',  dotColor: 'bg-green-500',  pulse: true,   label: fr ? 'En cours' : 'In progress' },
+    needs_completion: { border: 'border-l-orange-500', dotColor: 'bg-orange-500', pulse: true,   label: fr ? 'A completer' : 'Needs completion' },
+    completed:        { border: 'border-l-gray-400',   dotColor: 'bg-gray-400',   pulse: false,  label: fr ? 'Completee' : 'Completed' },
+    complete:         { border: 'border-l-gray-400',   dotColor: 'bg-gray-400',   pulse: false,  label: fr ? 'Completee' : 'Completed' },
+    invoiced:         { border: 'border-l-gray-400',   dotColor: 'bg-gray-400',   pulse: false,  label: fr ? 'Completee' : 'Completed' },
+    cancelled:        { border: 'border-l-gray-300',   dotColor: 'bg-gray-300',   pulse: false,  label: fr ? 'Annulee' : 'Cancelled' },
   }
   const effective = getEffectiveJobStatus(job)
-  const s = statusColor[effective] || statusColor.scheduled
+  const s = statusConfig[effective] || statusConfig.scheduled
 
-  const formatTimeStr = (t: string | null): string => t ? formatTime(t, lang) : '—'
+  const formatTimeStr = (t: string | null): string => t ? formatTime(t, lang) : '\u2014'
 
   return (
     <li>
       <Link
         href={`/jobs/${job.id}`}
-        className={`flex items-stretch gap-3 rounded-xl border-l-4 ${s.border} bg-gray-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-800 p-3 transition-colors`}
+        className={`group flex items-stretch gap-3 rounded-xl border-l-[3px] ${s.border} bg-gray-50/80 dark:bg-gray-800/40 hover:bg-white dark:hover:bg-gray-800 border border-gray-100 dark:border-gray-800 p-3.5 transition-all duration-200 hover:shadow-sm`}
       >
+        {/* Time column */}
         <div className="flex flex-col items-center justify-center w-16 shrink-0 text-center">
           <div className="text-sm font-semibold text-gray-900 dark:text-white tabular-nums">
             {formatTimeStr(job.start_time)}
@@ -1194,25 +1378,31 @@ function ScheduleRow({ job, fr, lang }: { job: Job; fr: boolean; lang: 'fr' | 'e
             </div>
           )}
         </div>
+
+        {/* Content */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
+            {/* Pulsing indicator for in-progress */}
+            <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${s.dotColor} ${s.pulse ? 'animate-pulse' : ''}`} />
             <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
               {job.title || (fr ? 'Intervention' : 'Job')}
             </h3>
-            <span className={`shrink-0 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${s.badge}`}>
-              {s.label}
-            </span>
           </div>
           <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 truncate">
             {job.customers?.name || (fr ? 'Client' : 'Customer')}
-            {job.service_address ? ` · ${job.service_address}` : ''}
+            {job.service_address ? ` \u00B7 ${job.service_address}` : ''}
           </p>
           {job.team_members?.name && (
-            <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 truncate">
-              {fr ? 'Assigné à' : 'Assigned to'}: {job.team_members.name}
-            </p>
+            <div className="mt-1.5 flex items-center gap-1.5">
+              <div className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-white text-[9px] font-bold shrink-0">
+                {initials(job.team_members.name)}
+              </div>
+              <span className="text-[11px] text-gray-400 dark:text-gray-500 truncate">{job.team_members.name}</span>
+            </div>
           )}
         </div>
+
+        <ArrowUpRight className="h-4 w-4 text-gray-300 dark:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity self-start mt-0.5" />
       </Link>
     </li>
   )
@@ -1235,28 +1425,27 @@ function MapCard({
   loading: boolean
 }) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden h-full">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
             {fr ? 'Carte des interventions' : 'Jobs map'}
           </h2>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-            {fr ? 'Interventions d\'aujourd\'hui géolocalisées' : "Today's jobs, geolocated"}
+            {fr ? "Interventions d'aujourd'hui geolocalisees" : "Today's jobs, geolocated"}
           </p>
         </div>
         <div className="flex items-center gap-3 text-[11px] flex-wrap">
           <LegendDot color={JOB_COLORS.scheduled.hex}        label={fr ? JOB_COLORS.scheduled.label.fr        : JOB_COLORS.scheduled.label.en} />
           <LegendDot color={JOB_COLORS.in_progress.hex}      label={fr ? JOB_COLORS.in_progress.label.fr      : JOB_COLORS.in_progress.label.en} />
           <LegendDot color={JOB_COLORS.needs_completion.hex} label={fr ? JOB_COLORS.needs_completion.label.fr : JOB_COLORS.needs_completion.label.en} />
-          <LegendDot color={JOB_COLORS.completed.hex}        label={fr ? JOB_COLORS.completed.label.fr        : JOB_COLORS.completed.label.en} />
           <span className="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
             <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: '#000000' }} />
             {fr ? 'Votre entreprise' : 'Your business'}
           </span>
         </div>
       </div>
-      <div className="p-4">
+      <div className="p-4 flex-1">
         {loading ? (
           <Skeleton className="h-[360px] w-full rounded-xl" />
         ) : (
@@ -1300,14 +1489,15 @@ function InvoiceBreakdownCard({
     const s = range.start, e = range.end
     const fmt = fr ? 'fr-CA' : 'en-CA'
     if (period === 'month') return s.toLocaleDateString(fmt, { month: 'long', year: 'numeric' })
-    return `${s.toLocaleDateString(fmt, { month: 'short', day: 'numeric' })} — ${e.toLocaleDateString(fmt, { month: 'short', day: 'numeric', year: 'numeric' })}`
+    return `${s.toLocaleDateString(fmt, { month: 'short', day: 'numeric' })} \u2014 ${e.toLocaleDateString(fmt, { month: 'short', day: 'numeric', year: 'numeric' })}`
   })()
+
   return (
-    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-5">
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-6">
       <div className="flex items-start justify-between gap-3 mb-1">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-            {fr ? 'Factures ce mois' : 'Invoices this month'}
+            {fr ? 'Factures' : 'Invoices'}
           </h2>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{rangeLabel}</p>
         </div>
@@ -1317,12 +1507,12 @@ function InvoiceBreakdownCard({
           periods={[
             { value: 'month',   label: { fr: 'Ce mois', en: 'This month' } },
             { value: 'quarter', label: { fr: '3 mois',  en: '3 months' } },
-            { value: 'year',    label: { fr: 'Année',   en: 'Year' } },
+            { value: 'year',    label: { fr: 'Annee',   en: 'Year' } },
           ]}
         />
       </div>
 
-      <div className="mt-2 grid grid-cols-[1fr_auto] items-center gap-4">
+      <div className="mt-3 grid grid-cols-[1fr_auto] items-center gap-4">
         <div className="h-44 relative">
           {loading ? (
             <Skeleton className="h-full w-full rounded-xl" />
@@ -1347,7 +1537,7 @@ function InvoiceBreakdownCard({
                       if (!active || !payload?.length) return null
                       const p = payload[0].payload as { label: string; value: number; color: string }
                       return (
-                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 shadow-lg text-xs">
+                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 shadow-xl text-xs">
                           <span className="inline-block h-2 w-2 rounded-full mr-1.5" style={{ backgroundColor: p.color }} />
                           <span className="font-medium text-gray-900 dark:text-white">{p.label}</span>
                           <span className="ml-2 tabular-nums text-gray-500">{p.value}</span>
@@ -1371,7 +1561,7 @@ function InvoiceBreakdownCard({
             </div>
           )}
         </div>
-        <ul className="space-y-1.5 text-sm min-w-[110px]">
+        <ul className="space-y-2 text-sm min-w-[110px]">
           {data.map((d) => (
             <li key={d.key} className="flex items-center justify-between gap-4">
               <span className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
@@ -1404,13 +1594,14 @@ function TopCustomersCard({
     'from-pink-500 to-rose-500',
     'from-sky-500 to-blue-500',
   ]
+
   return (
-    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-5">
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-6">
       <h2 className="text-base font-semibold text-gray-900 dark:text-white">
         {fr ? 'Meilleurs clients' : 'Top customers'}
       </h2>
       <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-        {fr ? 'Par revenu facturé' : 'By invoiced revenue'}
+        {fr ? 'Par revenu facture' : 'By invoiced revenue'}
       </p>
 
       <div className="mt-4 space-y-3">
@@ -1427,7 +1618,7 @@ function TopCustomersCard({
         ) : customers.length === 0 ? (
           <div className="py-8 text-center">
             <Users className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-            <p className="text-xs text-gray-400">{fr ? 'Aucun client facturé' : 'No invoiced customers'}</p>
+            <p className="text-xs text-gray-400">{fr ? 'Aucun client facture' : 'No invoiced customers'}</p>
           </div>
         ) : (
           customers.map((c, i) => {
@@ -1482,16 +1673,17 @@ function JobsByStatusCard({
   const rangeLabel = (() => {
     const s = range.start, e = range.end
     const fmt = fr ? 'fr-CA' : 'en-CA'
-    if (period === 'week') return `${s.toLocaleDateString(fmt, { day: 'numeric', month: 'short' })} — ${e.toLocaleDateString(fmt, { day: 'numeric', month: 'short', year: 'numeric' })}`
+    if (period === 'week') return `${s.toLocaleDateString(fmt, { day: 'numeric', month: 'short' })} \u2014 ${e.toLocaleDateString(fmt, { day: 'numeric', month: 'short', year: 'numeric' })}`
     if (period === 'month') return s.toLocaleDateString(fmt, { month: 'long', year: 'numeric' })
-    return `${s.toLocaleDateString(fmt, { month: 'short', day: 'numeric' })} — ${e.toLocaleDateString(fmt, { month: 'short', day: 'numeric', year: 'numeric' })}`
+    return `${s.toLocaleDateString(fmt, { month: 'short', day: 'numeric' })} \u2014 ${e.toLocaleDateString(fmt, { month: 'short', day: 'numeric', year: 'numeric' })}`
   })()
+
   return (
-    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-5">
+    <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm p-6">
       <div className="flex items-start justify-between gap-3 mb-1">
         <div>
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-            {fr ? 'Interventions cette semaine' : 'Jobs this week'}
+            {fr ? 'Interventions' : 'Jobs'}
           </h2>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{rangeLabel}</p>
         </div>
@@ -1499,14 +1691,14 @@ function JobsByStatusCard({
           selected={period}
           onChange={(v) => onPeriod(v as 'week' | 'month' | 'quarter')}
           periods={[
-            { value: 'week',    label: { fr: 'Cette semaine', en: 'This week' } },
-            { value: 'month',   label: { fr: 'Ce mois',        en: 'This month' } },
-            { value: 'quarter', label: { fr: '3 mois',         en: '3 months' } },
+            { value: 'week',    label: { fr: 'Semaine', en: 'Week' } },
+            { value: 'month',   label: { fr: 'Mois',    en: 'Month' } },
+            { value: 'quarter', label: { fr: '3 mois',  en: '3 months' } },
           ]}
         />
       </div>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 space-y-3.5">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="space-y-1.5">
@@ -1554,21 +1746,22 @@ function PendingBookingsCard({
     if (isNaN(dt.getTime())) return d
     return dt.toLocaleDateString(fr ? 'fr-CA' : 'en-CA', { weekday: 'short', day: 'numeric', month: 'short' })
   }
+
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-            {fr ? 'Réservations en attente' : 'Pending bookings'}
+            {fr ? 'Reservations en attente' : 'Pending bookings'}
           </h2>
           {bookings.length > 0 && (
-            <span className="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+            <span className="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400 tabular-nums">
               {bookings.length}
             </span>
           )}
         </div>
         <Link href="/bookings" className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
-          {fr ? 'Tout voir →' : 'See all →'}
+          {fr ? 'Tout voir' : 'See all'} &rarr;
         </Link>
       </div>
 
@@ -1585,10 +1778,10 @@ function PendingBookingsCard({
               <CheckCircle className="h-8 w-8 text-emerald-500 dark:text-emerald-400" />
             </div>
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-              {fr ? 'Aucune réservation en attente' : 'No pending bookings'}
+              {fr ? 'Aucune reservation en attente' : 'No pending bookings'}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              {fr ? 'Tout est traité. Beau travail !' : "You're all caught up. Nice work!"}
+              {fr ? 'Tout est traite !' : "You're all caught up!"}
             </p>
           </div>
         ) : (
@@ -1598,7 +1791,7 @@ function PendingBookingsCard({
               return (
                 <li
                   key={b.id}
-                  className="rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-3"
+                  className="rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/40 p-3.5 transition-all hover:shadow-sm"
                 >
                   <div className="flex items-start gap-3">
                     <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-white text-xs font-bold">
@@ -1611,7 +1804,7 @@ function PendingBookingsCard({
                         </span>
                         <span className="text-xs text-gray-400 shrink-0 tabular-nums">
                           {fmtPrefDate(b.requested_date)}
-                          {b.requested_time ? ` · ${b.requested_time}` : ''}
+                          {b.requested_time ? ` \u00B7 ${b.requested_time}` : ''}
                         </span>
                       </div>
                       <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5 truncate">
@@ -1619,10 +1812,10 @@ function PendingBookingsCard({
                       </p>
                       {b.notes && (
                         <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-1 line-clamp-2">
-                          {b.notes.length > 60 ? b.notes.slice(0, 60) + '…' : b.notes}
+                          {b.notes.length > 60 ? b.notes.slice(0, 60) + '\u2026' : b.notes}
                         </p>
                       )}
-                      <div className="mt-2 flex items-center gap-2">
+                      <div className="mt-2.5 flex items-center gap-2">
                         <button
                           type="button"
                           disabled={busy}
@@ -1665,9 +1858,10 @@ function OverdueInvoicesCard({
   today: Date
 }) {
   const totalOverdue = invoices.reduce((acc, i) => acc + toNum(i.amount), 0)
+
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h2 className="text-base font-semibold text-gray-900 dark:text-white">
             {fr ? 'Factures en retard' : 'Overdue invoices'}
@@ -1679,7 +1873,7 @@ function OverdueInvoicesCard({
           )}
         </div>
         <Link href="/invoices?status=overdue" className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
-          {fr ? 'Tout voir →' : 'See all →'}
+          {fr ? 'Tout voir' : 'See all'} &rarr;
         </Link>
       </div>
 
@@ -1696,7 +1890,7 @@ function OverdueInvoicesCard({
               <CheckCircle className="h-8 w-8 text-emerald-500 dark:text-emerald-400" />
             </div>
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-              {fr ? 'Toutes les factures sont à jour ✓' : 'All invoices are up to date ✓'}
+              {fr ? 'Toutes les factures sont a jour' : 'All invoices are up to date'}
             </p>
             <p className="text-xs text-gray-400 mt-1">
               {fr ? 'Aucun paiement en retard.' : 'No late payments.'}
@@ -1708,7 +1902,7 @@ function OverdueInvoicesCard({
               const due = inv.due_date ? new Date(inv.due_date) : null
               const days = due ? Math.max(1, Math.floor((today.getTime() - due.getTime()) / (86_400_000))) : 0
               return (
-                <li key={inv.id} className="rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-3">
+                <li key={inv.id} className="rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-800/40 p-3.5 transition-all hover:shadow-sm">
                   <div className="flex items-start gap-3">
                     <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-50 dark:bg-red-500/10">
                       <AlertCircle className="h-4.5 w-4.5 text-red-500 dark:text-red-400" />
@@ -1725,10 +1919,11 @@ function OverdueInvoicesCard({
                           {fmtMoney(toNum(inv.amount), lang)}
                         </span>
                       </div>
-                      <p className="text-[11px] text-gray-400 mt-0.5">
+                      <p className="text-[11px] text-gray-400 mt-0.5 flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
                         {fr ? `En retard de ${days} jour${days > 1 ? 's' : ''}` : `${days} day${days > 1 ? 's' : ''} overdue`}
                       </p>
-                      <div className="mt-2 flex items-center gap-2">
+                      <div className="mt-2.5 flex items-center gap-2">
                         <Link
                           href={`/invoices/${inv.id}?remind=1`}
                           className="inline-flex items-center gap-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 px-2.5 py-1 text-xs font-semibold transition-colors"
@@ -1741,7 +1936,7 @@ function OverdueInvoicesCard({
                           className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 text-xs font-semibold transition-colors"
                         >
                           <DollarSign className="h-3 w-3" />
-                          {fr ? 'Marquer payée' : 'Mark paid'}
+                          {fr ? 'Marquer payee' : 'Mark paid'}
                         </Link>
                       </div>
                     </div>
@@ -1756,9 +1951,7 @@ function OverdueInvoicesCard({
   )
 }
 
-// ───── Inline styles for the waving emoji animation ─────
-// Tailwind doesn't ship a wave keyframe by default.
-// Placed at end so it doesn't visually crowd the components above.
+// ───── Inline styles for the waving emoji + fade-in animation ─────
 const css = `
 @keyframes wave {
   0%, 100% { transform: rotate(0deg); }
@@ -1768,6 +1961,12 @@ const css = `
   50%      { transform: rotate(0deg); }
 }
 .animate-wave { animation: wave 2.4s ease-in-out 0.4s 2; display: inline-block; transform-origin: 70% 70%; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn { animation: fadeIn 0.35s ease-out both; }
 `
 if (typeof document !== 'undefined' && !document.getElementById('dashboard-inline-css')) {
   const s = document.createElement('style')
