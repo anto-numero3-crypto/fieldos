@@ -150,7 +150,7 @@ function LoginForm() {
               </div>
             )}
 
-            <button type="submit" disabled={loading || formInvalid} className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150 active:scale-[0.99]">
+            <button type="submit" disabled={loading || formInvalid} className="w-full rounded-xl bg-indigo-600 px-4 py-3 min-h-11 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-400/20 focus:border-indigo-400 dark:focus:ring-offset-gray-950 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150 active:scale-[0.99]">
               {loading ? t.common.pleaseWait : l.signInBtn}
             </button>
           </form>

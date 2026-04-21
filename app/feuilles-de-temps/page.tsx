@@ -160,7 +160,8 @@ function LiveTimer({ entry }: { entry: TimeEntry }) {
   const m = Math.floor((totalSec % 3600) / 60)
   const s = totalSec % 60
   return (
-    <span className="font-mono tabular-nums">
+    <span className="inline-flex items-center gap-1.5 font-mono tabular-nums text-emerald-600 dark:text-emerald-400">
+      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
       {h}h {String(m).padStart(2, '0')}min {String(s).padStart(2, '0')}s
     </span>
   )
@@ -172,25 +173,34 @@ function LiveTimer({ entry }: { entry: TimeEntry }) {
 function StatusBadge({ entry, fr }: { entry: TimeEntry; fr: boolean }) {
   const isActive = !entry.clocked_out_at && entry.status !== 'paused'
   const isPaused = entry.status === 'paused'
+  const isApproved = entry.status === 'approved' || entry.status === 'completed'
   if (isActive) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-        <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
         {fr ? 'En cours' : 'Active'}
       </span>
     )
   }
   if (isPaused) {
     return (
-      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
-        <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+        <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
         {fr ? 'En pause' : 'Paused'}
       </span>
     )
   }
+  if (isApproved) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">
+        <CheckCircle className="h-3 w-3" />
+        {fr ? 'Approuv\u00e9e' : 'Approved'}
+      </span>
+    )
+  }
   return (
-    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-      {fr ? 'Complétée' : 'Completed'}
+    <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+      {fr ? 'Compl\u00e9t\u00e9e' : 'Completed'}
     </span>
   )
 }
@@ -211,7 +221,7 @@ function ApproveBtn({
     <button
       onClick={() => onApprove([entryId])}
       title={fr ? 'Approuver' : 'Approve'}
-      className="p-1 rounded hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 transition-colors"
+      className="h-8 w-8 inline-flex items-center justify-center rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 transition-colors"
     >
       <Check className="w-4 h-4" />
     </button>
@@ -533,8 +543,36 @@ export default function TimesheetsPage() {
   if (loading) {
     return (
       <AppLayout title={fr ? 'Feuilles de temps' : 'Timesheets'}>
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <div className="h-7 w-48 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
+              <div className="h-4 w-64 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse mt-2" />
+            </div>
+            <div className="h-10 w-36 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-1">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="min-w-[160px] flex-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 shadow-sm">
+                <div className="h-4 w-20 bg-gray-100 dark:bg-gray-800 rounded animate-pulse mb-2" />
+                <div className="h-8 w-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+                <div className="px-5 py-4 bg-gray-50/50 dark:bg-gray-800/30 border-b border-gray-100 dark:border-gray-800">
+                  <div className="h-5 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                </div>
+                <div className="p-4 space-y-3">
+                  {[...Array(2)].map((_, j) => (
+                    <div key={j} className="h-10 bg-gray-50 dark:bg-gray-800/50 rounded-lg animate-pulse" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </AppLayout>
     )
@@ -544,23 +582,23 @@ export default function TimesheetsPage() {
   if (!moduleEnabled) {
     return (
       <AppLayout title={fr ? 'Feuilles de temps' : 'Timesheets'}>
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4">
-            <Lock className="w-8 h-8 text-gray-400" />
+        <div className="flex flex-col items-center justify-center py-24 text-center px-4">
+          <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-950/40 rounded-2xl flex items-center justify-center mb-5">
+            <Lock className="w-8 h-8 text-indigo-400" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            {fr ? 'Module non activé' : 'Module not enabled'}
+            {fr ? 'Module non activ\u00e9' : 'Module not enabled'}
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 max-w-md mb-6">
+          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mb-6 leading-relaxed">
             {fr
-              ? 'Activez le suivi du temps dans Paramètres → Modules pour accéder aux feuilles de temps.'
-              : 'Enable time tracking in Settings → Modules to access timesheets.'}
+              ? 'Activez le suivi du temps dans Param\u00e8tres \u2192 Modules pour acc\u00e9der aux feuilles de temps.'
+              : 'Enable time tracking in Settings \u2192 Modules to access timesheets.'}
           </p>
           <Link
             href="/settings"
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-sm hover:bg-indigo-700 transition-colors shadow-sm"
           >
-            {fr ? 'Paramètres → Modules' : 'Settings → Modules'}
+            {fr ? 'Param\u00e8tres \u2192 Modules' : 'Settings \u2192 Modules'}
           </Link>
         </div>
       </AppLayout>
@@ -571,23 +609,23 @@ export default function TimesheetsPage() {
   if (!hasEmployees) {
     return (
       <AppLayout title={fr ? 'Feuilles de temps' : 'Timesheets'}>
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mb-4">
-            <Users className="w-8 h-8 text-gray-400" />
+        <div className="flex flex-col items-center justify-center py-24 text-center px-4">
+          <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-950/40 rounded-2xl flex items-center justify-center mb-5">
+            <Users className="w-8 h-8 text-indigo-400" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            {fr ? 'Aucun employé' : 'No employees'}
+            {fr ? 'Aucun employ\u00e9' : 'No employees'}
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 max-w-md mb-6">
+          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mb-6 leading-relaxed">
             {fr
-              ? 'Ajoutez des employés à votre équipe pour commencer à suivre les heures.'
+              ? 'Ajoutez des employ\u00e9s \u00e0 votre \u00e9quipe pour commencer \u00e0 suivre les heures.'
               : 'Add employees to your team to start tracking time.'}
           </p>
           <Link
             href="/equipe"
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-sm hover:bg-indigo-700 transition-colors shadow-sm"
           >
-            {fr ? 'Gérer l\'équipe' : 'Manage team'}
+            {fr ? 'G\u00e9rer l\'\u00e9quipe' : 'Manage team'}
           </Link>
         </div>
       </AppLayout>
@@ -603,19 +641,48 @@ export default function TimesheetsPage() {
   return (
     <AppLayout title={fr ? 'Feuilles de temps' : 'Timesheets'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-5">
+        {/* ---- HEADER ---- */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              {fr ? 'Feuilles de temps' : 'Timesheets'}
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+              {fr ? 'Suivez et approuvez les heures de votre \u00e9quipe' : 'Track and approve your team\'s hours'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={exportCSV}
+              disabled={!filtered.length}
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 h-11 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">CSV</span>
+            </button>
+            <button
+              onClick={fetchEntries}
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 h-11 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm"
+              title={fr ? 'Rafra\u00eechir' : 'Refresh'}
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
         {/* ---- TOP BAR ---- */}
         <div className="flex flex-col gap-3">
-          {/* Row 1: search + date range + refresh indicator */}
+          {/* Row 1: search + date range */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             {/* Search */}
-            <div className="relative w-full sm:w-72">
+            <div className="relative w-full sm:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder={fr ? 'Rechercher client, intervention, employé...' : 'Search client, job, employee...'}
-                className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-base sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder={fr ? 'Rechercher client, intervention, employ\u00e9...' : 'Search client, job, employee...'}
+                className="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-sm"
               />
             </div>
 
@@ -623,22 +690,22 @@ export default function TimesheetsPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => navigate(-1)}
-                className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="h-9 w-9 inline-flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm"
               >
                 <ChevronLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
               </button>
-              <span className="text-sm font-medium text-gray-900 dark:text-white min-w-[180px] text-center">
+              <span className="text-sm font-semibold text-gray-900 dark:text-white min-w-[180px] text-center">
                 {fmtDateShort(from, fr)} — {fmtDateShort(to, fr)}
               </span>
               <button
                 onClick={() => navigate(1)}
-                className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="h-9 w-9 inline-flex items-center justify-center rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm"
               >
                 <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-300" />
               </button>
               <button
                 onClick={goToday}
-                className="px-3 py-1.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
+                className="h-9 px-3.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded-xl transition-colors"
               >
                 {fr ? 'Aujourd\'hui' : 'Today'}
               </button>
@@ -646,21 +713,21 @@ export default function TimesheetsPage() {
             </div>
           </div>
 
-          {/* Row 2: range pills, employee filter, view toggle, export — collapsible on mobile */}
+          {/* Row 2: range pills, employee filter, view toggle — collapsible on mobile */}
           <div className="md:hidden flex justify-end">
             <button
               onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="inline-flex items-center gap-1.5 h-11 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm"
             >
               <Filter className="w-4 h-4" />
               {fr ? 'Filtres' : 'Filters'}
-              {mobileFiltersOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              {mobileFiltersOpen ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
             </button>
           </div>
 
           <div className={`flex-col md:flex md:flex-row items-start md:items-center justify-between gap-3 ${mobileFiltersOpen ? 'flex' : 'hidden md:flex'}`}>
             {/* Date range pills */}
-            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
+            <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-full p-1">
               {([
                 ['week', fr ? 'Cette semaine' : 'This week'],
                 ['month', fr ? 'Ce mois' : 'This month'],
@@ -672,9 +739,9 @@ export default function TimesheetsPage() {
                     if (key === 'week') setWeekStart(getMonday(new Date()))
                     if (key === 'month') setWeekStart(getMonthStart(new Date()))
                   }}
-                  className={`px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
+                  className={`px-4 py-1.5 text-sm rounded-full font-semibold transition-all ${
                     dateRange === key
-                      ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                      ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                   }`}
                 >
@@ -688,9 +755,9 @@ export default function TimesheetsPage() {
               <select
                 value={selectedEmployee}
                 onChange={e => setSelectedEmployee(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500"
+                className="h-9 px-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
               >
-                <option value="all">{fr ? 'Tous les employés' : 'All employees'}</option>
+                <option value="all">{fr ? 'Tous les employ\u00e9s' : 'All employees'}</option>
                 {employees.map(emp => (
                   <option key={emp.id} value={emp.id}>
                     {emp.first_name} {emp.last_name}
@@ -699,18 +766,18 @@ export default function TimesheetsPage() {
               </select>
 
               {/* View toggle */}
-              <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
+              <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-full p-1">
                 {([
                   ['job', fr ? 'Par intervention' : 'By job', Briefcase],
-                  ['employee', fr ? 'Par employé' : 'By employee', UserCircle],
+                  ['employee', fr ? 'Par employ\u00e9' : 'By employee', UserCircle],
                   ['week', fr ? 'Par semaine' : 'Weekly', LayoutGrid],
                 ] as [ViewMode, string, typeof Briefcase][]).map(([key, label, Icon]) => (
                   <button
                     key={key}
                     onClick={() => setView(key)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md font-medium transition-colors ${
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm rounded-full font-semibold transition-all ${
                       view === key
-                        ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                        ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm'
                         : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                     } ${key === 'week' ? 'hidden md:inline-flex' : ''}`}
                   >
@@ -719,22 +786,12 @@ export default function TimesheetsPage() {
                   </button>
                 ))}
               </div>
-
-              {/* Export */}
-              <button
-                onClick={exportCSV}
-                disabled={!filtered.length}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">CSV</span>
-              </button>
             </div>
           </div>
         </div>
 
         {/* ---- SUMMARY STRIP ---- */}
-        <div className="flex overflow-x-auto gap-4 pb-1 -mx-1 px-1 scrollbar-none">
+        <div className="flex overflow-x-auto gap-3 pb-1 -mx-1 px-1 scrollbar-none">
           <SummaryCard
             icon={<Clock className="w-4 h-4" />}
             label={fr ? 'Total heures' : 'Total hours'}
@@ -770,8 +827,8 @@ export default function TimesheetsPage() {
 
         {/* ---- CONTENT ---- */}
         {filtered.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center text-center py-16 px-6">
-            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col items-center justify-center text-center py-20 px-6">
+            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/40">
               <Calendar className="h-8 w-8 text-indigo-500" />
             </div>
             <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1.5">
@@ -793,20 +850,22 @@ export default function TimesheetsPage() {
               return (
                 <div
                   key={group.jobId || '__none__'}
-                  className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+                  className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden"
                 >
                   {/* Job card header */}
-                  <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2 flex-wrap">
+                  <div className="px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/30 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2 min-w-0">
-                      <Briefcase className="w-4 h-4 text-gray-500 shrink-0" />
-                      <h3 className="font-semibold text-gray-900 dark:text-white truncate">{group.title}</h3>
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/40 shrink-0">
+                        <Briefcase className="w-3.5 h-3.5 text-indigo-500" />
+                      </div>
+                      <h3 className="font-semibold text-sm text-gray-900 dark:text-white truncate">{group.title}</h3>
                       {group.customer && (
-                        <span className="text-sm text-gray-500 dark:text-gray-400 truncate">— {group.customer}</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400 truncate">{group.customer}</span>
                       )}
-                      <span className="text-xs text-gray-400">({group.entries.length})</span>
+                      <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-500 dark:text-gray-400">{group.entries.length}</span>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
-                      <span className="font-medium text-gray-700 dark:text-gray-300">
+                      <span className="font-semibold text-gray-900 dark:text-white">
                         {fmtDuration(groupMins)}
                       </span>
                       <span className="text-gray-500 dark:text-gray-400">
@@ -816,7 +875,7 @@ export default function TimesheetsPage() {
                         <button
                           onClick={() => handleApprove(groupPending)}
                           disabled={approving}
-                          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-md hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors disabled:opacity-50"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors disabled:opacity-50"
                         >
                           <Check className="w-3 h-3" />
                           {fr ? 'Approuver tout' : 'Approve all'}
@@ -828,13 +887,13 @@ export default function TimesheetsPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-gray-100 dark:border-gray-700">
-                          <th className="text-left px-4 py-2 text-gray-500 dark:text-gray-400 font-medium">{fr ? 'Employé' : 'Employee'}</th>
-                          <th className="text-left px-4 py-2 text-gray-500 dark:text-gray-400 font-medium">Date</th>
-                          <th className="text-left px-4 py-2 text-gray-500 dark:text-gray-400 font-medium">{fr ? 'Début' : 'Start'}</th>
-                          <th className="text-left px-4 py-2 text-gray-500 dark:text-gray-400 font-medium">{fr ? 'Fin' : 'End'}</th>
-                          <th className="text-left px-4 py-2 text-gray-500 dark:text-gray-400 font-medium">{fr ? 'Durée' : 'Duration'}</th>
-                          <th className="text-left px-4 py-2 text-gray-500 dark:text-gray-400 font-medium">{fr ? 'Statut' : 'Status'}</th>
+                        <tr className="border-b border-gray-100 dark:border-gray-800">
+                          <th className="text-left px-5 py-2.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{fr ? 'Employ\u00e9' : 'Employee'}</th>
+                          <th className="text-left px-5 py-2.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                          <th className="text-left px-5 py-2.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{fr ? 'D\u00e9but' : 'Start'}</th>
+                          <th className="text-left px-5 py-2.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{fr ? 'Fin' : 'End'}</th>
+                          <th className="text-left px-5 py-2.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{fr ? 'Dur\u00e9e' : 'Duration'}</th>
+                          <th className="text-left px-5 py-2.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{fr ? 'Statut' : 'Status'}</th>
                           <th className="w-10 px-2" />
                         </tr>
                       </thead>
@@ -846,7 +905,7 @@ export default function TimesheetsPage() {
                     </table>
                   </div>
                   {/* Mobile cards */}
-                  <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-700">
+                  <div className="md:hidden divide-y divide-gray-50 dark:divide-gray-800">
                     {group.entries.map(entry => (
                       <EntryCard key={entry.id} entry={entry} fr={fr} lang={lang} onApprove={handleApprove} showEmployee />
                     ))}
@@ -871,32 +930,32 @@ export default function TimesheetsPage() {
           </div>
         ) : (
           /* ---- VIEW: Par semaine (weekly grid) ---- */
-          <div className="hidden md:block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="hidden md:block bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             {dateRange !== 'week' ? (
-              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+              <div className="p-12 text-center text-sm text-gray-500 dark:text-gray-400">
                 {fr
                   ? 'La vue hebdomadaire n\'est disponible qu\'en mode "Cette semaine".'
                   : 'The weekly view is only available in "This week" mode.'}
               </div>
             ) : !weeklyGrid || weeklyGrid.length === 0 ? (
-              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                {fr ? 'Aucune donnée pour cette semaine.' : 'No data for this week.'}
+              <div className="p-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                {fr ? 'Aucune donn\u00e9e pour cette semaine.' : 'No data for this week.'}
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                      <th className="text-left px-4 py-3 text-gray-500 dark:text-gray-400 font-medium min-w-[160px]">
-                        {fr ? 'Employé' : 'Employee'}
+                    <tr className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30">
+                      <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[160px]">
+                        {fr ? 'Employ\u00e9' : 'Employee'}
                       </th>
                       {dayHeaders.map((dh, i) => (
-                        <th key={i} className="text-center px-3 py-3 text-gray-500 dark:text-gray-400 font-medium min-w-[80px]">
+                        <th key={i} className="text-center px-3 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[80px]">
                           <div>{dh.label}</div>
-                          <div className="text-xs font-normal">{dh.date.getDate()}</div>
+                          <div className="text-[11px] font-normal normal-case tracking-normal text-gray-400 dark:text-gray-500">{dh.date.getDate()}</div>
                         </th>
                       ))}
-                      <th className="text-center px-4 py-3 text-gray-700 dark:text-gray-200 font-semibold min-w-[80px]">
+                      <th className="text-center px-4 py-3 text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider min-w-[80px]">
                         Total
                       </th>
                     </tr>
@@ -943,8 +1002,8 @@ function SummaryCard({
   action?: React.ReactNode
 }) {
   return (
-    <div className="min-w-[160px] flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-      <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-1">
+    <div className="min-w-[160px] flex-1 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 shadow-sm">
+      <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs font-medium mb-1.5">
         {icon}
         {label}
       </div>
@@ -970,33 +1029,33 @@ function EntryRow({
   const isLive = !entry.clocked_out_at
   const canApprove = entry.clocked_out_at && entry.status !== 'completed' && entry.status !== 'approved'
   return (
-    <tr className={`border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700/30 hidden md:table-row ${isLive ? 'bg-emerald-50/50 dark:bg-emerald-900/10' : ''}`}>
+    <tr className={`border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800/50 hidden md:table-row transition-colors ${isLive ? 'bg-emerald-50/50 dark:bg-emerald-900/10' : ''}`}>
       {showEmployee && (
-        <td className="px-4 py-3 text-gray-900 dark:text-white">
+        <td className="px-5 py-3 text-sm text-gray-900 dark:text-white">
           <div className="flex items-center gap-2">
             {entry.employee_color && (
               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.employee_color }} />
             )}
-            <span className="truncate">{entry.employee_name}</span>
+            <span className="truncate font-medium">{entry.employee_name}</span>
           </div>
         </td>
       )}
-      <td className="px-4 py-3 text-gray-600 dark:text-gray-300">
+      <td className="px-5 py-3 text-sm text-gray-600 dark:text-gray-300">
         {new Date(entry.clocked_in_at).toLocaleDateString(fr ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric' })}
       </td>
-      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 font-mono text-xs">
+      <td className="px-5 py-3 text-gray-500 dark:text-gray-400 font-mono text-xs">
         {fmtTime(entry.clocked_in_at, fr ? 'fr' : 'en')}
       </td>
-      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 font-mono text-xs">
+      <td className="px-5 py-3 text-gray-500 dark:text-gray-400 font-mono text-xs">
         {entry.clocked_out_at ? fmtTime(entry.clocked_out_at, fr ? 'fr' : 'en') : '-'}
       </td>
-      <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">
+      <td className="px-5 py-3 text-gray-900 dark:text-white font-semibold text-sm">
         {isLive ? <LiveTimer entry={entry} /> : fmtDuration(entry.duration_minutes)}
       </td>
-      <td className="px-4 py-3">
+      <td className="px-5 py-3">
         <StatusBadge entry={entry} fr={fr} />
       </td>
-      <td className="px-2 py-3">
+      <td className="px-3 py-3">
         {canApprove && <ApproveBtn entryId={entry.id} onApprove={onApprove} fr={fr} />}
       </td>
     </tr>
@@ -1019,15 +1078,15 @@ function EntryCard({
   const isLive = !entry.clocked_out_at
   const canApprove = entry.clocked_out_at && entry.status !== 'completed' && entry.status !== 'approved'
   return (
-    <div className={`md:hidden px-4 py-3 ${isLive ? 'bg-emerald-50/50 dark:bg-emerald-900/10' : ''}`}>
-      <div className="flex items-center justify-between mb-1">
+    <div className={`md:hidden px-5 py-3.5 ${isLive ? 'bg-emerald-50/50 dark:bg-emerald-900/10' : ''}`}>
+      <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2 min-w-0">
           {showEmployee && entry.employee_color && (
             <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.employee_color }} />
           )}
-          {showEmployee && <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{entry.employee_name}</span>}
+          {showEmployee && <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">{entry.employee_name}</span>}
           {!showEmployee && entry.jobs && (
-            <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{entry.jobs.title}</span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">{entry.jobs.title}</span>
           )}
         </div>
         <StatusBadge entry={entry} fr={fr} />
@@ -1037,10 +1096,10 @@ function EntryCard({
           {new Date(entry.clocked_in_at).toLocaleDateString(fr ? 'fr-CA' : 'en-CA', { month: 'short', day: 'numeric' })}
           {' '}
           {fmtTime(entry.clocked_in_at, fr ? 'fr' : 'en')}
-          {entry.clocked_out_at ? ` — ${fmtTime(entry.clocked_out_at, fr ? 'fr' : 'en')}` : ''}
+          {entry.clocked_out_at ? ` \u2014 ${fmtTime(entry.clocked_out_at, fr ? 'fr' : 'en')}` : ''}
         </span>
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-gray-700 dark:text-gray-300">
+        <div className="flex items-center gap-2.5">
+          <span className="font-semibold text-sm text-gray-900 dark:text-white">
             {isLive ? <LiveTimer entry={entry} /> : fmtDuration(entry.duration_minutes)}
           </span>
           {canApprove && <ApproveBtn entryId={entry.id} onApprove={onApprove} fr={fr} />}
@@ -1078,20 +1137,20 @@ function EmployeeGroup({
   }, [group.entries])
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2"
+        className="w-full px-5 py-3.5 bg-gray-50/50 dark:bg-gray-800/30 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between gap-2"
       >
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2.5 min-w-0">
           {group.color && (
-            <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: group.color }} />
+            <span className="w-3 h-3 rounded-full shrink-0 ring-2 ring-white dark:ring-gray-900" style={{ backgroundColor: group.color }} />
           )}
-          <h3 className="font-semibold text-gray-900 dark:text-white truncate">{group.name}</h3>
-          <span className="text-xs text-gray-400">({group.entries.length})</span>
+          <h3 className="font-semibold text-sm text-gray-900 dark:text-white truncate">{group.name}</h3>
+          <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-500 dark:text-gray-400">{group.entries.length}</span>
         </div>
         <div className="flex items-center gap-3 text-sm shrink-0">
-          <span className="font-medium text-gray-700 dark:text-gray-300">{fmtDuration(group.totalMins)}</span>
+          <span className="font-semibold text-gray-900 dark:text-white">{fmtDuration(group.totalMins)}</span>
           <span className="text-gray-500 dark:text-gray-400">{fmtMoney(group.cost, lang === 'fr' ? 'fr' : 'en')}</span>
           {pendingIds.length > 0 && (
             <span
@@ -1100,7 +1159,7 @@ function EmployeeGroup({
                 e.stopPropagation()
                 onApprove(pendingIds)
               }}
-              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-md hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
             >
               <Check className="w-3 h-3" />
               {fr ? 'Approuver tout' : 'Approve all'}
@@ -1110,10 +1169,10 @@ function EmployeeGroup({
         </div>
       </button>
       {open && (
-        <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
+        <div className="divide-y divide-gray-50 dark:divide-gray-800/50">
           {byDate.map(([dateKey, dateEntries]) => (
             <div key={dateKey}>
-              <div className="px-4 py-1.5 bg-gray-50/50 dark:bg-gray-800/30 text-xs font-medium text-gray-500 dark:text-gray-400">
+              <div className="px-5 py-2 bg-gray-50/30 dark:bg-gray-800/20 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 {fmtDate(dateKey, lang === 'fr' ? 'fr' : 'en', 'short')}
               </div>
               {/* Desktop table rows */}

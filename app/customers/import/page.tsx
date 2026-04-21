@@ -228,7 +228,7 @@ export default function ImportPage() {
     <AppLayout title={fr ? 'Importer des clients' : 'Import customers'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
         {/* Back */}
-        <button onClick={() => router.push('/customers')} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors">
+        <button onClick={() => router.push('/customers')} className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6 transition-colors">
           <ArrowLeft className="h-4 w-4" /> {fr ? 'Retour aux clients' : 'Back to customers'}
         </button>
 
@@ -238,12 +238,12 @@ export default function ImportPage() {
             <div key={label} className="flex items-center gap-2 flex-1 last:flex-none">
               <div className={[
                 'flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold shrink-0 transition-all',
-                step > i + 1 ? 'bg-emerald-500 text-white' : step === i + 1 ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400',
+                step > i + 1 ? 'bg-emerald-500 text-white' : step === i + 1 ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500',
               ].join(' ')}>
                 {step > i + 1 ? <Check className="h-4 w-4" /> : i + 1}
               </div>
-              <span className={`text-xs hidden sm:block ${step === i + 1 ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>{label}</span>
-              {i < STEPS.length - 1 && <div className={['h-0.5 flex-1 rounded', step > i + 1 ? 'bg-emerald-400' : 'bg-gray-200'].join(' ')} />}
+              <span className={`text-xs hidden sm:block ${step === i + 1 ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-400 dark:text-gray-500'}`}>{label}</span>
+              {i < STEPS.length - 1 && <div className={['h-0.5 flex-1 rounded', step > i + 1 ? 'bg-emerald-400' : 'bg-gray-200 dark:bg-gray-700'].join(' ')} />}
             </div>
           ))}
         </div>
@@ -251,26 +251,26 @@ export default function ImportPage() {
         {/* ── Step 1: Upload ── */}
         {step === 1 && (
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">{fr ? 'Sélectionner un fichier CSV' : 'Select a CSV file'}</h2>
-            <p className="text-sm text-gray-500 mb-6">{fr ? "Formats acceptés : .csv — jusqu'à 5 000 lignes" : 'Accepted formats: .csv — up to 5,000 rows'}</p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Sélectionner un fichier CSV' : 'Select a CSV file'}</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{fr ? "Formats acceptés : .csv — jusqu'à 5 000 lignes" : 'Accepted formats: .csv — up to 5,000 rows'}</p>
 
             <div
-              className={['rounded-2xl border-2 border-dashed p-12 text-center transition-all cursor-pointer', isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'].join(' ')}
+              className={['rounded-2xl border-2 border-dashed p-12 text-center transition-all cursor-pointer', isDragging ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-gray-50 dark:hover:bg-gray-800'].join(' ')}
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
               onClick={() => fileRef.current?.click()}
             >
-              <Upload className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-base font-medium text-gray-700 mb-1">{fr ? 'Glissez votre fichier CSV ici' : 'Drag your CSV file here'}</p>
-              <p className="text-sm text-gray-400">{fr ? 'ou cliquez pour parcourir' : 'or click to browse'}</p>
+              <Upload className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-base font-medium text-gray-700 dark:text-gray-200 mb-1">{fr ? 'Glissez votre fichier CSV ici' : 'Drag your CSV file here'}</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500">{fr ? 'ou cliquez pour parcourir' : 'or click to browse'}</p>
               <input ref={fileRef} type="file" accept=".csv,.txt" className="hidden" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} />
             </div>
 
-            <div className="mt-6 rounded-xl bg-blue-50 border border-blue-100 p-4">
-              <p className="text-sm font-medium text-blue-800 mb-2">{fr ? 'Format attendu' : 'Expected format'}</p>
-              <code className="text-xs text-blue-700 font-mono">{fr ? 'nom,email,telephone,adresse,notes,etiquettes' : 'name,email,phone,address,notes,tags'}</code>
-              <p className="text-xs text-blue-600 mt-1">{fr ? 'La première ligne doit être les en-têtes. La détection automatique des colonnes est supportée.' : 'The first row must contain headers. Automatic column detection is supported.'}</p>
+            <div className="mt-6 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 p-4">
+              <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">{fr ? 'Format attendu' : 'Expected format'}</p>
+              <code className="text-xs text-blue-700 dark:text-blue-400 font-mono">{fr ? 'nom,email,telephone,adresse,notes,etiquettes' : 'name,email,phone,address,notes,tags'}</code>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">{fr ? 'La première ligne doit être les en-têtes. La détection automatique des colonnes est supportée.' : 'The first row must contain headers. Automatic column detection is supported.'}</p>
             </div>
           </div>
         )}
@@ -280,10 +280,10 @@ export default function ImportPage() {
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-8">
             <div className="flex items-start justify-between mb-6">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">{fr ? 'Correspondance des colonnes' : 'Column mapping'}</h2>
-                <p className="text-sm text-gray-500">{csvRows.length} {fr ? 'lignes détectées dans' : 'rows detected in'} <span className="font-medium">{fileName}</span></p>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Correspondance des colonnes' : 'Column mapping'}</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{csvRows.length} {fr ? 'lignes détectées dans' : 'rows detected in'} <span className="font-medium text-gray-700 dark:text-gray-200">{fileName}</span></p>
               </div>
-              <button onClick={() => setStep(1)} className="text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1">
+              <button onClick={() => setStep(1)} className="text-sm text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 flex items-center gap-1">
                 <X className="h-4 w-4" /> {fr ? 'Changer de fichier' : 'Change file'}
               </button>
             </div>
@@ -292,7 +292,7 @@ export default function ImportPage() {
               {mapping.map((field, i) => (
                 <div key={field.dbField} className="flex items-center gap-4">
                   <div className="w-40 shrink-0">
-                    <p className="text-sm font-medium text-gray-700">{field.label} {field.required && <span className="text-red-500">*</span>}</p>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-200">{field.label} {field.required && <span className="text-red-500">*</span>}</p>
                   </div>
                   <select
                     value={field.csvCol || ''}
@@ -307,7 +307,7 @@ export default function ImportPage() {
                     {csvHeaders.map((h) => <option key={h} value={h}>{h}</option>)}
                   </select>
                   {field.csvCol && (
-                    <div className="w-32 text-xs text-gray-400 truncate">
+                    <div className="w-32 text-xs text-gray-400 dark:text-gray-500 truncate">
                       {fr ? 'ex' : 'e.g.'}: &ldquo;{csvRows[0]?.[field.csvCol] || '—'}&rdquo;
                     </div>
                   )}
@@ -316,7 +316,7 @@ export default function ImportPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button onClick={() => setStep(1)} className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+              <button onClick={() => setStep(1)} className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <ArrowLeft className="h-4 w-4 inline mr-1" />{fr ? 'Retour' : 'Back'}
               </button>
               <button
@@ -333,44 +333,44 @@ export default function ImportPage() {
         {/* ── Step 3: Validation ── */}
         {step === 3 && (
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">{fr ? 'Résultats de validation' : 'Validation results'}</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{fr ? 'Résultats de validation' : 'Validation results'}</h2>
 
             <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-4 text-center">
-                <p className="text-2xl font-bold text-emerald-700">{ok}</p>
-                <p className="text-xs text-emerald-600 mt-0.5">{fr ? 'Prêts à importer' : 'Ready to import'}</p>
+              <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 p-4 text-center">
+                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{ok}</p>
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">{fr ? 'Prêts à importer' : 'Ready to import'}</p>
               </div>
-              <div className="rounded-xl bg-amber-50 border border-amber-100 p-4 text-center">
-                <p className="text-2xl font-bold text-amber-700">{warn}</p>
-                <p className="text-xs text-amber-600 mt-0.5">{fr ? 'Avertissements' : 'Warnings'}</p>
+              <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 p-4 text-center">
+                <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{warn}</p>
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">{fr ? 'Avertissements' : 'Warnings'}</p>
               </div>
-              <div className="rounded-xl bg-red-50 border border-red-100 p-4 text-center">
-                <p className="text-2xl font-bold text-red-700">{err}</p>
-                <p className="text-xs text-red-600 mt-0.5">{fr ? 'Erreurs (ignorés)' : 'Errors (skipped)'}</p>
+              <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 p-4 text-center">
+                <p className="text-2xl font-bold text-red-700 dark:text-red-400">{err}</p>
+                <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">{fr ? 'Erreurs (ignorés)' : 'Errors (skipped)'}</p>
               </div>
             </div>
 
-            <div className="max-h-80 overflow-y-auto rounded-xl border border-gray-100 divide-y divide-gray-50 mb-6">
+            <div className="max-h-80 overflow-y-auto rounded-xl border border-gray-100 dark:border-gray-700 divide-y divide-gray-50 dark:divide-gray-800 mb-6">
               {validation.slice(0, 100).map(({ rowIndex, status, issues, mapped }) => (
-                <div key={rowIndex} className={['flex items-start gap-3 px-4 py-3', status === 'error' ? 'bg-red-50/50' : status === 'warning' ? 'bg-amber-50/50' : ''].join(' ')}>
+                <div key={rowIndex} className={['flex items-start gap-3 px-4 py-3', status === 'error' ? 'bg-red-50/50 dark:bg-red-900/10' : status === 'warning' ? 'bg-amber-50/50 dark:bg-amber-900/10' : ''].join(' ')}>
                   {status === 'ok' ? <Check className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" /> :
                     status === 'warning' ? <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" /> :
                       <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800">{mapped.name || <span className="text-red-500">{fr ? 'Sans nom' : 'No name'}</span>}</p>
-                    {mapped.email && <p className="text-xs text-gray-500">{mapped.email}</p>}
-                    {issues.length > 0 && <p className="text-xs text-amber-600 mt-0.5">{issues.join(' · ')}</p>}
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{mapped.name || <span className="text-red-500">{fr ? 'Sans nom' : 'No name'}</span>}</p>
+                    {mapped.email && <p className="text-xs text-gray-500 dark:text-gray-400">{mapped.email}</p>}
+                    {issues.length > 0 && <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">{issues.join(' · ')}</p>}
                   </div>
-                  <span className="text-xs text-gray-400">{fr ? 'Ligne' : 'Row'} {rowIndex + 2}</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">{fr ? 'Ligne' : 'Row'} {rowIndex + 2}</span>
                 </div>
               ))}
               {validation.length > 100 && (
-                <div className="px-4 py-3 text-center text-sm text-gray-400">… {fr ? `et ${validation.length - 100} autres lignes` : `and ${validation.length - 100} more rows`}</div>
+                <div className="px-4 py-3 text-center text-sm text-gray-400 dark:text-gray-500">... {fr ? `et ${validation.length - 100} autres lignes` : `and ${validation.length - 100} more rows`}</div>
               )}
             </div>
 
             <div className="flex items-center gap-3">
-              <button onClick={() => setStep(2)} className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+              <button onClick={() => setStep(2)} className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <ArrowLeft className="h-4 w-4 inline mr-1" />{fr ? 'Retour' : 'Back'}
               </button>
               <button
@@ -388,13 +388,13 @@ export default function ImportPage() {
         {step === 4 && (
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-12 text-center">
             <RefreshCw className="h-12 w-12 text-indigo-500 mx-auto mb-4 animate-spin" />
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">{fr ? 'Import en cours…' : 'Importing…'}</h2>
-            <p className="text-sm text-gray-500 mb-6">{fr ? `${imported} client${imported !== 1 ? 's' : ''} importé${imported !== 1 ? 's' : ''}` : `${imported} customer${imported !== 1 ? 's' : ''} imported`}</p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{fr ? 'Import en cours…' : 'Importing…'}</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{fr ? `${imported} client${imported !== 1 ? 's' : ''} importé${imported !== 1 ? 's' : ''}` : `${imported} customer${imported !== 1 ? 's' : ''} imported`}</p>
             <div className="w-full max-w-sm mx-auto">
-              <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
+              <div className="h-3 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
                 <div className="h-full rounded-full bg-indigo-600 transition-all duration-300" style={{ width: `${progress}%` }} />
               </div>
-              <p className="text-xs text-gray-400 mt-2">{progress}%</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">{progress}%</p>
             </div>
           </div>
         )}
@@ -402,29 +402,29 @@ export default function ImportPage() {
         {/* ── Step 5: Done ── */}
         {step === 5 && (
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm p-12 text-center">
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
               {errors.length === 0 ? <Check className="h-9 w-9 text-emerald-600" /> : <AlertCircle className="h-9 w-9 text-amber-600" />}
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               {errors.length === 0
                 ? (fr ? 'Import réussi !' : 'Import successful!')
                 : (fr ? 'Import terminé avec des erreurs' : 'Import completed with errors')}
             </h2>
-            <p className="text-sm text-gray-500 mb-2">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
               {fr
                 ? `${imported} client${imported !== 1 ? 's' : ''} importé${imported !== 1 ? 's' : ''} avec succès.`
                 : `${imported} customer${imported !== 1 ? 's' : ''} imported successfully.`}
             </p>
             {errors.length > 0 && (
-              <div className="mt-4 mb-6 rounded-xl bg-red-50 border border-red-100 p-4 text-left max-w-sm mx-auto">
-                <p className="text-sm font-medium text-red-800 mb-2">{errors.length} {fr ? `erreur${errors.length > 1 ? 's' : ''} :` : `error${errors.length > 1 ? 's' : ''}:`}</p>
+              <div className="mt-4 mb-6 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 p-4 text-left max-w-sm mx-auto">
+                <p className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">{errors.length} {fr ? `erreur${errors.length > 1 ? 's' : ''} :` : `error${errors.length > 1 ? 's' : ''}:`}</p>
                 {errors.map((e, i) => <p key={i} className="text-xs text-red-600">{e}</p>)}
               </div>
             )}
             <div className="flex items-center justify-center gap-3 mt-6">
               <button
                 onClick={() => { setStep(1); setCsvRows([]); setCsvHeaders([]); setFileName(''); setValidation([]) }}
-                className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                className="rounded-xl border border-gray-200 dark:border-gray-700 px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 {fr ? 'Nouvel import' : 'New import'}
               </button>

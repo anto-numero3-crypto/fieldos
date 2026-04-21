@@ -323,11 +323,11 @@ export default function JobDetailPage() {
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6">
-          <Link href="/jobs" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+          <Link href="/jobs" className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
             <ArrowLeft className="h-4 w-4" /> {fr ? 'Interventions' : 'Jobs'}
           </Link>
-          <span className="text-gray-300">/</span>
-          <span className="text-sm font-medium text-gray-900 truncate">{job.title}</span>
+          <span className="text-gray-300 dark:text-gray-600">/</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{job.title}</span>
         </div>
 
         {/* Status Pipeline */}
@@ -347,25 +347,25 @@ export default function JobDetailPage() {
               const isCancelled = effStatus === 'cancelled'
               return (
                 <div key={step.key} className="flex items-center">
-                  {i > 0 && <div className={`h-0.5 w-8 sm:w-12 ${isDone ? 'bg-indigo-400' : 'bg-gray-200'}`} />}
+                  {i > 0 && <div className={`h-0.5 w-8 sm:w-12 ${isDone ? 'bg-indigo-400' : 'bg-gray-200 dark:bg-gray-700'}`} />}
                   <button
                     onClick={() => step.key !== 'invoiced' && changeStatus(step.key)}
                     className={[
                       'flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all',
-                      isCurrent && !isCancelled ? 'bg-indigo-50 text-indigo-700 ring-2 ring-indigo-200' :
-                      isDone && !isCancelled ? 'text-gray-500 hover:bg-gray-50' :
-                      'text-gray-300',
+                      isCurrent && !isCancelled ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 ring-2 ring-indigo-200 dark:ring-indigo-800' :
+                      isDone && !isCancelled ? 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800' :
+                      'text-gray-300 dark:text-gray-600',
                       step.key === 'invoiced' ? 'cursor-default' : 'cursor-pointer',
                     ].join(' ')}
                   >
-                    <span className={`h-2 w-2 rounded-full ${isDone || isCurrent ? step.dot : 'bg-gray-200'}`} />
+                    <span className={`h-2 w-2 rounded-full ${isDone || isCurrent ? step.dot : 'bg-gray-200 dark:bg-gray-600'}`} />
                     {step.label}
                   </button>
                 </div>
               )
             })}
             {effStatus === 'cancelled' && (
-              <div className="ml-4 flex items-center gap-1.5 rounded-xl bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-400">
+              <div className="ml-4 flex items-center gap-1.5 rounded-xl bg-gray-50 dark:bg-gray-800 px-3 py-1.5 text-xs font-semibold text-gray-400 dark:text-gray-500">
                 <span className="h-2 w-2 rounded-full bg-gray-300" /> {fr ? 'Annul\u00e9e' : 'Cancelled'}
               </div>
             )}
@@ -377,17 +377,17 @@ export default function JobDetailPage() {
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex-1 min-w-0">
               {editMode ? (
-                <input value={eTitle} onChange={(e) => setETitle(e.target.value)} className="block w-full text-xl font-bold text-gray-900 rounded-xl border border-gray-200 px-3.5 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-3" />
+                <input value={eTitle} onChange={(e) => setETitle(e.target.value)} className="block w-full text-xl font-bold text-gray-900 dark:text-white rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 mb-3" />
               ) : (
                 <div className="flex items-center gap-2 flex-wrap mb-2">
-                  <h1 className="text-xl font-bold text-gray-900">{job.title}</h1>
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">{job.title}</h1>
                   {job.source === 'booking' && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 text-indigo-700 px-2.5 py-0.5 text-xs font-semibold">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-2.5 py-0.5 text-xs font-semibold">
                       <Calendar className="h-3 w-3" /> {fr ? 'Réservé en ligne' : 'Booked online'}
                     </span>
                   )}
                   {job.source === 'quote' && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 text-violet-700 px-2.5 py-0.5 text-xs font-semibold">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 px-2.5 py-0.5 text-xs font-semibold">
                       <FileText className="h-3 w-3" /> {fr ? 'Créé depuis un devis' : 'Created from quote'}
                       {job.quote_id && (
                         <Link href={`/quotes`} className="ml-1 underline">{fr ? 'voir' : 'view'}</Link>
@@ -412,7 +412,7 @@ export default function JobDetailPage() {
                       <div className="fixed inset-0 z-10" onClick={() => setStatusDropdown(false)} />
                       <div className="absolute left-0 top-full mt-1 z-20 w-44 rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg py-1 slide-up">
                         {Object.entries(STATUS_CFG).map(([key, cfg]) => (
-                          <button key={key} onClick={() => changeStatus(key)} className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${job.status === key ? 'font-semibold text-indigo-600' : 'text-gray-700'}`}>
+                          <button key={key} onClick={() => changeStatus(key)} className={`flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${job.status === key ? 'font-semibold text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300'}`}>
                             <span className={`h-2 w-2 rounded-full ${cfg.dotCls}`} />{tStatus(key)}
                           </button>
                         ))}
@@ -427,8 +427,8 @@ export default function JobDetailPage() {
                 </span>
 
                 {job.scheduled_date && (
-                  <span className="text-sm text-gray-500 flex items-center gap-1.5">
-                    <Calendar className="h-4 w-4 text-gray-300" />
+                  <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                    <Calendar className="h-4 w-4 text-gray-300 dark:text-gray-500" />
                     {fmtDate(job.scheduled_date)}
                     {job.start_time && ` · ${formatTimeRange(job.start_time, job.end_time, lang)}`}
                   </span>
@@ -439,17 +439,17 @@ export default function JobDetailPage() {
             <div className="flex items-center gap-2 shrink-0">
               {editMode ? (
                 <>
-                  <button onClick={() => setEditMode(false)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
+                  <button onClick={() => setEditMode(false)} className="rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
                   <button onClick={saveEdit} disabled={saving} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors">
                     <Save className="h-4 w-4" />{saving ? (fr ? 'Enregistrement...' : 'Saving...') : (fr ? 'Enregistrer' : 'Save')}
                   </button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => setEditMode(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                  <button onClick={() => setEditMode(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                     <Edit2 className="h-4 w-4" /> {fr ? 'Modifier' : 'Edit'}
                   </button>
-                  <button onClick={deleteJob} className="inline-flex items-center gap-1.5 rounded-xl border border-red-100 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+                  <button onClick={deleteJob} className="inline-flex items-center gap-1.5 rounded-xl border border-red-100 dark:border-red-900/50 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </>
@@ -460,58 +460,58 @@ export default function JobDetailPage() {
           {/* Description / edit */}
           {editMode ? (
             <div className="mt-4 space-y-3">
-              <textarea value={eDesc} onChange={(e) => setEDesc(e.target.value)} placeholder={fr ? 'Description...' : 'Description...'} rows={3} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
-              <div className="grid grid-cols-2 gap-3">
+              <textarea value={eDesc} onChange={(e) => setEDesc(e.target.value)} placeholder={fr ? 'Description...' : 'Description...'} rows={3} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Date' : 'Date'}</label>
-                  <input type="date" value={eDate} onChange={(e) => setEDate(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{fr ? 'Date' : 'Date'}</label>
+                  <input type="date" value={eDate} onChange={(e) => setEDate(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Priorité' : 'Priority'}</label>
-                  <select value={ePriority} onChange={(e) => setEPriority(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{fr ? 'Priorité' : 'Priority'}</label>
+                  <select value={ePriority} onChange={(e) => setEPriority(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                     {(fr ? [['low','Basse'],['normal','Normale'],['high','Haute'],['urgent','Urgent']] : [['low','Low'],['normal','Normal'],['high','High'],['urgent','Urgent']]).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Heure de début' : 'Start time'}</label>
-                  <input type="time" value={eStart} onChange={(e) => setEStart(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{fr ? 'Heure de début' : 'Start time'}</label>
+                  <input type="time" value={eStart} onChange={(e) => setEStart(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Heure de fin' : 'End time'}</label>
-                  <input type="time" value={eEnd} onChange={(e) => setEEnd(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{fr ? 'Heure de fin' : 'End time'}</label>
+                  <input type="time" value={eEnd} onChange={(e) => setEEnd(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
               </div>
-              <input value={eAddr} onChange={(e) => setEAddr(e.target.value)} placeholder={fr ? "Adresse d'intervention..." : 'Service address...'} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+              <input value={eAddr} onChange={(e) => setEAddr(e.target.value)} placeholder={fr ? "Adresse d'intervention..." : 'Service address...'} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
 
               {isDemarrage ? (
                 <div
-                  className="flex items-center gap-2 text-sm text-gray-400 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-2 cursor-not-allowed"
+                  className="flex items-center gap-2 text-sm text-gray-400 dark:text-gray-500 rounded-lg border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 cursor-not-allowed"
                   title={fr ? 'Disponible avec le plan Pro' : 'Available with the Pro plan'}
                 >
-                  <Lock className="h-3.5 w-3.5 text-gray-400" />
+                  <Lock className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
                   <span>{fr ? 'Intervention sur plusieurs jours' : 'Multi-day job'}</span>
-                  <span className="text-xs text-gray-500 ml-auto">{fr ? 'Disponible avec Pro' : 'Available with Pro'}</span>
+                  <span className="text-xs text-gray-500 dark:text-gray-600 ml-auto">{fr ? 'Disponible avec Pro' : 'Available with Pro'}</span>
                 </div>
               ) : (
-                <label className="flex items-center gap-2 text-sm text-gray-700">
-                  <input type="checkbox" checked={eMultiDay} onChange={(e) => setEMultiDay(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input type="checkbox" checked={eMultiDay} onChange={(e) => setEMultiDay(e.target.checked)} className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-indigo-600 focus:ring-indigo-500" />
                   {fr ? 'Intervention sur plusieurs jours' : 'Multi-day job'}
                 </label>
               )}
               {!isDemarrage && eMultiDay && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Date de fin' : 'End date'}</label>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{fr ? 'Date de fin' : 'End date'}</label>
                     <input
                       type="date"
                       value={eEndDate}
                       min={eDate || undefined}
                       onChange={(e) => setEEndDate(e.target.value)}
-                      className="block w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">{fr ? 'Progression' : 'Progress'} — {eProgress}%</label>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{fr ? 'Progression' : 'Progress'} — {eProgress}%</label>
                     <input
                       type="range"
                       min={0}
@@ -526,15 +526,15 @@ export default function JobDetailPage() {
             </div>
           ) : (
             <div className="mt-4 space-y-3">
-              {job.description && <p className="text-sm text-gray-600">{job.description}</p>}
+              {job.description && <p className="text-sm text-gray-600 dark:text-gray-300">{job.description}</p>}
               {job.service_address && (
-                <p className="flex items-center gap-1.5 text-sm text-gray-500">
-                  <MapPin className="h-4 w-4 text-gray-300 shrink-0" />{job.service_address}
+                <p className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                  <MapPin className="h-4 w-4 text-gray-300 dark:text-gray-500 shrink-0" />{job.service_address}
                 </p>
               )}
               {job.is_multi_day && job.end_date && (
-                <p className="flex items-center gap-1.5 text-sm text-gray-500">
-                  <Calendar className="h-4 w-4 text-gray-300 shrink-0" />
+                <p className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                  <Calendar className="h-4 w-4 text-gray-300 dark:text-gray-500 shrink-0" />
                   {fmtDate(job.scheduled_date || '')} — {fmtDate(job.end_date)}
                 </p>
               )}
@@ -543,12 +543,12 @@ export default function JobDetailPage() {
 
           {/* Multi-day progress — visible when in_progress */}
           {job.is_multi_day && (effStatus === 'in_progress') && (
-            <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 p-4">
+            <div className="mt-4 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-gray-900">{fr ? 'Progression du travail' : 'Work progress'}</h3>
-                <span className="text-sm font-bold text-indigo-600 tabular-nums">{job.progress_percent ?? 0}%</span>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Progression du travail' : 'Work progress'}</h3>
+                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">{job.progress_percent ?? 0}%</span>
               </div>
-              <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden mb-3">
+              <div className="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden mb-3">
                 <div className="h-full rounded-full bg-indigo-600 transition-all duration-300" style={{ width: `${Math.max(0, Math.min(100, job.progress_percent ?? 0))}%` }} />
               </div>
               <div className="flex items-center gap-2">
@@ -578,13 +578,13 @@ export default function JobDetailPage() {
 
           {/* Customer card */}
           {job.customers && (
-            <div className="mt-4 flex items-center gap-3 rounded-xl bg-gray-50 p-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
+            <div className="mt-4 flex items-center gap-3 rounded-xl bg-gray-50 dark:bg-gray-800 p-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-xs font-bold text-indigo-700 dark:text-indigo-300">
                 {job.customers.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <Link href={`/customers/${job.customers.id}`} className="text-sm font-semibold text-gray-900 hover:text-indigo-600 transition-colors">{job.customers.name}</Link>
-                <div className="flex gap-3 text-xs text-gray-400">
+                <Link href={`/customers/${job.customers.id}`} className="text-sm font-semibold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{job.customers.name}</Link>
+                <div className="flex flex-wrap gap-3 text-xs text-gray-400 dark:text-gray-500">
                   {job.customers.email && <span>{job.customers.email}</span>}
                   {job.customers.phone && <span>{job.customers.phone}</span>}
                 </div>
@@ -598,39 +598,39 @@ export default function JobDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Checklist */}
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
                 <div>
-                  <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Liste de tâches' : 'Checklist'}</h2>
-                  {checklist.length > 0 && <p className="text-xs text-gray-400">{doneCount}/{checklist.length} {fr ? 'terminée(s)' : 'done'}</p>}
+                  <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Liste de tâches' : 'Checklist'}</h2>
+                  {checklist.length > 0 && <p className="text-xs text-gray-400 dark:text-gray-500">{doneCount}/{checklist.length} {fr ? 'terminée(s)' : 'done'}</p>}
                 </div>
               </div>
 
               {checklist.length > 0 && (
                 <div className="px-5 pt-3 pb-2">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                    <div className="flex-1 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
                       <div className="h-full bg-indigo-500 rounded-full progress-fill" style={{ width: `${checkPct}%` }} />
                     </div>
-                    <span className="text-xs font-medium text-gray-500">{checkPct.toFixed(0)}%</span>
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">{checkPct.toFixed(0)}%</span>
                   </div>
                 </div>
               )}
 
-              <ul className="divide-y divide-gray-50 px-2">
+              <ul className="divide-y divide-gray-50 dark:divide-gray-800 px-2">
                 {checklist.map((item) => (
                   <li key={item.id} className="flex items-center gap-2 px-3 py-3 group">
-                    <button onClick={() => toggleCheckItem(item.id)} className="shrink-0 text-gray-400 hover:text-indigo-600 transition-colors">
-                      {item.done ? <CheckSquare className="h-5 w-5 text-indigo-600" /> : <Square className="h-5 w-5" />}
+                    <button onClick={() => toggleCheckItem(item.id)} className="shrink-0 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                      {item.done ? <CheckSquare className="h-5 w-5 text-indigo-600 dark:text-indigo-400" /> : <Square className="h-5 w-5" />}
                     </button>
-                    <span className={`flex-1 text-sm ${item.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>{item.text}</span>
-                    <button onClick={() => deleteCheckItem(item.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all">
+                    <span className={`flex-1 text-sm ${item.done ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>{item.text}</span>
+                    <button onClick={() => deleteCheckItem(item.id)} className="opacity-0 group-hover:opacity-100 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-all">
                       <X className="h-4 w-4" />
                     </button>
                   </li>
                 ))}
               </ul>
 
-              <div className="flex gap-2 px-5 py-3 border-t border-gray-50">
+              <div className="flex gap-2 px-5 py-3 border-t border-gray-50 dark:border-gray-800">
                 <input
                   type="text"
                   placeholder={fr ? 'Ajouter une tâche...' : 'Add a task...'}
@@ -647,15 +647,15 @@ export default function JobDetailPage() {
 
             {/* Internal notes */}
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
-              <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                 <StickyNote className="h-4 w-4 text-amber-500" /> {fr ? 'Notes internes' : 'Internal notes'}
               </h2>
               {editMode ? (
-                <textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} placeholder={fr ? 'Notes visibles uniquement par votre équipe...' : 'Notes visible to your team only...'} rows={4} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
+                <textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} placeholder={fr ? 'Notes visibles uniquement par votre équipe...' : 'Notes visible to your team only...'} rows={4} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               ) : job.internal_notes ? (
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{job.internal_notes}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{job.internal_notes}</p>
               ) : (
-                <p className="text-sm text-gray-400 italic">{fr ? "Aucune note. Modifiez l'intervention pour ajouter des notes." : 'No notes. Edit the job to add notes.'}</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 italic">{fr ? "Aucune note. Modifiez l'intervention pour ajouter des notes." : 'No notes. Edit the job to add notes.'}</p>
               )}
             </div>
           </div>
@@ -664,13 +664,13 @@ export default function JobDetailPage() {
           <div className="space-y-4">
             {/* Invoice */}
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
-              <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                 <FileText className="h-4 w-4 text-emerald-500" /> {fr ? 'Facture' : 'Invoice'}
               </h2>
               {invoiceLinked ? (
-                <div className="rounded-xl bg-emerald-50 p-4">
+                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-900/20 p-4">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-sm font-semibold text-gray-900">{fmt(parseFloat(String(invoiceLinked.amount)))}</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{fmt(parseFloat(String(invoiceLinked.amount)))}</p>
                     <span className={`text-xs font-semibold rounded-full px-2 py-0.5 ${invoiceLinked.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
                       {invoiceLinked.status}
                     </span>
@@ -679,8 +679,8 @@ export default function JobDetailPage() {
                 </div>
               ) : (
                 <div className="text-center py-4">
-                  <DollarSign className="h-8 w-8 text-gray-200 mx-auto mb-2" />
-                  <p className="text-xs text-gray-400 mb-3">{fr ? 'Aucune facture générée' : 'No invoice generated'}</p>
+                  <DollarSign className="h-8 w-8 text-gray-200 dark:text-gray-600 mx-auto mb-2" />
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">{fr ? 'Aucune facture générée' : 'No invoice generated'}</p>
                   <button
                     onClick={generateInvoice}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors"
@@ -694,7 +694,7 @@ export default function JobDetailPage() {
             {/* Multi-employee assignment */}
             {employees.length > 0 && (
               <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
-                <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                   <Users className="h-4 w-4 text-indigo-500" /> {fr ? 'Techniciens assign\u00e9s' : 'Assigned technicians'}
                 </h2>
                 <EmployeePicker
@@ -708,7 +708,7 @@ export default function JobDetailPage() {
             {/* Legacy single assignment (if no employees but team exists) */}
             {employees.length === 0 && team.length > 0 && (
               <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
-                <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                   <User className="h-4 w-4 text-indigo-500" /> {fr ? 'Assign\u00e9 \u00e0' : 'Assigned to'}
                 </h2>
                 <select
@@ -726,31 +726,31 @@ export default function JobDetailPage() {
 
             {/* Job details */}
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
-              <h2 className="text-sm font-semibold text-gray-900 mb-3">{fr ? "Détails de l'intervention" : 'Job details'}</h2>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{fr ? "Détails de l'intervention" : 'Job details'}</h2>
               <dl className="space-y-2.5 text-sm">
                 <div className="flex justify-between">
-                  <dt className="text-gray-500">{fr ? 'Statut' : 'Status'}</dt>
+                  <dt className="text-gray-500 dark:text-gray-400">{fr ? 'Statut' : 'Status'}</dt>
                   <dd><span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scfg?.cls}`}>{tStatus(effStatus)}</span></dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-gray-500">{fr ? 'Priorité' : 'Priority'}</dt>
+                  <dt className="text-gray-500 dark:text-gray-400">{fr ? 'Priorité' : 'Priority'}</dt>
                   <dd className={`font-medium text-xs ${pcfg.cls}`}>{pcfg.label}</dd>
                 </div>
                 {job.scheduled_date && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-500">{fr ? 'Date' : 'Date'}</dt>
-                    <dd className="font-medium text-gray-900 text-xs">{fmtDate(job.scheduled_date)}</dd>
+                    <dt className="text-gray-500 dark:text-gray-400">{fr ? 'Date' : 'Date'}</dt>
+                    <dd className="font-medium text-gray-900 dark:text-white text-xs">{fmtDate(job.scheduled_date)}</dd>
                   </div>
                 )}
                 {job.start_time && (
                   <div className="flex justify-between">
-                    <dt className="text-gray-500">{fr ? 'Heure' : 'Time'}</dt>
-                    <dd className="font-medium text-gray-900 text-xs">{formatTimeRange(job.start_time, job.end_time, lang)}</dd>
+                    <dt className="text-gray-500 dark:text-gray-400">{fr ? 'Heure' : 'Time'}</dt>
+                    <dd className="font-medium text-gray-900 dark:text-white text-xs">{formatTimeRange(job.start_time, job.end_time, lang)}</dd>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <dt className="text-gray-500">{fr ? 'Créé' : 'Created'}</dt>
-                  <dd className="font-medium text-gray-900 text-xs">{fmtDate(job.created_at)}</dd>
+                  <dt className="text-gray-500 dark:text-gray-400">{fr ? 'Créé' : 'Created'}</dt>
+                  <dd className="font-medium text-gray-900 dark:text-white text-xs">{fmtDate(job.created_at)}</dd>
                 </div>
               </dl>
             </div>
@@ -763,17 +763,17 @@ export default function JobDetailPage() {
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setCompletedModalOpen(false)} />
           <div className="relative w-full sm:max-w-md bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden">
             <div className="px-6 pt-6 pb-4 text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
-                <CheckCircle className="h-7 w-7 text-emerald-600" />
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                <CheckCircle className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
                 {fr ? 'Intervention complétée !' : 'Job completed!'}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {fr ? 'Créer une facture pour cette intervention ?' : 'Create an invoice for this job?'}
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row items-stretch gap-2 border-t border-gray-100 bg-gray-50/60 px-5 py-4">
+            <div className="flex flex-col sm:flex-row items-stretch gap-2 border-t border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/60 px-5 py-4">
               <button
                 type="button"
                 onClick={() => setCompletedModalOpen(false)}

@@ -258,9 +258,9 @@ export default function InvoiceDetailPage() {
   if (!invoice) return (
     <AppLayout title={fr ? 'Facture' : 'Invoice'}>
       <div className="flex flex-col items-center justify-center p-12 text-center">
-        <FileText className="h-10 w-10 text-gray-300 mb-3" />
-        <p className="text-sm text-gray-500">{fr ? 'Facture introuvable.' : 'Invoice not found.'}</p>
-        <Link href="/invoices" className="mt-4 text-sm text-indigo-600 hover:underline">{fr ? 'Retour aux factures' : 'Back to invoices'}</Link>
+        <FileText className="h-10 w-10 text-gray-300 dark:text-gray-600 mb-3" />
+        <p className="text-sm text-gray-500 dark:text-gray-400">{fr ? 'Facture introuvable.' : 'Invoice not found.'}</p>
+        <Link href="/invoices" className="mt-4 text-sm text-indigo-600 dark:text-indigo-400 hover:underline">{fr ? 'Retour aux factures' : 'Back to invoices'}</Link>
       </div>
     </AppLayout>
   )
@@ -322,11 +322,11 @@ export default function InvoiceDetailPage() {
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-3 mb-6">
-          <Link href="/invoices" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors">
+          <Link href="/invoices" className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
             <ArrowLeft className="h-4 w-4" /> {fr ? 'Factures' : 'Invoices'}
           </Link>
-          <span className="text-gray-300">/</span>
-          <span className="text-sm font-semibold text-gray-900">{invoice.invoice_number || invoice.id.slice(0, 8)}</span>
+          <span className="text-gray-300 dark:text-gray-600">/</span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-white">{invoice.invoice_number || invoice.id.slice(0, 8)}</span>
           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ml-2 ${INVOICE_STATUS_CLS[displayStatus] || ''}`}>
             {invoiceStatusLabel(displayStatus, fr)}
           </span>
@@ -337,16 +337,16 @@ export default function InvoiceDetailPage() {
           {/* ========== LEFT: Invoice Preview (60%) ========== */}
           <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
             {/* Preview header */}
-            <div className="px-8 py-6 border-b border-gray-100">
-              <div className="flex justify-between items-start">
+            <div className="px-4 sm:px-8 py-6 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                 <div>
-                  <p className="text-xl font-bold text-gray-900">{businessName || (fr ? 'Votre entreprise' : 'Your business')}</p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white">{businessName || (fr ? 'Votre entreprise' : 'Your business')}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-2xl font-black text-indigo-600">{invoice.invoice_number || `INV-${invoice.id.slice(0, 8).toUpperCase()}`}</p>
-                  <p className="text-sm text-gray-400 mt-1">{fmtDate(invoice.created_at, lang)}</p>
+                <div className="sm:text-right">
+                  <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{invoice.invoice_number || `INV-${invoice.id.slice(0, 8).toUpperCase()}`}</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{fmtDate(invoice.created_at, lang)}</p>
                   {invoice.due_date && (
-                    <p className={`text-sm mt-0.5 ${displayStatus === 'overdue' ? 'text-red-600 font-semibold' : 'text-gray-400'}`}>
+                    <p className={`text-sm mt-0.5 ${displayStatus === 'overdue' ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-gray-400 dark:text-gray-500'}`}>
                       {fr ? 'Échéance :' : 'Due:'} {fmtDate(invoice.due_date, lang)}
                     </p>
                   )}
@@ -355,90 +355,103 @@ export default function InvoiceDetailPage() {
 
               {/* Client info */}
               {invoice.customers && (
-                <div className="mt-6 rounded-xl bg-gray-50 p-4">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{fr ? 'Facturer à' : 'Bill to'}</p>
-                  <p className="text-sm font-semibold text-gray-900">{invoice.customers.name}</p>
-                  {invoice.customers.email && <p className="text-sm text-gray-500">{invoice.customers.email}</p>}
-                  {invoice.customers.phone && <p className="text-sm text-gray-500">{invoice.customers.phone}</p>}
-                  {invoice.customers.address && <p className="text-sm text-gray-500">{invoice.customers.address}</p>}
+                <div className="mt-6 rounded-xl bg-gray-50 dark:bg-gray-800 p-4">
+                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">{fr ? 'Facturer à' : 'Bill to'}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{invoice.customers.name}</p>
+                  {invoice.customers.email && <p className="text-sm text-gray-500 dark:text-gray-400">{invoice.customers.email}</p>}
+                  {invoice.customers.phone && <p className="text-sm text-gray-500 dark:text-gray-400">{invoice.customers.phone}</p>}
+                  {invoice.customers.address && <p className="text-sm text-gray-500 dark:text-gray-400">{invoice.customers.address}</p>}
                 </div>
               )}
             </div>
 
             {/* Line items */}
-            <div className="px-8 py-6">
+            <div className="px-4 sm:px-8 py-6">
               {displayItems.length > 0 ? (
                 <>
-                  <table className="w-full text-sm">
+                  {/* Desktop table */}
+                  <table className="w-full text-sm hidden sm:table">
                     <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="pb-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Description</th>
-                        <th className="pb-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider">{fr ? 'Qté' : 'Qty'}</th>
-                        <th className="pb-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">{fr ? 'Prix unitaire' : 'Unit price'}</th>
-                        <th className="pb-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Total</th>
+                      <tr className="border-b border-gray-200 dark:border-gray-700">
+                        <th className="pb-3 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Description</th>
+                        <th className="pb-3 text-center text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{fr ? 'Qté' : 'Qty'}</th>
+                        <th className="pb-3 text-right text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{fr ? 'Prix unitaire' : 'Unit price'}</th>
+                        <th className="pb-3 text-right text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Total</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                       {displayItems.map((li, i) => (
                         <tr key={i}>
-                          <td className="py-3 text-gray-900">{li.description}</td>
-                          <td className="py-3 text-center text-gray-500">{li.qty}{li.unit ? ` ${li.unit}` : ''}</td>
-                          <td className="py-3 text-right text-gray-500">{fmt(li.unit_price)}</td>
-                          <td className="py-3 text-right font-medium text-gray-900">{fmt(li.qty * li.unit_price)}</td>
+                          <td className="py-3 text-gray-900 dark:text-white">{li.description}</td>
+                          <td className="py-3 text-center text-gray-500 dark:text-gray-400">{li.qty}{li.unit ? ` ${li.unit}` : ''}</td>
+                          <td className="py-3 text-right text-gray-500 dark:text-gray-400">{fmt(li.unit_price)}</td>
+                          <td className="py-3 text-right font-medium text-gray-900 dark:text-white">{fmt(li.qty * li.unit_price)}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                  {/* Mobile stacked list */}
+                  <div className="sm:hidden space-y-3">
+                    {displayItems.map((li, i) => (
+                      <div key={i} className="rounded-xl border border-gray-100 dark:border-gray-700 p-3">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">{li.description}</p>
+                        <div className="mt-1.5 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                          <span>{li.qty}{li.unit ? ` ${li.unit}` : ''} x {fmt(li.unit_price)}</span>
+                          <span className="font-medium text-gray-900 dark:text-white">{fmt(li.qty * li.unit_price)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
 
                   {/* Totals */}
-                  <div className="mt-6 pt-4 border-t border-gray-200 space-y-2 max-w-xs ml-auto">
+                  <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2 max-w-xs ml-auto">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">{fr ? 'Sous-total' : 'Subtotal'}</span>
-                      <span className="font-medium text-gray-900">{fmt(displaySubtotal)}</span>
+                      <span className="text-gray-500 dark:text-gray-400">{fr ? 'Sous-total' : 'Subtotal'}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{fmt(displaySubtotal)}</span>
                     </div>
                     {displayDiscount > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">{fr ? 'Remise' : 'Discount'}</span>
-                        <span className="font-medium text-emerald-600">-{fmt(displayDiscount)}</span>
+                        <span className="text-gray-500 dark:text-gray-400">{fr ? 'Remise' : 'Discount'}</span>
+                        <span className="font-medium text-emerald-600 dark:text-emerald-400">-{fmt(displayDiscount)}</span>
                       </div>
                     )}
                     {displayTax > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">{invoice.tax_name || 'TPS'} ({invoice.tax_rate || 5}%)</span>
-                        <span className="font-medium text-gray-900">{fmt(displayTax)}</span>
+                        <span className="text-gray-500 dark:text-gray-400">{invoice.tax_name || 'TPS'} ({invoice.tax_rate || 5}%)</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{fmt(displayTax)}</span>
                       </div>
                     )}
                     {displayTax2 > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">{invoice.tax2_name || 'TVQ'} ({invoice.tax2_rate || 9.975}%)</span>
-                        <span className="font-medium text-gray-900">{fmt(displayTax2)}</span>
+                        <span className="text-gray-500 dark:text-gray-400">{invoice.tax2_name || 'TVQ'} ({invoice.tax2_rate || 9.975}%)</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{fmt(displayTax2)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between border-t border-gray-200 pt-3 mt-2">
-                      <span className="text-lg font-bold text-gray-900">Total</span>
-                      <span className="text-2xl font-black text-gray-900">{fmt(invoice.amount)}</span>
+                    <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-3 mt-2">
+                      <span className="text-lg font-bold text-gray-900 dark:text-white">Total</span>
+                      <span className="text-2xl font-black text-gray-900 dark:text-white">{fmt(invoice.amount)}</span>
                     </div>
                   </div>
                 </>
               ) : (
                 <div className="flex justify-between items-center py-8">
-                  <span className="text-sm text-gray-500">{fr ? 'Montant de la facture' : 'Invoice amount'}</span>
-                  <span className="text-3xl font-black text-gray-900">{fmt(invoice.amount)}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">{fr ? 'Montant de la facture' : 'Invoice amount'}</span>
+                  <span className="text-3xl font-black text-gray-900 dark:text-white">{fmt(invoice.amount)}</span>
                 </div>
               )}
 
               {/* Notes */}
               {invoice.client_notes && (
-                <div className="mt-6 rounded-xl bg-gray-50 p-4">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Note</p>
-                  <p className="text-sm text-gray-600 whitespace-pre-line">{invoice.client_notes}</p>
+                <div className="mt-6 rounded-xl bg-gray-50 dark:bg-gray-800 p-4">
+                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Note</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line">{invoice.client_notes}</p>
                 </div>
               )}
             </div>
 
             {/* Print button */}
-            <div className="px-8 py-4 border-t border-gray-100 flex justify-end">
-              <button onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            <div className="px-4 sm:px-8 py-4 border-t border-gray-100 dark:border-gray-800 flex justify-end">
+              <button onClick={() => window.print()} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <Printer className="h-4 w-4" /> {fr ? 'Imprimer' : 'Print'}
               </button>
             </div>
@@ -449,21 +462,21 @@ export default function InvoiceDetailPage() {
 
             {/* Status Timeline */}
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">{fr ? 'Progression' : 'Progress'}</p>
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4">{fr ? 'Progression' : 'Progress'}</p>
               <div className="space-y-3">
                 {timelineSteps.map((step, i) => (
                   <div key={step.key} className="flex items-start gap-3">
                     <div className="relative flex flex-col items-center">
-                      <div className={`flex h-6 w-6 items-center justify-center rounded-full ${step.done ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                      <div className={`flex h-6 w-6 items-center justify-center rounded-full ${step.done ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'}`}>
                         {step.done ? <CheckCircle className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
                       </div>
                       {i < timelineSteps.length - 1 && (
-                        <div className={`w-0.5 h-6 mt-1 ${step.done ? 'bg-indigo-200' : 'bg-gray-100'}`} />
+                        <div className={`w-0.5 h-6 mt-1 ${step.done ? 'bg-indigo-200 dark:bg-indigo-800' : 'bg-gray-100 dark:bg-gray-800'}`} />
                       )}
                     </div>
                     <div className="pt-0.5">
-                      <p className={`text-sm font-medium ${step.done ? 'text-gray-900' : 'text-gray-400'}`}>{step.label}</p>
-                      {step.done && step.date && <p className="text-xs text-gray-400">{fmtDate(step.date, lang, 'short')}</p>}
+                      <p className={`text-sm font-medium ${step.done ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'}`}>{step.label}</p>
+                      {step.done && step.date && <p className="text-xs text-gray-400 dark:text-gray-500">{fmtDate(step.date, lang, 'short')}</p>}
                     </div>
                   </div>
                 ))}
@@ -471,26 +484,26 @@ export default function InvoiceDetailPage() {
 
               {/* Viewed count badge */}
               {(invoice.viewed_count || 0) > 0 && (
-                <div className="mt-4 flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-700">
+                <div className="mt-4 flex items-center gap-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
                   <Eye className="h-3.5 w-3.5" />
                   {fr ? `Vue ${invoice.viewed_count} fois` : `Viewed ${invoice.viewed_count} time(s)`}
-                  {invoice.viewed_at && <span className="text-blue-400 ml-1">({fmtDate(invoice.viewed_at, lang, 'short')})</span>}
+                  {invoice.viewed_at && <span className="text-blue-400 dark:text-blue-500 ml-1">({fmtDate(invoice.viewed_at, lang, 'short')})</span>}
                 </div>
               )}
             </div>
 
             {/* Amount Card */}
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{fr ? 'Montant total' : 'Total amount'}</p>
-              <p className="text-3xl font-black text-gray-900">{fmt(invoice.amount)}</p>
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">{fr ? 'Montant total' : 'Total amount'}</p>
+              <p className="text-3xl font-black text-gray-900 dark:text-white">{fmt(invoice.amount)}</p>
               {invoice.status === 'paid' && invoice.paid_at && (
-                <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> {fr ? 'Payée le' : 'Paid on'} {fmtDate(invoice.paid_at, lang, 'short')}</p>
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> {fr ? 'Payée le' : 'Paid on'} {fmtDate(invoice.paid_at, lang, 'short')}</p>
               )}
             </div>
 
             {/* Actions */}
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5 space-y-2">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{fr ? 'Actions' : 'Actions'}</p>
+              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">{fr ? 'Actions' : 'Actions'}</p>
 
               {/* Mark paid */}
               {displayStatus !== 'paid' && (
@@ -504,9 +517,9 @@ export default function InvoiceDetailPage() {
                 <button
                   onClick={() => sendInvoiceEmail('invoice')}
                   disabled={sending}
-                  className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 transition-colors"
+                  className="w-full flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-60 transition-colors"
                 >
-                  {sending ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" /> : <Send className="h-4 w-4 text-gray-400" />}
+                  {sending ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 dark:border-gray-600 border-t-gray-600 dark:border-t-gray-300" /> : <Send className="h-4 w-4 text-gray-400 dark:text-gray-500" />}
                   {displayStatus === 'sent' || displayStatus === 'overdue'
                     ? (fr ? 'Renvoyer la facture' : 'Resend invoice')
                     : (fr ? 'Envoyer la facture' : 'Send invoice')}
@@ -518,7 +531,7 @@ export default function InvoiceDetailPage() {
                 <button
                   onClick={() => sendInvoiceEmail('payment_reminder')}
                   disabled={sending}
-                  className="w-full flex items-center gap-2 rounded-xl border border-red-100 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60 transition-colors"
+                  className="w-full flex items-center gap-2 rounded-xl border border-red-100 dark:border-red-900/50 px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-60 transition-colors"
                 >
                   <AlertCircle className="h-4 w-4" /> {fr ? 'Envoyer un rappel' : 'Send reminder'}
                 </button>
@@ -526,8 +539,8 @@ export default function InvoiceDetailPage() {
 
               {/* Edit */}
               {(displayStatus === 'draft' || displayStatus === 'unpaid') && (
-                <Link href={`/invoices/new?editId=${invoice.id}`} className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                  <Edit2 className="h-4 w-4 text-gray-400" /> {fr ? 'Modifier' : 'Edit'}
+                <Link href={`/invoices/new?editId=${invoice.id}`} className="w-full flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <Edit2 className="h-4 w-4 text-gray-400 dark:text-gray-500" /> {fr ? 'Modifier' : 'Edit'}
                 </Link>
               )}
 
@@ -539,7 +552,7 @@ export default function InvoiceDetailPage() {
                     navigator.clipboard.writeText(url)
                     toast.success(t.success.copied)
                   }}
-                  className="w-full flex items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2.5 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors"
+                  className="w-full flex items-center gap-2 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-2.5 text-sm font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors"
                 >
                   <Link2 className="h-4 w-4" /> {fr ? 'Copier le lien client' : 'Copy client link'}
                 </button>
@@ -547,18 +560,18 @@ export default function InvoiceDetailPage() {
 
               {/* View public */}
               {invoice.token && (
-                <a href={`/invoice/${invoice.token}`} target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                  <ExternalLink className="h-4 w-4 text-gray-400" /> {fr ? 'Voir la facture client' : 'View client invoice'}
+                <a href={`/invoice/${invoice.token}`} target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <ExternalLink className="h-4 w-4 text-gray-400 dark:text-gray-500" /> {fr ? 'Voir la facture client' : 'View client invoice'}
                 </a>
               )}
 
               {/* Duplicate */}
-              <button onClick={duplicateInvoice} className="w-full flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                <Copy className="h-4 w-4 text-gray-400" /> {fr ? 'Dupliquer' : 'Duplicate'}
+              <button onClick={duplicateInvoice} className="w-full flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <Copy className="h-4 w-4 text-gray-400 dark:text-gray-500" /> {fr ? 'Dupliquer' : 'Duplicate'}
               </button>
 
               {/* Delete */}
-              <button onClick={deleteInvoice} className="w-full flex items-center gap-2 rounded-xl border border-red-100 px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+              <button onClick={deleteInvoice} className="w-full flex items-center gap-2 rounded-xl border border-red-100 dark:border-red-900/50 px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                 <Trash2 className="h-4 w-4" /> {fr ? 'Supprimer' : 'Delete'}
               </button>
             </div>
@@ -566,18 +579,18 @@ export default function InvoiceDetailPage() {
             {/* Customer Card */}
             {invoice.customers && (
               <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{fr ? 'Client' : 'Customer'}</p>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">{fr ? 'Client' : 'Customer'}</p>
                 <div className="flex items-start gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 font-bold text-sm">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-bold text-sm">
                     {invoice.customers.name[0]?.toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-semibold text-gray-900 text-sm">{invoice.customers.name}</p>
-                    {invoice.customers.email && <p className="text-xs text-gray-400 truncate">{invoice.customers.email}</p>}
-                    {invoice.customers.phone && <p className="text-xs text-gray-400">{invoice.customers.phone}</p>}
+                    <p className="font-semibold text-gray-900 dark:text-white text-sm">{invoice.customers.name}</p>
+                    {invoice.customers.email && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{invoice.customers.email}</p>}
+                    {invoice.customers.phone && <p className="text-xs text-gray-400 dark:text-gray-500">{invoice.customers.phone}</p>}
                   </div>
                 </div>
-                <Link href={`/customers/${invoice.customers.id}`} className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700">
+                <Link href={`/customers/${invoice.customers.id}`} className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300">
                   {fr ? 'Voir le profil' : 'View profile'} <ExternalLink className="h-3 w-3" />
                 </Link>
               </div>
@@ -586,16 +599,16 @@ export default function InvoiceDetailPage() {
             {/* Activity Log */}
             {activity.length > 0 && (
               <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">{fr ? 'Activité' : 'Activity'}</p>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">{fr ? 'Activité' : 'Activity'}</p>
                 <div className="space-y-3 max-h-60 overflow-auto">
                   {activity.map((evt) => (
                     <div key={evt.id} className="flex items-start gap-2">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 mt-0.5">
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 mt-0.5">
                         {activityIcon(evt.event_type)}
                       </div>
                       <div>
-                        <p className="text-xs font-medium text-gray-700">{activityLabel(evt.event_type)}</p>
-                        <p className="text-xs text-gray-400">{fmtDate(evt.created_at, lang, 'short')}</p>
+                        <p className="text-xs font-medium text-gray-700 dark:text-gray-300">{activityLabel(evt.event_type)}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{fmtDate(evt.created_at, lang, 'short')}</p>
                       </div>
                     </div>
                   ))}
@@ -611,25 +624,25 @@ export default function InvoiceDetailPage() {
         <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => !paySaving && setPayModalOpen(false)} />
           <div className="relative w-full sm:max-w-md bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
                   <CheckCircle className="h-4 w-4" />
                 </div>
-                <h3 className="text-base font-semibold text-gray-900">{fr ? 'Enregistrer un paiement' : 'Record payment'}</h3>
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">{fr ? 'Enregistrer un paiement' : 'Record payment'}</h3>
               </div>
-              <button onClick={() => !paySaving && setPayModalOpen(false)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"><X className="h-4 w-4" /></button>
+              <button onClick={() => !paySaving && setPayModalOpen(false)} className="rounded-lg p-1.5 text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300"><X className="h-4 w-4" /></button>
             </div>
             <div className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Montant' : 'Amount'}</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{fr ? 'Montant' : 'Amount'}</label>
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input type="number" step="0.01" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} className="block w-full rounded-xl border border-gray-200 pl-9 pr-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                  <input type="number" step="0.01" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 pl-9 pr-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Méthode de paiement' : 'Payment method'}</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{fr ? 'Méthode de paiement' : 'Payment method'}</label>
                 <div className="grid grid-cols-5 gap-1.5">
                   {(['card', 'transfer', 'cash', 'cheque', 'stripe'] as const).map((m) => {
                     const info = payMethodLabel(m)
@@ -637,7 +650,7 @@ export default function InvoiceDetailPage() {
                       <button
                         key={m}
                         onClick={() => setPayMethod(m)}
-                        className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-medium transition-all ${payMethod === m ? 'border-indigo-300 bg-indigo-50 text-indigo-700' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                        className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-medium transition-all ${payMethod === m ? 'border-indigo-300 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300' : 'border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                       >
                         {info.icon}
                         <span>{fr ? info.fr : info.en}</span>
@@ -647,15 +660,15 @@ export default function InvoiceDetailPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Date du paiement' : 'Payment date'}</label>
-                <input type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{fr ? 'Date du paiement' : 'Payment date'}</label>
+                <input type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">{fr ? 'Référence (optionnel)' : 'Reference (optional)'}</label>
-                <input type="text" value={payReference} onChange={(e) => setPayReference(e.target.value)} placeholder={fr ? 'N° de transaction, note...' : 'Transaction #, note...'} className="block w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{fr ? 'Référence (optionnel)' : 'Reference (optional)'}</label>
+                <input type="text" value={payReference} onChange={(e) => setPayReference(e.target.value)} placeholder={fr ? 'N° de transaction, note...' : 'Transaction #, note...'} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-5 py-3">
+            <div className="flex items-center justify-end gap-2 border-t border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/60 px-5 py-3">
               <button type="button" onClick={() => setPayModalOpen(false)} disabled={paySaving} className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-60">
                 {fr ? 'Annuler' : 'Cancel'}
               </button>

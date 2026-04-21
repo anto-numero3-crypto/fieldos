@@ -190,8 +190,8 @@ export default function LandingPage() {
       <section className="relative overflow-hidden py-20 lg:py-28">
         {/* Background blobs */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[700px] w-[900px] rounded-full bg-gradient-to-br from-indigo-100 via-violet-50 to-blue-50 opacity-70 blur-3xl" />
-          <div className="absolute top-20 right-0 h-[400px] w-[400px] rounded-full bg-violet-100 opacity-40 blur-3xl" />
+          <div className="absolute -top-40 left-1/2 -translate-x-1/2 h-[700px] w-[900px] rounded-full bg-gradient-to-br from-indigo-100 via-violet-50 to-blue-50 dark:from-indigo-950/60 dark:via-violet-950/40 dark:to-blue-950/30 opacity-70 blur-3xl" />
+          <div className="absolute top-20 right-0 h-[400px] w-[400px] rounded-full bg-violet-100 dark:bg-violet-900/30 opacity-40 blur-3xl" />
         </div>
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -199,17 +199,22 @@ export default function LandingPage() {
             {/* Left copy */}
             <div>
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 mb-6">
-                <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
-                <span className="text-xs font-semibold text-indigo-700">
+              <div className="inline-flex items-center gap-2 rounded-full border border-indigo-100 dark:border-indigo-800/50 bg-indigo-50 dark:bg-indigo-950/50 px-4 py-1.5 mb-6">
+                <Sparkles className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300">
                   {fr ? 'Fait au Québec · Bilingue FR/EN' : 'Made in Quebec · Bilingual FR/EN'}
                 </span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-white leading-[1.1]">
-                {fr
-                  ? 'Gérez votre entreprise de services terrain depuis votre téléphone'
-                  : 'Manage your field service business from your phone'}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1]">
+                <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent">
+                  {fr
+                    ? 'Gérez votre entreprise de services terrain '
+                    : 'Manage your field service business '}
+                </span>
+                <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+                  {fr ? 'depuis votre téléphone' : 'from your phone'}
+                </span>
               </h1>
 
               <p className="mt-6 text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-xl">
@@ -222,14 +227,14 @@ export default function LandingPage() {
               <div className="mt-8 flex flex-col sm:flex-row items-start gap-4">
                 <Link
                   href="/signup"
-                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200"
+                  className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 min-h-12 text-base font-semibold text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-950/50 hover:bg-indigo-700 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200"
                 >
                   {fr ? 'Essai gratuit 14 jours' : 'Start 14-day free trial'}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a
                   href="#how-it-works"
-                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-6 py-3.5 text-base font-semibold text-gray-700 dark:text-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
+                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-6 py-3.5 min-h-12 text-base font-semibold text-gray-700 dark:text-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
                 >
                   <Play className="h-4 w-4 text-indigo-600 fill-indigo-600" />
                   {fr ? 'Voir comment ça marche' : 'See how it works'}
@@ -341,8 +346,8 @@ export default function LandingPage() {
                 desc: fr
                   ? "Planifiez vos interventions, assignez vos techniciens et suivez l'avancement en temps réel depuis votre calendrier."
                   : 'Schedule jobs, assign technicians, and track progress in real time from your calendar.',
-                color: 'bg-blue-50',
-                iconColor: 'text-blue-600',
+                color: 'bg-blue-50 dark:bg-blue-950/50',
+                iconColor: 'text-blue-600 dark:text-blue-400',
                 mockup: <MockupCalendar />,
               },
               {
@@ -351,8 +356,8 @@ export default function LandingPage() {
                 desc: fr
                   ? "Créez des factures professionnelles en quelques secondes. Envoyez-les par courriel avec un bouton de paiement en ligne."
                   : 'Create professional invoices in seconds. Send them by email with an online payment button.',
-                color: 'bg-emerald-50',
-                iconColor: 'text-emerald-600',
+                color: 'bg-emerald-50 dark:bg-emerald-950/50',
+                iconColor: 'text-emerald-600 dark:text-emerald-400',
                 mockup: <MockupInvoice />,
               },
               {
@@ -361,8 +366,8 @@ export default function LandingPage() {
                 desc: fr
                   ? "Laissez l'IA prendre vos réservations 24h/24, répondre aux questions de vos clients et vous aider à gérer votre entreprise."
                   : 'Let AI handle bookings 24/7, answer customer questions, and help you manage your business.',
-                color: 'bg-violet-50',
-                iconColor: 'text-violet-600',
+                color: 'bg-violet-50 dark:bg-violet-950/50',
+                iconColor: 'text-violet-600 dark:text-violet-400',
                 mockup: <MockupChat />,
               },
             ].map((pillar, i) => (
@@ -411,8 +416,8 @@ export default function LandingPage() {
                       <ul className="space-y-3 mb-8">
                         {s.checks.map((c) => (
                           <li key={c} className="flex items-start gap-3">
-                            <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100">
-                              <Check className="h-3 w-3 text-indigo-600" />
+                            <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+                              <Check className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
                             </div>
                             <span className="text-sm text-gray-600 dark:text-gray-300">{c}</span>
                           </li>
@@ -463,7 +468,7 @@ export default function LandingPage() {
 
           <div className="relative grid gap-8 md:grid-cols-3 max-w-4xl mx-auto">
             {/* Connector line */}
-            <div className="absolute top-8 left-1/4 right-1/4 hidden md:block h-0.5 bg-gradient-to-r from-indigo-200 via-indigo-400 to-indigo-200" />
+            <div className="absolute top-8 left-1/4 right-1/4 hidden md:block h-0.5 bg-gradient-to-r from-indigo-200 via-indigo-400 to-indigo-200 dark:from-indigo-800 dark:via-indigo-600 dark:to-indigo-800" />
             {[
               {
                 step: '01',
@@ -585,7 +590,7 @@ export default function LandingPage() {
 
               return (
                 <Reveal key={key} delay={i * 80}>
-                  <div className={`relative flex flex-col rounded-2xl p-7 h-full ${highlighted ? 'bg-indigo-600 shadow-2xl shadow-indigo-200 ring-1 ring-indigo-500' : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm'}`}>
+                  <div className={`relative flex flex-col rounded-2xl p-7 h-full ${highlighted ? 'bg-indigo-600 shadow-2xl shadow-indigo-200 dark:shadow-indigo-950/50 ring-1 ring-indigo-500' : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm'}`}>
                     {highlighted && (
                       <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-amber-900">
@@ -623,7 +628,7 @@ export default function LandingPage() {
                     </ul>
                     <Link
                       href={`/signup?plan=${key}&cycle=${billing}`}
-                      className={`inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-150 ${highlighted ? 'bg-white text-indigo-700 hover:bg-indigo-50' : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:-translate-y-0.5'}`}
+                      className={`inline-flex items-center justify-center rounded-xl px-5 py-3 min-h-11 text-sm font-semibold transition-all duration-150 ${highlighted ? 'bg-white text-indigo-700 hover:bg-indigo-50' : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:-translate-y-0.5'}`}
                     >
                       {fr ? 'Essai gratuit' : 'Start free trial'}
                       <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
@@ -673,7 +678,7 @@ export default function LandingPage() {
       <section className="py-20 lg:py-24">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <Reveal>
-            <div className="rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 px-8 py-16 sm:py-20 shadow-2xl shadow-indigo-200 text-center relative overflow-hidden">
+            <div className="rounded-3xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 px-8 py-16 sm:py-20 shadow-2xl shadow-indigo-200 dark:shadow-indigo-950/50 text-center relative overflow-hidden">
               {/* Background decoration */}
               <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/5" />
@@ -691,7 +696,7 @@ export default function LandingPage() {
                 <div className="mt-10">
                   <Link
                     href="/signup"
-                    className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-indigo-700 hover:bg-indigo-50 transition-colors shadow-lg hover:-translate-y-0.5 duration-200"
+                    className="inline-flex items-center gap-2 rounded-xl bg-white px-8 py-3.5 min-h-12 text-base font-semibold text-indigo-700 hover:bg-indigo-50 transition-all shadow-lg hover:-translate-y-0.5 duration-200"
                   >
                     {fr ? 'Essai gratuit 14 jours' : 'Start 14-day free trial'}
                     <ArrowRight className="h-4 w-4" />

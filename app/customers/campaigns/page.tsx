@@ -302,10 +302,10 @@ Subject line first, then body. Keep it warm, professional, and concise.`
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 w-fit">
           {tabOptions.map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)}
-              className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition-all ${tab === key ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}>
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${tab === key ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}>
               {label}
               {key === 'history' && campaigns.length > 0 && (
                 <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">{campaigns.length}</span>
@@ -335,16 +335,16 @@ Subject line first, then body. Keep it warm, professional, and concise.`
 
               {/* Templates */}
               <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                   <Tag className="h-4 w-4 text-gray-400" /> {fr ? 'Modèles' : 'Templates'}
                 </h3>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
                   {TEMPLATES.map((t) => (
                     <button key={t.name} onClick={() => applyTemplate(t)}
-                      className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3.5 py-2.5 text-left hover:border-indigo-200 hover:bg-indigo-50 transition-all group">
+                      className="flex items-center justify-between rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3.5 py-2.5 text-left hover:border-indigo-200 dark:hover:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all group">
                       <div>
-                        <p className="text-sm font-medium text-gray-900 group-hover:text-indigo-700">{t.name}</p>
-                        <p className="text-xs text-gray-400">{AUDIENCE_LABELS[t.audience]}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-indigo-700 dark:group-hover:text-indigo-300">{t.name}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{AUDIENCE_LABELS[t.audience]}</p>
                       </div>
                       <ChevronDown className="h-3.5 w-3.5 text-gray-400 -rotate-90 group-hover:text-indigo-500" />
                     </button>
@@ -354,19 +354,19 @@ Subject line first, then body. Keep it warm, professional, and concise.`
 
               {/* Form */}
               <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 space-y-4">
-                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   <MessageSquare className="h-4 w-4 text-gray-400" /> {fr ? 'Composer' : 'Compose'}
                 </h3>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">{fr ? 'Nom de la campagne' : 'Campaign name'}</label>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">{fr ? 'Nom de la campagne' : 'Campaign name'}</label>
                   <input value={campaignName} onChange={(e) => setCampaignName(e.target.value)}
                     placeholder={fr ? 'ex. Réengagement estival' : 'e.g. Summer re-engagement'}
-                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+                    className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20 outline-none" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">{fr ? 'Audience' : 'Audience'}</label>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">{fr ? 'Audience' : 'Audience'}</label>
                   <div className="relative">
                     <select value={audience} onChange={(e) => setAudience(e.target.value as AudienceType)}
                       className="w-full appearance-none rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none bg-white dark:bg-gray-800 dark:text-white dark:border-gray-700 pr-8">
@@ -390,10 +390,10 @@ Subject line first, then body. Keep it warm, professional, and concise.`
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">{fr ? 'Ligne d\'objet' : 'Subject line'}</label>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">{fr ? 'Ligne d\'objet' : 'Subject line'}</label>
                   <input value={subject} onChange={(e) => setSubject(e.target.value)}
                     placeholder={fr ? "ex. Nous aimerions avoir de vos nouvelles, {customer_name} !" : "e.g. We'd love to hear from you, {customer_name}!"}
-                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+                    className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20 outline-none" />
                 </div>
 
                 <div>
@@ -410,17 +410,17 @@ Subject line first, then body. Keep it warm, professional, and concise.`
                     placeholder={fr
                       ? "Rédigez votre message ici, ou utilisez un modèle ci-dessus. Utilisez {customer_name}, {business_name}, {booking_link} comme variables."
                       : "Write your message here, or use a template above. Use {customer_name}, {business_name}, {booking_link} as variables."}
-                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none resize-none" />
-                  <p className="mt-1 text-xs text-gray-400">{fr ? 'Variables' : 'Variables'}: <code className="bg-gray-100 px-1 rounded">{'{customer_name}'}</code> <code className="bg-gray-100 px-1 rounded">{'{business_name}'}</code> <code className="bg-gray-100 px-1 rounded">{'{booking_link}'}</code></p>
+                    className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20 outline-none resize-none" />
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{fr ? 'Variables' : 'Variables'}: <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">{'{customer_name}'}</code> <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">{'{business_name}'}</code> <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">{'{booking_link}'}</code></p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1.5">
                     <Calendar className="inline h-3.5 w-3.5 mr-1" />{fr ? 'Planifier (facultatif)' : 'Schedule (optional)'}
                   </label>
                   <input type="datetime-local" value={scheduleDate} onChange={(e) => setScheduleDate(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
-                  <p className="mt-1 text-xs text-gray-400">{fr ? 'Laisser vide pour envoyer immédiatement' : 'Leave blank to send immediately'}</p>
+                    className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/20 outline-none" />
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{fr ? 'Laisser vide pour envoyer immédiatement' : 'Leave blank to send immediately'}</p>
                 </div>
 
                 <div className="flex gap-3 pt-2">
@@ -443,41 +443,41 @@ Subject line first, then body. Keep it warm, professional, and concise.`
             {/* Right: preview */}
             <div className="lg:col-span-2 space-y-4">
               <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 sticky top-6">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">{fr ? 'Aperçu' : 'Preview'}</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">{fr ? 'Aperçu' : 'Preview'}</h3>
                 {subject || body ? (
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-                    <div className="mb-3 pb-3 border-b border-gray-200">
-                      <p className="text-xs text-gray-400 mb-0.5">{fr ? 'À' : 'To'}: Jane Smith &lt;jane@example.com&gt;</p>
-                      <p className="text-xs text-gray-400 mb-0.5">{fr ? 'De' : 'From'}: {businessName}</p>
-                      <p className="text-sm font-semibold text-gray-900">
+                  <div className="rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-4">
+                    <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">{fr ? 'À' : 'To'}: Jane Smith &lt;jane@example.com&gt;</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">{fr ? 'De' : 'From'}: {businessName}</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
                         {subject.replace(/\{customer_name\}/g, 'Jane Smith').replace(/\{business_name\}/g, businessName) || (fr ? '(Pas d\'objet)' : '(No subject)')}
                       </p>
                     </div>
-                    <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">{previewBody || (fr ? '(Pas de contenu)' : '(No body)')}</p>
+                    <p className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{previewBody || (fr ? '(Pas de contenu)' : '(No body)')}</p>
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center">
-                    <Mail className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                    <p className="text-xs text-gray-400">{fr ? 'Sélectionnez un modèle ou rédigez votre message pour voir un aperçu' : 'Select a template or write your message to see a preview'}</p>
+                  <div className="rounded-xl border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 p-8 text-center">
+                    <Mail className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{fr ? 'Sélectionnez un modèle ou rédigez votre message pour voir un aperçu' : 'Select a template or write your message to see a preview'}</p>
                   </div>
                 )}
               </div>
 
               {/* Audience breakdown */}
               <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">{fr ? 'Audience' : 'Audience'}: {AUDIENCE_LABELS[audience]}</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{fr ? 'Audience' : 'Audience'}: {AUDIENCE_LABELS[audience]}</h3>
                 {recipients.length === 0 ? (
-                  <p className="text-sm text-gray-400">{fr ? 'Aucun client ne correspond à ce filtre.' : 'No customers match this filter.'}</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500">{fr ? 'Aucun client ne correspond à ce filtre.' : 'No customers match this filter.'}</p>
                 ) : (
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {recipients.slice(0, 10).map((c) => (
                       <div key={c.id} className="flex items-center gap-2">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700 shrink-0">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-xs font-bold text-indigo-700 dark:text-indigo-300 shrink-0">
                           {c.name[0].toUpperCase()}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium text-gray-900 truncate">{c.name}</p>
-                          <p className="text-xs text-gray-400 truncate">{c.email || (fr ? 'Aucun courriel' : 'No email')}</p>
+                          <p className="text-xs font-medium text-gray-900 dark:text-white truncate">{c.name}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{c.email || (fr ? 'Aucun courriel' : 'No email')}</p>
                         </div>
                         {!c.email && <span className="text-xs text-amber-600 shrink-0">{fr ? 'Aucun courriel' : 'No email'}</span>}
                       </div>
@@ -504,26 +504,26 @@ Subject line first, then body. Keep it warm, professional, and concise.`
             ) : (
               <table className="min-w-full">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-100">
+                  <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
                     {(fr ? ['Campagne', 'Audience', 'Destinataires', 'Envoyée', 'Statut'] : ['Campaign', 'Audience', 'Recipients', 'Sent', 'Status']).map((h) => (
-                      <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
+                      <th key={h} className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                   {campaigns.map((c) => (
-                    <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="px-6 py-4">
-                        <p className="text-sm font-medium text-gray-900">{c.name}</p>
-                        <p className="text-xs text-gray-400 truncate max-w-xs">{c.subject}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">{c.name}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs">{c.subject}</p>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-xs text-gray-600">{AUDIENCE_LABELS[c.audience]}</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">{AUDIENCE_LABELS[c.audience]}</span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-1.5">
                           <Users className="h-3.5 w-3.5 text-gray-400" />
-                          <span className="text-sm text-gray-900">{c.recipientCount}</span>
+                          <span className="text-sm text-gray-900 dark:text-white">{c.recipientCount}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">

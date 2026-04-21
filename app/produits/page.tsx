@@ -190,13 +190,13 @@ export default function ProduitsPage() {
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">
               {fr ? 'Catalogue de produits' : 'Product Catalog'}
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">
-              {fr ? 'Gérez vos produits et services pour la facturation' : 'Manage products and services for invoicing'}
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+              {fr ? 'G\u00e9rez vos produits et services pour la facturation' : 'Manage products and services for invoicing'}
             </p>
           </div>
           <button
             onClick={() => setAdding(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 h-11 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors shadow-sm"
           >
             <Plus className="h-4 w-4" />
             {fr ? 'Ajouter' : 'Add'}
@@ -204,12 +204,12 @@ export default function ProduitsPage() {
         </div>
 
         {/* Tabs: Services / Products */}
-        <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-6">
+        <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-full p-1 mb-6">
           <button
             onClick={() => setTab('services')}
             className={[
-              'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all flex-1 justify-center',
-              tab === 'services' ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700',
+              'flex items-center gap-2 rounded-full px-5 h-10 text-sm font-semibold transition-all flex-1 justify-center',
+              tab === 'services' ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
             ].join(' ')}
           >
             <Wrench className="h-4 w-4" />
@@ -218,8 +218,8 @@ export default function ProduitsPage() {
           <button
             onClick={() => setTab('products')}
             className={[
-              'flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all flex-1 justify-center',
-              tab === 'products' ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700',
+              'flex items-center gap-2 rounded-full px-5 h-10 text-sm font-semibold transition-all flex-1 justify-center',
+              tab === 'products' ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
             ].join(' ')}
           >
             <Package className="h-4 w-4" />
@@ -229,13 +229,13 @@ export default function ProduitsPage() {
 
         {/* Search */}
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={fr ? 'Rechercher...' : 'Search...'}
-            className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-10 pr-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+            className="block w-full h-11 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 pl-10 pr-4 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-sm"
           />
         </div>
 
@@ -254,7 +254,7 @@ export default function ProduitsPage() {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder={fr ? 'Nom *' : 'Name *'}
-                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 h-11 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
               />
               <input
                 type="number"
@@ -263,7 +263,7 @@ export default function ProduitsPage() {
                 placeholder={fr ? 'Prix unitaire' : 'Unit price'}
                 step="0.01"
                 min="0"
-                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 h-11 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
               />
               <select
                 value={newUnit}
@@ -287,21 +287,21 @@ export default function ProduitsPage() {
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
                   placeholder={fr ? 'Description (optionnel)' : 'Description (optional)'}
-                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 h-11 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 />
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 mt-4">
               <button
                 onClick={() => { setAdding(false); setNewName(''); setNewPrice(''); setNewUnit(''); setNewCategory(''); setNewDesc('') }}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-xl px-4 h-11 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 <X className="h-4 w-4" /> {fr ? 'Annuler' : 'Cancel'}
               </button>
               <button
                 onClick={handleAdd}
                 disabled={submitting}
-                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 h-11 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors shadow-sm"
               >
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                 {fr ? 'Ajouter' : 'Add'}
@@ -312,8 +312,22 @@ export default function ProduitsPage() {
 
         {/* Product/Service List */}
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+          <div className="space-y-3">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-3 w-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+                    <div className="h-4 w-20 bg-gray-100 dark:bg-gray-800 rounded animate-pulse mt-1" />
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-8 w-8 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
+                    <div className="h-8 w-8 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-16">
@@ -342,7 +356,7 @@ export default function ProduitsPage() {
             {filtered.map((p) => (
               <div
                 key={p.id}
-                className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 hover:shadow-sm transition-shadow"
+                className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all"
               >
                 {editingId === p.id ? (
                   /* Edit mode */
@@ -352,7 +366,7 @@ export default function ProduitsPage() {
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 h-10 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                       />
                       <input
                         type="number"
@@ -360,12 +374,12 @@ export default function ProduitsPage() {
                         onChange={(e) => setEditPrice(e.target.value)}
                         step="0.01"
                         min="0"
-                        className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 h-10 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                       />
                       <select
                         value={editUnit}
                         onChange={(e) => setEditUnit(e.target.value)}
-                        className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 h-10 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                       >
                         <option value="">{fr ? 'Unité' : 'Unit'}</option>
                         {units.map((u) => <option key={u} value={u}>{u}</option>)}
@@ -373,7 +387,7 @@ export default function ProduitsPage() {
                       <select
                         value={editCategory}
                         onChange={(e) => setEditCategory(e.target.value)}
-                        className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                        className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 h-10 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                       >
                         <option value="">{fr ? 'Catégorie' : 'Category'}</option>
                         {categories.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -388,14 +402,14 @@ export default function ProduitsPage() {
                         />
                       </div>
                     </div>
-                    <div className="flex items-center justify-end gap-2 mt-3">
-                      <button onClick={cancelEdit} className="rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    <div className="flex items-center justify-end gap-2.5 mt-4">
+                      <button onClick={cancelEdit} className="rounded-xl px-4 h-9 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                         {fr ? 'Annuler' : 'Cancel'}
                       </button>
                       <button
                         onClick={saveEdit}
                         disabled={editSaving}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 h-9 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors shadow-sm"
                       >
                         {editSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
                         {fr ? 'Enregistrer' : 'Save'}
@@ -409,20 +423,20 @@ export default function ProduitsPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{p.name}</h3>
                         {p.category && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs text-gray-500">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-900/20 px-2.5 py-0.5 text-xs font-medium text-indigo-600 dark:text-indigo-400">
                             <Tag className="h-3 w-3" />{p.category}
                           </span>
                         )}
                       </div>
                       {p.description && (
-                        <p className="text-xs text-gray-400 mt-0.5 truncate">{p.description}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">{p.description}</p>
                       )}
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className="text-sm font-semibold text-indigo-600">
+                      <div className="flex items-center gap-4 mt-2.5">
+                        <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
                           {fmtMoney(p.unit_price, lang)}
-                          {p.unit && <span className="text-gray-400 font-normal"> / {p.unit}</span>}
+                          {p.unit && <span className="text-gray-400 dark:text-gray-500 font-normal"> / {p.unit}</span>}
                         </span>
-                        <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-500 dark:text-gray-400">
                           <Hash className="h-3 w-3" />{fr ? `${p.usage_count} utilisations` : `${p.usage_count} uses`}
                         </span>
                       </div>
@@ -430,14 +444,14 @@ export default function ProduitsPage() {
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => startEdit(p)}
-                        className="rounded-lg p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950 transition-colors"
+                        className="h-9 w-9 inline-flex items-center justify-center rounded-xl text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors"
                         title={fr ? 'Modifier' : 'Edit'}
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(p.id)}
-                        className="rounded-lg p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                        className="h-9 w-9 inline-flex items-center justify-center rounded-xl text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
                         title={fr ? 'Supprimer' : 'Delete'}
                       >
                         <Trash2 className="h-4 w-4" />

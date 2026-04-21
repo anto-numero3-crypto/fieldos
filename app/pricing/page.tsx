@@ -13,9 +13,9 @@ type Row = { label: string; demarrage: Cell; pro: Cell; croissance: Cell }
 type Group = { title: string; rows: Row[] }
 
 function CellView({ v }: { v: Cell }) {
-  if (v === true) return <Check className="h-5 w-5 text-emerald-600 mx-auto" />
-  if (v === false) return <X className="h-4 w-4 text-gray-300 mx-auto" />
-  return <span className="text-sm font-medium text-gray-700">{v}</span>
+  if (v === true) return <Check className="h-5 w-5 text-emerald-600 dark:text-emerald-400 mx-auto" />
+  if (v === false) return <X className="h-4 w-4 text-gray-300 dark:text-gray-600 mx-auto" />
+  return <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{v}</span>
 }
 
 export default function PricingPage() {
@@ -97,29 +97,29 @@ export default function PricingPage() {
       {/* Hero + toggle */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
         <div className="text-center mb-10">
-          <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">
+          <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-3">
             {fr ? 'Forfaits' : 'Plans'}
           </p>
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-3">
+          <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-3">
             {fr ? 'Des forfaits simples et transparents' : 'Simple, transparent pricing'}
           </h1>
-          <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto">
             {fr
               ? "14 jours d'essai gratuits, aucune carte de crédit. Annulable en tout temps."
               : '14-day free trial, no credit card. Cancel anytime.'}
           </p>
 
-          <div className="mt-8 inline-flex items-center gap-1 rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
+          <div className="mt-8 inline-flex items-center gap-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-1 shadow-sm">
             <button
               onClick={() => setCycle('monthly')}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${cycle === 'monthly' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${cycle === 'monthly' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
             >{fr ? 'Mensuel' : 'Monthly'}</button>
             <button
               onClick={() => setCycle('annual')}
-              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${cycle === 'annual' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${cycle === 'annual' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
             >
               {fr ? 'Annuel' : 'Annual'}{' '}
-              <span className={`rounded-full px-2 py-0.5 text-xs ${cycle === 'annual' ? 'bg-white/20' : 'bg-emerald-50 text-emerald-700'}`}>
+              <span className={`rounded-full px-2 py-0.5 text-xs ${cycle === 'annual' ? 'bg-white/20' : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400'}`}>
                 {fr ? 'Économisez 10%' : 'Save 10%'}
               </span>
             </button>
@@ -137,7 +137,7 @@ export default function PricingPage() {
             return (
               <div
                 key={p}
-                className={`relative flex flex-col rounded-2xl p-7 ${isHighlighted ? 'bg-indigo-600 shadow-2xl shadow-indigo-200 ring-1 ring-indigo-500 text-white scale-[1.02]' : 'bg-white border border-gray-200 shadow-sm'}`}
+                className={`relative flex flex-col rounded-2xl p-7 ${isHighlighted ? 'bg-indigo-600 shadow-2xl shadow-indigo-200 dark:shadow-indigo-950/50 ring-1 ring-indigo-500 text-white scale-[1.02]' : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm'}`}
               >
                 {isHighlighted && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
@@ -146,23 +146,23 @@ export default function PricingPage() {
                     </span>
                   </div>
                 )}
-                <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${isHighlighted ? 'text-indigo-200' : 'text-gray-500'}`}>{label}</p>
+                <p className={`text-xs font-bold uppercase tracking-widest mb-2 ${isHighlighted ? 'text-indigo-200' : 'text-gray-500 dark:text-gray-400'}`}>{label}</p>
                 <div className="flex items-baseline gap-1">
                   <span className={`text-sm ${isHighlighted ? 'text-indigo-200' : 'text-gray-400'}`}>$</span>
-                  <span className="text-4xl font-bold">{price}</span>
+                  <span className={`text-4xl font-bold ${isHighlighted ? '' : 'text-gray-900 dark:text-white'}`}>{price}</span>
                   <span className={`text-sm ${isHighlighted ? 'text-indigo-200' : 'text-gray-400'}`}>
                     {fr ? '/mois' : '/month'}
                   </span>
                 </div>
-                <p className={`text-xs mt-1 ${isHighlighted ? 'text-indigo-200' : 'text-gray-400'}`}>
+                <p className={`text-xs mt-1 ${isHighlighted ? 'text-indigo-200' : 'text-gray-400 dark:text-gray-500'}`}>
                   {cycle === 'annual'
                     ? (fr ? `Facturé ${info.annualTotal} $/an` : `Billed $${info.annualTotal}/year`)
                     : (fr ? 'Facturation mensuelle' : 'Billed monthly')}
                 </p>
-                <p className={`text-sm mt-3 ${isHighlighted ? 'text-indigo-100' : 'text-gray-600'}`}>{tagline}</p>
+                <p className={`text-sm mt-3 ${isHighlighted ? 'text-indigo-100' : 'text-gray-600 dark:text-gray-400'}`}>{tagline}</p>
                 <Link
                   href={`/signup?plan=${p}&cycle=${cycle}`}
-                  className={`mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all ${isHighlighted ? 'bg-white text-indigo-700 hover:bg-indigo-50' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                  className={`mt-6 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 min-h-11 text-sm font-semibold transition-all duration-150 ${isHighlighted ? 'bg-white text-indigo-700 hover:bg-indigo-50 shadow-sm' : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:-translate-y-0.5 shadow-sm'}`}
                 >
                   {fr ? 'Essai gratuit 14 jours' : 'Start 14-day free trial'} <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -174,32 +174,32 @@ export default function PricingPage() {
 
       {/* Comparison table */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-20">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
           {fr ? 'Comparaison complète' : 'Full comparison'}
         </h2>
-        <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px]">
-              <thead className="sticky top-0 z-10 bg-white border-b-2 border-gray-200">
+              <thead className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b-2 border-gray-200 dark:border-gray-700">
                 <tr>
-                  <th className="text-left px-5 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  <th className="text-left px-5 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     {fr ? 'Fonctionnalité' : 'Feature'}
                   </th>
-                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 text-center">{fr ? 'Démarrage' : 'Starter'}</th>
-                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wider text-indigo-700 bg-indigo-50/30 text-center">Pro</th>
-                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 text-center">{fr ? 'Croissance' : 'Growth'}</th>
+                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 text-center">{fr ? 'Démarrage' : 'Starter'}</th>
+                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 bg-indigo-50/30 dark:bg-indigo-950/30 text-center">Pro</th>
+                  <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 text-center">{fr ? 'Croissance' : 'Growth'}</th>
                 </tr>
               </thead>
               <tbody>
                 {GROUPS.flatMap((group) => [
-                  <tr key={`group-${group.title}`} className="bg-gray-50/70 border-t border-gray-100">
-                    <td colSpan={4} className="px-5 py-2 text-xs font-bold uppercase tracking-wider text-gray-700">{group.title}</td>
+                  <tr key={`group-${group.title}`} className="bg-gray-50/70 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-800">
+                    <td colSpan={4} className="px-5 py-2 text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">{group.title}</td>
                   </tr>,
                   ...group.rows.map((r) => (
-                    <tr key={`${group.title}-${r.label}`} className="border-t border-gray-50 hover:bg-gray-50/40">
-                      <td className="px-5 py-3 text-sm text-gray-700">{r.label}</td>
+                    <tr key={`${group.title}-${r.label}`} className="border-t border-gray-50 dark:border-gray-800/50 hover:bg-gray-50/40 dark:hover:bg-gray-800/30">
+                      <td className="px-5 py-3 text-sm text-gray-700 dark:text-gray-300">{r.label}</td>
                       <td className="px-5 py-3 text-center"><CellView v={r.demarrage} /></td>
-                      <td className="px-5 py-3 text-center bg-indigo-50/20"><CellView v={r.pro} /></td>
+                      <td className="px-5 py-3 text-center bg-indigo-50/20 dark:bg-indigo-950/20"><CellView v={r.pro} /></td>
                       <td className="px-5 py-3 text-center"><CellView v={r.croissance} /></td>
                     </tr>
                   )),
@@ -212,28 +212,28 @@ export default function PricingPage() {
 
       {/* Trust strip */}
       <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="rounded-2xl border border-gray-100 bg-gray-50 p-6 text-center text-sm text-gray-600">
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 p-6 text-center text-sm text-gray-600 dark:text-gray-400">
           {fr ? (
-            <>Tous les forfaits incluent : <strong>essai gratuit 14 jours</strong> · aucune carte de crédit requise · annulable en tout temps · <strong>SSL</strong> · données hébergées au <strong>Canada</strong> · garantie satisfait ou remboursé de 30 jours.</>
+            <>Tous les forfaits incluent : <strong className="text-gray-900 dark:text-white">essai gratuit 14 jours</strong> · aucune carte de crédit requise · annulable en tout temps · <strong className="text-gray-900 dark:text-white">SSL</strong> · données hébergées au <strong className="text-gray-900 dark:text-white">Canada</strong> · garantie satisfait ou remboursé de 30 jours.</>
           ) : (
-            <>All plans include: <strong>14-day free trial</strong> · no credit card required · cancel anytime · <strong>SSL</strong> · data hosted in <strong>Canada</strong> · 30-day money-back guarantee.</>
+            <>All plans include: <strong className="text-gray-900 dark:text-white">14-day free trial</strong> · no credit card required · cancel anytime · <strong className="text-gray-900 dark:text-white">SSL</strong> · data hosted in <strong className="text-gray-900 dark:text-white">Canada</strong> · 30-day money-back guarantee.</>
           )}
         </div>
       </section>
 
       {/* FAQ */}
       <section className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 pb-20">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
           {fr ? 'Questions fréquentes' : 'Frequently asked questions'}
         </h2>
         <div className="space-y-3">
           {FAQS.map((f, i) => (
-            <details key={i} className="group rounded-2xl border border-gray-100 bg-white p-5">
-              <summary className="cursor-pointer font-semibold text-gray-900 flex items-start justify-between gap-3">
+            <details key={i} className="group rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
+              <summary className="cursor-pointer font-semibold text-gray-900 dark:text-white flex items-start justify-between gap-3">
                 <span>{f.q}</span>
-                <span className="text-indigo-600 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
+                <span className="text-indigo-600 dark:text-indigo-400 text-lg leading-none group-open:rotate-45 transition-transform">+</span>
               </summary>
-              <p className="mt-3 text-sm text-gray-600 leading-relaxed">{f.a}</p>
+              <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{f.a}</p>
             </details>
           ))}
         </div>

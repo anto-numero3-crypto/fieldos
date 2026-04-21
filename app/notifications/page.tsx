@@ -30,18 +30,18 @@ type IconMap = Record<string, { Icon: React.ComponentType<{ className?: string }
 
 function getTypeIcon(fr: boolean): IconMap {
   return {
-    booking_request:   { Icon: Calendar,    bg: 'bg-amber-50',   fg: 'text-amber-600',   label: fr ? 'Réservation' : 'Booking' },
-    booking_confirmed: { Icon: CheckCircle, bg: 'bg-emerald-50', fg: 'text-emerald-600', label: fr ? 'Réservation' : 'Booking' },
-    invoice_paid:      { Icon: DollarSign,  bg: 'bg-emerald-50', fg: 'text-emerald-600', label: fr ? 'Paiement' : 'Payment' },
-    invoice_overdue:   { Icon: AlertCircle, bg: 'bg-red-50',     fg: 'text-red-600',     label: fr ? 'Facture' : 'Invoice' },
-    new_customer:      { Icon: UserPlus,    bg: 'bg-blue-50',    fg: 'text-blue-600',    label: fr ? 'Client' : 'Customer' },
-    job_completed:     { Icon: Briefcase,   bg: 'bg-emerald-50', fg: 'text-emerald-600', label: fr ? 'Intervention' : 'Job' },
-    payment_failed:    { Icon: XCircle,     bg: 'bg-red-50',     fg: 'text-red-600',     label: fr ? 'Paiement' : 'Payment' },
-    trial_ending:      { Icon: Clock,       bg: 'bg-orange-50',  fg: 'text-orange-600',  label: fr ? 'Essai' : 'Trial' },
-    success:           { Icon: CheckCircle, bg: 'bg-emerald-50', fg: 'text-emerald-600', label: fr ? 'Succès' : 'Success' },
-    error:             { Icon: AlertCircle, bg: 'bg-red-50',     fg: 'text-red-600',     label: fr ? 'Erreur' : 'Error' },
-    warning:           { Icon: AlertTriangle, bg: 'bg-amber-50', fg: 'text-amber-600',   label: fr ? 'Alerte' : 'Alert' },
-    info:              { Icon: Info,        bg: 'bg-blue-50',    fg: 'text-blue-600',    label: 'Info' },
+    booking_request:   { Icon: Calendar,    bg: 'bg-amber-50 dark:bg-amber-900/20',     fg: 'text-amber-600 dark:text-amber-400',     label: fr ? 'R\u00e9servation' : 'Booking' },
+    booking_confirmed: { Icon: CheckCircle, bg: 'bg-emerald-50 dark:bg-emerald-900/20', fg: 'text-emerald-600 dark:text-emerald-400', label: fr ? 'R\u00e9servation' : 'Booking' },
+    invoice_paid:      { Icon: DollarSign,  bg: 'bg-emerald-50 dark:bg-emerald-900/20', fg: 'text-emerald-600 dark:text-emerald-400', label: fr ? 'Paiement' : 'Payment' },
+    invoice_overdue:   { Icon: AlertCircle, bg: 'bg-red-50 dark:bg-red-900/20',         fg: 'text-red-600 dark:text-red-400',         label: fr ? 'Facture' : 'Invoice' },
+    new_customer:      { Icon: UserPlus,    bg: 'bg-blue-50 dark:bg-blue-900/20',       fg: 'text-blue-600 dark:text-blue-400',       label: fr ? 'Client' : 'Customer' },
+    job_completed:     { Icon: Briefcase,   bg: 'bg-emerald-50 dark:bg-emerald-900/20', fg: 'text-emerald-600 dark:text-emerald-400', label: fr ? 'Intervention' : 'Job' },
+    payment_failed:    { Icon: XCircle,     bg: 'bg-red-50 dark:bg-red-900/20',         fg: 'text-red-600 dark:text-red-400',         label: fr ? 'Paiement' : 'Payment' },
+    trial_ending:      { Icon: Clock,       bg: 'bg-orange-50 dark:bg-orange-900/20',   fg: 'text-orange-600 dark:text-orange-400',   label: fr ? 'Essai' : 'Trial' },
+    success:           { Icon: CheckCircle, bg: 'bg-emerald-50 dark:bg-emerald-900/20', fg: 'text-emerald-600 dark:text-emerald-400', label: fr ? 'Succ\u00e8s' : 'Success' },
+    error:             { Icon: AlertCircle, bg: 'bg-red-50 dark:bg-red-900/20',         fg: 'text-red-600 dark:text-red-400',         label: fr ? 'Erreur' : 'Error' },
+    warning:           { Icon: AlertTriangle, bg: 'bg-amber-50 dark:bg-amber-900/20',   fg: 'text-amber-600 dark:text-amber-400',     label: fr ? 'Alerte' : 'Alert' },
+    info:              { Icon: Info,        bg: 'bg-blue-50 dark:bg-blue-900/20',       fg: 'text-blue-600 dark:text-blue-400',       label: 'Info' },
   }
 }
 
@@ -159,22 +159,22 @@ export default function NotificationsPage() {
     <AppLayout title={fr ? 'Notifications' : 'Notifications'}>
       <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto space-y-5">
         {/* Header / actions */}
-        <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">{fr ? 'Notifications' : 'Notifications'}</h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               {fr
-                ? `${items.length} au total · ${unreadCount} non lue${unreadCount > 1 ? 's' : ''}`
-                : `${items.length} total · ${unreadCount} unread`}
+                ? `${items.length} au total \u00b7 ${unreadCount} non lue${unreadCount > 1 ? 's' : ''}`
+                : `${items.length} total \u00b7 ${unreadCount} unread`}
             </p>
           </div>
           <div className="flex items-center gap-2">
             {unreadCount > 0 && (
-              <button onClick={markAllRead} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+              <button onClick={markAllRead} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 h-11 px-4 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-sm">
                 {fr ? 'Tout marquer comme lu' : 'Mark all as read'}
               </button>
             )}
-            <button onClick={deleteOld} className="inline-flex items-center gap-1.5 rounded-xl border border-red-100 dark:border-red-900 bg-white dark:bg-gray-800 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50">
+            <button onClick={deleteOld} className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 dark:border-red-900/50 bg-white dark:bg-gray-900 h-11 px-4 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shadow-sm">
               {fr ? 'Supprimer les anciennes' : 'Delete old'}
             </button>
           </div>
@@ -185,16 +185,16 @@ export default function NotificationsPage() {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            className="h-9 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
           >
             {FILTER_TYPES.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
           </select>
-          <div className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+          <div className="inline-flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-full p-1">
             {(['all', 'unread', 'read'] as const).map((k) => (
               <button
                 key={k}
                 onClick={() => setFilterRead(k)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${filterRead === k ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${filterRead === k ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
               >
                 {k === 'all' ? (fr ? 'Toutes' : 'All') : k === 'unread' ? (fr ? 'Non lues' : 'Unread') : (fr ? 'Lues' : 'Read')}
               </button>
@@ -216,40 +216,42 @@ export default function NotificationsPage() {
             />
           </div>
         ) : (
-          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden divide-y divide-gray-50 dark:divide-gray-800">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden divide-y divide-gray-50 dark:divide-gray-800/50">
             {pageItems.map((n) => {
               const cfg = TYPE_ICON[n.type] || TYPE_ICON.info
               return (
                 <button
                   key={n.id}
                   onClick={() => markOne(n)}
-                  className={`w-full flex items-start gap-3 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 text-left transition-colors ${!n.read ? 'bg-indigo-50/40 dark:bg-indigo-950/30' : ''}`}
+                  className={`w-full flex items-start gap-3.5 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 text-left transition-colors ${!n.read ? 'bg-indigo-50/40 dark:bg-indigo-950/20' : ''}`}
                 >
                   <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${cfg.bg}`}>
-                    <cfg.Icon className={`h-4 w-4 ${cfg.fg}`} />
+                    <cfg.Icon className={`h-4.5 w-4.5 ${cfg.fg}`} />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{n.title}</p>
-                      <span className="text-[10px] uppercase tracking-wider rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-0.5">{cfg.label}</span>
+                      <p className={`text-sm leading-snug ${!n.read ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{n.title}</p>
+                      <span className="text-[10px] uppercase tracking-wider rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-0.5 font-medium">{cfg.label}</span>
                     </div>
-                    {n.body && <p className="text-sm text-gray-500 mt-0.5">{n.body}</p>}
-                    <p className="text-xs text-gray-400 mt-1">{timeAgo(n.created_at)}</p>
+                    {n.body && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">{n.body}</p>}
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">{timeAgo(n.created_at)}</p>
                   </div>
-                  {!n.read && <span className="mt-2 h-2 w-2 rounded-full bg-indigo-500 shrink-0" />}
+                  {!n.read && <span className="mt-2.5 h-2.5 w-2.5 rounded-full bg-indigo-500 shrink-0 ring-2 ring-white dark:ring-gray-900" />}
                 </button>
               )
             })}
           </div>
         )}
 
-        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
-          <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} />
-        </div>
+        {filtered.length > 0 && (
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+            <Pagination page={page} pageSize={pageSize} total={filtered.length} onPageChange={setPage} />
+          </div>
+        )}
 
         {/* Quick link back */}
-        <div className="text-center pt-2">
-          <Link href="/dashboard" className="text-xs text-gray-400 hover:text-gray-600">← {fr ? 'Retour au tableau de bord' : 'Back to dashboard'}</Link>
+        <div className="text-center pt-2 pb-4">
+          <Link href="/dashboard" className="text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">\u2190 {fr ? 'Retour au tableau de bord' : 'Back to dashboard'}</Link>
         </div>
       </div>
     </AppLayout>

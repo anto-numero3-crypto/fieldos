@@ -214,11 +214,11 @@ export default function CustomerDetailPage() {
       <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 mb-6">
-          <Link href="/customers" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+          <Link href="/customers" className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
             <ArrowLeft className="h-4 w-4" /> {fr ? 'Clients' : 'Customers'}
           </Link>
-          <span className="text-gray-300">/</span>
-          <span className="text-sm font-medium text-gray-900">{customer.name}</span>
+          <span className="text-gray-300 dark:text-gray-600">/</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-white">{customer.name}</span>
         </div>
 
         {/* Header card */}
@@ -230,49 +230,49 @@ export default function CustomerDetailPage() {
 
             {editMode ? (
               <div className="flex-1 space-y-3">
-                <input value={eName} onChange={(e) => setEName(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-base font-semibold text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-                <div className="grid grid-cols-2 gap-3">
-                  <input value={eEmail} onChange={(e) => setEEmail(e.target.value)} placeholder={fr ? 'Courriel' : 'Email'} type="email" className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-                  <input value={ePhone} onChange={(e) => setEPhone(e.target.value)} placeholder={fr ? 'Téléphone' : 'Phone'} type="tel" className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                <input value={eName} onChange={(e) => setEName(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-base font-semibold text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <input value={eEmail} onChange={(e) => setEEmail(e.target.value)} placeholder={fr ? 'Courriel' : 'Email'} type="email" className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                  <input value={ePhone} onChange={(e) => setEPhone(e.target.value)} placeholder={fr ? 'Téléphone' : 'Phone'} type="tel" className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                 </div>
-                <input value={eAddress} onChange={(e) => setEAddress(e.target.value)} placeholder={fr ? 'Adresse' : 'Address'} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
-                <textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} placeholder={fr ? 'Notes internes...' : 'Internal notes...'} rows={2} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
+                <input value={eAddress} onChange={(e) => setEAddress(e.target.value)} placeholder={fr ? 'Adresse' : 'Address'} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                <textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} placeholder={fr ? 'Notes internes...' : 'Internal notes...'} rows={2} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none" />
               </div>
             ) : (
               <div className="flex-1 min-w-0">
-                <h1 className="text-xl font-bold text-gray-900">{customer.name}</h1>
-                <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500">
-                  {customer.email   && <span className="flex items-center gap-1.5"><Mail  className="h-4 w-4 text-gray-300" />{customer.email}</span>}
-                  {customer.phone   && <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-gray-300" />{customer.phone}</span>}
-                  {customer.address && <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-gray-300" />{customer.address}</span>}
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">{customer.name}</h1>
+                <div className="mt-2 flex flex-wrap gap-3 text-sm text-gray-500 dark:text-gray-400">
+                  {customer.email   && <span className="flex items-center gap-1.5"><Mail  className="h-4 w-4 text-gray-300 dark:text-gray-500" />{customer.email}</span>}
+                  {customer.phone   && <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-gray-300 dark:text-gray-500" />{customer.phone}</span>}
+                  {customer.address && <span className="flex items-center gap-1.5"><MapPin className="h-4 w-4 text-gray-300 dark:text-gray-500" />{customer.address}</span>}
                 </div>
                 {(customer.tags || []).length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {(customer.tags || []).map((tag) => (
-                      <span key={tag} className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
+                      <span key={tag} className="inline-flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-0.5 text-xs font-medium text-indigo-700 dark:text-indigo-300">
                         <Tag className="h-2.5 w-2.5" />{tag}
                       </span>
                     ))}
                   </div>
                 )}
-                <p className="mt-1 text-xs text-gray-400">{fr ? 'Client depuis le' : 'Customer since'} {fmtDate(customer.created_at)}</p>
+                <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{fr ? 'Client depuis le' : 'Customer since'} {fmtDate(customer.created_at)}</p>
               </div>
             )}
 
             <div className="flex items-center gap-2 shrink-0">
               {editMode ? (
                 <>
-                  <button onClick={() => setEditMode(false)} className="rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
+                  <button onClick={() => setEditMode(false)} className="rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">{fr ? 'Annuler' : 'Cancel'}</button>
                   <button onClick={saveEdit} disabled={saving} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors">
                     <Save className="h-4 w-4" />{saving ? (fr ? 'Enregistrement...' : 'Saving...') : (fr ? 'Enregistrer' : 'Save')}
                   </button>
                 </>
               ) : (
                 <>
-                  <button onClick={() => setEditMode(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                  <button onClick={() => setEditMode(true)} className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                     <Edit2 className="h-4 w-4" /> {fr ? 'Modifier' : 'Edit'}
                   </button>
-                  <button onClick={deleteCustomer} className="inline-flex items-center gap-1.5 rounded-xl border border-red-100 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
+                  <button onClick={deleteCustomer} className="inline-flex items-center gap-1.5 rounded-xl border border-red-100 dark:border-red-900/50 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </>
@@ -283,16 +283,16 @@ export default function CustomerDetailPage() {
           {/* KPIs */}
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { label: fr ? 'Interventions' : 'Jobs', value: jobs.length, sub: fr ? `${completedJobs} compl\u00e9t\u00e9e(s)` : `${completedJobs} completed`, icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50' },
-              { label: fr ? 'Facturé' : 'Invoiced', value: fmt(totalInvoiced), sub: fr ? `${invoices.length} facture(s)` : `${invoices.length} invoice(s)`, icon: FileText, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-              { label: fr ? 'Payé' : 'Paid', value: fmt(totalPaid), sub: fr ? `${invoices.filter((i) => i.status === 'paid').length} payée(s)` : `${invoices.filter((i) => i.status === 'paid').length} paid`, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-              { label: fr ? 'Solde impayé' : 'Unpaid balance', value: fmt(totalUnpaid), sub: fr ? `${unpaidCount} en attente` : `${unpaidCount} pending`, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+              { label: fr ? 'Interventions' : 'Jobs', value: jobs.length, sub: fr ? `${completedJobs} compl\u00e9t\u00e9e(s)` : `${completedJobs} completed`, icon: Briefcase, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' },
+              { label: fr ? 'Facturé' : 'Invoiced', value: fmt(totalInvoiced), sub: fr ? `${invoices.length} facture(s)` : `${invoices.length} invoice(s)`, icon: FileText, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+              { label: fr ? 'Payé' : 'Paid', value: fmt(totalPaid), sub: fr ? `${invoices.filter((i) => i.status === 'paid').length} payée(s)` : `${invoices.filter((i) => i.status === 'paid').length} paid`, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+              { label: fr ? 'Solde impayé' : 'Unpaid balance', value: fmt(totalUnpaid), sub: fr ? `${unpaidCount} en attente` : `${unpaidCount} pending`, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
             ].map((k) => (
               <div key={k.label} className={`rounded-xl p-3 ${k.bg}`}>
                 <k.icon className={`h-5 w-5 ${k.color} mb-1`} />
-                <p className="text-xs text-gray-500">{k.label}</p>
-                <p className="text-base font-bold text-gray-900">{k.value}</p>
-                <p className="text-xs text-gray-400">{k.sub}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{k.label}</p>
+                <p className="text-base font-bold text-gray-900 dark:text-white">{k.value}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{k.sub}</p>
               </div>
             ))}
           </div>
@@ -317,7 +317,7 @@ export default function CustomerDetailPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 mb-4 bg-gray-100 rounded-xl p-1 w-fit max-w-full overflow-x-auto">
+        <div className="flex items-center gap-1 mb-4 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 w-fit max-w-full overflow-x-auto">
           {(['overview', 'jobs', 'invoices', 'quotes', 'bookings', 'notes'] as const).map((t) => {
             const counts: Record<string, number> = {
               jobs: jobs.length, invoices: invoices.length, quotes: quotes.length,
@@ -327,10 +327,10 @@ export default function CustomerDetailPage() {
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={['rounded-lg px-4 py-1.5 text-sm font-semibold transition-all whitespace-nowrap', tab === t ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'].join(' ')}
+                className={['rounded-lg px-4 py-1.5 text-sm font-semibold transition-all whitespace-nowrap min-h-9', tab === t ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'].join(' ')}
               >
                 {TAB_LABELS[t] || t}
-                {counts[t] > 0 && <span className="ml-1.5 rounded-full bg-gray-200 px-1.5 py-0.5 text-xs">{counts[t]}</span>}
+                {counts[t] > 0 && <span className="ml-1.5 rounded-full bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 text-xs text-gray-700 dark:text-gray-300">{counts[t]}</span>}
               </button>
             )
           })}
@@ -339,50 +339,50 @@ export default function CustomerDetailPage() {
         {/* Tab content */}
         {tab === 'overview' && (
           <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6 space-y-4">
-            <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Aperçu du client' : 'Customer overview'}</h2>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Aperçu du client' : 'Customer overview'}</h2>
             {customer.notes ? (
-              <div className="rounded-xl bg-amber-50 border border-amber-100 p-4">
-                <p className="text-xs font-semibold text-amber-700 mb-1 flex items-center gap-1.5"><StickyNote className="h-3.5 w-3.5" /> {fr ? 'Notes internes' : 'Internal notes'}</p>
-                <p className="text-sm text-amber-900 whitespace-pre-wrap">{customer.notes}</p>
+              <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40 p-4">
+                <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-1 flex items-center gap-1.5"><StickyNote className="h-3.5 w-3.5" /> {fr ? 'Notes internes' : 'Internal notes'}</p>
+                <p className="text-sm text-amber-900 dark:text-amber-200 whitespace-pre-wrap">{customer.notes}</p>
               </div>
             ) : (
-              <div className="rounded-xl bg-gray-50 p-4 text-center">
-                <StickyNote className="h-6 w-6 text-gray-300 mx-auto mb-1" />
-                <p className="text-sm text-gray-400">{fr ? 'Aucune note. Modifiez le client pour ajouter des notes internes.' : 'No notes. Edit the customer to add internal notes.'}</p>
+              <div className="rounded-xl bg-gray-50 dark:bg-gray-800 p-4 text-center">
+                <StickyNote className="h-6 w-6 text-gray-300 dark:text-gray-600 mx-auto mb-1" />
+                <p className="text-sm text-gray-400 dark:text-gray-500">{fr ? 'Aucune note. Modifiez le client pour ajouter des notes internes.' : 'No notes. Edit the customer to add internal notes.'}</p>
               </div>
             )}
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><p className="text-xs text-gray-500 mb-0.5">{fr ? 'Client depuis' : 'Customer since'}</p><p className="font-medium text-gray-900">{fmtDate(customer.created_at)}</p></div>
-              <div><p className="text-xs text-gray-500 mb-0.5">{fr ? 'Valeur cumulative totale' : 'Total lifetime value'}</p><p className="font-semibold text-emerald-700">{fmt(totalInvoiced)}</p></div>
+              <div><p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{fr ? 'Client depuis' : 'Customer since'}</p><p className="font-medium text-gray-900 dark:text-white">{fmtDate(customer.created_at)}</p></div>
+              <div><p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{fr ? 'Valeur cumulative totale' : 'Total lifetime value'}</p><p className="font-semibold text-emerald-700 dark:text-emerald-400">{fmt(totalInvoiced)}</p></div>
             </div>
           </div>
         )}
 
         {tab === 'jobs' && (
           <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Interventions' : 'Jobs'} ({jobs.length})</h2>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Interventions' : 'Jobs'} ({jobs.length})</h2>
               <Link href={`/jobs?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
                 <Plus className="h-3.5 w-3.5" /> {fr ? 'Nouvelle intervention' : 'New job'}
               </Link>
             </div>
             {jobs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Briefcase className="h-8 w-8 text-gray-300 mb-2" />
-                <p className="text-sm text-gray-400">{fr ? 'Aucune intervention pour ce client' : 'No jobs for this customer'}</p>
+                <Briefcase className="h-8 w-8 text-gray-300 dark:text-gray-600 mb-2" />
+                <p className="text-sm text-gray-400 dark:text-gray-500">{fr ? 'Aucune intervention pour ce client' : 'No jobs for this customer'}</p>
               </div>
             ) : (
-              <ul className="divide-y divide-gray-50">
+              <ul className="divide-y divide-gray-50 dark:divide-gray-800">
                 {jobs.map((j) => {
                   return (
                     <li key={j.id}>
-                      <Link href={`/jobs/${j.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-50">
+                      <Link href={`/jobs/${j.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-50 dark:bg-violet-900/30">
                           <Briefcase className="h-4 w-4 text-violet-500" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{j.title}</p>
-                          <p className="text-xs text-gray-400 flex items-center gap-1">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{j.title}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
                             {j.scheduled_date ? fmtDate(j.scheduled_date) : fmtDate(j.created_at)}
                           </p>
@@ -399,13 +399,13 @@ export default function CustomerDetailPage() {
 
         {tab === 'invoices' && (
           <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Factures' : 'Invoices'} ({invoices.length})</h2>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {fr ? 'Facturé' : 'Invoiced'} : <span className="font-medium text-gray-700">{fmt(totalInvoiced)}</span> ·
-                  {fr ? ' Payé' : ' Paid'} : <span className="font-medium text-emerald-700">{fmt(totalPaid)}</span> ·
-                  {fr ? ' Impayé' : ' Unpaid'} : <span className="font-medium text-amber-700">{fmt(totalUnpaid)}</span>
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Factures' : 'Invoices'} ({invoices.length})</h2>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  {fr ? 'Facturé' : 'Invoiced'} : <span className="font-medium text-gray-700 dark:text-gray-300">{fmt(totalInvoiced)}</span> ·
+                  {fr ? ' Payé' : ' Paid'} : <span className="font-medium text-emerald-700 dark:text-emerald-400">{fmt(totalPaid)}</span> ·
+                  {fr ? ' Impayé' : ' Unpaid'} : <span className="font-medium text-amber-700 dark:text-amber-400">{fmt(totalUnpaid)}</span>
                 </p>
               </div>
               <Link href={`/invoices/new?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
@@ -414,21 +414,21 @@ export default function CustomerDetailPage() {
             </div>
             {invoices.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <FileText className="h-8 w-8 text-gray-300 mb-2" />
-                <p className="text-sm text-gray-400">{fr ? 'Aucune facture pour ce client' : 'No invoices for this customer'}</p>
+                <FileText className="h-8 w-8 text-gray-300 dark:text-gray-600 mb-2" />
+                <p className="text-sm text-gray-400 dark:text-gray-500">{fr ? 'Aucune facture pour ce client' : 'No invoices for this customer'}</p>
               </div>
             ) : (
-              <ul className="divide-y divide-gray-50">
+              <ul className="divide-y divide-gray-50 dark:divide-gray-800">
                 {invoices.map((inv) => {
                   return (
                     <li key={inv.id}>
-                      <Link href={`/invoices/${inv.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50">
+                      <Link href={`/invoices/${inv.id}`} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/30">
                           <DollarSign className="h-4 w-4 text-emerald-500" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-900">{fmt(parseFloat(String(inv.amount)))}</p>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">{fmt(parseFloat(String(inv.amount)))}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">
                             {inv.invoice_number || (fr ? 'Facture' : 'Invoice')} · {inv.due_date ? (fr ? `Éch. ${fmtDate(inv.due_date)}` : `Due ${fmtDate(inv.due_date)}`) : fmtDate(inv.created_at)}
                           </p>
                         </div>
@@ -444,31 +444,31 @@ export default function CustomerDetailPage() {
 
         {tab === 'quotes' && (
           <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Devis' : 'Quotes'} ({quotes.length})</h2>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Devis' : 'Quotes'} ({quotes.length})</h2>
               <Link href={`/quotes?customerId=${id}`} className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors">
                 <Plus className="h-3.5 w-3.5" /> {fr ? 'Nouveau devis' : 'New quote'}
               </Link>
             </div>
             {quotes.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <FileText className="h-8 w-8 text-gray-300 mb-2" />
-                <p className="text-sm text-gray-400">{fr ? 'Aucun devis pour ce client' : 'No quotes for this customer'}</p>
+                <FileText className="h-8 w-8 text-gray-300 dark:text-gray-600 mb-2" />
+                <p className="text-sm text-gray-400 dark:text-gray-500">{fr ? 'Aucun devis pour ce client' : 'No quotes for this customer'}</p>
               </div>
             ) : (
-              <ul className="divide-y divide-gray-50">
+              <ul className="divide-y divide-gray-50 dark:divide-gray-800">
                 {quotes.map((q) => {
                   const cls = q.status ? QUOTE_STATUS_CLASS[q.status] : null
                   return (
-                    <li key={q.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50">
+                    <li key={q.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-900/30">
                         <FileText className="h-4 w-4 text-indigo-500" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                           {q.title || q.quote_number || (fr ? 'Devis' : 'Quote')}{q.total != null ? ` · ${fmt(parseFloat(String(q.total)))}` : ''}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
                           {q.quote_number ? `${q.quote_number} · ` : ''}
                           {q.valid_until ? (fr ? `Valide jusqu'au ${fmtDate(q.valid_until)}` : `Valid until ${fmtDate(q.valid_until)}`) : (fr ? `Créé le ${fmtDate(q.created_at)}` : `Created ${fmtDate(q.created_at)}`)}
                         </p>
@@ -486,26 +486,26 @@ export default function CustomerDetailPage() {
 
         {tab === 'bookings' && (
           <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Réservations' : 'Bookings'} ({bookings.length})</h2>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Réservations' : 'Bookings'} ({bookings.length})</h2>
             </div>
             {bookings.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Calendar className="h-8 w-8 text-gray-300 mb-2" />
-                <p className="text-sm text-gray-400">{fr ? 'Aucune réservation pour ce client' : 'No bookings for this customer'}</p>
+                <Calendar className="h-8 w-8 text-gray-300 dark:text-gray-600 mb-2" />
+                <p className="text-sm text-gray-400 dark:text-gray-500">{fr ? 'Aucune réservation pour ce client' : 'No bookings for this customer'}</p>
               </div>
             ) : (
-              <ul className="divide-y divide-gray-50">
+              <ul className="divide-y divide-gray-50 dark:divide-gray-800">
                 {bookings.map((b) => {
                   const bcls = BOOKING_STATUS_CLASS[b.status]
                   return (
-                    <li key={b.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50">
+                    <li key={b.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-900/30">
                         <Calendar className="h-4 w-4 text-indigo-500" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{b.service_name || (fr ? 'Réservation' : 'Booking')}</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{b.service_name || (fr ? 'Réservation' : 'Booking')}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
                           {b.requested_date ? fmtDate(b.requested_date) : fmtDate(b.created_at)}
                           {b.requested_time ? (fr ? ` à ${b.requested_time.slice(0, 5)}` : ` at ${b.requested_time.slice(0, 5)}`) : ''}
                           {b.source ? ` · ${b.source}` : ''}
@@ -525,13 +525,13 @@ export default function CustomerDetailPage() {
         {tab === 'notes' && (
           <div className="space-y-4">
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">{fr ? 'Ajouter une note' : 'Add a note'}</h3>
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{fr ? 'Ajouter une note' : 'Add a note'}</h3>
               <textarea
                 placeholder={fr ? 'Ajouter une note sur ce client...' : 'Add a note about this customer...'}
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 rows={3}
-                className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none mb-3"
+                className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none mb-3"
               />
               <button
                 onClick={addNote}
@@ -544,15 +544,15 @@ export default function CustomerDetailPage() {
 
             {notes.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-12 text-center">
-                <StickyNote className="h-8 w-8 text-gray-300 mb-2" />
-                <p className="text-sm text-gray-400">{fr ? 'Aucune note. Ajoutez votre première note ci-dessus.' : 'No notes. Add your first note above.'}</p>
+                <StickyNote className="h-8 w-8 text-gray-300 dark:text-gray-600 mb-2" />
+                <p className="text-sm text-gray-400 dark:text-gray-500">{fr ? 'Aucune note. Ajoutez votre première note ci-dessus.' : 'No notes. Add your first note above.'}</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {notes.map((note) => (
                   <div key={note.id} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-4">
-                    <p className="text-sm text-gray-800 whitespace-pre-wrap">{note.content}</p>
-                    <p className="text-xs text-gray-400 mt-2">{fmtDate(note.created_at)}</p>
+                    <p className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{note.content}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">{fmtDate(note.created_at)}</p>
                   </div>
                 ))}
               </div>

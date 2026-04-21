@@ -396,11 +396,11 @@ export default function NewInvoicePage() {
         {/* Breadcrumb + AI button */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <Link href="/invoices" className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors">
+            <Link href="/invoices" className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
               <ArrowLeft className="h-4 w-4" /> {fr ? 'Factures' : 'Invoices'}
             </Link>
-            <span className="text-gray-300">/</span>
-            <span className="text-sm font-semibold text-gray-900">{fr ? 'Nouvelle facture' : 'New invoice'}</span>
+            <span className="text-gray-300 dark:text-gray-600">/</span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Nouvelle facture' : 'New invoice'}</span>
           </div>
           <div className="flex items-center gap-2">
             {savedAt && (
@@ -425,19 +425,19 @@ export default function NewInvoicePage() {
 
             {/* A. Client Selector */}
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
-              <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                 <User className="h-4 w-4 text-gray-400" /> {fr ? 'Client' : 'Customer'}
               </h2>
               <div ref={customerRef} className="relative">
                 {customerId && selectedCustomer ? (
-                  <div className="flex items-center justify-between rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3">
+                  <div className="flex items-center justify-between rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700 font-bold text-sm">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 font-bold text-sm">
                         {selectedCustomer.name[0]?.toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">{selectedCustomer.name}</p>
-                        <p className="text-xs text-gray-500">{selectedCustomer.email || selectedCustomer.phone || ''}</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{selectedCustomer.name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{selectedCustomer.email || selectedCustomer.phone || ''}</p>
                       </div>
                     </div>
                     <button onClick={() => { setCustomerId(''); setCustomerSearch('') }} className="text-gray-400 hover:text-gray-600">
@@ -460,27 +460,27 @@ export default function NewInvoicePage() {
                     {customerDropdownOpen && (
                       <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg max-h-60 overflow-auto">
                         {filteredCustomers.length === 0 ? (
-                          <p className="px-4 py-3 text-sm text-gray-400">{fr ? 'Aucun client trouvé' : 'No customer found'}</p>
+                          <p className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500">{fr ? 'Aucun client trouvé' : 'No customer found'}</p>
                         ) : (
                           filteredCustomers.map((c) => (
                             <button
                               key={c.id}
                               onClick={() => { setCustomerId(c.id); setCustomerDropdownOpen(false); setCustomerSearch('') }}
-                              className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                              className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                             >
-                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-600 font-semibold text-xs">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-semibold text-xs">
                                 {c.name[0]?.toUpperCase()}
                               </div>
                               <div>
-                                <p className="text-sm font-medium text-gray-900">{c.name}</p>
-                                {c.email && <p className="text-xs text-gray-400">{c.email}</p>}
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{c.name}</p>
+                                {c.email && <p className="text-xs text-gray-400 dark:text-gray-500">{c.email}</p>}
                               </div>
                             </button>
                           ))
                         )}
                         <Link
                           href="/customers?new=1"
-                          className="flex items-center gap-2 w-full px-4 py-3 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 border-t border-gray-100 transition-colors"
+                          className="flex items-center gap-2 w-full px-4 py-3 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 border-t border-gray-100 dark:border-gray-700 transition-colors"
                         >
                           <Plus className="h-4 w-4" /> {fr ? 'Nouveau client' : 'New customer'}
                         </Link>
@@ -495,29 +495,29 @@ export default function NewInvoicePage() {
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
               <button
                 onClick={() => setDetailsOpen(!detailsOpen)}
-                className="flex items-center justify-between w-full px-6 py-4 text-left hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between w-full px-6 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
-                <span className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <span className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   <Hash className="h-4 w-4 text-gray-400" /> {fr ? 'Détails de la facture' : 'Invoice details'}
-                  <span className="text-xs font-normal text-gray-400">{invoiceNumber}</span>
+                  <span className="text-xs font-normal text-gray-400 dark:text-gray-500">{invoiceNumber}</span>
                 </span>
                 {detailsOpen ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
               </button>
               {detailsOpen && (
-                <div className="px-6 pb-6 border-t border-gray-100 pt-4 space-y-4">
+                <div className="px-6 pb-6 border-t border-gray-100 dark:border-gray-800 pt-4 space-y-4">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">{fr ? 'Numéro de facture' : 'Invoice number'}</label>
-                      <input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                      <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">{fr ? 'Numéro de facture' : 'Invoice number'}</label>
+                      <input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-gray-500 mb-1.5 flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5" /> {fr ? "Date d'émission" : 'Issue date'}
                       </label>
-                      <input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                      <input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">{fr ? 'Conditions de paiement' : 'Payment terms'}</label>
+                      <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">{fr ? 'Conditions de paiement' : 'Payment terms'}</label>
                       <select
                         value={dueDateOption}
                         onChange={(e) => handleDueDateOption(parseInt(e.target.value))}
@@ -527,17 +527,17 @@ export default function NewInvoicePage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">{fr ? "Date d'échéance" : 'Due date'}</label>
-                      <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                      <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">{fr ? "Date d'échéance" : 'Due date'}</label>
+                      <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                     </div>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">{fr ? 'N° de bon de commande (optionnel)' : 'PO number (optional)'}</label>
-                      <input value={poNumber} onChange={(e) => setPoNumber(e.target.value)} placeholder={fr ? 'PO-1234' : 'PO-1234'} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                      <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">{fr ? 'N° de bon de commande (optionnel)' : 'PO number (optional)'}</label>
+                      <input value={poNumber} onChange={(e) => setPoNumber(e.target.value)} placeholder={fr ? 'PO-1234' : 'PO-1234'} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-500 mb-1.5">{fr ? 'Intervention liée' : 'Linked job'}</label>
+                      <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">{fr ? 'Intervention liée' : 'Linked job'}</label>
                       <select value={jobId} onChange={(e) => setJobId(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
                         <option value="">{fr ? 'Aucune' : 'None'}</option>
                         {jobs.map((j) => <option key={j.id} value={j.id}>{j.title}</option>)}
@@ -550,14 +550,14 @@ export default function NewInvoicePage() {
 
             {/* C. Line Items */}
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   <FileText className="h-4 w-4 text-gray-400" /> {fr ? 'Lignes de facturation' : 'Line items'}
                 </h2>
               </div>
 
               {/* Column headers */}
-              <div className="hidden sm:grid grid-cols-[1fr_80px_120px_100px_40px] gap-3 px-6 py-2.5 bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <div className="hidden sm:grid grid-cols-[1fr_80px_120px_100px_40px] gap-3 px-6 py-2.5 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 <span>Description</span>
                 <span className="text-center">{fr ? 'Qté' : 'Qty'}</span>
                 <span className="text-right">{fr ? 'Prix unit.' : 'Unit price'}</span>
@@ -565,7 +565,7 @@ export default function NewInvoicePage() {
                 <span />
               </div>
 
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-50 dark:divide-gray-800">
                 {lines.map((line, idx) => {
                   const matches = getProductMatches(line.id)
                   return (
@@ -595,7 +595,7 @@ export default function NewInvoicePage() {
                               else if (e.key === 'Enter' && productHighlight >= 0 && m[productHighlight]) { e.preventDefault(); selectProduct(line.id, m[productHighlight]) }
                               else if (e.key === 'Enter' && idx === lines.length - 1) { e.preventDefault(); addLine() }
                             }}
-                            className="block w-full rounded-lg border border-gray-200 px-3 py-2 text-base sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+                            className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-base sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
                           />
                           {productDropdown === line.id && matches.length > 0 && (
                             <div className="absolute z-20 mt-1 w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg max-h-48 overflow-auto">
@@ -617,7 +617,7 @@ export default function NewInvoicePage() {
                         <input
                           type="number" min="0" step="0.5" value={line.qty}
                           onChange={(e) => updateLine(line.id, 'qty', parseFloat(e.target.value) || 0)}
-                          className="block w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-center text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+                          className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-center text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
                         />
 
                         {/* Unit price */}
@@ -626,12 +626,12 @@ export default function NewInvoicePage() {
                           <input
                             type="number" min="0" step="0.01" value={line.unit_price || ''}
                             onChange={(e) => updateLine(line.id, 'unit_price', parseFloat(e.target.value) || 0)}
-                            className="block w-full rounded-lg border border-gray-200 pl-6 pr-3 py-2 text-sm text-right text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+                            className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 pl-6 pr-3 py-2 text-sm text-right text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
                           />
                         </div>
 
                         {/* Line total */}
-                        <p className="text-sm font-semibold text-gray-900 text-right">{fmt(line.qty * line.unit_price)}</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white text-right">{fmt(line.qty * line.unit_price)}</p>
 
                         {/* Delete */}
                         <button
@@ -648,8 +648,8 @@ export default function NewInvoicePage() {
                 })}
               </div>
 
-              <div className="px-6 py-4 border-t border-gray-100">
-                <button type="button" onClick={addLine} className="flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
+              <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800">
+                <button type="button" onClick={addLine} className="flex items-center gap-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors">
                   <Plus className="h-4 w-4" /> {fr ? 'Ajouter une ligne' : 'Add a line'}
                 </button>
               </div>
@@ -662,7 +662,7 @@ export default function NewInvoicePage() {
                 <div className="space-y-4">
                   {/* Discount toggle */}
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-gray-700">{fr ? 'Remise' : 'Discount'}</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">{fr ? 'Remise' : 'Discount'}</label>
                     <button type="button" onClick={() => setDiscountEnabled(!discountEnabled)}
                       className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${discountEnabled ? 'bg-indigo-600' : 'bg-gray-200'}`}>
                       <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${discountEnabled ? 'translate-x-4' : 'translate-x-0.5'}`} />
@@ -670,17 +670,17 @@ export default function NewInvoicePage() {
                   </div>
                   {discountEnabled && (
                     <div className="flex gap-3">
-                      <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                      <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
                         <button onClick={() => setDiscountType('percent')} className={`px-3 py-1.5 text-xs font-semibold transition-colors ${discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'}`}>%</button>
                         <button onClick={() => setDiscountType('fixed')} className={`px-3 py-1.5 text-xs font-semibold transition-colors ${discountType === 'fixed' ? 'bg-indigo-600 text-white' : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'}`}>$</button>
                       </div>
-                      <input type="number" min="0" step="0.01" value={discountValue} onChange={(e) => setDiscountValue(e.target.value)} placeholder="0" className="w-24 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none" />
+                      <input type="number" min="0" step="0.01" value={discountValue} onChange={(e) => setDiscountValue(e.target.value)} placeholder="0" className="w-24 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none" />
                     </div>
                   )}
 
                   {/* TPS */}
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-gray-700">TPS (5%)</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">TPS (5%)</label>
                     <button type="button" onClick={() => setApplyTps(!applyTps)}
                       className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${applyTps ? 'bg-indigo-600' : 'bg-gray-200'}`}>
                       <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${applyTps ? 'translate-x-4' : 'translate-x-0.5'}`} />
@@ -689,7 +689,7 @@ export default function NewInvoicePage() {
 
                   {/* TVQ */}
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-gray-700">TVQ (9,975%)</label>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">TVQ (9,975%)</label>
                     <button type="button" onClick={() => setApplyTvq(!applyTvq)}
                       className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${applyTvq ? 'bg-indigo-600' : 'bg-gray-200'}`}>
                       <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${applyTvq ? 'translate-x-4' : 'translate-x-0.5'}`} />
@@ -700,30 +700,30 @@ export default function NewInvoicePage() {
                 {/* Totals */}
                 <div className="flex flex-col justify-end space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">{fr ? 'Sous-total' : 'Subtotal'}</span>
-                    <span className="font-medium text-gray-900">{fmt(subtotal)}</span>
+                    <span className="text-gray-500 dark:text-gray-400">{fr ? 'Sous-total' : 'Subtotal'}</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{fmt(subtotal)}</span>
                   </div>
                   {discAmt > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">{fr ? 'Remise' : 'Discount'}</span>
-                      <span className="font-medium text-emerald-600">-{fmt(discAmt)}</span>
+                      <span className="text-gray-500 dark:text-gray-400">{fr ? 'Remise' : 'Discount'}</span>
+                      <span className="font-medium text-emerald-600 dark:text-emerald-400">-{fmt(discAmt)}</span>
                     </div>
                   )}
                   {applyTps && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">TPS (5%)</span>
-                      <span className="font-medium text-gray-900">{fmt(tpsAmt)}</span>
+                      <span className="text-gray-500 dark:text-gray-400">TPS (5%)</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{fmt(tpsAmt)}</span>
                     </div>
                   )}
                   {applyTvq && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">TVQ (9,975%)</span>
-                      <span className="font-medium text-gray-900">{fmt(tvqAmt)}</span>
+                      <span className="text-gray-500 dark:text-gray-400">TVQ (9,975%)</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{fmt(tvqAmt)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between border-t border-gray-200 pt-3 mt-2">
-                    <span className="text-base font-bold text-gray-900">Total</span>
-                    <span className="text-2xl font-black text-gray-900">{fmt(total)}</span>
+                  <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-3 mt-2">
+                    <span className="text-base font-bold text-gray-900 dark:text-white">Total</span>
+                    <span className="text-2xl font-black text-gray-900 dark:text-white">{fmt(total)}</span>
                   </div>
                 </div>
               </div>
@@ -731,15 +731,15 @@ export default function NewInvoicePage() {
 
             {/* E. Notes */}
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6 space-y-4">
-              <h2 className="text-sm font-semibold text-gray-900">{fr ? 'Notes' : 'Notes'}</h2>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Notes' : 'Notes'}</h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">{fr ? 'Note au client' : 'Client note'}</label>
-                  <textarea rows={3} value={clientNotes} onChange={(e) => setClientNotes(e.target.value)} placeholder={fr ? 'Merci pour votre confiance...' : 'Thank you for your business...'} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none resize-none" />
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">{fr ? 'Note au client' : 'Client note'}</label>
+                  <textarea rows={3} value={clientNotes} onChange={(e) => setClientNotes(e.target.value)} placeholder={fr ? 'Merci pour votre confiance...' : 'Thank you for your business...'} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400/20 resize-none" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1.5">{fr ? 'Note interne' : 'Internal note'}</label>
-                  <textarea rows={3} value={internalNotes} onChange={(e) => setInternalNotes(e.target.value)} placeholder={fr ? 'Notes internes...' : 'Internal notes...'} className="block w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none resize-none" />
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">{fr ? 'Note interne' : 'Internal note'}</label>
+                  <textarea rows={3} value={internalNotes} onChange={(e) => setInternalNotes(e.target.value)} placeholder={fr ? 'Notes internes...' : 'Internal notes...'} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400/20 resize-none" />
                 </div>
               </div>
             </div>
@@ -749,8 +749,8 @@ export default function NewInvoicePage() {
           <div className={`lg:w-[40%] ${showPreview ? 'block' : 'hidden lg:block'}`}>
             <div className="sticky top-6">
               <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-gray-900">{fr ? 'Aperçu' : 'Preview'}</h3>
+                <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Aperçu' : 'Preview'}</h3>
                   <button onClick={() => setShowPreview(false)} className="lg:hidden text-gray-400 hover:text-gray-600">
                     <X className="h-4 w-4" />
                   </button>
@@ -760,21 +760,21 @@ export default function NewInvoicePage() {
                   {/* Preview header */}
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-bold text-gray-900 text-sm">{orgName || (fr ? 'Votre entreprise' : 'Your business')}</p>
+                      <p className="font-bold text-gray-900 dark:text-white text-sm">{orgName || (fr ? 'Votre entreprise' : 'Your business')}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-indigo-600 text-sm">{invoiceNumber}</p>
-                      <p className="text-gray-400">{fmtDate(issueDate, lang, 'short')}</p>
+                      <p className="font-bold text-indigo-600 dark:text-indigo-400 text-sm">{invoiceNumber}</p>
+                      <p className="text-gray-400 dark:text-gray-500">{fmtDate(issueDate, lang, 'short')}</p>
                     </div>
                   </div>
 
                   {/* Client */}
                   {selectedCustomer && (
-                    <div className="rounded-lg bg-gray-50 p-3">
-                      <p className="text-gray-400 mb-1">{fr ? 'Facturer à' : 'Bill to'}</p>
-                      <p className="font-semibold text-gray-900">{selectedCustomer.name}</p>
-                      {selectedCustomer.email && <p className="text-gray-500">{selectedCustomer.email}</p>}
-                      {selectedCustomer.address && <p className="text-gray-500">{selectedCustomer.address}</p>}
+                    <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-3">
+                      <p className="text-gray-400 dark:text-gray-500 mb-1">{fr ? 'Facturer à' : 'Bill to'}</p>
+                      <p className="font-semibold text-gray-900 dark:text-white">{selectedCustomer.name}</p>
+                      {selectedCustomer.email && <p className="text-gray-500 dark:text-gray-400">{selectedCustomer.email}</p>}
+                      {selectedCustomer.address && <p className="text-gray-500 dark:text-gray-400">{selectedCustomer.address}</p>}
                     </div>
                   )}
 
@@ -782,20 +782,20 @@ export default function NewInvoicePage() {
                   {lines.some((l) => l.description.trim()) && (
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-gray-100">
-                          <th className="pb-1.5 text-left text-gray-400 font-medium">Description</th>
-                          <th className="pb-1.5 text-center text-gray-400 font-medium">{fr ? 'Qté' : 'Qty'}</th>
-                          <th className="pb-1.5 text-right text-gray-400 font-medium">{fr ? 'Prix' : 'Price'}</th>
-                          <th className="pb-1.5 text-right text-gray-400 font-medium">Total</th>
+                        <tr className="border-b border-gray-100 dark:border-gray-700">
+                          <th className="pb-1.5 text-left text-gray-400 dark:text-gray-500 font-medium">Description</th>
+                          <th className="pb-1.5 text-center text-gray-400 dark:text-gray-500 font-medium">{fr ? 'Qté' : 'Qty'}</th>
+                          <th className="pb-1.5 text-right text-gray-400 dark:text-gray-500 font-medium">{fr ? 'Prix' : 'Price'}</th>
+                          <th className="pb-1.5 text-right text-gray-400 dark:text-gray-500 font-medium">Total</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-50">
+                      <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                         {lines.filter((l) => l.description.trim()).map((l) => (
                           <tr key={l.id}>
-                            <td className="py-1.5 text-gray-700">{l.description}</td>
-                            <td className="py-1.5 text-center text-gray-500">{l.qty}</td>
-                            <td className="py-1.5 text-right text-gray-500">{fmt(l.unit_price)}</td>
-                            <td className="py-1.5 text-right font-medium text-gray-900">{fmt(l.qty * l.unit_price)}</td>
+                            <td className="py-1.5 text-gray-700 dark:text-gray-300">{l.description}</td>
+                            <td className="py-1.5 text-center text-gray-500 dark:text-gray-400">{l.qty}</td>
+                            <td className="py-1.5 text-right text-gray-500 dark:text-gray-400">{fmt(l.unit_price)}</td>
+                            <td className="py-1.5 text-right font-medium text-gray-900 dark:text-white">{fmt(l.qty * l.unit_price)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -803,28 +803,28 @@ export default function NewInvoicePage() {
                   )}
 
                   {/* Totals */}
-                  <div className="border-t border-gray-100 pt-3 space-y-1">
-                    <div className="flex justify-between"><span className="text-gray-400">{fr ? 'Sous-total' : 'Subtotal'}</span><span className="text-gray-700">{fmt(subtotal)}</span></div>
-                    {discAmt > 0 && <div className="flex justify-between"><span className="text-gray-400">{fr ? 'Remise' : 'Discount'}</span><span className="text-emerald-600">-{fmt(discAmt)}</span></div>}
-                    {applyTps && <div className="flex justify-between"><span className="text-gray-400">TPS 5%</span><span className="text-gray-700">{fmt(tpsAmt)}</span></div>}
-                    {applyTvq && <div className="flex justify-between"><span className="text-gray-400">TVQ 9,975%</span><span className="text-gray-700">{fmt(tvqAmt)}</span></div>}
-                    <div className="flex justify-between font-bold text-gray-900 text-sm border-t border-gray-200 pt-2 mt-1">
+                  <div className="border-t border-gray-100 dark:border-gray-700 pt-3 space-y-1">
+                    <div className="flex justify-between"><span className="text-gray-400 dark:text-gray-500">{fr ? 'Sous-total' : 'Subtotal'}</span><span className="text-gray-700 dark:text-gray-300">{fmt(subtotal)}</span></div>
+                    {discAmt > 0 && <div className="flex justify-between"><span className="text-gray-400 dark:text-gray-500">{fr ? 'Remise' : 'Discount'}</span><span className="text-emerald-600 dark:text-emerald-400">-{fmt(discAmt)}</span></div>}
+                    {applyTps && <div className="flex justify-between"><span className="text-gray-400 dark:text-gray-500">TPS 5%</span><span className="text-gray-700 dark:text-gray-300">{fmt(tpsAmt)}</span></div>}
+                    {applyTvq && <div className="flex justify-between"><span className="text-gray-400 dark:text-gray-500">TVQ 9,975%</span><span className="text-gray-700 dark:text-gray-300">{fmt(tvqAmt)}</span></div>}
+                    <div className="flex justify-between font-bold text-gray-900 dark:text-white text-sm border-t border-gray-200 dark:border-gray-700 pt-2 mt-1">
                       <span>Total</span><span>{fmt(total)}</span>
                     </div>
                   </div>
 
                   {/* Due date */}
                   {dueDate && (
-                    <p className="text-gray-400 text-center mt-2">
+                    <p className="text-gray-400 dark:text-gray-500 text-center mt-2">
                       {fr ? `Échéance : ${fmtDate(dueDate, lang, 'short')}` : `Due: ${fmtDate(dueDate, lang, 'short')}`}
                     </p>
                   )}
 
                   {/* Notes */}
                   {clientNotes && (
-                    <div className="rounded-lg bg-gray-50 p-3 mt-2">
-                      <p className="text-gray-400 mb-1">Note</p>
-                      <p className="text-gray-600 whitespace-pre-line">{clientNotes}</p>
+                    <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-3 mt-2">
+                      <p className="text-gray-400 dark:text-gray-500 mb-1">Note</p>
+                      <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line">{clientNotes}</p>
                     </div>
                   )}
                 </div>
@@ -837,13 +837,13 @@ export default function NewInvoicePage() {
         <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-50 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 sm:px-6 shadow-xl">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <button onClick={() => setShowPreview(!showPreview)} className="lg:hidden inline-flex items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+              <button onClick={() => setShowPreview(!showPreview)} className="lg:hidden inline-flex items-center gap-1.5 rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 {showPreview ? (fr ? 'Masquer' : 'Hide') : (fr ? 'Aperçu' : 'Preview')}
               </button>
               <div className="hidden sm:block text-right">
-                <p className="text-xs text-gray-400">Total</p>
-                <p className="text-xl font-black text-gray-900">{fmt(total)}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">Total</p>
+                <p className="text-xl font-black text-gray-900 dark:text-white">{fmt(total)}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -865,19 +865,19 @@ export default function NewInvoicePage() {
         <div className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => !aiLoading && setAiOpen(false)} />
           <div className="relative w-full sm:max-w-lg bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden sm:mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-r from-violet-100 to-indigo-100">
-                  <Sparkles className="h-4 w-4 text-indigo-600" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-r from-violet-100 to-indigo-100 dark:from-violet-900/40 dark:to-indigo-900/40">
+                  <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <h3 className="text-base font-semibold text-gray-900">{fr ? 'Créer avec l\'IA' : 'Create with AI'}</h3>
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">{fr ? 'Créer avec l\'IA' : 'Create with AI'}</h3>
               </div>
-              <button onClick={() => !aiLoading && setAiOpen(false)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700">
+              <button onClick={() => !aiLoading && setAiOpen(false)} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200">
                 <X className="h-4 w-4" />
               </button>
             </div>
             <div className="p-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 {fr ? 'Décrivez votre facture en langage naturel...' : 'Describe your invoice in natural language...'}
               </label>
               <textarea
@@ -885,11 +885,11 @@ export default function NewInvoicePage() {
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
                 placeholder={fr ? 'Ex: Facture pour Jean Tremblay, 3 heures de plomberie à 85$/h plus 2 raccords en cuivre à 12$' : 'E.g.: Invoice for John Smith, 3 hours of plumbing at $85/hr plus 2 copper fittings at $12 each'}
-                className="block w-full rounded-xl border border-gray-200 px-4 py-3 text-base sm:text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
+                className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-base sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
                 disabled={aiLoading}
               />
             </div>
-            <div className="flex items-center justify-end gap-2 border-t border-gray-100 bg-gray-50/60 px-6 py-3">
+            <div className="flex items-center justify-end gap-2 border-t border-gray-100 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/60 px-6 py-3">
               <button onClick={() => setAiOpen(false)} disabled={aiLoading} className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-60">
                 {fr ? 'Annuler' : 'Cancel'}
               </button>
