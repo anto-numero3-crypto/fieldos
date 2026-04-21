@@ -126,6 +126,15 @@ export default function SubscribePage() {
         </div>
 
         <div className="text-center max-w-2xl mx-auto mb-10">
+          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 px-4 py-1.5 mb-4">
+            <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+              {fr ? 'Essai gratuit 14 jours' : '14-day free trial'}
+            </span>
+            <span className="text-xs text-gray-400">|</span>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              {fr ? 'Aucune carte requise' : 'No card required'}
+            </span>
+          </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3">
             {fr ? 'Votre essai gratuit est terminé' : 'Your free trial has ended'}
           </h1>
@@ -136,18 +145,18 @@ export default function SubscribePage() {
 
         <div className="max-w-md mx-auto mb-8">
           {redeeming ? (
-            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-center">
-              <p className="text-sm font-semibold text-emerald-800">
+            <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 p-4 text-center">
+              <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
                 {fr ? 'Accès gratuit activé ! Redirection en cours…' : 'Free access activated! Redirecting…'}
               </p>
             </div>
           ) : promoValid && !promoValid.is_free_access ? (
-            <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2">
-              <Tag className="h-4 w-4 text-emerald-700" />
-              <p className="flex-1 text-sm text-emerald-800">
+            <div className="flex items-center gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 px-3 py-2">
+              <Tag className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
+              <p className="flex-1 text-sm text-emerald-800 dark:text-emerald-300">
                 <span className="font-semibold">{promoValid.code}</span> — {fr ? `−${promoValid.discount_percent}% sur votre premier paiement` : `−${promoValid.discount_percent}% on first payment`}
               </p>
-              <button onClick={clearPromo} className="text-emerald-700 hover:text-emerald-900"><X className="h-4 w-4" /></button>
+              <button onClick={clearPromo} className="text-emerald-700 dark:text-emerald-400 hover:text-emerald-900"><X className="h-4 w-4" /></button>
             </div>
           ) : (
             <div>
@@ -157,12 +166,12 @@ export default function SubscribePage() {
                   value={promoInput}
                   onChange={(e) => { setPromoInput(e.target.value); setPromoError(null) }}
                   placeholder={fr ? 'Code promo (facultatif)' : 'Promo code (optional)'}
-                  className="flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 />
                 <button
                   onClick={applyPromo}
                   disabled={promoLoading || !promoInput.trim()}
-                  className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-60"
+                  className="rounded-xl bg-gray-900 dark:bg-white px-4 py-2.5 text-sm font-semibold text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 disabled:opacity-60 transition-colors"
                 >
                   {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (fr ? 'Appliquer' : 'Apply')}
                 </button>
@@ -173,18 +182,18 @@ export default function SubscribePage() {
         </div>
 
         <div className="flex items-center justify-center gap-1 mb-8">
-          <div className="bg-white rounded-xl p-1 shadow-sm border border-gray-200">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-1 shadow-sm border border-gray-200 dark:border-gray-700">
             <button
               onClick={() => setCycle('monthly')}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${cycle === 'monthly' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:text-gray-900'}`}
+              className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${cycle === 'monthly' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
             >
               {fr ? 'Mensuel' : 'Monthly'}
             </button>
             <button
               onClick={() => setCycle('annual')}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${cycle === 'annual' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:text-gray-900'}`}
+              className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${cycle === 'annual' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
             >
-              {fr ? 'Annuel' : 'Annual'} <span className="ml-1 text-xs text-emerald-300">{fr ? '−10%' : '−10%'}</span>
+              {fr ? 'Annuel' : 'Annual'} <span className="ml-1 text-xs text-emerald-500">{fr ? '−10%' : '−10%'}</span>
             </button>
           </div>
         </div>
@@ -199,27 +208,27 @@ export default function SubscribePage() {
             return (
               <div
                 key={key}
-                className={`relative rounded-2xl p-6 shadow-sm border ${highlighted ? 'bg-indigo-600 text-white border-indigo-500 ring-2 ring-indigo-200 shadow-xl shadow-indigo-100 scale-[1.03]' : 'bg-white border-gray-200'}`}
+                className={`relative rounded-2xl p-6 shadow-sm border transition-all ${highlighted ? 'bg-indigo-600 text-white border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-800 shadow-xl shadow-indigo-100 dark:shadow-indigo-950 scale-[1.03]' : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800'}`}
               >
                 {highlighted && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-amber-900">
                     <Sparkles className="h-3 w-3" /> {fr ? 'Plus populaire' : 'Most popular'}
                   </span>
                 )}
-                <h3 className={`text-lg font-bold mb-1 ${highlighted ? 'text-white' : 'text-gray-900'}`}>{label}</h3>
-                <p className={`text-sm mb-4 ${highlighted ? 'text-indigo-100' : 'text-gray-500'}`}>{tagline}</p>
+                <h3 className={`text-lg font-bold mb-1 ${highlighted ? 'text-white' : 'text-gray-900 dark:text-white'}`}>{label}</h3>
+                <p className={`text-sm mb-4 ${highlighted ? 'text-indigo-100' : 'text-gray-500 dark:text-gray-400'}`}>{tagline}</p>
                 <div className="mb-5">
                   {promoValid && !promoValid.is_free_access && promoValid.discount_percent ? (
                     <>
                       <span className={`text-sm line-through mr-2 ${highlighted ? 'text-indigo-200' : 'text-gray-400'}`}>${price}</span>
-                      <span className={`text-4xl font-bold ${highlighted ? 'text-white' : 'text-emerald-600'}`}>${Math.round(price * (1 - promoValid.discount_percent / 100))}</span>
-                      <span className={`text-sm ${highlighted ? 'text-indigo-100' : 'text-gray-500'}`}>{fr ? ' / mois' : ' / mo'}</span>
-                      <p className={`text-xs mt-1 ${highlighted ? 'text-indigo-100' : 'text-emerald-600'}`}>{fr ? `Économie de ${promoValid.discount_percent}%` : `${promoValid.discount_percent}% off`}</p>
+                      <span className={`text-4xl font-bold ${highlighted ? 'text-white' : 'text-emerald-600 dark:text-emerald-400'}`}>${Math.round(price * (1 - promoValid.discount_percent / 100))}</span>
+                      <span className={`text-sm ${highlighted ? 'text-indigo-100' : 'text-gray-500 dark:text-gray-400'}`}>{fr ? ' / mois' : ' / mo'}</span>
+                      <p className={`text-xs mt-1 ${highlighted ? 'text-indigo-100' : 'text-emerald-600 dark:text-emerald-400'}`}>{fr ? `Économie de ${promoValid.discount_percent}%` : `${promoValid.discount_percent}% off`}</p>
                     </>
                   ) : (
                     <>
-                      <span className={`text-4xl font-bold ${highlighted ? 'text-white' : 'text-gray-900'}`}>${price}</span>
-                      <span className={`text-sm ${highlighted ? 'text-indigo-100' : 'text-gray-500'}`}>{fr ? ' / mois' : ' / mo'}</span>
+                      <span className={`text-4xl font-bold ${highlighted ? 'text-white' : 'text-gray-900 dark:text-white'}`}>${price}</span>
+                      <span className={`text-sm ${highlighted ? 'text-indigo-100' : 'text-gray-500 dark:text-gray-400'}`}>{fr ? ' / mois' : ' / mo'}</span>
                       {cycle === 'annual' && (
                         <p className={`text-xs mt-1 ${highlighted ? 'text-indigo-200' : 'text-gray-400'}`}>{fr ? `Facturé ${p.annualTotal} $/an` : `Billed $${p.annualTotal}/year`}</p>
                       )}
@@ -228,7 +237,7 @@ export default function SubscribePage() {
                 </div>
                 <ul className="space-y-2 mb-6">
                   {features[key].map((f) => (
-                    <li key={f} className={`flex items-start gap-2 text-sm ${highlighted ? 'text-indigo-50' : 'text-gray-700'}`}>
+                    <li key={f} className={`flex items-start gap-2 text-sm ${highlighted ? 'text-indigo-50' : 'text-gray-700 dark:text-gray-300'}`}>
                       <Check className={`h-4 w-4 shrink-0 mt-0.5 ${highlighted ? 'text-white' : 'text-emerald-500'}`} />
                       <span>{f}</span>
                     </li>
@@ -237,10 +246,10 @@ export default function SubscribePage() {
                 <button
                   onClick={() => choose(key)}
                   disabled={loading !== null}
-                  className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
+                  className={`w-full rounded-xl px-4 py-3 text-sm font-semibold transition-all active:scale-[0.99] ${
                     highlighted
                       ? 'bg-white text-indigo-700 hover:bg-indigo-50'
-                      : 'bg-gray-900 text-white hover:bg-gray-800'
+                      : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'
                   } disabled:opacity-60`}
                 >
                   {loading === key
@@ -254,7 +263,7 @@ export default function SubscribePage() {
 
         <div className="text-center mt-10 text-xs text-gray-400">
           {email && <p className="mb-2">{fr ? 'Connecté en tant que' : 'Signed in as'} {email}</p>}
-          <button onClick={signOut} className="text-gray-500 hover:text-gray-700 underline">
+          <button onClick={signOut} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 underline transition-colors">
             {fr ? 'Se déconnecter' : 'Sign out'}
           </button>
         </div>

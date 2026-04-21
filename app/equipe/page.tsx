@@ -249,19 +249,25 @@ export default function TeamPage() {
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       {/* Pro plan limit banner */}
       {normalizedPlan === 'pro' && (
-        <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {fr ? 'Employés' : 'Employees'}
-            </span>
-            <span className="text-sm text-gray-500">{activeCount} / 5</span>
+        <div className="mb-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-indigo-500" />
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                {fr ? 'Employés' : 'Employees'}
+              </span>
+            </div>
+            <span className="text-sm font-medium tabular-nums text-gray-500 dark:text-gray-400">{activeCount} / 5</span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2.5 overflow-hidden">
             <div
-              className="bg-indigo-600 h-2 rounded-full transition-all"
+              className={`h-full rounded-full transition-all duration-500 ${activeCount >= 5 ? 'bg-amber-500' : 'bg-indigo-600'}`}
               style={{ width: `${Math.min(100, (activeCount / 5) * 100)}%` }}
             />
           </div>
+          {activeCount >= 5 && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">{fr ? 'Limite atteinte. Passez au plan Scale pour plus.' : 'Limit reached. Upgrade to Scale for more.'}</p>
+          )}
         </div>
       )}
 
@@ -285,7 +291,7 @@ export default function TeamPage() {
           {employees.map((emp) => (
             <div
               key={emp.id}
-              className="relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5"
+              className="relative rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-200 p-5"
             >
               {/* Actions menu */}
               <div className="absolute top-4 right-4">
@@ -296,7 +302,7 @@ export default function TeamPage() {
                   <MoreHorizontal className="w-4 h-4" />
                 </button>
                 {menuOpen === emp.id && (
-                  <div className="absolute right-0 mt-1 w-52 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-10">
+                  <div className="absolute right-0 mt-1 w-52 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-100 dark:border-gray-800 py-1.5 z-10">
                     <button
                       onClick={() => { console.log('[team-ui] edit clicked:', emp.id); setMenuOpen(null); openEditModal(emp) }}
                       className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -338,16 +344,16 @@ export default function TeamPage() {
                 )}
               </div>
 
-              <Link href={`/equipe/${emp.id}`} className="block">
-                <div className="flex items-center gap-3 mb-3">
+              <Link href={`/equipe/${emp.id}`} className="block active:scale-[0.99] transition-transform">
+                <div className="flex items-center gap-3.5 mb-3">
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm"
-                    style={{ backgroundColor: emp.color || '#6366f1' }}
+                    className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm ring-2 ring-white dark:ring-gray-900 shadow-sm"
+                    style={{ background: `linear-gradient(135deg, ${emp.color || '#6366f1'}, ${emp.color || '#6366f1'}dd)` }}
                   >
                     {emp.first_name[0]}{emp.last_name[0]}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-semibold text-gray-900 dark:text-white truncate">
+                    <p className="font-bold text-gray-900 dark:text-white truncate">
                       {emp.first_name} {emp.last_name}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{emp.email}</p>
@@ -356,12 +362,12 @@ export default function TeamPage() {
 
                 <div className="flex items-center gap-2 flex-wrap">
                   <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                       emp.status === 'active'
-                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400'
+                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                         : emp.status === 'invited'
-                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                        : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                        ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                        : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500'
                     }`}
                   >
                     {emp.status === 'active' ? (fr ? 'Actif' : 'Active') : emp.status === 'invited' ? (fr ? 'Invité' : 'Invited') : (fr ? 'Inactif' : 'Inactive')}
@@ -372,7 +378,7 @@ export default function TeamPage() {
                     </span>
                   )}
                   {emp.hourly_rate != null && (
-                    <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
                       <DollarSign className="w-3 h-3" /> {emp.hourly_rate}$/h
                     </span>
                   )}
@@ -383,7 +389,7 @@ export default function TeamPage() {
               {emp.status === 'invited' && (
                 <button
                   onClick={(e) => { e.stopPropagation(); sendInvite(emp.id) }}
-                  className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                  className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 px-3 py-2.5 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 active:scale-[0.99] transition-all duration-200"
                 >
                   <Send className="w-3.5 h-3.5" />
                   {emp.invite_token
@@ -394,7 +400,7 @@ export default function TeamPage() {
               {emp.status === 'inactive' && (
                 <button
                   onClick={(e) => { e.stopPropagation(); reactivate(emp) }}
-                  className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+                  className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 active:scale-[0.99] transition-all duration-200"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   {fr ? 'Réactiver' : 'Reactivate'}
@@ -408,9 +414,9 @@ export default function TeamPage() {
 
       {/* Create / Edit Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 px-0 sm:px-4" onClick={() => setModalOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm px-0 sm:px-4" onClick={() => setModalOpen(false)}>
           <div
-            className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-md p-6 max-h-[90vh] overflow-y-auto"
+            className="bg-white dark:bg-gray-900 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md p-6 max-h-[90vh] overflow-y-auto border border-gray-100 dark:border-gray-800"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
@@ -434,7 +440,7 @@ export default function TeamPage() {
                     type="text"
                     value={fFirstName}
                     onChange={(e) => setFFirstName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-base sm:text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-colors"
                   />
                 </div>
                 <div>
@@ -445,7 +451,7 @@ export default function TeamPage() {
                     type="text"
                     value={fLastName}
                     onChange={(e) => setFLastName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-base sm:text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -495,7 +501,7 @@ export default function TeamPage() {
                     value={fHourlyRate}
                     onChange={(e) => setFHourlyRate(e.target.value)}
                     placeholder="0.00"
-                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-base sm:text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -533,7 +539,7 @@ export default function TeamPage() {
               <button
                 onClick={handleSubmit}
                 disabled={submitting || !fFirstName.trim() || !fLastName.trim() || (!editEmployee && !fEmail.trim())}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] transition-all duration-200 shadow-sm"
               >
                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                 {editEmployee

@@ -153,7 +153,7 @@ export default function ContractApprovalPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
       </div>
     )
@@ -161,13 +161,13 @@ export default function ContractApprovalPage() {
 
   if (notFound) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-10 max-w-sm shadow-sm text-center">
+          <AlertCircle className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
             {fr ? 'Contrat introuvable' : 'Contract not found'}
           </h1>
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             {fr ? 'Ce lien est invalide ou expiré.' : 'This link is invalid or expired.'}
           </p>
         </div>
@@ -423,15 +423,15 @@ export default function ContractApprovalPage() {
       </div>
 
       {/* ===== WEB VIEW ===== */}
-      <div className="web-view min-h-screen bg-gray-50">
+      <div className="web-view min-h-screen bg-gray-50 dark:bg-gray-950">
         {/* Header */}
-        <div className="bg-white border-b border-gray-100">
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
           <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 shadow-sm">
                 <Wrench className="h-4 w-4 text-white" strokeWidth={2.5} />
               </div>
-              <span className="text-base font-bold text-gray-900">{bizName}</span>
+              <span className="text-base font-bold text-gray-900 dark:text-white">{bizName}</span>
             </div>
             <div className="flex items-center gap-2">
               <LanguageToggle />
@@ -452,14 +452,14 @@ export default function ContractApprovalPage() {
             <div className="space-y-6">
               {/* Success banner */}
               {!isFullyExecuted && (
-                <div className="rounded-2xl bg-white border border-gray-100 p-8 text-center shadow-sm">
+                <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-8 text-center shadow-sm">
                   <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
                     <CheckCircle className="h-8 w-8 text-emerald-600" />
                   </div>
-                  <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                     {fr ? 'Contrat signé!' : 'Contract signed!'}
                   </h1>
-                  <p className="text-gray-500 max-w-md mx-auto">
+                  <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
                     {fr
                       ? `Votre signature a été enregistrée. Un email de confirmation a été envoyé à ${signEmail || contract.customers?.email || ''}.`
                       : `Your signature has been recorded. A confirmation email has been sent to ${signEmail || contract.customers?.email || ''}.`}
@@ -482,9 +482,9 @@ export default function ContractApprovalPage() {
               )}
 
               {/* Contract details summary */}
-              <div className="rounded-2xl bg-white border border-gray-100 p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">{contract.title}</h2>
-                {contract.description && <p className="text-sm text-gray-600 mb-4">{contract.description}</p>}
+              <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">{contract.title}</h2>
+                {contract.description && <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{contract.description}</p>}
                 <div className="grid gap-3">
                   <InfoRow icon={FileText} label={fr ? 'Service' : 'Service'} value={contract.service_name} />
                   <InfoRow icon={Calendar} label={fr ? 'Période' : 'Period'} value={`${fmtDate(contract.start_date, lang)} - ${fmtDate(contract.end_date, lang)}`} />

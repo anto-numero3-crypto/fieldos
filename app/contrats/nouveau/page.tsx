@@ -176,21 +176,24 @@ export default function NewContractPage() {
 
   return (
     <AppLayout title={fr ? 'Nouveau contrat' : 'New contract'}>
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Progress */}
         <div className="flex items-center gap-2 mb-8">
           {steps.map((s, i) => (
             <div key={i} className="flex items-center gap-2 flex-1">
               <div className={[
-                'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold shrink-0 transition-colors',
-                i < step ? 'bg-indigo-600 text-white' :
-                i === step ? 'bg-indigo-100 text-indigo-700 ring-2 ring-indigo-600' :
-                'bg-gray-100 text-gray-400',
+                'flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold shrink-0 transition-all duration-300 shadow-sm',
+                i < step ? 'bg-emerald-500 text-white' :
+                i === step ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 dark:ring-indigo-900/40' :
+                'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500',
               ].join(' ')}>
                 {i < step ? <Check className="h-4 w-4" /> : i + 1}
               </div>
-              <span className={`text-xs font-medium hidden sm:block ${i === step ? 'text-indigo-700' : 'text-gray-400'}`}>{s}</span>
-              {i < steps.length - 1 && <div className={`flex-1 h-0.5 ${i < step ? 'bg-indigo-600' : 'bg-gray-200'}`} />}
+              <span className={`text-xs font-semibold hidden sm:block transition-colors ${
+                i < step ? 'text-emerald-600 dark:text-emerald-400' :
+                i === step ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-400 dark:text-gray-500'
+              }`}>{s}</span>
+              {i < steps.length - 1 && <div className={`flex-1 h-0.5 rounded-full transition-all duration-300 ${i < step ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-700'}`} />}
             </div>
           ))}
         </div>
@@ -530,7 +533,7 @@ export default function NewContractPage() {
               <button
                 type="button"
                 onClick={() => setStep((s) => s - 1)}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 active:scale-[0.98] transition-all duration-200"
               >
                 <ChevronLeft className="h-4 w-4" />
                 {fr ? 'Pr\u00e9c\u00e9dent' : 'Previous'}
@@ -544,7 +547,7 @@ export default function NewContractPage() {
                 type="button"
                 onClick={() => setStep((s) => s + 1)}
                 disabled={!canProceed(step)}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] transition-all duration-200 shadow-sm"
               >
                 {fr ? 'Suivant' : 'Next'}
                 <ChevronRight className="h-4 w-4" />
@@ -555,7 +558,7 @@ export default function NewContractPage() {
                   type="button"
                   onClick={() => handleSave(false)}
                   disabled={saving}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 active:scale-[0.98] transition-all duration-200"
                 >
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
                   {fr ? 'Sauvegarder' : 'Save draft'}
@@ -564,7 +567,7 @@ export default function NewContractPage() {
                   type="button"
                   onClick={() => handleSave(true)}
                   disabled={saving}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 active:scale-[0.98] transition-all duration-200 shadow-sm"
                 >
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   {fr ? 'Sauvegarder et envoyer' : 'Save & send'}
@@ -580,9 +583,9 @@ export default function NewContractPage() {
 
 function ReviewRow({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   return (
-    <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800 last:border-0">
-      <span className="text-sm text-gray-500">{label}</span>
-      <span className={`text-sm ${bold ? 'font-bold text-indigo-600 text-base' : 'font-medium text-gray-900 dark:text-white'}`}>{value}</span>
+    <div className="flex justify-between items-center py-2.5 border-b border-gray-50 dark:border-gray-800 last:border-0">
+      <span className="text-sm text-gray-500 dark:text-gray-400">{label}</span>
+      <span className={`text-sm tabular-nums ${bold ? 'font-bold text-indigo-600 dark:text-indigo-400 text-base' : 'font-medium text-gray-900 dark:text-white'}`}>{value}</span>
     </div>
   )
 }

@@ -450,7 +450,7 @@ function ReportsPageInner() {
 
         {/* Period selector */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 flex-wrap">
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 flex-wrap">
             {periodOptions.map(([key, label]) => (
               <button
                 key={key}

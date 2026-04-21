@@ -166,17 +166,17 @@ function PublicInvoiceContent() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-indigo-600" />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 dark:border-gray-700 border-t-indigo-600" />
     </div>
   )
 
   if (notFound) return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
-      <div className="rounded-2xl border border-gray-200 bg-white p-10 max-w-sm shadow-sm">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center p-6 text-center">
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-10 max-w-sm shadow-sm">
         <AlertCircle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-        <h1 className="text-xl font-bold text-gray-900 mb-2">{ti.notFound}</h1>
-        <p className="text-sm text-gray-500">{ti.notFoundDesc}</p>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{ti.notFound}</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{ti.notFoundDesc}</p>
       </div>
     </div>
   )
@@ -253,7 +253,7 @@ function PublicInvoiceContent() {
         }
         @media screen { .print-only { display: none !important; } }
       `}} />
-      <div className="min-h-screen bg-slate-50 py-6 px-4 print:!bg-white print:!p-0 print:!m-0">
+      <div className="min-h-screen bg-slate-50 dark:bg-gray-950 py-6 px-4 print:!bg-white print:!p-0 print:!m-0">
         {/* ═══════ PRINT-ONLY PROFESSIONAL INVOICE ═══════ */}
         <div className="print-only" style={{ fontFamily: "-apple-system, 'Segoe UI', sans-serif", color: '#111', position: 'relative' }}>
 
@@ -461,14 +461,14 @@ function PublicInvoiceContent() {
           )}
 
           {/* Main invoice card */}
-          <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+          <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
 
             {/* Invoice header */}
             <div className="px-6 py-6 sm:px-8">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">{ti.invoice}</p>
-                  <h1 className="text-2xl font-black text-gray-900">{inv.invoice_number || `INV-${inv.id.slice(0, 8).toUpperCase()}`}</h1>
+                  <h1 className="text-2xl font-black text-gray-900 dark:text-white">{inv.invoice_number || `INV-${inv.id.slice(0, 8).toUpperCase()}`}</h1>
                 </div>
                 <div className="text-right">
                   <div className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold mb-2 ${isPaid ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : isOverdue ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>

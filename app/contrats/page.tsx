@@ -39,14 +39,14 @@ interface Contract {
 type StatusFilter = 'all' | 'draft' | 'sent' | 'approved' | 'active' | 'expired' | 'cancelled'
 
 const STATUS_BADGE: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-700',
-  sent: 'bg-blue-50 text-blue-700',
-  approved: 'bg-emerald-50 text-emerald-700',
-  client_signed: 'bg-blue-50 text-blue-700',
-  fully_executed: 'bg-emerald-50 text-emerald-700',
-  active: 'bg-indigo-50 text-indigo-700',
-  expired: 'bg-amber-50 text-amber-700',
-  cancelled: 'bg-red-50 text-red-700',
+  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400',
+  sent: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  approved: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  client_signed: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  fully_executed: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  active: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  expired: 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  cancelled: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 }
 
 const STATUS_LABEL_FR: Record<string, string> = {
@@ -228,12 +228,14 @@ export default function ContractsPage() {
         </Link>
       }
     >
-      <div className="space-y-6">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
         {/* Renewal banner */}
         {expiringSoon > 0 && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
-            <p className="text-sm text-amber-800 font-medium">
+          <div className="rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 p-4 flex items-center gap-3 shadow-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/40 shrink-0">
+              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">
               {fr
                 ? `${expiringSoon} contrat(s) expire(nt) dans les 30 prochains jours`
                 : `${expiringSoon} contract(s) expiring within 30 days`}
@@ -258,19 +260,19 @@ export default function ContractsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={fr ? 'Rechercher par client ou titre...' : 'Search by client or title...'}
-              className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 outline-none dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 py-2.5 pl-10 pr-4 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 outline-none dark:text-white transition-colors"
             />
           </div>
-          <div className="flex gap-1 overflow-x-auto">
+          <div className="flex gap-1 overflow-x-auto rounded-full border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 p-0.5">
             {statusTabs.map((s) => (
               <button
                 key={s}
                 onClick={() => setFilter(s)}
                 className={[
-                  'px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors',
+                  'px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200',
                   filter === s
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400',
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
                 ].join(' ')}
               >
                 {s === 'all'
@@ -312,15 +314,17 @@ export default function ContractsPage() {
 
 function SummaryCard({ icon: Icon, label, value, color }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string | number; color: string }) {
   const [bg, fg] = color.split(' ').length >= 2 ? [color.split(' ')[1], color.split(' ')[0]] : ['bg-gray-50', 'text-gray-600']
+  // Extract border color from the fg class
+  const borderColor = fg.replace('text-', 'border-l-')
   return (
-    <div className="rounded-xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-4">
+    <div className={`rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-4 border-l-4 ${borderColor} hover:shadow-md transition-all duration-200`}>
       <div className="flex items-center gap-3 mb-2">
         <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${bg}`}>
           <Icon className={`h-4 w-4 ${fg}`} />
         </div>
       </div>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-      <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+      <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{value}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{label}</p>
     </div>
   )
 }
@@ -344,18 +348,18 @@ function ContractCard({
   })()
 
   return (
-    <div className="rounded-xl border border-gray-100 bg-white dark:bg-gray-900 dark:border-gray-800 p-5 hover:shadow-md transition-shadow">
+    <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5 hover:shadow-md active:scale-[0.99] transition-all duration-200">
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <Link href={`/contrats/${c.id}`} className="text-base font-semibold text-gray-900 dark:text-white hover:text-indigo-600 transition-colors truncate">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <Link href={`/contrats/${c.id}`} className="text-base font-bold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors truncate">
               {c.title}
             </Link>
-            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[c.status] || STATUS_BADGE.draft}`}>
+            <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[c.status] || STATUS_BADGE.draft}`}>
               {fr ? STATUS_LABEL_FR[c.status] : STATUS_LABEL_EN[c.status]}
             </span>
             {isExpiringSoon && (
-              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+              <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
                 {fr ? 'Expire bient\u00f4t' : 'Expiring soon'}
               </span>
             )}
@@ -367,10 +371,10 @@ function ContractCard({
             {' \u00b7 '}
             {fmtDate(c.start_date, lang, 'short')} - {fmtDate(c.end_date, lang, 'short')}
           </p>
-          <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
-            <span>{fmtMoney(c.price_per_visit, lang)}/{fr ? 'visite' : 'visit'}</span>
-            <span>{fmtMoney(c.total_price, lang)} total</span>
-            <span>{c.jobs_generated_count} {fr ? 'g\u00e9n\u00e9r\u00e9es' : 'generated'}</span>
+          <div className="flex items-center gap-4 mt-2 text-xs text-gray-400 dark:text-gray-500">
+            <span className="tabular-nums font-medium">{fmtMoney(c.price_per_visit, lang)}/{fr ? 'visite' : 'visit'}</span>
+            <span className="tabular-nums font-medium">{fmtMoney(c.total_price, lang)} total</span>
+            <span className="tabular-nums">{c.jobs_generated_count} {fr ? 'g\u00e9n\u00e9r\u00e9es' : 'generated'}</span>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -378,7 +382,7 @@ function ContractCard({
             <button
               onClick={onGenerateJobs}
               disabled={generating}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 text-xs font-medium hover:bg-indigo-100 disabled:opacity-50 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 text-xs font-semibold hover:bg-indigo-100 dark:hover:bg-indigo-900/40 disabled:opacity-50 active:scale-[0.98] transition-all duration-200"
             >
               {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
               {fr ? 'G\u00e9n\u00e9rer' : 'Generate'}
@@ -387,7 +391,7 @@ function ContractCard({
           {c.status === 'expired' && (
             <Link
               href={`/contrats/nouveau?renew=${c.id}`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-50 text-amber-700 text-xs font-medium hover:bg-amber-100 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 text-xs font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/40 active:scale-[0.98] transition-all duration-200"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               {fr ? 'Renouveler' : 'Renew'}
@@ -395,7 +399,7 @@ function ContractCard({
           )}
           <Link
             href={`/contrats/${c.id}`}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-[0.98] transition-all duration-200"
           >
             {fr ? 'Voir' : 'View'}
             <ChevronRight className="h-3.5 w-3.5" />

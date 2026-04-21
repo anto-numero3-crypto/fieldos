@@ -273,8 +273,8 @@ export default function SchedulePage() {
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         {/* ---------- Calendar toolbar ---------- */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white tracking-tight">
             {headerLabel}
           </h2>
 
@@ -351,20 +351,19 @@ export default function SchedulePage() {
 
         {/* ---------- Legend (below calendar) ---------- */}
         <div className="mt-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+          <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
             {fr ? 'Légende' : 'Legend'}
           </h3>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
             {(['scheduled','in_progress','needs_completion','completed'] as const).map((s) => {
               const cfg = JOB_STATUS_CONFIG[s]
-              const bg = isDark ? cfg.darkBg : cfg.bg
               return (
                 <div key={s} className="flex items-center gap-2">
                   <span
-                    className="inline-block h-4 w-4 rounded border-l-[3px]"
-                    style={{ backgroundColor: bg, borderLeftColor: cfg.border }}
+                    className="inline-block h-3 w-3 rounded-full ring-2 ring-white dark:ring-gray-900"
+                    style={{ backgroundColor: cfg.dot }}
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
                     {fr ? cfg.labelFr : cfg.labelEn}
                   </span>
                 </div>
@@ -495,15 +494,17 @@ function TimeGridView(props: {
             return (
               <div
                 key={i}
-                className="flex-1 min-w-0 border-r border-gray-100 dark:border-gray-800 last:border-0 relative"
+                className={`flex-1 min-w-0 border-r border-gray-100 dark:border-gray-800 last:border-0 relative ${
+                  isToday ? 'bg-indigo-50/30 dark:bg-indigo-950/15' : ''
+                }`}
               >
                 {/* Hour stripes */}
                 {Array.from({ length: HOUR_COUNT }, (_, h) => (
                   <div
                     key={h}
                     style={{ top: h * PX_PER_HOUR, height: PX_PER_HOUR }}
-                    className={`absolute inset-x-0 border-t border-gray-100 dark:border-gray-800/80 ${
-                      h % 2 === 0 ? 'bg-gray-50/60 dark:bg-gray-900/40' : ''
+                    className={`absolute inset-x-0 border-t border-gray-100/80 dark:border-gray-800/60 ${
+                      h % 2 === 0 && !isToday ? 'bg-gray-50/40 dark:bg-gray-900/30' : ''
                     }`}
                   />
                 ))}
@@ -525,12 +526,12 @@ function TimeGridView(props: {
                         key={job.id}
                         type="button"
                         onClick={() => router.push(`/jobs/${job.id}`)}
-                        className={`absolute rounded-lg px-1.5 py-1 text-left overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer ${cfg.pulse ? 'animate-pulse' : ''}`}
+                        className={`absolute rounded-lg shadow-sm px-2 py-1 text-left overflow-hidden hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-200 cursor-pointer ${cfg.pulse ? 'animate-pulse' : ''}`}
                         style={{
                           top,
                           height,
-                          left: 2,
-                          width: 'calc(100% - 4px)',
+                          left: 3,
+                          width: 'calc(100% - 6px)',
                           backgroundColor: bg,
                           borderLeft: `3px solid ${cfg.border}`,
                           color: text,

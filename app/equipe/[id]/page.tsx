@@ -214,44 +214,51 @@ export default function EmployeeProfilePage() {
 
   return (
     <AppLayout title={`${employee.first_name} ${employee.last_name}`}>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Back link */}
         <button
           onClick={() => router.push('/equipe')}
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 mb-6"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 mb-6 active:scale-[0.98] transition-all"
         >
           <ArrowLeft className="w-4 h-4" />
           {fr ? 'Retour à l\'équipe' : 'Back to team'}
         </button>
 
         {/* Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 mb-6">
-          <div className="flex items-center gap-4">
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl shrink-0"
-              style={{ backgroundColor: employee.color || '#6366f1' }}
-            >
-              {employee.first_name[0]}{employee.last_name[0]}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {employee.first_name} {employee.last_name}
-                </h1>
-                {statusBadge(employee.status)}
-                <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: employee.color || '#6366f1' }} />
+        <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden mb-6">
+          <div className="h-20 sm:h-24" style={{ background: `linear-gradient(135deg, ${employee.color || '#6366f1'}, ${employee.color || '#6366f1'}88)` }} />
+          <div className="px-6 pb-6 -mt-8">
+            <div className="flex items-end gap-4">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl shrink-0 ring-4 ring-white dark:ring-gray-900 shadow-lg"
+                style={{ background: `linear-gradient(135deg, ${employee.color || '#6366f1'}, ${employee.color || '#6366f1'}cc)` }}
+              >
+                {employee.first_name[0]}{employee.last_name[0]}
               </div>
-              <div className="flex items-center gap-4 mt-1.5 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
-                {employee.email && (
-                  <span className="inline-flex items-center gap-1">
-                    <Mail className="w-3.5 h-3.5" /> {employee.email}
-                  </span>
-                )}
-                {employee.phone && (
-                  <span className="inline-flex items-center gap-1">
-                    <Phone className="w-3.5 h-3.5" /> {employee.phone}
-                  </span>
-                )}
+              <div className="min-w-0 flex-1 pb-0.5">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                    {employee.first_name} {employee.last_name}
+                  </h1>
+                  {statusBadge(employee.status)}
+                </div>
+                <div className="flex items-center gap-4 mt-1 text-sm text-gray-500 dark:text-gray-400 flex-wrap">
+                  {employee.email && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5" /> {employee.email}
+                    </span>
+                  )}
+                  {employee.phone && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5" /> {employee.phone}
+                    </span>
+                  )}
+                  {employee.hourly_rate != null && (
+                    <span className="inline-flex items-center gap-1 font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
+                      ${employee.hourly_rate}/h
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -259,57 +266,65 @@ export default function EmployeeProfilePage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-1">
-              <Calendar className="w-4 h-4" />
-              {fr ? 'Ce mois' : 'This month'}
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-4 hover:shadow-md transition-all duration-200">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-900/30">
+                <Calendar className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{jobsThisMonth}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{jobsThisMonth}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{fr ? 'Ce mois' : 'This month'}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-1">
-              <Briefcase className="w-4 h-4" />
-              {fr ? 'Total' : 'Total'}
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-4 hover:shadow-md transition-all duration-200">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-900/30">
+                <Briefcase className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{jobs.length}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{jobs.length}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{fr ? 'Total' : 'Total'}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-1">
-              <Activity className="w-4 h-4" />
-              {fr ? 'Dernière activité' : 'Last activity'}
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-4 hover:shadow-md transition-all duration-200">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-900/30">
+                <Activity className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              </div>
             </div>
-            <p className="text-sm font-semibold text-gray-900 dark:text-white">
+            <p className="text-sm font-bold text-gray-900 dark:text-white">
               {lastActivity ? fmtDate(lastActivity, lang) : '—'}
             </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{fr ? 'Dernière activité' : 'Last activity'}</p>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-1">
-              <UserCheck className="w-4 h-4" />
-              {fr ? 'Statut' : 'Status'}
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-4 hover:shadow-md transition-all duration-200">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-900/30">
+                <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
             </div>
             <div className="mt-1">{statusBadge(employee.status)}</div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{fr ? 'Statut' : 'Status'}</p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
-          <div className="flex gap-6">
+        <div className="mb-6">
+          <div className="inline-flex items-center gap-1 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 p-1">
             <button
               onClick={() => setTab('interventions')}
-              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${
                 tab === 'interventions'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
-              {fr ? 'Interventions' : 'Jobs'}
+              {fr ? 'Interventions' : 'Jobs'} ({jobs.length})
             </button>
             <button
               onClick={() => setTab('informations')}
-              className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${
                 tab === 'informations'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
               {fr ? 'Informations' : 'Information'}
@@ -319,7 +334,7 @@ export default function EmployeeProfilePage() {
 
         {/* Tab content */}
         {tab === 'interventions' && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm divide-y divide-gray-100 dark:divide-gray-800 overflow-hidden">
             {jobs.length === 0 ? (
               <div className="p-8 text-center text-gray-500 dark:text-gray-400 text-sm">
                 {fr ? 'Aucune intervention assignée' : 'No assigned jobs'}
@@ -333,7 +348,7 @@ export default function EmployeeProfilePage() {
                     <Link
                       key={job.id}
                       href={`/jobs/${job.id}`}
-                      className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+                      className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/50 active:scale-[0.99] transition-all duration-200"
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
@@ -355,7 +370,7 @@ export default function EmployeeProfilePage() {
         )}
 
         {tab === 'informations' && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-6">
             <div className="space-y-4 max-w-md">
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -366,7 +381,7 @@ export default function EmployeeProfilePage() {
                     type="text"
                     value={fFirstName}
                     onChange={(e) => setFFirstName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-colors"
                   />
                 </div>
                 <div>
@@ -377,7 +392,7 @@ export default function EmployeeProfilePage() {
                     type="text"
                     value={fLastName}
                     onChange={(e) => setFLastName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -390,7 +405,7 @@ export default function EmployeeProfilePage() {
                   type="email"
                   value={employee.email}
                   disabled
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-sm cursor-not-allowed"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 text-sm cursor-not-allowed"
                 />
               </div>
 
@@ -402,7 +417,7 @@ export default function EmployeeProfilePage() {
                   type="tel"
                   value={fPhone}
                   onChange={(e) => setFPhone(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-colors"
                 />
               </div>
 
@@ -419,7 +434,7 @@ export default function EmployeeProfilePage() {
                     value={fHourlyRate}
                     onChange={(e) => setFHourlyRate(e.target.value)}
                     placeholder="0.00"
-                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full pl-7 pr-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -443,7 +458,7 @@ export default function EmployeeProfilePage() {
               <button
                 onClick={handleSave}
                 disabled={saving || !fFirstName.trim() || !fLastName.trim()}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 active:scale-[0.98] transition-all duration-200 shadow-sm"
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 {fr ? 'Enregistrer' : 'Save'}
@@ -453,18 +468,18 @@ export default function EmployeeProfilePage() {
         )}
 
         {/* Action buttons */}
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-3 mt-6 pt-6 border-t border-gray-100 dark:border-gray-800">
           {employee.status !== 'inactive' && (
             <button
               onClick={handleDeactivate}
-              className="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
+              className="px-4 py-2.5 text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/30 rounded-xl active:scale-[0.98] transition-all duration-200"
             >
               {fr ? 'Désactiver' : 'Deactivate'}
             </button>
           )}
           <button
             onClick={handleDelete}
-            className="px-4 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+            className="px-4 py-2.5 text-sm font-semibold text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 rounded-xl active:scale-[0.98] transition-all duration-200"
           >
             {fr ? 'Supprimer' : 'Delete'}
           </button>

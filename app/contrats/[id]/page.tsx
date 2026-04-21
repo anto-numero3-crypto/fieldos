@@ -74,14 +74,14 @@ interface ContractInvoice {
 type Tab = 'details' | 'jobs' | 'billing'
 
 const STATUS_BADGE: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-700',
-  sent: 'bg-blue-50 text-blue-700',
-  approved: 'bg-emerald-50 text-emerald-700',
-  client_signed: 'bg-blue-50 text-blue-700',
-  fully_executed: 'bg-emerald-50 text-emerald-700',
-  active: 'bg-indigo-50 text-indigo-700',
-  expired: 'bg-amber-50 text-amber-700',
-  cancelled: 'bg-red-50 text-red-700',
+  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400',
+  sent: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  approved: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  client_signed: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  fully_executed: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  active: 'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  expired: 'bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  cancelled: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 }
 
 const STATUS_LABEL_FR: Record<string, string> = {
@@ -102,17 +102,17 @@ const JOB_STATUS_EN: Record<string, string> = {
   scheduled: 'Scheduled', in_progress: 'In progress', completed: 'Completed', cancelled: 'Cancelled',
 }
 const JOB_STATUS_CLS: Record<string, string> = {
-  scheduled: 'bg-blue-50 text-blue-700',
-  in_progress: 'bg-amber-50 text-amber-700',
-  completed: 'bg-emerald-50 text-emerald-700',
-  cancelled: 'bg-red-50 text-red-700',
+  scheduled: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  in_progress: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  completed: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  cancelled: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 }
 
 const INV_STATUS_BADGE: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-700',
-  sent: 'bg-blue-50 text-blue-700',
-  paid: 'bg-emerald-50 text-emerald-700',
-  overdue: 'bg-red-50 text-red-700',
+  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400',
+  sent: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  paid: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  overdue: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 }
 
 export default function ContractDetailPage() {
@@ -321,9 +321,9 @@ export default function ContractDetailPage() {
 
   return (
     <AppLayout title={contract.title}>
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         {/* Back */}
-        <Link href="/contrats" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+        <Link href="/contrats" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 active:scale-[0.98] transition-all">
           <ArrowLeft className="h-4 w-4" />
           {fr ? 'Tous les contrats' : 'All contracts'}
         </Link>
@@ -394,22 +394,22 @@ export default function ContractDetailPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-gray-100 dark:border-gray-800">
+        <div className="inline-flex items-center gap-1 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 p-1">
           {tabs.map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
               className={[
-                'inline-flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors -mb-px',
+                'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200',
                 tab === key
-                  ? 'border-indigo-600 text-indigo-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700',
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200',
               ].join(' ')}
             >
               <Icon className="h-4 w-4" />
               {label}
               {key === 'jobs' && totalJobs > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600">{totalJobs}</span>
+                <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-xs font-semibold ${tab === key ? 'bg-white/20 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>{totalJobs}</span>
               )}
             </button>
           ))}
@@ -638,9 +638,9 @@ export default function ContractDetailPage() {
                   {fmtMoney(billedAmount, lang)} / {fmtMoney(totalWithTaxes, lang)} ({billedPercent}%)
                 </span>
               </div>
-              <div className="h-3 bg-gray-100 rounded-full overflow-hidden dark:bg-gray-800">
+              <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-indigo-600 rounded-full transition-all"
+                  className={`h-full rounded-full transition-all duration-500 ${billedPercent >= 100 ? 'bg-emerald-500' : 'bg-indigo-600'}`}
                   style={{ width: `${billedPercent}%` }}
                 />
               </div>

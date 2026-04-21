@@ -174,18 +174,22 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-gradient-to-br from-indigo-600 to-violet-700 p-12 text-white">
-        <div className="flex items-center justify-between">
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between auth-left-panel p-12 text-white relative overflow-hidden">
+        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-white/5" />
+        <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full bg-white/5" />
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-white/[0.03]" />
+
+        <div className="relative flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
             <GestivioLogo size="lg" className="[&_span]:text-white [&_img]:brightness-0 [&_img]:invert" />
           </Link>
-          <div className="flex items-center gap-0.5 rounded-lg border border-white/20 bg-white/10 p-0.5">
-            <button onClick={() => setLang('en')} className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'en' ? 'bg-white text-indigo-700' : 'text-white/70 hover:text-white'}`}>EN</button>
-            <button onClick={() => setLang('fr')} className={`rounded-md px-2 py-1 text-xs font-semibold transition-all ${lang === 'fr' ? 'bg-white text-indigo-700' : 'text-white/70 hover:text-white'}`}>FR</button>
+          <div className="flex items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm p-0.5">
+            <button onClick={() => setLang('en')} className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${lang === 'en' ? 'bg-white text-indigo-700 shadow-sm' : 'text-white/70 hover:text-white'}`}>EN</button>
+            <button onClick={() => setLang('fr')} className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${lang === 'fr' ? 'bg-white text-indigo-700 shadow-sm' : 'text-white/70 hover:text-white'}`}>FR</button>
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="relative space-y-6">
           <div className="flex items-start gap-3">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20 mt-0.5">
               <Check className="h-4 w-4" />
@@ -215,9 +219,9 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="relative grid grid-cols-2 gap-3">
           {leftBadges.map((b) => (
-            <div key={b.label} className="rounded-xl bg-white/10 border border-white/15 px-3 py-2 text-sm">
+            <div key={b.label} className="rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 px-3.5 py-2.5 text-sm font-medium transition-colors hover:bg-white/15">
               {b.label}
             </div>
           ))}
@@ -239,8 +243,8 @@ export default function SignupPage() {
           {step === 'done' ? (
             /* ── Confirmation screen ── */
             <div className="text-center">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
-                <Mail className="h-9 w-9 text-emerald-600" />
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+                <Mail className="h-9 w-9 text-emerald-600 dark:text-emerald-400" />
               </div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 {fr ? 'Vérifiez votre courriel' : 'Check your email'}
@@ -257,7 +261,7 @@ export default function SignupPage() {
               <button
                 onClick={resend}
                 disabled={cooldown > 0 || loading}
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 {cooldown > 0
@@ -381,7 +385,7 @@ export default function SignupPage() {
                       onChange={(e) => setAgreed(e.target.checked)}
                       className="mt-0.5 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                     />
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
                       {fr ? (
                         <>J'accepte les <Link href="/terms" className="text-indigo-600 hover:underline">conditions d'utilisation</Link> et la <Link href="/privacy" className="text-indigo-600 hover:underline">politique de confidentialité</Link>.</>
                       ) : (
@@ -488,7 +492,7 @@ export default function SignupPage() {
                           placeholder="XXXX-XXXXXX-XXXXXX"
                           autoComplete="off"
                           spellCheck={false}
-                          className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm font-mono tracking-[0.15em] uppercase focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3.5 py-2.5 text-sm text-gray-900 dark:text-white font-mono tracking-[0.15em] uppercase focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                         />
                         <p className="text-xs text-gray-400 mt-1">
                           {fr ? 'Le code sera appliqué après la confirmation de votre courriel.' : "The code will be applied after email confirmation."}
@@ -501,7 +505,7 @@ export default function SignupPage() {
 
               {/* Error */}
               {error && (
-                <div className="mt-4 flex items-start gap-2.5 rounded-xl p-3 text-sm bg-red-50 text-red-700 border border-red-100">
+                <div className="mt-4 flex items-start gap-2.5 rounded-xl p-3.5 text-sm bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 border border-red-100 dark:border-red-900/50">
                   <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                   {error}
                 </div>
@@ -512,7 +516,7 @@ export default function SignupPage() {
                 {step < 3 ? (
                   <button
                     onClick={nextStep}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-150"
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-150 active:scale-[0.99]"
                   >
                     {fr ? 'Continuer' : 'Continue'}
                     <ArrowRight className="h-4 w-4" />
@@ -521,7 +525,7 @@ export default function SignupPage() {
                   <button
                     onClick={submit}
                     disabled={loading}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150"
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-150 active:scale-[0.99]"
                   >
                     {loading
                       ? (fr ? 'Création du compte…' : 'Creating account…')

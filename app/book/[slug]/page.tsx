@@ -306,9 +306,9 @@ export default function PublicBookingPage() {
   const stepsTotal = services.length > 1 ? 4 : 3
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Header */}
-      <div style={{ background: primaryColor }} className="relative px-4 py-6 text-white text-center shadow-sm">
+      <div style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)` }} className="relative px-4 py-8 text-white text-center shadow-md">
         {org?.logo_url && (
           <Image
             src={secureUrl(org.logo_url)}
@@ -316,26 +316,26 @@ export default function PublicBookingPage() {
             width={160}
             height={40}
             priority
-            className="h-10 w-auto mx-auto mb-3 object-contain"
+            className="h-10 w-auto mx-auto mb-3 object-contain drop-shadow-sm"
             unoptimized
           />
         )}
-        <h1 className="text-xl font-bold">{org?.name}</h1>
+        <h1 className="text-xl font-bold tracking-tight">{org?.name}</h1>
         {step !== 'done' && (
-          <p className="text-white/80 text-sm mt-1">{avSettings?.booking_page_title || (fr ? 'Réserver un rendez-vous' : 'Book an appointment')}</p>
+          <p className="text-white/70 text-sm mt-1.5">{avSettings?.booking_page_title || (fr ? 'Réserver un rendez-vous' : 'Book an appointment')}</p>
         )}
         <div className="absolute top-3 right-3"><LanguageToggle /></div>
       </div>
 
       {/* Progress bar */}
       {step !== 'done' && (
-        <div className="bg-white border-b border-gray-100 px-4 py-2">
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-3">
           <div className="max-w-lg mx-auto">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               {Array.from({ length: stepsTotal }, (_, i) => (
                 <div
                   key={i}
-                  className={`h-1.5 flex-1 rounded-full transition-colors ${i < stepIndex[step] - (services.length > 1 ? 0 : 1) ? 'bg-indigo-600' : 'bg-gray-200'}`}
+                  className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i < stepIndex[step] - (services.length > 1 ? 0 : 1) ? '' : 'bg-gray-200 dark:bg-gray-800'}`}
                   style={{ background: i < stepIndex[step] - (services.length > 1 ? 0 : 1) ? primaryColor : undefined }}
                 />
               ))}
@@ -363,7 +363,7 @@ export default function PublicBookingPage() {
         {!showForm && step !== 'done' && (
           <button
             onClick={() => setShowForm(true)}
-            className="w-full text-center text-xs text-gray-400 hover:text-indigo-600 transition-colors py-1"
+            className="w-full text-center text-xs text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors py-2 active:scale-[0.98]"
           >
             {fr ? 'Préférez-vous remplir un formulaire ?' : 'Prefer to fill a form?'}
           </button>
@@ -373,7 +373,7 @@ export default function PublicBookingPage() {
         {showForm && step !== 'done' && (
           <button
             onClick={() => { setShowForm(false); setStep('service') }}
-            className="w-full text-center text-xs text-gray-400 hover:text-indigo-600 transition-colors py-1"
+            className="w-full text-center text-xs text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors py-2 active:scale-[0.98]"
           >
             {fr ? '← Revenir au chat IA' : '← Back to AI chat'}
           </button>
@@ -387,7 +387,7 @@ export default function PublicBookingPage() {
         {/* ── Step 1: Service Selection ── */}
         {showForm && step === 'service' && (
           <div className="space-y-3">
-            <h2 className="text-lg font-bold text-gray-900">{fr ? 'Choisissez un service' : 'Choose a service'}</h2>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">{fr ? 'Choisissez un service' : 'Choose a service'}</h2>
             {services.length === 0 ? (
               <p className="text-sm text-gray-500 text-center py-8">{fr ? 'Aucun service disponible pour le moment.' : 'No services available at the moment.'}</p>
             ) : (
@@ -395,11 +395,11 @@ export default function PublicBookingPage() {
                 <button
                   key={svc.id}
                   onClick={() => { setSelectedService(svc); setStep('date') }}
-                  className="w-full text-left rounded-2xl border-2 border-gray-100 bg-white p-4 shadow-sm hover:border-indigo-200 hover:shadow transition-all group"
+                  className="w-full text-left rounded-2xl border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md active:scale-[0.99] transition-all duration-200 group"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-gray-900 group-hover:text-indigo-700 transition-colors">{svc.name}</p>
+                      <p className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-700 dark:group-hover:text-indigo-400 transition-colors">{svc.name}</p>
                       {svc.description && <p className="text-sm text-gray-500 mt-0.5">{svc.description}</p>}
                       <div className="flex items-center gap-3 mt-2">
                         <span className="flex items-center gap-1 text-xs text-gray-400">
@@ -433,10 +433,10 @@ export default function PublicBookingPage() {
             <button
               type="button"
               onClick={() => setCustomOpen(true)}
-              className="w-full text-left rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/60 p-4 hover:border-indigo-300 hover:bg-indigo-50/40 transition-all"
+              className="w-full text-left rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-900/40 p-5 hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-indigo-50/40 dark:hover:bg-indigo-950/20 active:scale-[0.99] transition-all duration-200"
             >
-              <p className="font-semibold text-gray-900">{fr ? 'Vous ne voyez pas ce dont vous avez besoin ?' : "Don't see what you need?"}</p>
-              <p className="text-sm text-gray-500 mt-0.5">{fr ? 'Envoyez-nous une demande personnalisée →' : 'Send us a custom request →'}</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{fr ? 'Vous ne voyez pas ce dont vous avez besoin ?' : "Don't see what you need?"}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{fr ? 'Envoyez-nous une demande personnalisée →' : 'Send us a custom request →'}</p>
             </button>
           </div>
         )}
@@ -568,7 +568,7 @@ export default function PublicBookingPage() {
                   <ChevronLeft className="h-5 w-5" />
                 </button>
               )}
-              <h2 className="text-lg font-bold text-gray-900">{fr ? 'Choisissez une date' : 'Choose a date'}</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">{fr ? 'Choisissez une date' : 'Choose a date'}</h2>
             </div>
             {selectedService && (
               <div className="flex items-center gap-2 mb-4 rounded-xl bg-indigo-50 px-3 py-2 text-sm">
@@ -579,13 +579,13 @@ export default function PublicBookingPage() {
             )}
 
             {/* Calendar */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-                <button onClick={prevMonth} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-500">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3.5 border-b border-gray-100 dark:border-gray-800">
+                <button onClick={prevMonth} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:scale-[0.95] transition-all text-gray-500 dark:text-gray-400">
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className="text-sm font-semibold text-gray-900">{MONTHS[calMonth]} {calYear}</span>
-                <button onClick={nextMonth} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors text-gray-500">
+                <span className="text-sm font-bold text-gray-900 dark:text-white">{MONTHS[calMonth]} {calYear}</span>
+                <button onClick={nextMonth} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:scale-[0.95] transition-all text-gray-500 dark:text-gray-400">
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
@@ -614,11 +614,11 @@ export default function PublicBookingPage() {
                         key={day}
                         onClick={() => available && handleDateSelect(dateStr)}
                         disabled={!available}
-                        className={`aspect-square flex items-center justify-center rounded-xl text-sm font-medium m-0.5 transition-all
-                          ${isSelected ? 'text-white shadow-sm' : ''}
-                          ${!isSelected && available ? 'hover:bg-indigo-50 hover:text-indigo-700 text-gray-700' : ''}
-                          ${!available ? 'text-gray-300 cursor-not-allowed' : ''}
-                          ${isToday && !isSelected ? 'font-bold text-indigo-600 underline underline-offset-2' : ''}
+                        className={`aspect-square flex items-center justify-center rounded-xl text-sm font-medium m-0.5 transition-all duration-200
+                          ${isSelected ? 'text-white shadow-md' : ''}
+                          ${!isSelected && available ? 'hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-700 dark:hover:text-indigo-300 text-gray-700 dark:text-gray-300 active:scale-[0.93]' : ''}
+                          ${!available ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed' : ''}
+                          ${isToday && !isSelected ? 'font-bold text-indigo-600 dark:text-indigo-400 ring-2 ring-indigo-200 dark:ring-indigo-800 rounded-xl' : ''}
                         `}
                         style={isSelected ? { background: primaryColor } : undefined}
                       >
@@ -644,7 +644,7 @@ export default function PublicBookingPage() {
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <div>
-                <h2 className="text-lg font-bold text-gray-900">{fr ? 'Choisissez un horaire' : 'Choose a time'}</h2>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">{fr ? 'Choisissez un horaire' : 'Choose a time'}</h2>
                 <p className="text-sm text-gray-500">{fmtDateLong(selectedDate)}</p>
               </div>
             </div>
@@ -663,15 +663,15 @@ export default function PublicBookingPage() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-2.5">
                 {slots.map((slot) => (
                   <button
                     key={slot}
                     onClick={() => { setSelectedTime(slot); setStep('info') }}
-                    className={`rounded-xl border-2 py-3 text-sm font-semibold transition-all
+                    className={`rounded-xl border-2 py-3 text-sm font-semibold active:scale-[0.97] transition-all duration-200
                       ${selectedTime === slot
-                        ? 'text-white border-transparent shadow-sm'
-                        : 'border-gray-100 bg-white text-gray-700 hover:border-indigo-200 hover:text-indigo-700'
+                        ? 'text-white border-transparent shadow-md'
+                        : 'border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:border-indigo-200 dark:hover:border-indigo-700 hover:text-indigo-700 dark:hover:text-indigo-300 hover:shadow-sm'
                       }`}
                     style={selectedTime === slot ? { background: primaryColor, borderColor: primaryColor } : undefined}
                   >
@@ -690,7 +690,7 @@ export default function PublicBookingPage() {
               <button onClick={() => { setStep('time') }} className="text-gray-400 hover:text-gray-700 transition-colors">
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <h2 className="text-lg font-bold text-gray-900">{fr ? 'Vos informations' : 'Your information'}</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">{fr ? 'Vos informations' : 'Your information'}</h2>
             </div>
 
             {/* Booking summary */}
@@ -741,8 +741,8 @@ export default function PublicBookingPage() {
 
               <button
                 onClick={() => { if (validateInfo()) setStep('confirm') }}
-                className="w-full py-3 rounded-xl text-white text-sm font-semibold shadow-sm hover:opacity-90 transition-opacity mt-1"
-                style={{ background: primaryColor }}
+                className="w-full py-3.5 rounded-xl text-white text-sm font-bold shadow-md hover:opacity-90 hover:shadow-lg active:scale-[0.99] transition-all duration-200 mt-2"
+                style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)` }}
               >
                 {fr ? 'Continuer →' : 'Continue →'}
               </button>
@@ -757,13 +757,13 @@ export default function PublicBookingPage() {
               <button onClick={() => setStep('info')} className="text-gray-400 hover:text-gray-700 transition-colors">
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <h2 className="text-lg font-bold text-gray-900">{fr ? 'Confirmer la réservation' : 'Confirm booking'}</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">{fr ? 'Confirmer la réservation' : 'Confirm booking'}</h2>
             </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-5 space-y-4 mb-4">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5 space-y-4 mb-4">
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{fr ? 'Service' : 'Service'}</p>
-                <p className="font-semibold text-gray-900">{selectedService?.name}</p>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">{fr ? 'Service' : 'Service'}</p>
+                <p className="font-semibold text-gray-900 dark:text-white">{selectedService?.name}</p>
                 {selectedService && (
                   <p className="text-sm text-gray-500">
                     {requiresQuote(selectedService) ? (fr ? 'Devis fourni après évaluation' : 'Quote provided after assessment') : formatPrice(selectedService)}
@@ -772,7 +772,7 @@ export default function PublicBookingPage() {
               </div>
               <div className="border-t border-gray-50 pt-3">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{fr ? 'Date & heure' : 'Date & time'}</p>
-                <p className="font-semibold text-gray-900 flex items-center gap-1.5">
+                <p className="font-semibold text-gray-900 dark:text-white flex items-center gap-1.5">
                   <Calendar className="h-4 w-4 text-gray-400" /> {fmtDateLong(selectedDate)}
                 </p>
                 <p className="text-sm text-gray-600 mt-0.5 flex items-center gap-1.5">
@@ -781,7 +781,7 @@ export default function PublicBookingPage() {
               </div>
               <div className="border-t border-gray-50 pt-3">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{fr ? 'Vos informations' : 'Your information'}</p>
-                <p className="font-semibold text-gray-900">{firstName} {lastName}</p>
+                <p className="font-semibold text-gray-900 dark:text-white">{firstName} {lastName}</p>
                 <p className="text-sm text-gray-500">{email}</p>
                 {phone && <p className="text-sm text-gray-500">{phone}</p>}
                 {address && (
@@ -808,8 +808,8 @@ export default function PublicBookingPage() {
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="w-full py-3.5 rounded-xl text-white text-sm font-bold shadow-sm hover:opacity-90 disabled:opacity-60 transition-opacity flex items-center justify-center gap-2"
-              style={{ background: primaryColor }}
+              className="w-full py-3.5 rounded-xl text-white text-sm font-bold shadow-md hover:opacity-90 hover:shadow-lg disabled:opacity-60 active:scale-[0.99] transition-all duration-200 flex items-center justify-center gap-2"
+              style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)` }}
             >
               {submitting ? (
                 <><div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> {fr ? 'Envoi en cours…' : 'Sending…'}</>
@@ -820,14 +820,14 @@ export default function PublicBookingPage() {
 
         {/* ── Step 6: Done ── */}
         {step === 'done' && bookingResult && (
-          <div className="text-center py-6">
+          <div className="text-center py-8">
             <div
-              className="h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg"
-              style={{ background: primaryColor }}
+              className="h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl ring-4 ring-white dark:ring-gray-900"
+              style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}cc)` }}
             >
               <Check className="h-10 w-10 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               {bookingResult.status === 'confirmed'
                 ? (fr ? 'Rendez-vous confirmé !' : 'Booking confirmed!')
                 : (fr ? 'Demande reçue !' : 'Request received!')}
@@ -845,18 +845,18 @@ export default function PublicBookingPage() {
             )}
 
             {/* Booking summary */}
-            <div className="rounded-2xl border border-gray-100 bg-white shadow-sm p-4 text-left mb-6 space-y-2">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm p-5 text-left mb-6 space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{fr ? 'Service' : 'Service'}</span>
-                <span className="font-medium text-gray-900">{selectedService?.name}</span>
+                <span className="text-gray-500 dark:text-gray-400">{fr ? 'Service' : 'Service'}</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{selectedService?.name}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{fr ? 'Date' : 'Date'}</span>
-                <span className="font-medium text-gray-900">{fmtDateLong(selectedDate)}</span>
+              <div className="flex justify-between text-sm border-t border-gray-50 dark:border-gray-800 pt-3">
+                <span className="text-gray-500 dark:text-gray-400">{fr ? 'Date' : 'Date'}</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{fmtDateLong(selectedDate)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{fr ? 'Heure' : 'Time'}</span>
-                <span className="font-medium text-gray-900">{fmtTime(selectedTime)}</span>
+              <div className="flex justify-between text-sm border-t border-gray-50 dark:border-gray-800 pt-3">
+                <span className="text-gray-500 dark:text-gray-400">{fr ? 'Heure' : 'Time'}</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{fmtTime(selectedTime)}</span>
               </div>
             </div>
 

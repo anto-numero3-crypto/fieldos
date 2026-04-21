@@ -225,7 +225,7 @@ export default function QuotesPage() {
             <div key={s.label} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm">
               <div className={`inline-flex h-8 w-8 items-center justify-center rounded-xl ${s.bg} mb-2`}><s.icon className={`h-4 w-4 ${s.color}`} /></div>
               <p className="text-xs text-gray-500">{s.label}</p>
-              <p className="text-lg font-bold text-gray-900">{s.value}</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white">{s.value}</p>
             </div>
           ))}
         </div>
@@ -265,13 +265,13 @@ export default function QuotesPage() {
                     return (
                       <tr key={q.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
                         <td className="px-5 py-4">
-                          <p className="text-sm font-semibold text-gray-900">{q.title}</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">{q.title}</p>
                           {q.quote_number && <p className="text-xs text-gray-400">{q.quote_number}</p>}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500">
                           {q.customers ? <span className="flex items-center gap-1.5"><User className="h-3.5 w-3.5 text-gray-300" />{q.customers.name}</span> : <span className="text-gray-300">—</span>}
                         </td>
-                        <td className="px-5 py-4 whitespace-nowrap"><span className="text-sm font-semibold text-gray-900">{fmt(q.total)}</span></td>
+                        <td className="px-5 py-4 whitespace-nowrap"><span className="text-sm font-semibold text-gray-900 dark:text-white">{fmt(q.total)}</span></td>
                         <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500">
                           {q.valid_until ? fmtDate(q.valid_until, lang) : <span className="text-gray-300">—</span>}
                         </td>
@@ -322,12 +322,12 @@ export default function QuotesPage() {
                   <div key={q.id} className="p-4">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">{q.title}</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">{q.title}</p>
                         {q.customers && <p className="text-xs text-gray-400 flex items-center gap-1"><User className="h-3 w-3" />{q.customers.name}</p>}
                       </div>
                       <div className="flex flex-col items-end gap-1 shrink-0">
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${scls || ''}`}>{tStatus(q.status)}</span>
-                        <span className="text-sm font-bold text-gray-900">{fmt(q.total)}</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">{fmt(q.total)}</span>
                       </div>
                     </div>
                   </div>

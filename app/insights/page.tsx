@@ -411,7 +411,7 @@ export default function InsightsPage() {
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 shadow-sm">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">{fr ? "Intelligence d'affaires" : 'Business Intelligence'}</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{fr ? "Intelligence d'affaires" : 'Business Intelligence'}</h2>
             </div>
             {lastUpdated && (
               <p className="text-xs text-gray-400 ml-10">
@@ -431,15 +431,15 @@ export default function InsightsPage() {
 
         {/* Weekly summary card */}
         {summary && (
-          <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-violet-50 p-6">
+          <div className="rounded-2xl border border-indigo-100 dark:border-indigo-900/50 bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30 p-6">
             <div className="flex items-center gap-2 mb-4">
               <Star className="h-4 w-4 text-indigo-600" />
-              <h3 className="text-sm font-semibold text-indigo-900">{fr ? "Résumé hebdomadaire de l'entreprise" : 'Weekly Business Summary'}</h3>
+              <h3 className="text-sm font-semibold text-indigo-900 dark:text-indigo-300">{fr ? "Résumé hebdomadaire de l'entreprise" : 'Weekly Business Summary'}</h3>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
               <div className="rounded-xl bg-white/70 dark:bg-gray-800/70 p-3">
-                <p className="text-xs text-gray-500 mb-0.5">{fr ? 'Revenus cette semaine' : 'Revenue this week'}</p>
-                <p className="text-lg font-bold text-gray-900">{fmt(summary.revenueThisWeek)}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{fr ? 'Revenus cette semaine' : 'Revenue this week'}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{fmt(summary.revenueThisWeek)}</p>
                 {revChange !== null && (
                   <p className={`text-xs font-medium flex items-center gap-0.5 mt-0.5 ${revChange >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                     {revChange >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -448,18 +448,18 @@ export default function InsightsPage() {
                 )}
               </div>
               <div className="rounded-xl bg-white/70 dark:bg-gray-800/70 p-3">
-                <p className="text-xs text-gray-500 mb-0.5">{fr ? 'Interventions terminées' : 'Jobs completed'}</p>
-                <p className="text-lg font-bold text-gray-900">{summary.jobsCompleted}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{fr ? 'Interventions terminées' : 'Jobs completed'}</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">{summary.jobsCompleted}</p>
                 <p className="text-xs text-gray-400">{summary.jobsScheduled} {fr ? 'planifiées' : 'scheduled'}</p>
               </div>
               <div className="rounded-xl bg-white/70 dark:bg-gray-800/70 p-3">
-                <p className="text-xs text-gray-500 mb-0.5">{fr ? 'Service populaire' : 'Top service'}</p>
-                <p className="text-sm font-bold text-gray-900 truncate">{summary.topService || '—'}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{fr ? 'Service populaire' : 'Top service'}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{summary.topService || '—'}</p>
                 <p className="text-xs text-gray-400">{fr ? 'Le plus fréquent' : 'Most frequent'}</p>
               </div>
               <div className="rounded-xl bg-white/70 dark:bg-gray-800/70 p-3">
-                <p className="text-xs text-gray-500 mb-0.5">{fr ? 'Meilleur client' : 'Top customer'}</p>
-                <p className="text-sm font-bold text-gray-900 truncate">{summary.topCustomer || '—'}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{fr ? 'Meilleur client' : 'Top customer'}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{summary.topCustomer || '—'}</p>
                 <p className="text-xs text-gray-400">{fr ? 'Par revenus' : 'By revenue'}</p>
               </div>
             </div>
@@ -488,7 +488,7 @@ export default function InsightsPage() {
         {/* Recommendations */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-900">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
               {fr ? 'Recommandations' : 'Recommendations'}
               {recommendations.length > 0 && (
                 <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">{recommendations.length}</span>
@@ -500,7 +500,7 @@ export default function InsightsPage() {
           {recommendations.length === 0 ? (
             <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-10 text-center">
               <CheckCircle className="h-10 w-10 text-emerald-400 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-gray-900 mb-1">{fr ? 'Tout semble parfait !' : 'Everything looks great!'}</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{fr ? 'Tout semble parfait !' : 'Everything looks great!'}</p>
               <p className="text-sm text-gray-400">{fr ? "Aucune recommandation critique pour le moment. Continuez votre excellent travail." : 'No critical recommendations right now. Keep up the great work.'}</p>
             </div>
           ) : (
@@ -525,8 +525,8 @@ export default function InsightsPage() {
                           </span>
                         )}
                       </div>
-                      <h4 className="text-sm font-semibold text-gray-900 mb-1">{rec.title}</h4>
-                      <p className="text-sm text-gray-500 leading-relaxed">{rec.description}</p>
+                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">{rec.title}</h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{rec.description}</p>
                     </div>
                     <a
                       href={rec.actionHref}
@@ -545,7 +545,7 @@ export default function InsightsPage() {
         <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-4 w-4 text-violet-500" />
-            <h3 className="text-sm font-semibold text-gray-900">{fr ? 'Interrogez votre entreprise' : 'Ask about your business'}</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Interrogez votre entreprise' : 'Ask about your business'}</h3>
           </div>
           <p className="text-sm text-gray-500 mb-4">
             {fr
@@ -570,7 +570,7 @@ export default function InsightsPage() {
                   const el = document.querySelector('[data-ai-input]') as HTMLInputElement
                   if (el) { el.value = q; el.focus(); el.dispatchEvent(new Event('input', { bubbles: true })) }
                 }}
-                className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-indigo-50 hover:border-indigo-200 hover:text-indigo-700 transition-colors"
+                className="rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:border-indigo-200 dark:hover:border-indigo-700 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
               >
                 {q}
               </button>
