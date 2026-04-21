@@ -34,19 +34,19 @@ interface Notification {
 // Type-specific icon mapping. Falls back to generic by severity if the type
 // isn't recognized. Each cell renders an icon in a colored circle.
 const TYPE_ICON: Record<string, { Icon: React.ComponentType<{ className?: string }>; bg: string; fg: string }> = {
-  booking_request:   { Icon: Calendar,    bg: 'bg-amber-50',   fg: 'text-amber-600' },
-  booking_confirmed: { Icon: CheckCircle, bg: 'bg-emerald-50', fg: 'text-emerald-600' },
-  invoice_paid:      { Icon: DollarSign,  bg: 'bg-emerald-50', fg: 'text-emerald-600' },
-  invoice_overdue:   { Icon: AlertCircle, bg: 'bg-red-50',     fg: 'text-red-600' },
-  new_customer:      { Icon: UserPlus,    bg: 'bg-blue-50',    fg: 'text-blue-600' },
-  job_completed:     { Icon: Briefcase,   bg: 'bg-emerald-50', fg: 'text-emerald-600' },
-  payment_failed:    { Icon: XCircle,     bg: 'bg-red-50',     fg: 'text-red-600' },
-  trial_ending:      { Icon: Clock,       bg: 'bg-orange-50',  fg: 'text-orange-600' },
+  booking_request:   { Icon: Calendar,    bg: 'bg-amber-50 dark:bg-amber-950/50',   fg: 'text-amber-600 dark:text-amber-400' },
+  booking_confirmed: { Icon: CheckCircle, bg: 'bg-emerald-50 dark:bg-emerald-950/50', fg: 'text-emerald-600 dark:text-emerald-400' },
+  invoice_paid:      { Icon: DollarSign,  bg: 'bg-emerald-50 dark:bg-emerald-950/50', fg: 'text-emerald-600 dark:text-emerald-400' },
+  invoice_overdue:   { Icon: AlertCircle, bg: 'bg-red-50 dark:bg-red-950/50',     fg: 'text-red-600 dark:text-red-400' },
+  new_customer:      { Icon: UserPlus,    bg: 'bg-blue-50 dark:bg-blue-950/50',    fg: 'text-blue-600 dark:text-blue-400' },
+  job_completed:     { Icon: Briefcase,   bg: 'bg-emerald-50 dark:bg-emerald-950/50', fg: 'text-emerald-600 dark:text-emerald-400' },
+  payment_failed:    { Icon: XCircle,     bg: 'bg-red-50 dark:bg-red-950/50',     fg: 'text-red-600 dark:text-red-400' },
+  trial_ending:      { Icon: Clock,       bg: 'bg-orange-50 dark:bg-orange-950/50',  fg: 'text-orange-600 dark:text-orange-400' },
   // Generic fallbacks (legacy)
-  success:           { Icon: CheckCircle, bg: 'bg-emerald-50', fg: 'text-emerald-600' },
-  error:             { Icon: AlertCircle, bg: 'bg-red-50',     fg: 'text-red-600' },
-  warning:           { Icon: AlertTriangle, bg: 'bg-amber-50', fg: 'text-amber-600' },
-  info:              { Icon: Info,        bg: 'bg-blue-50',    fg: 'text-blue-600' },
+  success:           { Icon: CheckCircle, bg: 'bg-emerald-50 dark:bg-emerald-950/50', fg: 'text-emerald-600 dark:text-emerald-400' },
+  error:             { Icon: AlertCircle, bg: 'bg-red-50 dark:bg-red-950/50',     fg: 'text-red-600 dark:text-red-400' },
+  warning:           { Icon: AlertTriangle, bg: 'bg-amber-50 dark:bg-amber-950/50', fg: 'text-amber-600 dark:text-amber-400' },
+  info:              { Icon: Info,        bg: 'bg-blue-50 dark:bg-blue-950/50',    fg: 'text-blue-600 dark:text-blue-400' },
 }
 function notifIcon(type: string) {
   return TYPE_ICON[type] || TYPE_ICON.info
@@ -162,7 +162,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden -m-2 p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              className="lg:hidden -m-2 p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -209,7 +209,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
                 type="button"
                 onClick={() => setNotifOpen(!notifOpen)}
                 aria-label="Notifications"
-                className="relative p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="relative p-2 rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 <Bell className="h-4.5 w-4.5" />
                 {unread > 0 && (
@@ -222,7 +222,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
               {notifOpen && (
                 <>
                   <div className="fixed inset-0 z-20" onClick={() => setNotifOpen(false)} />
-                  <div className="absolute right-0 top-full mt-2 z-30 w-[380px] max-w-[calc(100vw-1rem)] rounded-2xl border border-gray-100 bg-white dark:bg-gray-900 shadow-xl overflow-hidden">
+                  <div className="absolute right-0 top-full mt-2 z-30 w-[380px] max-w-[calc(100vw-1rem)] rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-xl dark:shadow-2xl dark:shadow-black/30 overflow-hidden">
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
                       <div>
                         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{fr ? 'Notifications' : 'Notifications'}</h3>
@@ -234,7 +234,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
                             {fr ? 'Tout marquer comme lu' : 'Mark all as read'}
                           </button>
                         )}
-                        <button onClick={() => setNotifOpen(false)} aria-label={fr ? 'Fermer' : 'Close'} className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100">
+                        <button onClick={() => setNotifOpen(false)} aria-label={fr ? 'Fermer' : 'Close'} className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                           <X className="h-4 w-4" />
                         </button>
                       </div>
@@ -243,11 +243,11 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
                     <div className="max-h-[480px] overflow-y-auto divide-y divide-gray-50 dark:divide-gray-800">
                       {notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-                          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50">
-                            <Bell className="h-6 w-6 text-indigo-300" />
+                          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/50">
+                            <Bell className="h-6 w-6 text-indigo-300 dark:text-indigo-500" />
                           </div>
-                          <p className="text-sm font-medium text-gray-700">{fr ? 'Aucune notification' : 'No notifications'}</p>
-                          <p className="text-xs text-gray-400 mt-1">{fr ? 'Les alertes apparaîtront ici' : 'Alerts will appear here'}</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{fr ? 'Aucune notification' : 'No notifications'}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{fr ? 'Les alertes apparaîtront ici' : 'Alerts will appear here'}</p>
                         </div>
                       ) : notifications.map((n) => {
                         const cfg = notifIcon(n.type)
@@ -262,8 +262,8 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>{n.title}</p>
-                              {n.body && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>}
-                              <p className="text-xs text-gray-400 mt-1">{timeAgo(n.created_at)}</p>
+                              {n.body && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{n.body}</p>}
+                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{timeAgo(n.created_at)}</p>
                             </div>
                             {!n.read && <span className="mt-1.5 h-2 w-2 rounded-full bg-indigo-500 shrink-0" />}
                           </button>

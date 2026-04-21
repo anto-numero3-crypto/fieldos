@@ -86,18 +86,18 @@ export default function MobileTabBar() {
             <Link
               key={href}
               href={href}
-              className={`relative flex flex-col items-center justify-center gap-1 w-full h-full transition-colors ${active ? 'text-indigo-600' : 'text-gray-400'}`}
+              className={`relative flex flex-col items-center justify-center gap-1 w-full h-full min-h-[44px] transition-colors ${active ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500'}`}
             >
               <div className="relative">
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.25 : 1.75} />
                 {badge && unpaidCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-bold text-white">
+                  <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-0.5 text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-900">
                     {unpaidCount > 99 ? '99+' : unpaidCount}
                   </span>
                 )}
               </div>
               <span className="text-[10px] font-semibold leading-none">{label}</span>
-              {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-6 rounded-b-full bg-indigo-500" />}
+              {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-6 rounded-b-full bg-indigo-500 dark:bg-indigo-400" />}
             </Link>
           )
         })}

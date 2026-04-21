@@ -46,12 +46,12 @@ interface TimeEntry {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  scheduled:        'bg-blue-100 text-blue-800',
-  in_progress:      'bg-green-100 text-green-800',
-  needs_completion: 'bg-orange-100 text-orange-800',
-  completed:        'bg-gray-100 text-gray-600',
-  complete:         'bg-gray-100 text-gray-600',
-  cancelled:        'bg-gray-100 text-gray-400',
+  scheduled:        'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  in_progress:      'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  needs_completion: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+  completed:        'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+  complete:         'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+  cancelled:        'bg-gray-100 text-gray-400 dark:bg-gray-700 dark:text-gray-500',
 }
 
 function formatElapsed(ms: number): string {
@@ -242,45 +242,45 @@ export default function EmployeeDashboard() {
   const JobCard = ({ job }: { job: Job }) => (
     <Link
       href={`/employee/jobs/${job.id}`}
-      className="block bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md active:scale-[0.99] transition-all"
+      className="block bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700/80 p-4 sm:p-5 hover:shadow-md active:scale-[0.99] transition-all shadow-sm"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <h3 className="font-semibold text-gray-900 dark:text-white truncate">{job.title}</h3>
           {job.customers?.name && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
-              <User className="w-3.5 h-3.5" /> {job.customers.name}
+            <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5 mt-1.5">
+              <User className="w-3.5 h-3.5 shrink-0" /> {job.customers.name}
             </p>
           )}
           {job.service_address && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
-              <MapPin className="w-3.5 h-3.5" /> {job.service_address}
+            <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5 mt-1">
+              <MapPin className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{job.service_address}</span>
             </p>
           )}
           {(job.start_time || job.end_time) && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
-              <Clock className="w-3.5 h-3.5" />
+            <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5 mt-1">
+              <Clock className="w-3.5 h-3.5 shrink-0" />
               {job.start_time?.slice(0, 5)}{job.end_time ? ` - ${job.end_time.slice(0, 5)}` : ''}
             </p>
           )}
           {job.scheduled_date && (
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
               {fmtDate(job.scheduled_date, lang as 'fr' | 'en', 'short')}
             </p>
           )}
         </div>
         <div className="flex flex-col items-end gap-2 shrink-0">
-          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[job.status] || 'bg-gray-100 text-gray-600'}`}>
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_BADGE[job.status] || 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`}>
             {statusLabel(job.status)}
           </span>
-          <ChevronRight className="w-4 h-4 text-gray-300" />
+          <ChevronRight className="w-4 h-4 text-gray-300 dark:text-gray-600" />
         </div>
       </div>
 
       {job.status !== 'completed' && job.status !== 'complete' && job.status !== 'cancelled' && (
         <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); markComplete(job.id) }}
-          className="mt-3 w-full flex items-center justify-center gap-2 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-lg text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
+          className="mt-3 w-full flex items-center justify-center gap-2 min-h-11 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl text-sm font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/30 active:scale-[0.98] transition-all"
         >
           <CheckCircle className="w-4 h-4" />
           {fr ? 'Marquer comme compl\u00e9t\u00e9e' : 'Mark as completed'}
@@ -292,7 +292,7 @@ export default function EmployeeDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Top bar */}
-      <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+      <header className="sticky top-0 z-30 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700/80 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <GestivioLogo />
@@ -303,7 +303,7 @@ export default function EmployeeDashboard() {
             </span>
             <button
               onClick={logout}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
+              className="p-2 min-h-11 min-w-11 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
               title={fr ? 'Deconnexion' : 'Log out'}
             >
               <LogOut className="w-4 h-4" />
@@ -315,7 +315,7 @@ export default function EmployeeDashboard() {
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-8">
         {/* Active time entry banner */}
         {timeEnabled && activeEntry && !activeEntry.clocked_out_at && !showClockOutForm && (
-          <div className={`${isPaused ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'} border rounded-xl p-4`}>
+          <div className={`${isPaused ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'} border rounded-2xl p-4 shadow-sm`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className={`h-3 w-3 rounded-full ${isPaused ? 'bg-amber-500' : 'bg-emerald-500'} animate-pulse`} />
@@ -333,7 +333,7 @@ export default function EmployeeDashboard() {
                   <button
                     onClick={resumeEntry}
                     disabled={clockOutLoading}
-                    className="flex items-center gap-2 bg-emerald-600 text-white px-3 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2.5 min-h-11 rounded-xl font-medium hover:bg-emerald-700 active:scale-[0.97] transition-all disabled:opacity-50"
                   >
                     <Play className="w-4 h-4" />
                     {fr ? 'Reprendre' : 'Resume'}
@@ -342,7 +342,7 @@ export default function EmployeeDashboard() {
                   <button
                     onClick={pauseEntry}
                     disabled={clockOutLoading}
-                    className="flex items-center gap-2 bg-gray-500 text-white px-3 py-2 rounded-lg font-medium hover:bg-gray-600 transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 bg-gray-500 text-white px-4 py-2.5 min-h-11 rounded-xl font-medium hover:bg-gray-600 active:scale-[0.97] transition-all disabled:opacity-50"
                   >
                     <Pause className="w-4 h-4" />
                     {fr ? 'Pause' : 'Pause'}
@@ -350,7 +350,7 @@ export default function EmployeeDashboard() {
                 )}
                 <button
                   onClick={() => setShowClockOutForm(true)}
-                  className="flex items-center gap-2 bg-red-500 text-white px-3 py-2 rounded-lg font-medium hover:bg-red-600 transition-colors"
+                  className="flex items-center gap-2 bg-red-500 text-white px-4 py-2.5 min-h-11 rounded-xl font-medium hover:bg-red-600 active:scale-[0.97] transition-all"
                 >
                   <Square className="w-4 h-4" />
                   {fr ? 'Terminer' : 'Stop'}
@@ -361,7 +361,7 @@ export default function EmployeeDashboard() {
         )}
 
         {timeEnabled && activeEntry && showClockOutForm && (
-          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 space-y-3">
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 space-y-3 shadow-sm">
             <div className="flex items-center gap-3">
               <span className={`h-3 w-3 rounded-full ${isPaused ? 'bg-amber-500' : 'bg-emerald-500'} animate-pulse`} />
               <p className="font-semibold text-emerald-900 dark:text-emerald-300">

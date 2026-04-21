@@ -37,26 +37,26 @@ export default function LongueuilPage() {
       ]} />
 
       <MarketingShell>
-        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40">
+        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40 dark:from-indigo-950/30 dark:via-gray-950 dark:to-violet-950/20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">
+            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-3">
               <MapPin className="h-4 w-4" /> Longueuil · Montérégie
             </div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
               Gestivio pour les entrepreneurs de Longueuil et la Montérégie
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mb-8">
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mb-8">
               La Montérégie est l&apos;une des régions les plus peuplées du Québec. De Longueuil à Brossard, de Saint-Hubert à Chambly, les entrepreneurs en services desservent un territoire vaste et diversifié. Gestivio centralise votre gestion dans un outil fait au Québec: facturation TPS/TVQ, planification, portail de réservation IA, et rapports.
             </p>
-            <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700">
+            <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
               Essai gratuit 14 jours <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </section>
 
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">La Montérégie, un territoire en croissance</h2>
-          <p className="text-gray-500 mb-8 max-w-3xl">Longueuil et la Montérégie connaissent un boom immobilier avec de nouvelles constructions et des rénovations dans les quartiers établis. Les entrepreneurs de la région doivent gérer un territoire étendu tout en maintenant un service de qualité. Gestivio vous aide à planifier vos journées, facturer rapidement et garder vos clients satisfaits — du Vieux-Longueuil à Boucherville, de Saint-Bruno à Varennes.</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">La Montérégie, un territoire en croissance</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-3xl">Longueuil et la Montérégie connaissent un boom immobilier avec de nouvelles constructions et des rénovations dans les quartiers établis. Les entrepreneurs de la région doivent gérer un territoire étendu tout en maintenant un service de qualité. Gestivio vous aide à planifier vos journées, facturer rapidement et garder vos clients satisfaits — du Vieux-Longueuil à Boucherville, de Saint-Bruno à Varennes.</p>
 
           <div className="grid gap-6 sm:grid-cols-3">
             {[
@@ -64,22 +64,22 @@ export default function LongueuilPage() {
               { title: 'Facturation automatisée', desc: 'TPS/TVQ calculées, factures envoyées par courriel, paiement en ligne Stripe.' },
               { title: 'Support québécois', desc: 'Une équipe québécoise qui comprend votre réalité et parle votre langue.' },
             ].map((s, i) => (
-              <div key={i} className="rounded-2xl border border-gray-100 bg-white p-6">
-                <p className="text-base font-bold text-gray-900 mb-1">{s.title}</p>
-                <p className="text-sm text-gray-500">{s.desc}</p>
+              <div key={i} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+                <p className="text-base font-bold text-gray-900 dark:text-white mb-1">{s.title}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{s.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="bg-gray-50/60 py-16">
+        <section className="bg-gray-50/60 dark:bg-gray-900/60 py-16">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">Questions fréquentes</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Questions fréquentes</h2>
             <div className="space-y-3">
               {FAQS.map((q, i) => (
-                <details key={i} className="group rounded-2xl border border-gray-100 bg-white p-5">
-                  <summary className="cursor-pointer font-semibold text-gray-900">{q.question}</summary>
-                  <p className="mt-3 text-sm text-gray-600 leading-relaxed">{q.answer}</p>
+                <details key={i} className="group rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 p-5 shadow-sm">
+                  <summary className="cursor-pointer font-semibold text-gray-900 dark:text-white">{q.question}</summary>
+                  <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{q.answer}</p>
                 </details>
               ))}
             </div>

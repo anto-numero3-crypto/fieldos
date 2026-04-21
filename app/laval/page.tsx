@@ -37,26 +37,26 @@ export default function LavalPage() {
       ]} />
 
       <MarketingShell>
-        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40">
+        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40 dark:from-indigo-950/30 dark:via-gray-950 dark:to-violet-950/20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">
+            <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-3">
               <MapPin className="h-4 w-4" /> Laval · Québec
             </div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
               Gestivio pour les entrepreneurs de Laval
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mb-8">
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mb-8">
               Laval est la troisième plus grande ville du Québec et un pôle important pour les entrepreneurs en services résidentiels. Avec ses quartiers en plein développement comme Chomedey, Sainte-Dorothée et Vimont, la demande en plomberie, électricité, rénovation et entretien paysager ne cesse de croître. Gestivio vous aide à gérer cette croissance sans perdre le contrôle.
             </p>
-            <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700">
+            <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
               Essai gratuit 14 jours <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </section>
 
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">Pourquoi Gestivio à Laval ?</h2>
-          <p className="text-gray-500 mb-8 max-w-3xl">Laval est un marché résidentiel dynamique avec beaucoup de nouvelles constructions et de propriétés à rénover. Les entrepreneurs lavallois desservent souvent aussi la couronne nord et le nord de Montréal. Gestivio vous permet de planifier vos interventions, de facturer avec TPS/TVQ, et de laisser vos clients réserver en ligne — que vous soyez plombier, électricien, paysagiste ou rénovateur.</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Pourquoi Gestivio à Laval ?</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-3xl">Laval est un marché résidentiel dynamique avec beaucoup de nouvelles constructions et de propriétés à rénover. Les entrepreneurs lavallois desservent souvent aussi la couronne nord et le nord de Montréal. Gestivio vous permet de planifier vos interventions, de facturer avec TPS/TVQ, et de laisser vos clients réserver en ligne — que vous soyez plombier, électricien, paysagiste ou rénovateur.</p>
 
           <div className="grid gap-6 sm:grid-cols-3">
             {[
@@ -64,22 +64,22 @@ export default function LavalPage() {
               { title: 'Facturation TPS/TVQ', desc: 'Taxes québécoises calculées automatiquement, factures envoyées par courriel.' },
               { title: 'Portail client IA', desc: 'Vos clients réservent en ligne 24h/24. L\'assistant IA collecte les détails.' },
             ].map((s, i) => (
-              <div key={i} className="rounded-2xl border border-gray-100 bg-white p-6">
-                <p className="text-base font-bold text-gray-900 mb-1">{s.title}</p>
-                <p className="text-sm text-gray-500">{s.desc}</p>
+              <div key={i} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-sm">
+                <p className="text-base font-bold text-gray-900 dark:text-white mb-1">{s.title}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{s.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="bg-gray-50/60 py-16">
+        <section className="bg-gray-50/60 dark:bg-gray-900/60 py-16">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">Questions fréquentes</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Questions fréquentes</h2>
             <div className="space-y-3">
               {FAQS.map((q, i) => (
-                <details key={i} className="group rounded-2xl border border-gray-100 bg-white p-5">
-                  <summary className="cursor-pointer font-semibold text-gray-900">{q.question}</summary>
-                  <p className="mt-3 text-sm text-gray-600 leading-relaxed">{q.answer}</p>
+                <details key={i} className="group rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 p-5 shadow-sm">
+                  <summary className="cursor-pointer font-semibold text-gray-900 dark:text-white">{q.question}</summary>
+                  <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{q.answer}</p>
                 </details>
               ))}
             </div>

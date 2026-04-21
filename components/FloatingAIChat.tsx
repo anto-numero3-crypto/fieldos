@@ -117,7 +117,7 @@ export default function FloatingAIChat() {
       {open && (
         <div
           className={[
-            'fixed z-50 flex flex-col bg-white border border-gray-200 shadow-2xl rounded-2xl overflow-hidden transition-all duration-300',
+            'fixed z-50 flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl dark:shadow-black/40 rounded-2xl overflow-hidden transition-all duration-300',
             expanded
               ? 'bottom-4 right-4 left-4 top-4 sm:left-auto sm:w-[480px] sm:top-4'
               : 'bottom-36 lg:bottom-20 right-4 w-[360px] max-w-[calc(100vw-2rem)] h-[480px] max-h-[calc(100vh-10rem)] lg:max-h-[calc(100vh-6rem)]',
@@ -148,14 +148,14 @@ export default function FloatingAIChat() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-gray-50">
+          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-gray-50 dark:bg-gray-950">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg mb-3">
                   <Sparkles className="h-7 w-7 text-white" />
                 </div>
-                <p className="text-sm font-semibold text-gray-900 mb-1">Posez-moi n'importe quelle question</p>
-                <p className="text-xs text-gray-500">J'ai accès à toutes vos données et peux vous aider à gérer vos clients, interventions, factures et plus encore.</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white mb-1">Posez-moi n'importe quelle question</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">J'ai accès à toutes vos données et peux vous aider à gérer vos clients, interventions, factures et plus encore.</p>
               </div>
             )}
 
@@ -170,7 +170,7 @@ export default function FloatingAIChat() {
                   'max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed',
                   msg.role === 'user'
                     ? 'bg-indigo-600 text-white rounded-tr-sm'
-                    : 'bg-white border border-gray-100 text-gray-800 shadow-sm rounded-tl-sm',
+                    : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200 shadow-sm rounded-tl-sm',
                 ].join(' ')}>
                   <p className="whitespace-pre-wrap">{msg.content}</p>
                 </div>
@@ -182,10 +182,10 @@ export default function FloatingAIChat() {
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 mt-1">
                   <Sparkles className="h-3 w-3 text-white" />
                 </div>
-                <div className="bg-white border border-gray-100 shadow-sm rounded-2xl rounded-tl-sm px-3 py-2.5 flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm rounded-2xl rounded-tl-sm px-3 py-2.5 flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 dark:bg-indigo-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 dark:bg-indigo-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 dark:bg-indigo-500 animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
               </div>
             )}
@@ -194,12 +194,12 @@ export default function FloatingAIChat() {
 
           {/* Quick prompts */}
           {showQuick && messages.length === 0 && (
-            <div className="px-3 py-2 bg-gray-50 border-t border-gray-100 flex gap-2 overflow-x-auto scrollbar-none shrink-0">
+            <div className="px-3 py-2 bg-gray-50 dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 flex gap-2 overflow-x-auto scrollbar-none shrink-0">
               {QUICK_PROMPTS.map((p) => (
                 <button
                   key={p}
                   onClick={() => send(p)}
-                  className="shrink-0 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-indigo-300 hover:text-indigo-600 transition-colors whitespace-nowrap"
+                  className="shrink-0 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-indigo-300 dark:hover:border-indigo-600 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors whitespace-nowrap"
                 >
                   {p}
                 </button>
@@ -208,8 +208,8 @@ export default function FloatingAIChat() {
           )}
 
           {/* Input */}
-          <div className="px-3 py-3 border-t border-gray-100 bg-white shrink-0">
-            <div className="flex items-end gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-400/20 transition-all">
+          <div className="px-3 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
+            <div className="flex items-end gap-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 focus-within:border-indigo-400 dark:focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-400/20 dark:focus-within:ring-indigo-500/20 transition-all">
               <textarea
                 ref={inputRef}
                 value={input}
@@ -217,7 +217,7 @@ export default function FloatingAIChat() {
                 onKeyDown={handleKey}
                 placeholder="Posez n'importe quelle question sur votre activité…"
                 rows={1}
-                className="flex-1 resize-none bg-transparent text-base sm:text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none max-h-24 leading-relaxed"
+                className="flex-1 resize-none bg-transparent text-base sm:text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none max-h-24 leading-relaxed"
                 style={{ minHeight: '24px' }}
               />
               <button
