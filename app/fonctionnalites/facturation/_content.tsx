@@ -5,7 +5,7 @@ import { ArrowRight, FileText, CreditCard, Hash, Eye, Sparkles, Mail, Receipt, D
 import MarketingShell from '@/components/MarketingShell'
 import FaqItem from '@/components/FaqItem'
 import { useLanguage } from '@/lib/LanguageContext'
-import { MockupInvoice, MockupReports } from '@/components/mockups'
+import { MockupInvoice, MockupNotifications } from '@/components/mockups'
 
 export default function FacturationContent() {
   const { lang } = useLanguage()
@@ -169,7 +169,7 @@ export default function FacturationContent() {
             <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
-                  <MockupReports />
+                  <MockupNotifications />
                 </div>
               </div>
             </div>

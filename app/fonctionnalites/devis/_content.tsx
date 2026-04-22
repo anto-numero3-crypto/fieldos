@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { ArrowRight, FileText, ListChecks, Mail, CheckCircle, RefreshCw, Edit, Download, ChevronDown } from 'lucide-react'
 import MarketingShell from '@/components/MarketingShell'
-import { MockupInvoice } from '@/components/mockups'
+import { MockupInvoice, MockupQuote } from '@/components/mockups'
 import { useLanguage } from '@/lib/LanguageContext'
 import { useState } from 'react'
 
@@ -84,7 +84,7 @@ export default function DevisContent() {
                 </Link>
               </div>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupInvoice /></div></div></div>
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupQuote /></div></div></div>
           </div>
         </div>
       </section>
@@ -162,7 +162,7 @@ export default function DevisContent() {
                 {fr ? 'Vos devis sont generes avec votre logo, vos coordonnees et une mise en page professionnelle. Votre client recoit un document digne d\'une grande entreprise.' : 'Your quotes are generated with your logo, contact info, and professional layout. Your client receives a document worthy of a large company.'}
               </p>
             </div>
-            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupInvoice /></div></div></div>
+            <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden"><div className="overflow-x-auto"><div className="min-w-[600px]"><MockupQuote /></div></div></div>
           </div>
         </div>
       </section>

@@ -5,7 +5,7 @@ import { ArrowRight, Play, Pause, Square, FileSpreadsheet, CheckCircle, Download
 import MarketingShell from '@/components/MarketingShell'
 import FaqItem from '@/components/FaqItem'
 import { useLanguage } from '@/lib/LanguageContext'
-import { MockupTimeTracker, MockupTeam } from '@/components/mockups'
+import { MockupTimeTracker, MockupReports } from '@/components/mockups'
 
 export default function SuiviTempsContent() {
   const { lang } = useLanguage()
@@ -159,7 +159,7 @@ export default function SuiviTempsContent() {
             <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
-                  <MockupTeam />
+                  <MockupReports />
                 </div>
               </div>
             </div>

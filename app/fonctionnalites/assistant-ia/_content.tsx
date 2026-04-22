@@ -5,7 +5,7 @@ import { ArrowRight, MessageSquare, Globe, Brain, Search, Sparkles, FileText, Za
 import MarketingShell from '@/components/MarketingShell'
 import FaqItem from '@/components/FaqItem'
 import { useLanguage } from '@/lib/LanguageContext'
-import { MockupAssistantChat, MockupDashboard } from '@/components/mockups'
+import { MockupAssistantChat, MockupClientProfile } from '@/components/mockups'
 
 export default function AssistantIAContent() {
   const { lang } = useLanguage()
@@ -159,7 +159,7 @@ export default function AssistantIAContent() {
             <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
-                  <MockupDashboard />
+                  <MockupClientProfile />
                 </div>
               </div>
             </div>

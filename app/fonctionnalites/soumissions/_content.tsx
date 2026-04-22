@@ -5,7 +5,7 @@ import { ArrowRight, FileText, Mail, CheckCircle, RefreshCw, ListChecks, Send, E
 import MarketingShell from '@/components/MarketingShell'
 import FaqItem from '@/components/FaqItem'
 import { useLanguage } from '@/lib/LanguageContext'
-import { MockupInvoice, MockupClientProfile } from '@/components/mockups'
+import { MockupInvoice, MockupQuote } from '@/components/mockups'
 
 export default function SoumissionsContent() {
   const { lang } = useLanguage()
@@ -152,7 +152,7 @@ export default function SoumissionsContent() {
             <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
-                  <MockupInvoice />
+                  <MockupQuote />
                 </div>
               </div>
             </div>
@@ -167,7 +167,7 @@ export default function SoumissionsContent() {
             <div className="order-2 lg:order-1 w-full rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
-                  <MockupClientProfile />
+                  <MockupInvoice />
                 </div>
               </div>
             </div>
