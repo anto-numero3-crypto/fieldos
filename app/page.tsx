@@ -101,14 +101,68 @@ export default function LandingPage() {
 
   const pricingFeatures: Record<string, string[]> = {
     demarrage: fr
-      ? ['1 utilisateur', "Jusqu'à 50 clients", '25 interventions / mois', '30 messages IA / mois', 'Facturation illimitée', 'Paiements en ligne via Stripe', 'Support courriel']
-      : ['1 user', 'Up to 50 customers', '25 jobs / month', '30 AI messages / month', 'Unlimited invoicing', 'Online payments via Stripe', 'Email support'],
+      ? [
+          '1 utilisateur',
+          "Jusqu'à 50 clients",
+          '25 interventions / mois',
+          '30 messages IA / mois',
+          'Facturation et devis illimités',
+          'Paiements en ligne (Stripe)',
+          'Portail de réservation public',
+          'Support courriel (3 j ouvrables)',
+        ]
+      : [
+          '1 user',
+          'Up to 50 customers',
+          '25 jobs / month',
+          '30 AI messages / month',
+          'Unlimited invoicing and quotes',
+          'Online payments (Stripe)',
+          'Public booking portal',
+          'Email support (3 business days)',
+        ],
     pro: fr
-      ? ['Tout illimité + IA', "Jusqu'à 5 utilisateurs", 'Gestion d\'équipe', 'Contrats récurrents', 'Suivi du temps', 'Export CSV + rapports complets', 'Support prioritaire']
-      : ['Everything unlimited + AI', 'Up to 5 users', 'Team management', 'Recurring contracts', 'Time tracking', 'CSV export + full reports', 'Priority support'],
+      ? [
+          'Tout Démarrage, plus :',
+          "Jusqu'à 5 utilisateurs (équipe)",
+          'Clients, interventions et IA illimités',
+          'App mobile employé et assignations',
+          'Interventions simultanées côte-à-côte',
+          'Contrats récurrents et suivi du temps',
+          'Campagnes marketing clients',
+          'Rapports complets + Analyses IA',
+          'Aucune marque Gestivio',
+          'Support prioritaire (2 j ouvrables)',
+        ]
+      : [
+          'Everything in Starter, plus:',
+          'Up to 5 users (team)',
+          'Unlimited customers, jobs and AI',
+          'Employee mobile app and assignments',
+          'Side-by-side overlapping jobs',
+          'Recurring contracts and time tracking',
+          'Customer marketing campaigns',
+          'Full reports + AI Insights',
+          'No Gestivio branding',
+          'Priority support (2 business days)',
+        ],
     croissance: fr
-      ? ['Tout ce qui est dans Pro', "Jusqu'à 15 utilisateurs", 'Emplacements multiples', 'Marque blanche', 'SMS', 'Automatisation avancée', 'Export QuickBooks', 'Support prioritaire (1 j ouvrable)']
-      : ['Everything in Pro', 'Up to 15 users', 'Multiple locations', 'White label', 'SMS', 'Advanced automation', 'QuickBooks export', 'Priority support (1 business day)'],
+      ? [
+          'Tout Pro, plus :',
+          "Jusqu'à 15 utilisateurs",
+          'Accompagnement migration de données',
+          'Support prioritaire (1 j ouvrable)',
+          'Accès anticipé aux nouvelles fonctionnalités',
+          'Formation à la demande : 100 $/h',
+        ]
+      : [
+          'Everything in Pro, plus:',
+          'Up to 15 users',
+          'Data migration assistance',
+          'Priority support (1 business day)',
+          'Early access to new features',
+          'On-demand training: $100/hr',
+        ],
   }
 
   // ── Feature showcase sections ──
