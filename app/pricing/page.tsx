@@ -82,9 +82,9 @@ export default function PricingPage() {
         { label: fr ? 'Support par courriel (3 jours ouvrables)'   : 'Email support (3 business days)',  demarrage: true,  pro: false, croissance: false },
         { label: fr ? 'Support prioritaire (2 jours ouvrables)'    : 'Priority support (2 business days)', demarrage: false, pro: true,  croissance: false },
         { label: fr ? 'Support prioritaire (1 jour ouvrable)'      : 'Priority support (1 business day)',  demarrage: false, pro: false, croissance: true },
-        { label: fr ? 'Onboarding vidéo personnalisé (1 h)'        : 'Personalized video onboarding (1h)', demarrage: false, pro: false, croissance: true },
         { label: fr ? 'Accompagnement migration de données'        : 'Data migration assistance',         demarrage: false, pro: false, croissance: true },
         { label: fr ? 'Accès anticipé aux nouvelles fonctions'     : 'Early access to new features',      demarrage: false, pro: false, croissance: true },
+        { label: fr ? 'Formation et support à la demande'          : 'On-demand training & support',      demarrage: fr ? '100 $/h' : '$100/hr', pro: fr ? '100 $/h' : '$100/hr', croissance: fr ? '100 $/h' : '$100/hr' },
       ],
     },
   ]
