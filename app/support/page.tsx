@@ -76,28 +76,28 @@ export default function SupportPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
       <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 50 }}>
         <LanguageToggle />
       </div>
 
-      <nav className="border-b border-gray-100 px-4 py-4 sm:px-6 lg:px-8">
+      <nav className="border-b border-gray-100 dark:border-gray-800 px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <GestivioLogo />
           </Link>
-          <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+          <Link href="/login" className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
             {lang === 'fr' ? 'Se connecter' : 'Sign in'}
           </Link>
         </div>
       </nav>
 
-      <section className="py-16 bg-gradient-to-b from-indigo-50/40 to-white">
+      <section className="py-16 bg-gradient-to-b from-indigo-50/40 dark:from-indigo-950/20 to-white dark:to-gray-950">
         <div className="mx-auto max-w-2xl px-4 sm:px-6 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
             {lang === 'fr' ? 'Comment pouvons-nous vous aider ?' : 'How can we help?'}
           </h1>
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             {lang === 'fr' ? 'Parcourez notre FAQ ou contactez notre équipe de soutien.' : 'Browse our FAQ or reach out to our support team.'}
           </p>
         </div>
@@ -130,13 +130,13 @@ export default function SupportPage() {
               },
             ].map((item) => (
               <a key={item.title} href={item.href}
-                className="rounded-2xl border border-gray-100 bg-white p-6 hover:border-indigo-200 hover:shadow-sm transition-all group">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 mb-4 group-hover:bg-indigo-100 transition-colors">
-                  <item.icon className="h-5 w-5 text-indigo-600" />
+                className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 hover:border-indigo-200 dark:hover:border-indigo-800 hover:shadow-sm transition-all group">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950 mb-4 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900 transition-colors">
+                  <item.icon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>
-                <p className="text-sm text-gray-500 mb-3">{item.description}</p>
-                <span className="text-sm font-semibold text-indigo-600 group-hover:text-indigo-800">{item.label} →</span>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">{item.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">{item.description}</p>
+                <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-800 dark:group-hover:text-indigo-300">{item.label} →</span>
               </a>
             ))}
           </div>
@@ -145,27 +145,27 @@ export default function SupportPage() {
 
       <section id="faq" className="py-12 pb-20">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">
             {lang === 'fr' ? 'Questions fréquentes' : 'Frequently Asked Questions'}
           </h2>
           <div className="space-y-8">
             {faqs.map((category) => (
               <div key={category.category}>
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50">
-                    <category.icon className="h-4 w-4 text-indigo-600" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950">
+                    <category.icon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                   </div>
-                  <h3 className="font-semibold text-gray-900">{category.category}</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{category.category}</h3>
                 </div>
                 <div className="space-y-3">
                   {category.questions.map((faq) => (
-                    <details key={faq.q} className="rounded-xl border border-gray-100 bg-white group">
-                      <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-medium text-gray-900 list-none">
+                    <details key={faq.q} className="rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 group">
+                      <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-medium text-gray-900 dark:text-white list-none">
                         {faq.q}
-                        <ChevronDown className="h-4 w-4 text-gray-400 shrink-0 group-open:rotate-180 transition-transform" />
+                        <ChevronDown className="h-4 w-4 text-gray-400 dark:text-gray-500 shrink-0 group-open:rotate-180 transition-transform" />
                       </summary>
                       <div className="px-5 pb-4">
-                        <p className="text-sm text-gray-600 leading-relaxed">{faq.a}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{faq.a}</p>
                       </div>
                     </details>
                   ))}
@@ -176,13 +176,13 @@ export default function SupportPage() {
         </div>
       </section>
 
-      <section className="py-16 bg-gray-50 border-t border-gray-100">
+      <section className="py-16 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
         <div className="mx-auto max-w-2xl px-4 sm:px-6 text-center">
-          <FileText className="h-10 w-10 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          <FileText className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             {lang === 'fr' ? 'Besoin d\'aide supplémentaire ?' : 'Still need help?'}
           </h2>
-          <p className="text-gray-500 mb-6">
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
             {lang === 'fr' ? 'Notre équipe de soutien est disponible du lundi au vendredi, 9 h à 17 h HE.' : 'Our support team is available Monday–Friday, 9am–5pm EST.'}
           </p>
           <Link href="/contact"
@@ -192,7 +192,7 @@ export default function SupportPage() {
         </div>
       </section>
 
-      <footer className="border-t border-gray-100 py-8 text-center text-sm text-gray-400">
+      <footer className="border-t border-gray-100 dark:border-gray-800 py-8 text-center text-sm text-gray-400 dark:text-gray-500">
         <p>© {new Date().getFullYear()} Gestivio. {lang === 'fr' ? 'Fait avec ❤️ au Québec, Canada 🍁' : 'Made with ❤️ in Québec, Canada 🍁'}</p>
       </footer>
     </div>

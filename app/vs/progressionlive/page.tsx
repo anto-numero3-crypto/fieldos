@@ -54,41 +54,41 @@ export default function VsProgressionLivePage() {
       ]} />
 
       <MarketingShell>
-        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40">
+        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40 dark:from-indigo-950/30 dark:via-gray-950 dark:to-violet-950/20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
             <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">Comparaison</p>
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
               Gestivio vs ProgressionLIVE : quelle solution pour votre PME québécoise ?
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mb-8">
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mb-8">
               ProgressionLIVE est un logiciel québécois de gestion de services terrain axé sur les grandes entreprises et la gestion de flotte. Gestivio est conçu pour les PME de 1 à 25 employés. Voici une comparaison honnête pour vous aider à choisir.
             </p>
           </div>
         </section>
 
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">ProgressionLIVE en bref</h2>
-          <p className="text-gray-600 leading-relaxed mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">ProgressionLIVE en bref</h2>
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
             ProgressionLIVE est un logiciel québécois fondé à Québec. Il est spécialisé dans la gestion de services terrain pour les moyennes et grandes entreprises. Ses forces incluent le suivi GPS de flotte en temps réel, les formulaires terrain personnalisables, et l&apos;intégration avec des systèmes ERP. C&apos;est un outil puissant, mais sa complexité et son modèle de tarification sur devis le rendent moins accessible pour les petits entrepreneurs.
           </p>
-          <p className="text-gray-600 leading-relaxed mb-8">
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-8">
             Gestivio est conçu pour les entrepreneurs individuels et les petites équipes. L&apos;accent est mis sur la simplicité d&apos;utilisation, la facturation avec TPS/TVQ, le portail de réservation IA, et un prix transparent sans surprises. Si vous êtes un plombier avec 2 techniciens ou un électricien indépendant, Gestivio est fait pour vous.
           </p>
 
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Comparaison détaillée</h2>
-          <div className="overflow-x-auto rounded-2xl border border-gray-200">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Comparaison détaillée</h2>
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left px-4 py-3 font-semibold text-gray-900">Fonctionnalité</th>
+                <tr className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                  <th className="text-left px-4 py-3 font-semibold text-gray-900 dark:text-white">Fonctionnalité</th>
                   <th className="text-center px-4 py-3 font-semibold text-indigo-600 w-32">Gestivio</th>
                   <th className="text-center px-4 py-3 font-semibold text-gray-600 w-40">ProgressionLIVE</th>
                 </tr>
               </thead>
               <tbody>
                 {COMPARISON.map((row, i) => (
-                  <tr key={i} className="border-b border-gray-100 last:border-0">
-                    <td className="px-4 py-3 text-gray-700">{row.feature}</td>
+                  <tr key={i} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{row.feature}</td>
                     <td className="px-4 py-3 text-center"><CellView v={row.gestivio} /></td>
                     <td className="px-4 py-3 text-center"><CellView v={row.progression} /></td>
                   </tr>
@@ -99,25 +99,25 @@ export default function VsProgressionLivePage() {
         </section>
 
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Quand choisir ProgressionLIVE</h2>
-          <p className="text-gray-600 leading-relaxed mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Quand choisir ProgressionLIVE</h2>
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
             ProgressionLIVE est le bon choix si vous avez une flotte de véhicules à suivre en temps réel, si vous avez besoin de formulaires terrain complexes et personnalisables, ou si vous avez plus de 25 employés et des processus opérationnels sophistiqués. C&apos;est un outil puissant pour les entreprises qui ont outgrowné les solutions plus simples.
           </p>
 
-          <h2 className="text-3xl font-bold text-gray-900 mb-4 mt-8">Quand choisir Gestivio</h2>
-          <p className="text-gray-600 leading-relaxed mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 mt-8">Quand choisir Gestivio</h2>
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
             Gestivio est le meilleur choix si vous êtes un entrepreneur indépendant ou une petite équipe de 1 à 25 personnes. Vous cherchez un outil simple à apprendre, avec facturation TPS/TVQ intégrée, portail de réservation IA, et un prix transparent à partir de 39 $/mois. Pas besoin de formation de 2 jours — vous êtes opérationnel en moins d&apos;une heure.
           </p>
         </section>
 
-        <section className="bg-gray-50/60 py-16">
+        <section className="bg-gray-50/60 dark:bg-gray-900/60 py-16">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">Questions fréquentes</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Questions fréquentes</h2>
             <div className="space-y-3">
               {FAQS.map((q, i) => (
-                <details key={i} className="group rounded-2xl border border-gray-100 bg-white p-5">
-                  <summary className="cursor-pointer font-semibold text-gray-900">{q.question}</summary>
-                  <p className="mt-3 text-sm text-gray-600 leading-relaxed">{q.answer}</p>
+                <details key={i} className="group rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
+                  <summary className="cursor-pointer font-semibold text-gray-900 dark:text-white">{q.question}</summary>
+                  <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{q.answer}</p>
                 </details>
               ))}
             </div>

@@ -54,41 +54,41 @@ export default function VsJobberPage() {
       ]} />
 
       <MarketingShell>
-        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40">
+        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40 dark:from-indigo-950/30 dark:via-gray-950 dark:to-violet-950/20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
             <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">Comparaison</p>
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
               Gestivio vs Jobber : quelle est la meilleure option pour les entrepreneurs québécois ?
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mb-8">
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mb-8">
               Jobber est un excellent logiciel de gestion de services terrain, populaire au Canada et aux États-Unis. Mais est-il le meilleur choix pour un entrepreneur québécois ? Voici une comparaison honnête.
             </p>
           </div>
         </section>
 
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">Jobber en bref</h2>
-          <p className="text-gray-600 leading-relaxed mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Jobber en bref</h2>
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
             Jobber est un logiciel canadien basé à Edmonton, Alberta. Fondé en 2011, il est utilisé par des dizaines de milliers d&apos;entreprises de services en Amérique du Nord. C&apos;est un produit mature avec une application mobile native, des intégrations QuickBooks, et un écosystème riche. Son interface est principalement en anglais, avec une traduction partielle en français.
           </p>
-          <p className="text-gray-600 leading-relaxed mb-8">
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-8">
             Gestivio est un logiciel québécois conçu spécifiquement pour les entrepreneurs du Québec. Interface nativement bilingue, TPS/TVQ automatique, portail de réservation propulsé par l&apos;IA, et données hébergées au Canada conformément à la Loi 25 du Québec.
           </p>
 
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Comparaison détaillée</h2>
-          <div className="overflow-x-auto rounded-2xl border border-gray-200">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Comparaison détaillée</h2>
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left px-4 py-3 font-semibold text-gray-900">Fonctionnalité</th>
+                <tr className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+                  <th className="text-left px-4 py-3 font-semibold text-gray-900 dark:text-white">Fonctionnalité</th>
                   <th className="text-center px-4 py-3 font-semibold text-indigo-600 w-32">Gestivio</th>
                   <th className="text-center px-4 py-3 font-semibold text-gray-600 w-32">Jobber</th>
                 </tr>
               </thead>
               <tbody>
                 {COMPARISON.map((row, i) => (
-                  <tr key={i} className="border-b border-gray-100 last:border-0">
-                    <td className="px-4 py-3 text-gray-700">{row.feature}</td>
+                  <tr key={i} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                    <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{row.feature}</td>
                     <td className="px-4 py-3 text-center"><CellView v={row.gestivio} /></td>
                     <td className="px-4 py-3 text-center"><CellView v={row.jobber} /></td>
                   </tr>
@@ -99,25 +99,25 @@ export default function VsJobberPage() {
         </section>
 
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Quand choisir Jobber</h2>
-          <p className="text-gray-600 leading-relaxed mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Quand choisir Jobber</h2>
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
             Jobber est un bon choix si vous travaillez principalement en anglais, si vous avez besoin d&apos;une application mobile native iOS/Android, ou si vous cherchez des intégrations spécifiques (comme Mailchimp ou Zapier). Jobber a aussi une communauté d&apos;utilisateurs plus large et plus d&apos;avis en ligne.
           </p>
 
-          <h2 className="text-3xl font-bold text-gray-900 mb-4 mt-8">Quand choisir Gestivio</h2>
-          <p className="text-gray-600 leading-relaxed mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 mt-8">Quand choisir Gestivio</h2>
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-4">
             Gestivio est le meilleur choix si vous travaillez au Québec, si vos clients et vos techniciens sont francophones, si vous avez besoin de la TPS/TVQ automatique sur chaque facture, et si vous voulez un portail de réservation IA qui travaille pour vous 24h/24. Gestivio est aussi moins cher que Jobber pour les petites équipes, et les données sont hébergées au Canada en conformité avec la Loi 25 du Québec.
           </p>
         </section>
 
-        <section className="bg-gray-50/60 py-16">
+        <section className="bg-gray-50/60 dark:bg-gray-900/60 py-16">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">Questions fréquentes</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Questions fréquentes</h2>
             <div className="space-y-3">
               {FAQS.map((q, i) => (
-                <details key={i} className="group rounded-2xl border border-gray-100 bg-white p-5">
-                  <summary className="cursor-pointer font-semibold text-gray-900">{q.question}</summary>
-                  <p className="mt-3 text-sm text-gray-600 leading-relaxed">{q.answer}</p>
+                <details key={i} className="group rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
+                  <summary className="cursor-pointer font-semibold text-gray-900 dark:text-white">{q.question}</summary>
+                  <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{q.answer}</p>
                 </details>
               ))}
             </div>

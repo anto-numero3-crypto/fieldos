@@ -37,15 +37,15 @@ export default function RiveSudPage() {
       ]} />
 
       <MarketingShell>
-        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40">
+        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40 dark:from-indigo-950/30 dark:via-gray-950 dark:to-violet-950/20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
             <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">
               <MapPin className="h-4 w-4" /> Rive-Sud · Grand Montréal
             </div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
               Gestivio pour les entrepreneurs de la Rive-Sud
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mb-8">
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mb-8">
               La Rive-Sud de Montréal — Brossard, Saint-Lambert, La Prairie, Candiac, Châteauguay — est un marché résidentiel en pleine croissance. Avec le REM et les nouveaux développements, la demande en services de plomberie, d&apos;électricité et de rénovation explose. Gestivio vous donne les outils pour suivre le rythme.
             </p>
             <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700">
@@ -55,8 +55,8 @@ export default function RiveSudPage() {
         </section>
 
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">Un marché en pleine croissance</h2>
-          <p className="text-gray-500 mb-8 max-w-3xl">Avec l&apos;arrivée du REM à Brossard et les développements résidentiels à La Prairie et Candiac, la Rive-Sud attire de plus en plus de familles. Pour les entrepreneurs en services, cela signifie plus de clients potentiels mais aussi plus de compétition. Gestivio vous aide à vous professionnaliser: réservation en ligne, facturation rapide avec TPS/TVQ, suivi client impeccable. Démarquez-vous de la concurrence.</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Un marché en pleine croissance</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-3xl">Avec l&apos;arrivée du REM à Brossard et les développements résidentiels à La Prairie et Candiac, la Rive-Sud attire de plus en plus de familles. Pour les entrepreneurs en services, cela signifie plus de clients potentiels mais aussi plus de compétition. Gestivio vous aide à vous professionnaliser: réservation en ligne, facturation rapide avec TPS/TVQ, suivi client impeccable. Démarquez-vous de la concurrence.</p>
 
           <div className="grid gap-6 sm:grid-cols-3">
             {[
@@ -64,22 +64,22 @@ export default function RiveSudPage() {
               { title: 'Facturation professionnelle', desc: 'Factures avec TPS/TVQ, paiement en ligne, relances automatiques pour les impayés.' },
               { title: 'Couverture multi-secteur', desc: 'Gérez vos clients de la Rive-Sud et de Montréal depuis un seul tableau de bord.' },
             ].map((s, i) => (
-              <div key={i} className="rounded-2xl border border-gray-100 bg-white p-6">
-                <p className="text-base font-bold text-gray-900 mb-1">{s.title}</p>
-                <p className="text-sm text-gray-500">{s.desc}</p>
+              <div key={i} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+                <p className="text-base font-bold text-gray-900 dark:text-white mb-1">{s.title}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{s.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="bg-gray-50/60 py-16">
+        <section className="bg-gray-50/60 dark:bg-gray-900/60 py-16">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">Questions fréquentes</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Questions fréquentes</h2>
             <div className="space-y-3">
               {FAQS.map((q, i) => (
-                <details key={i} className="group rounded-2xl border border-gray-100 bg-white p-5">
-                  <summary className="cursor-pointer font-semibold text-gray-900">{q.question}</summary>
-                  <p className="mt-3 text-sm text-gray-600 leading-relaxed">{q.answer}</p>
+                <details key={i} className="group rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
+                  <summary className="cursor-pointer font-semibold text-gray-900 dark:text-white">{q.question}</summary>
+                  <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{q.answer}</p>
                 </details>
               ))}
             </div>

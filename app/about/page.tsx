@@ -57,7 +57,7 @@ export default function AboutPage() {
         </div>
       </nav>
 
-      <section className="py-20 bg-gradient-to-b from-indigo-50/40 to-white">
+      <section className="py-20 bg-gradient-to-b from-indigo-50/40 dark:from-indigo-950/20 to-white dark:to-gray-950">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-4">
             {lang === 'fr' ? 'Notre histoire' : 'Our Story'}

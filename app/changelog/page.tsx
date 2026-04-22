@@ -148,12 +148,12 @@ export default function ChangelogPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-gray-950">
       <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 50 }}>
         <LanguageToggle />
       </div>
 
-      <nav className="border-b border-gray-100 px-4 py-4 sm:px-6 lg:px-8">
+      <nav className="border-b border-gray-100 dark:border-gray-800 px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <GestivioLogo />
@@ -168,10 +168,10 @@ export default function ChangelogPage() {
         <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-2">
           {lang === 'fr' ? 'Mises à jour produit' : 'Product Updates'}
         </p>
-        <h1 className="text-4xl font-bold text-gray-900 mb-3">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
           {lang === 'fr' ? 'Journal des modifications' : 'Changelog'}
         </h1>
-        <p className="text-lg text-gray-500 mb-12">
+        <p className="text-lg text-gray-500 dark:text-gray-400 mb-12">
           {lang === 'fr'
             ? 'Quoi de neuf dans Gestivio. Nous livrons vite et vous tenons informés.'
             : 'What\'s new in Gestivio. We ship fast and keep you updated.'}
@@ -179,10 +179,10 @@ export default function ChangelogPage() {
 
         <div className="space-y-12">
           {releases.map((release) => (
-            <div key={release.version} className="relative pl-8 border-l-2 border-gray-100">
+            <div key={release.version} className="relative pl-8 border-l-2 border-gray-100 dark:border-gray-800">
               <div className="absolute -left-1.5 top-0 h-3 w-3 rounded-full bg-indigo-500" />
               <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-xl font-bold text-gray-900">{release.version}</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">{release.version}</h2>
                 <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${release.tagColor}`}>{release.tag}</span>
                 <span className="text-sm text-gray-400 ml-auto">{release.date}</span>
               </div>
@@ -195,7 +195,7 @@ export default function ChangelogPage() {
                         <config.icon className="h-2.5 w-2.5" />
                         {config.label}
                       </span>
-                      <span className="text-sm text-gray-700 leading-relaxed">{item.text}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{item.text}</span>
                     </li>
                   )
                 })}
@@ -205,7 +205,7 @@ export default function ChangelogPage() {
         </div>
       </div>
 
-      <footer className="border-t border-gray-100 py-8 text-center text-sm text-gray-400">
+      <footer className="border-t border-gray-100 dark:border-gray-800 py-8 text-center text-sm text-gray-400 dark:text-gray-500">
         <p>© {new Date().getFullYear()} Gestivio. {lang === 'fr' ? 'Fait avec ❤️ au Québec, Canada 🍁' : 'Made with ❤️ in Québec, Canada 🍁'}</p>
       </footer>
     </div>

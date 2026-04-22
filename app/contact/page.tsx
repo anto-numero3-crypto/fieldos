@@ -70,12 +70,12 @@ export default function ContactPage() {
         <div className="grid gap-10 lg:grid-cols-5">
           <div className="lg:col-span-3">
             {sent ? (
-              <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-10 text-center">
+              <div className="rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 p-10 text-center">
                 <CheckCircle className="h-12 w-12 text-emerald-500 mx-auto mb-4" />
-                <h2 className="text-xl font-bold text-gray-900 mb-2">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                   {lang === 'fr' ? 'Message envoyé !' : 'Message sent!'}
                 </h2>
-                <p className="text-gray-500 mb-4">
+                <p className="text-gray-500 dark:text-gray-400 mb-4">
                   {lang === 'fr'
                     ? 'Merci de nous avoir contactés. Nous reviendrons vers vous en un jour ouvrable.'
                     : 'Thanks for reaching out. We\'ll get back to you within one business day.'}
@@ -150,8 +150,8 @@ export default function ContactPage() {
           </div>
 
           <div className="lg:col-span-2 space-y-5">
-            <div className="rounded-2xl border border-gray-100 bg-white p-6 space-y-4">
-              <h3 className="font-semibold text-gray-900">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-4">
+              <h3 className="font-semibold text-gray-900 dark:text-white">
                 {lang === 'fr' ? 'Coordonnées' : 'Contact information'}
               </h3>
               {[
@@ -160,48 +160,48 @@ export default function ContactPage() {
                 { icon: MapPin, label: lang === 'fr' ? 'Emplacement' : 'Location', value: lang === 'fr' ? 'Québec, Canada' : 'Québec, Canada', href: null },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 shrink-0">
-                    <item.icon className="h-4 w-4 text-indigo-600" />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950 shrink-0">
+                    <item.icon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">{item.label}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{item.label}</p>
                     {item.href
-                      ? <a href={item.href} className="text-sm font-medium text-gray-900 hover:text-indigo-600">{item.value}</a>
-                      : <p className="text-sm font-medium text-gray-900">{item.value}</p>}
+                      ? <a href={item.href} className="text-sm font-medium text-gray-900 dark:text-white hover:text-indigo-600">{item.value}</a>
+                      : <p className="text-sm font-medium text-gray-900 dark:text-white">{item.value}</p>}
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-white p-6">
-              <h3 className="font-semibold text-gray-900 mb-2">
+            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
                 {lang === 'fr' ? 'Délais de réponse' : 'Response times'}
               </h3>
-              <div className="space-y-2 text-sm text-gray-600">
+              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <div className="flex justify-between">
                   <span>{lang === 'fr' ? 'Demandes générales' : 'General inquiries'}</span>
-                  <span className="font-medium text-gray-900">{lang === 'fr' ? '1 jour ouvrable' : '1 business day'}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{lang === 'fr' ? '1 jour ouvrable' : '1 business day'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>{lang === 'fr' ? 'Support technique' : 'Technical support'}</span>
-                  <span className="font-medium text-gray-900">{lang === 'fr' ? '4 heures' : '4 hours'}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{lang === 'fr' ? '4 heures' : '4 hours'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>{lang === 'fr' ? 'Problèmes de facturation' : 'Billing issues'}</span>
-                  <span className="font-medium text-gray-900">{lang === 'fr' ? '1 jour ouvrable' : '1 business day'}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{lang === 'fr' ? '1 jour ouvrable' : '1 business day'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>{lang === 'fr' ? 'Rapports de sécurité' : 'Security reports'}</span>
-                  <span className="font-medium text-gray-900">{lang === 'fr' ? '48 heures' : '48 hours'}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{lang === 'fr' ? '48 heures' : '48 hours'}</span>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-indigo-50 p-6">
-              <h3 className="font-semibold text-gray-900 mb-1">
+            <div className="rounded-2xl border border-gray-100 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/50 p-6">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
                 {lang === 'fr' ? 'Besoin d\'aide immédiate ?' : 'Need immediate help?'}
               </h3>
-              <p className="text-sm text-gray-600 mb-3">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                 {lang === 'fr'
                   ? 'Consultez notre centre de support pour des réponses instantanées aux questions courantes.'
                   : 'Check our support center for instant answers to common questions.'}
@@ -214,7 +214,7 @@ export default function ContactPage() {
         </div>
       </div>
 
-      <footer className="border-t border-gray-100 py-8 text-center text-sm text-gray-400">
+      <footer className="border-t border-gray-100 dark:border-gray-800 py-8 text-center text-sm text-gray-400 dark:text-gray-500">
         <p>© {new Date().getFullYear()} Gestivio. {lang === 'fr' ? 'Fait avec ❤️ au Québec, Canada 🍁' : 'Made with ❤️ in Québec, Canada 🍁'}</p>
       </footer>
     </div>

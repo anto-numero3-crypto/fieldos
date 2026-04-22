@@ -40,12 +40,12 @@ interface TimeEntry {
 }
 
 const STATUS_CFG: Record<string, { label: { fr: string; en: string }; cls: string }> = {
-  scheduled:        { label: { fr: 'Planifi\u00e9e', en: 'Scheduled' },          cls: 'bg-blue-100 text-blue-800' },
-  in_progress:      { label: { fr: 'En cours', en: 'In progress' },              cls: 'bg-green-100 text-green-800' },
-  needs_completion: { label: { fr: '\u00c0 compl\u00e9ter', en: 'Needs completion' }, cls: 'bg-orange-100 text-orange-800' },
-  completed:        { label: { fr: 'Compl\u00e9t\u00e9e', en: 'Completed' },     cls: 'bg-gray-100 text-gray-600' },
-  complete:         { label: { fr: 'Compl\u00e9t\u00e9e', en: 'Completed' },     cls: 'bg-gray-100 text-gray-600' },
-  cancelled:        { label: { fr: 'Annul\u00e9e', en: 'Cancelled' },            cls: 'bg-gray-100 text-gray-400' },
+  scheduled:        { label: { fr: 'Planifi\u00e9e', en: 'Scheduled' },          cls: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300' },
+  in_progress:      { label: { fr: 'En cours', en: 'In progress' },              cls: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' },
+  needs_completion: { label: { fr: '\u00c0 compl\u00e9ter', en: 'Needs completion' }, cls: 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300' },
+  completed:        { label: { fr: 'Compl\u00e9t\u00e9e', en: 'Completed' },     cls: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300' },
+  complete:         { label: { fr: 'Compl\u00e9t\u00e9e', en: 'Completed' },     cls: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300' },
+  cancelled:        { label: { fr: 'Annul\u00e9e', en: 'Cancelled' },            cls: 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500' },
 }
 
 function formatElapsed(ms: number): string {

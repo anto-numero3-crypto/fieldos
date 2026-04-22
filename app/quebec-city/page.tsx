@@ -37,15 +37,15 @@ export default function QuebecCityPage() {
       ]} />
 
       <MarketingShell>
-        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40">
+        <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/40 dark:from-indigo-950/30 dark:via-gray-950 dark:to-violet-950/20">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
             <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-indigo-600 mb-3">
               <MapPin className="h-4 w-4" /> Ville de Québec · Capitale-Nationale
             </div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
               Gestivio pour les entrepreneurs de la ville de Québec
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mb-8">
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mb-8">
               La Capitale-Nationale regorge d&apos;entrepreneurs en services: plombiers dans le Vieux-Québec, électriciens à Sainte-Foy, rénovateurs à Beauport, paysagistes à Charlesbourg. Gestivio vous aide à gérer votre entreprise avec un outil fait ici, en français.
             </p>
             <Link href="/signup" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700">
@@ -55,8 +55,8 @@ export default function QuebecCityPage() {
         </section>
 
         <section className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">Pourquoi Gestivio à Québec ?</h2>
-          <p className="text-gray-500 mb-8 max-w-3xl">La ville de Québec est un marché francophone avec une forte densité de propriétaires. Les entrepreneurs de la région jonglent entre les maisons patrimoniales du Vieux-Québec, les bungalows des banlieues et les condos des Rivières. Gestivio gère la TPS/TVQ, envoie vos factures en français et permet à vos clients de réserver en ligne — que ce soit pour une urgence de plomberie en plein hiver ou un aménagement paysager printanier.</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">Pourquoi Gestivio à Québec ?</h2>
+          <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-3xl">La ville de Québec est un marché francophone avec une forte densité de propriétaires. Les entrepreneurs de la région jonglent entre les maisons patrimoniales du Vieux-Québec, les bungalows des banlieues et les condos des Rivières. Gestivio gère la TPS/TVQ, envoie vos factures en français et permet à vos clients de réserver en ligne — que ce soit pour une urgence de plomberie en plein hiver ou un aménagement paysager printanier.</p>
 
           <div className="grid gap-6 sm:grid-cols-3">
             {[
@@ -64,22 +64,22 @@ export default function QuebecCityPage() {
               { title: 'Réservation 24/7', desc: "Vos clients de Sainte-Foy, Beauport et Charlesbourg réservent en ligne à toute heure." },
               { title: 'Conforme Loi 25', desc: "Données hébergées au Canada, conformes à la Loi 25 et à la LPRPDE." },
             ].map((s, i) => (
-              <div key={i} className="rounded-2xl border border-gray-100 bg-white p-6">
-                <p className="text-base font-bold text-gray-900 mb-1">{s.title}</p>
-                <p className="text-sm text-gray-500">{s.desc}</p>
+              <div key={i} className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
+                <p className="text-base font-bold text-gray-900 dark:text-white mb-1">{s.title}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{s.desc}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="bg-gray-50/60 py-16">
+        <section className="bg-gray-50/60 dark:bg-gray-900/60 py-16">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">Questions fréquentes</h2>
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Questions fréquentes</h2>
             <div className="space-y-3">
               {FAQS.map((q, i) => (
-                <details key={i} className="group rounded-2xl border border-gray-100 bg-white p-5">
-                  <summary className="cursor-pointer font-semibold text-gray-900">{q.question}</summary>
-                  <p className="mt-3 text-sm text-gray-600 leading-relaxed">{q.answer}</p>
+                <details key={i} className="group rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
+                  <summary className="cursor-pointer font-semibold text-gray-900 dark:text-white">{q.question}</summary>
+                  <p className="mt-3 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{q.answer}</p>
                 </details>
               ))}
             </div>
