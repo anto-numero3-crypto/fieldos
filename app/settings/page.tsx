@@ -246,6 +246,11 @@ export default function SettingsPage() {
         setCheckoutLoading(null)
         return
       }
+      if (data.effective === 'checkout' && data.checkoutUrl) {
+        // Promo-granted user starting their first real subscription — go to Stripe checkout.
+        window.location.href = data.checkoutUrl
+        return
+      }
       if (data.effective === 'immediate') {
         toast.success(fr ? `Vous êtes maintenant sur le forfait ${targetLabel} !` : `You are now on the ${targetLabel} plan!`)
       } else {

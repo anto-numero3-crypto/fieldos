@@ -34,12 +34,46 @@ export async function POST(req: NextRequest) {
 
     const { data: org } = await supabase
       .from('organizations')
-      .select('plan, stripe_subscription_id')
+      .select('plan, stripe_subscription_id, stripe_customer_id')
       .eq('owner_user_id', user.id)
       .single()
 
+    const newPriceId = PRICE_MAP[`${newPlanId}_${cycle}`]
+    if (!newPriceId) {
+      return NextResponse.json({ error: `No Stripe price configured for ${newPlanId} ${cycle}` }, { status: 400 })
+    }
+
+    // Promo-granted plans (and anyone active without a real Stripe subscription) get
+    // a fresh checkout session so they can start a real paid subscription.
     if (!org?.stripe_subscription_id) {
-      return NextResponse.json({ error: 'No active subscription — use /subscribe for initial checkout' }, { status: 400 })
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('stripe_customer_id, email')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      let customerId = org?.stripe_customer_id || profile?.stripe_customer_id
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: user.email || profile?.email || undefined,
+          metadata: { userId: user.id },
+        })
+        customerId = customer.id
+        await supabase.from('profiles').upsert({ id: user.id, stripe_customer_id: customerId })
+      }
+
+      const origin = req.headers.get('origin') || 'https://gestivio.ca'
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        mode: 'subscription',
+        line_items: [{ price: newPriceId, quantity: 1 }],
+        success_url: `${origin}/settings?tab=billing&success=true&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url:  `${origin}/settings?tab=billing&canceled=true`,
+        metadata: { userId: user.id, planId: newPlanId, cycle },
+        subscription_data: { metadata: { userId: user.id, planId: newPlanId, cycle } },
+        allow_promotion_codes: true,
+      })
+      return NextResponse.json({ ok: true, checkoutUrl: session.url, effective: 'checkout' })
     }
 
     const currentPlan = org.plan || 'demarrage'
@@ -51,10 +85,6 @@ export async function POST(req: NextRequest) {
     }
 
     const isUpgrade = newTier > currentTier
-    const newPriceId = PRICE_MAP[`${newPlanId}_${cycle}`]
-    if (!newPriceId) {
-      return NextResponse.json({ error: `No Stripe price configured for ${newPlanId} ${cycle}` }, { status: 400 })
-    }
 
     const subscription = await stripe.subscriptions.retrieve(org.stripe_subscription_id)
     const currentItemId = subscription.items.data[0]?.id
