@@ -42,10 +42,6 @@ export default function DevisContent() {
 
   const faqs = [
     {
-      q: fr ? 'Quelle est la difference entre devis et soumission ?' : 'What\'s the difference between a quote and an estimate?',
-      a: fr ? 'Dans Gestivio, un devis est un document formel avec approbation en ligne et conversion en facture. Les soumissions sont une version plus legere pour les appels d\'offres.' : 'In Gestivio, a quote is a formal document with online approval and invoice conversion. Estimates are a lighter version for tenders.',
-    },
-    {
       q: fr ? 'Mon client peut-il approuver sans creer de compte ?' : 'Can my client approve without creating an account?',
       a: fr ? 'Oui. Votre client recoit un lien unique par courriel et peut approuver le devis en un seul clic, sans inscription.' : 'Yes. Your client receives a unique link by email and can approve the quote in a single click, without signing up.',
     },
@@ -62,7 +58,7 @@ export default function DevisContent() {
   const related = [
     { href: '/fonctionnalites/facturation', label: fr ? 'Facturation' : 'Invoicing' },
     { href: '/fonctionnalites/contrats', label: fr ? 'Contrats' : 'Contracts' },
-    { href: '/fonctionnalites/soumissions', label: fr ? 'Soumissions' : 'Estimates' },
+    { href: '/fonctionnalites/clients', label: fr ? 'Clients' : 'Customers' },
   ]
 
   return (

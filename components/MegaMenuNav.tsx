@@ -48,9 +48,8 @@ const COL_TERRAIN: MegaItem[] = [
 const COL_BILLING: MegaItem[] = [
   { icon: CreditCard, title: 'Facturation professionnelle', titleEn: 'Professional Invoicing', subtitle: 'Une facture en 30 secondes', subtitleEn: 'An invoice in 30 seconds', href: '/fonctionnalites/facturation' },
   { icon: Receipt, title: 'Paiements en ligne', titleEn: 'Online Payments', subtitle: 'Encaissez le jour même', subtitleEn: 'Get paid same day', href: '/fonctionnalites/paiements' },
-  { icon: ClipboardList, title: 'Soumissions', titleEn: 'Estimates', subtitle: 'Des devis approuvés en 1 clic', subtitleEn: 'Quotes approved in 1 click', href: '/fonctionnalites/soumissions' },
-  { icon: BarChart3, title: 'Rapports', titleEn: 'Reports', subtitle: 'Comprenez vos chiffres', subtitleEn: 'Understand your numbers', href: '/fonctionnalites/rapports' },
   { icon: FileText, title: 'Devis', titleEn: 'Quotes', subtitle: 'Approuvés en ligne en 1 clic', subtitleEn: 'Approved online in 1 click', href: '/fonctionnalites/devis' },
+  { icon: BarChart3, title: 'Rapports', titleEn: 'Reports', subtitle: 'Comprenez vos chiffres', subtitleEn: 'Understand your numbers', href: '/fonctionnalites/rapports' },
 ]
 
 const COL_AI: MegaItem[] = [

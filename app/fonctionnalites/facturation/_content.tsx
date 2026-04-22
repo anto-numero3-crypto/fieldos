@@ -232,7 +232,7 @@ export default function FacturationContent() {
           <div className="grid sm:grid-cols-3 gap-6">
             {[
               { href: '/fonctionnalites/paiements', title: fr ? 'Paiements en ligne' : 'Online payments', desc: fr ? 'Encaissez par carte le jour même via Stripe.' : 'Collect card payments the same day via Stripe.' },
-              { href: '/fonctionnalites/soumissions', title: fr ? 'Soumissions' : 'Quotes', desc: fr ? 'Créez des devis professionnels et convertissez-les en factures.' : 'Create professional quotes and convert them to invoices.' },
+              { href: '/fonctionnalites/devis', title: fr ? 'Devis' : 'Quotes', desc: fr ? 'Créez des devis professionnels et convertissez-les en factures.' : 'Create professional quotes and convert them to invoices.' },
               { href: '/fonctionnalites/contrats', title: fr ? 'Contrats' : 'Contracts', desc: fr ? 'Gérez vos contrats avec facturation récurrente.' : 'Manage your contracts with recurring billing.' },
             ].map((card) => (
               <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 dark:border-gray-800 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">

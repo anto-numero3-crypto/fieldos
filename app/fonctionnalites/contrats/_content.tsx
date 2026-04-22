@@ -223,7 +223,7 @@ export default function ContratsContent() {
             {[
               { href: '/fonctionnalites/facturation', title: fr ? 'Facturation' : 'Invoicing', desc: fr ? 'Créez et envoyez des factures professionnelles.' : 'Create and send professional invoices.' },
               { href: '/fonctionnalites/interventions', title: fr ? 'Interventions' : 'Jobs', desc: fr ? 'Planifiez et suivez chaque intervention.' : 'Plan and track every job.' },
-              { href: '/fonctionnalites/soumissions', title: fr ? 'Soumissions' : 'Quotes', desc: fr ? 'Envoyez des devis avant de signer le contrat.' : 'Send quotes before signing the contract.' },
+              { href: '/fonctionnalites/devis', title: fr ? 'Devis' : 'Quotes', desc: fr ? 'Envoyez des devis avant de signer le contrat.' : 'Send quotes before signing the contract.' },
             ].map((card) => (
               <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 dark:border-gray-800 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">
                 <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600">{card.title}</h3>

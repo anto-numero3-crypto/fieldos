@@ -230,7 +230,7 @@ export default function PaiementsContent() {
           <div className="grid sm:grid-cols-3 gap-6">
             {[
               { href: '/fonctionnalites/facturation', title: fr ? 'Facturation' : 'Invoicing', desc: fr ? 'Créez des factures professionnelles avec l\'IA.' : 'Create professional invoices with AI.' },
-              { href: '/fonctionnalites/soumissions', title: fr ? 'Soumissions' : 'Quotes', desc: fr ? 'Envoyez des devis et convertissez-les en factures.' : 'Send quotes and convert them to invoices.' },
+              { href: '/fonctionnalites/devis', title: fr ? 'Devis' : 'Quotes', desc: fr ? 'Envoyez des devis et convertissez-les en factures.' : 'Send quotes and convert them to invoices.' },
               { href: '/fonctionnalites/contrats', title: fr ? 'Contrats' : 'Contracts', desc: fr ? 'Facturation récurrente pour vos contrats.' : 'Recurring billing for your contracts.' },
             ].map((card) => (
               <Link key={card.href} href={card.href} className="rounded-xl border border-gray-200 dark:border-gray-800 p-6 hover:border-indigo-200 hover:bg-indigo-50/30 transition-colors group">

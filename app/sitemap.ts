@@ -35,7 +35,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/fonctionnalites/equipe`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${SITE_URL}/fonctionnalites/contrats`,               lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${SITE_URL}/fonctionnalites/suivi-temps`,            lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
-    { url: `${SITE_URL}/fonctionnalites/soumissions`,            lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${SITE_URL}/fonctionnalites/assistant-ia`,           lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${SITE_URL}/fonctionnalites/clients`,                lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${SITE_URL}/fonctionnalites/calendrier`,             lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
