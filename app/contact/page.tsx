@@ -62,8 +62,8 @@ export default function ContactPage() {
           </h1>
           <p className="text-lg text-gray-500 dark:text-gray-400">
             {lang === 'fr'
-              ? 'Nous serions ravis de vous entendre. Notre équipe répond généralement en un jour ouvrable.'
-              : 'We\'d love to hear from you. Our team typically responds within one business day.'}
+              ? 'Nous serions ravis de vous entendre.'
+              : "We'd love to hear from you."}
           </p>
         </div>
 
@@ -77,8 +77,8 @@ export default function ContactPage() {
                 </h2>
                 <p className="text-gray-500 dark:text-gray-400 mb-4">
                   {lang === 'fr'
-                    ? 'Merci de nous avoir contactés. Nous reviendrons vers vous en un jour ouvrable.'
-                    : 'Thanks for reaching out. We\'ll get back to you within one business day.'}
+                    ? 'Merci de nous avoir contactés. Nous reviendrons vers vous dès que possible.'
+                    : "Thanks for reaching out. We'll get back to you as soon as possible."}
                 </p>
                 <button onClick={() => { setSent(false); setForm({ name: '', email: '', company: '', subject: '', message: '' }) }}
                   className="text-sm font-medium text-indigo-600 hover:text-indigo-800">
@@ -173,31 +173,7 @@ export default function ContactPage() {
               ))}
             </div>
 
-            <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                {lang === 'fr' ? 'Délais de réponse' : 'Response times'}
-              </h3>
-              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                <div className="flex justify-between">
-                  <span>{lang === 'fr' ? 'Demandes générales' : 'General inquiries'}</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{lang === 'fr' ? '1 jour ouvrable' : '1 business day'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{lang === 'fr' ? 'Support technique' : 'Technical support'}</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{lang === 'fr' ? '4 heures' : '4 hours'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{lang === 'fr' ? 'Problèmes de facturation' : 'Billing issues'}</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{lang === 'fr' ? '1 jour ouvrable' : '1 business day'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{lang === 'fr' ? 'Rapports de sécurité' : 'Security reports'}</span>
-                  <span className="font-medium text-gray-900 dark:text-white">{lang === 'fr' ? '48 heures' : '48 hours'}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-gray-100 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/50 p-6">
+<div className="rounded-2xl border border-gray-100 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/50 p-6">
               <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
                 {lang === 'fr' ? 'Besoin d\'aide immédiate ?' : 'Need immediate help?'}
               </h3>

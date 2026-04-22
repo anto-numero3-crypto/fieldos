@@ -108,14 +108,78 @@ export default function SubscribePage() {
 
   const features: Record<'demarrage' | 'pro' | 'croissance', string[]> = {
     demarrage: fr
-      ? ['1 utilisateur', "Jusqu'à 50 clients", '25 interventions par mois', '30 messages IA par mois', 'Facturation illimitée', 'Portail de réservation', 'Google Calendar + Stripe', 'Support courriel (3 j ouvrables)']
-      : ['1 user', 'Up to 50 customers', '25 jobs per month', '30 AI messages per month', 'Unlimited invoicing', 'Booking portal', 'Google Calendar + Stripe', 'Email support (3 business days)'],
+      ? [
+          '1 utilisateur',
+          "Jusqu'à 50 clients",
+          '25 interventions par mois',
+          '30 messages IA par mois',
+          'Facturation et devis illimités',
+          'Paiements en ligne (Stripe)',
+          'Portail de réservation public',
+          'Synchronisation Google Calendar',
+          'Catalogue de produits et services',
+          'Support par courriel (3 j ouvrables)',
+        ]
+      : [
+          '1 user',
+          'Up to 50 customers',
+          '25 jobs per month',
+          '30 AI messages per month',
+          'Unlimited invoicing and quotes',
+          'Online payments (Stripe)',
+          'Public booking portal',
+          'Google Calendar sync',
+          'Product & service catalog',
+          'Email support (3 business days)',
+        ],
     pro: fr
-      ? ['Tout illimité + IA', 'Interventions sur plusieurs jours', 'Export CSV', 'Rapports complets', 'Notifications de complétion', 'Aucune marque Gestivio', 'Support prioritaire (2 j ouvrables)']
-      : ['Everything unlimited + AI', 'Multi-day jobs', 'CSV export', 'Full reports', 'Completion notifications', 'No Gestivio branding', 'Priority support (2 business days)'],
+      ? [
+          'Tout Démarrage, plus :',
+          "Jusqu'à 5 utilisateurs (équipe)",
+          'Clients, interventions et IA illimités',
+          'App mobile employé et assignations',
+          'Interventions sur plusieurs jours',
+          'Interventions simultanées côte-à-côte',
+          'Contrats récurrents',
+          'Suivi du temps (poinçonnage mobile)',
+          'Campagnes marketing clients',
+          'Rapports complets et analyses IA',
+          'Export CSV et notifications de complétion',
+          'Aucune marque Gestivio',
+          'Support prioritaire (2 j ouvrables)',
+        ]
+      : [
+          'Everything in Starter, plus:',
+          'Up to 5 users (team)',
+          'Unlimited customers, jobs and AI',
+          'Employee mobile app and assignments',
+          'Multi-day jobs',
+          'Side-by-side overlapping jobs',
+          'Recurring contracts',
+          'Time tracking (mobile punch in/out)',
+          'Customer marketing campaigns',
+          'Full reports and AI Insights',
+          'CSV export and completion notifications',
+          'No Gestivio branding',
+          'Priority support (2 business days)',
+        ],
     croissance: fr
-      ? ['Tout ce qui est dans Pro', 'Onboarding vidéo 1 h', 'Support prioritaire (1 j ouvrable)', 'Accès anticipé aux nouveautés']
-      : ['Everything in Pro', '1h video onboarding', 'Priority support (1 business day)', 'Early access to new features'],
+      ? [
+          'Tout Pro, plus :',
+          "Jusqu'à 15 utilisateurs",
+          'Onboarding vidéo personnalisé (1 h)',
+          'Accompagnement migration de données',
+          'Support prioritaire (1 j ouvrable)',
+          'Accès anticipé aux nouvelles fonctionnalités',
+        ]
+      : [
+          'Everything in Pro, plus:',
+          'Up to 15 users',
+          'Personalized video onboarding (1h)',
+          'Data migration assistance',
+          'Priority support (1 business day)',
+          'Early access to new features',
+        ],
   }
 
   return (
