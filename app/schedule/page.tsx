@@ -167,8 +167,8 @@ export default function SchedulePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, cursor])
 
-  // Effective view (mobile: collapse week → day)
-  const effectiveView: View = isMobile && view === 'week' ? 'day' : view
+  // Effective view (mobile keeps week view; the time-grid scrolls horizontally)
+  const effectiveView: View = view
 
   // -- Compute visible range for the current view
   const range = useMemo(() => {
@@ -394,6 +394,9 @@ function TimeGridView(props: {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const daysShort = fr ? DAYS_FR_SHORT : DAYS_EN_SHORT
   const isSingleDay = days.length === 1
+  // Week view needs a minimum column width so 7 days stay readable on mobile.
+  // ~70px per day column + the time axis = enough room; below that we scroll horizontally.
+  const minInnerWidth = !isSingleDay ? TIME_AXIS_WIDTH + days.length * 70 : undefined
 
   // Scroll to 7am on mount so the user sees the start of the workday without hunting.
   useEffect(() => {
@@ -423,8 +426,10 @@ function TimeGridView(props: {
 
   return (
     <div className="rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-      {/* Sticky day-header row */}
-      <div className="flex border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 z-10">
+     <div className="overflow-x-auto">
+      <div style={{ minWidth: minInnerWidth }}>
+      {/* Day-header row */}
+      <div className="flex border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 z-10">
         <div style={{ width: TIME_AXIS_WIDTH }} className="shrink-0 border-r border-gray-100 dark:border-gray-800" />
         {days.map((d, i) => {
           const isToday = sameDay(d, now)
@@ -604,6 +609,8 @@ function TimeGridView(props: {
           )}
         </div>
       </div>
+      </div>
+     </div>
     </div>
   )
 }

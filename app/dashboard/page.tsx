@@ -1044,7 +1044,7 @@ function KpiCard({
         <ArrowUpRight className="h-4 w-4 text-gray-300 dark:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      <div className="relative mt-4 text-3xl font-bold tabular-nums text-gray-900 dark:text-white leading-tight break-words">
+      <div className="relative mt-4 text-2xl sm:text-3xl font-bold tabular-nums text-gray-900 dark:text-white leading-tight whitespace-nowrap overflow-hidden text-ellipsis">
         {showAnimated}
       </div>
       <div className="relative mt-0.5 text-sm text-gray-500 dark:text-gray-400">{label}</div>

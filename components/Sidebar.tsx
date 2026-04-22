@@ -213,7 +213,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         </nav>
 
         {/* User */}
-        <div className="shrink-0 border-t border-gray-100 dark:border-gray-800 px-3 py-3">
+        <div className="shrink-0 border-t border-gray-100 dark:border-gray-800 px-3 py-3 pb-20 lg:pb-3">
           {user && (
             <div className="mb-2 flex items-center gap-2.5 rounded-lg px-2.5 py-2">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 shadow-sm">
