@@ -127,7 +127,7 @@ export default function LandingPage() {
           "Jusqu'à 5 utilisateurs (équipe)",
           'Clients, interventions et IA illimités',
           'App mobile employé et assignations',
-          'Interventions simultanées côte-à-côte',
+          'Interventions sur plusieurs jours',
           'Contrats récurrents et suivi du temps',
           'Campagnes marketing clients',
           'Rapports complets + Analyses IA',
@@ -139,7 +139,7 @@ export default function LandingPage() {
           'Up to 5 users (team)',
           'Unlimited customers, jobs and AI',
           'Employee mobile app and assignments',
-          'Side-by-side overlapping jobs',
+          'Multi-day jobs',
           'Recurring contracts and time tracking',
           'Customer marketing campaigns',
           'Full reports + AI Insights',
@@ -150,18 +150,14 @@ export default function LandingPage() {
       ? [
           'Tout Pro, plus :',
           "Jusqu'à 15 utilisateurs",
-          'Accompagnement migration de données',
           'Support prioritaire (1 j ouvrable)',
           'Accès anticipé aux nouvelles fonctionnalités',
-          'Formation à la demande : 100 $/h',
         ]
       : [
           'Everything in Pro, plus:',
           'Up to 15 users',
-          'Data migration assistance',
           'Priority support (1 business day)',
           'Early access to new features',
-          'On-demand training: $100/hr',
         ],
   }
 

@@ -53,7 +53,6 @@ export default function PricingPage() {
       rows: [
         { label: fr ? 'Gestion d\'équipe'                    : 'Team management',             demarrage: false, pro: true, croissance: true },
         { label: fr ? 'App mobile employé (assignations)'    : 'Employee mobile app',         demarrage: false, pro: true, croissance: true },
-        { label: fr ? 'Interventions simultanées côte-à-côte': 'Side-by-side overlapping jobs', demarrage: false, pro: true, croissance: true },
         { label: fr ? 'Interventions sur plusieurs jours'    : 'Multi-day jobs',              demarrage: false, pro: true, croissance: true },
         { label: fr ? 'Contrats récurrents'                  : 'Recurring contracts',         demarrage: false, pro: true, croissance: true },
         { label: fr ? 'Suivi du temps (poinçonnage mobile)'  : 'Time tracking (mobile punch)', demarrage: false, pro: true, croissance: true },
@@ -82,7 +81,6 @@ export default function PricingPage() {
         { label: fr ? 'Support par courriel (3 jours ouvrables)'   : 'Email support (3 business days)',  demarrage: true,  pro: false, croissance: false },
         { label: fr ? 'Support prioritaire (2 jours ouvrables)'    : 'Priority support (2 business days)', demarrage: false, pro: true,  croissance: false },
         { label: fr ? 'Support prioritaire (1 jour ouvrable)'      : 'Priority support (1 business day)',  demarrage: false, pro: false, croissance: true },
-        { label: fr ? 'Accompagnement migration de données'        : 'Data migration assistance',         demarrage: false, pro: false, croissance: true },
         { label: fr ? 'Accès anticipé aux nouvelles fonctions'     : 'Early access to new features',      demarrage: false, pro: false, croissance: true },
         { label: fr ? 'Formation et support à la demande'          : 'On-demand training & support',      demarrage: fr ? '100 $/h' : '$100/hr', pro: fr ? '100 $/h' : '$100/hr', croissance: fr ? '100 $/h' : '$100/hr' },
       ],

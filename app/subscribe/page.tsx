@@ -139,7 +139,6 @@ export default function SubscribePage() {
           'Clients, interventions et IA illimités',
           'App mobile employé et assignations',
           'Interventions sur plusieurs jours',
-          'Interventions simultanées côte-à-côte',
           'Contrats récurrents',
           'Suivi du temps (poinçonnage mobile)',
           'Campagnes marketing clients',
@@ -154,7 +153,6 @@ export default function SubscribePage() {
           'Unlimited customers, jobs and AI',
           'Employee mobile app and assignments',
           'Multi-day jobs',
-          'Side-by-side overlapping jobs',
           'Recurring contracts',
           'Time tracking (mobile punch in/out)',
           'Customer marketing campaigns',
@@ -167,18 +165,14 @@ export default function SubscribePage() {
       ? [
           'Tout Pro, plus :',
           "Jusqu'à 15 utilisateurs",
-          'Accompagnement migration de données',
           'Support prioritaire (1 j ouvrable)',
           'Accès anticipé aux nouvelles fonctionnalités',
-          'Formation à la demande : 100 $/h',
         ]
       : [
           'Everything in Pro, plus:',
           'Up to 15 users',
-          'Data migration assistance',
           'Priority support (1 business day)',
           'Early access to new features',
-          'On-demand training: $100/hr',
         ],
   }
 
