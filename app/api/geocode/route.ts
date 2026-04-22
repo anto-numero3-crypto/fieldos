@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
       const nomUrl = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=${country}&addressdetails=1&limit=${6 - out.length}&q=${encodeURIComponent(q)}`
       const r = await fetch(nomUrl, {
         headers: {
-          'User-Agent': 'Gestivio/1.0 (contact: info@gestivio.ca)',
+          'User-Agent': 'Gestivio/1.0 (contact: support@gestivio.ca)',
           'Accept-Language': 'fr-CA,fr;q=0.9,en;q=0.8',
         },
         cache: 'no-store',

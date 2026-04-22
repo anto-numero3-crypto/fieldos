@@ -5,6 +5,7 @@ import { LanguageProvider } from "@/lib/LanguageContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import MetaPixel from "@/components/MetaPixel";
 import JsonLd from "@/components/JsonLd";
 import { organizationSchema, globalSoftwareApplicationSchema, globalFaqSchema } from "@/lib/schema";
 import { ConfirmProvider } from "@/components/ui/confirm-dialog";
@@ -71,6 +72,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <JsonLd data={[organizationSchema(), globalSoftwareApplicationSchema(), globalFaqSchema()]} />
         <GoogleAnalytics />
+        <MetaPixel />
         <ThemeProvider>
           <LanguageProvider>
             <ConfirmProvider>

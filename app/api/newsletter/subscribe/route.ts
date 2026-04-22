@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 
 function adminClient() {
   return createClient(
@@ -9,6 +10,8 @@ function adminClient() {
 }
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, { key: 'newsletter', limit: 10, windowMs: 60 * 60 * 1000 })
+  if (limited) return limited
   let body: { email?: string; locale?: string; source?: string } = {}
   try { body = await req.json() } catch { /* ignore */ }
   const email = (body.email || '').trim().toLowerCase()

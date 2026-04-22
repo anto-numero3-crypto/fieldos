@@ -57,6 +57,7 @@ import { formatTime } from '@/lib/format-time'
 import { getInvoiceDisplayStatus } from '@/lib/invoice-status'
 import { getEffectiveJobStatus } from '@/lib/job-status'
 import { JOB_COLORS, INVOICE_COLORS } from '@/lib/status-colors'
+import { trackSubscribed } from '@/lib/analytics'
 import PeriodSelector from '@/components/PeriodSelector'
 import { supabase } from '@/app/supabase'
 
@@ -224,6 +225,26 @@ export default function DashboardPage() {
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 30_000)
     return () => clearInterval(t)
+  }, [])
+
+  // Fire Subscribe conversion once when the user lands here from a successful Stripe checkout.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const sp = new URLSearchParams(window.location.search)
+    if (sp.get('subscribed') !== 'true') return
+    const plan = sp.get('plan') || 'pro'
+    const cycle = (sp.get('cycle') === 'annual' ? 'annual' : 'monthly') as 'monthly' | 'annual'
+    const pricing: Record<string, { monthly: number; annual: number }> = {
+      demarrage: { monthly: 39, annual: 420 },
+      pro: { monthly: 79, annual: 852 },
+      croissance: { monthly: 149, annual: 1608 },
+    }
+    const amount = pricing[plan]?.[cycle] ?? 0
+    trackSubscribed({ plan, cycle, value: amount })
+    // Clean the URL so refreshes don't double-fire.
+    sp.delete('subscribed'); sp.delete('session_id')
+    const clean = window.location.pathname + (sp.toString() ? `?${sp}` : '')
+    window.history.replaceState(null, '', clean)
   }, [])
 
   // ───── Fetch everything in parallel ─────

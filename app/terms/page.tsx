@@ -120,8 +120,8 @@ export default function TermsPage() {
             <p className="mt-3">
               <strong>{lang === 'fr' ? 'Remboursements : ' : 'Refunds: '}</strong>
               {lang === 'fr'
-                ? 'Nous offrons un essai gratuit de 14 jours. Après l\'essai, les paiements d\'abonnement ne sont pas remboursables sauf si requis par la loi applicable. Si vous croyez qu\'un frais a été prélevé par erreur, contactez billing@gestivio.ca dans les 30 jours.'
-                : 'We offer a 14-day free trial. After the trial, subscription payments are non-refundable except as required by applicable law. If you believe a charge was made in error, contact billing@gestivio.ca within 30 days.'}
+                ? 'Nous offrons un essai gratuit de 14 jours. Après l\'essai, les paiements d\'abonnement ne sont pas remboursables sauf si requis par la loi applicable. Si vous croyez qu\'un frais a été prélevé par erreur, contactez support@gestivio.ca dans les 30 jours.'
+                : 'We offer a 14-day free trial. After the trial, subscription payments are non-refundable except as required by applicable law. If you believe a charge was made in error, contact support@gestivio.ca within 30 days.'}
             </p>
           </section>
 
@@ -259,7 +259,7 @@ export default function TermsPage() {
             </h2>
             <div className="rounded-xl bg-gray-50 p-4 space-y-1">
               <p><strong>Gestivio Inc.</strong></p>
-              <p>{lang === 'fr' ? 'Courriel : ' : 'Email: '}legal@gestivio.ca</p>
+              <p>{lang === 'fr' ? 'Courriel : ' : 'Email: '}support@gestivio.ca</p>
               <p>{lang === 'fr' ? 'Adresse : Québec, Canada' : 'Address: Québec, Canada'}</p>
             </div>
           </section>

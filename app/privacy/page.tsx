@@ -238,8 +238,8 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-3">
               {lang === 'fr'
-                ? <>Pour exercer ces droits, contactez-nous à <strong>privacy@gestivio.ca</strong>. Nous répondrons dans les 30 jours.</>
-                : <>To exercise these rights, contact us at <strong>privacy@gestivio.ca</strong>. We will respond within 30 days.</>}
+                ? <>Pour exercer ces droits, contactez-nous à <strong>support@gestivio.ca</strong>. Nous répondrons dans les 30 jours.</>
+                : <>To exercise these rights, contact us at <strong>support@gestivio.ca</strong>. We will respond within 30 days.</>}
             </p>
           </section>
 
@@ -287,7 +287,7 @@ export default function PrivacyPage() {
             </p>
             <div className="mt-3 rounded-xl bg-gray-50 p-4 space-y-1">
               <p><strong>{lang === 'fr' ? 'Responsable de la vie privée, Gestivio Inc.' : 'Privacy Officer, Gestivio Inc.'}</strong></p>
-              <p>{lang === 'fr' ? 'Courriel : ' : 'Email: '}privacy@gestivio.ca</p>
+              <p>{lang === 'fr' ? 'Courriel : ' : 'Email: '}support@gestivio.ca</p>
               <p>{lang === 'fr' ? 'Adresse : Québec, Canada' : 'Address: Québec, Canada'}</p>
             </div>
             <p className="mt-3">

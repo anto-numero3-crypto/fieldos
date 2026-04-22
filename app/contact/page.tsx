@@ -19,20 +19,23 @@ export default function ContactPage() {
     setSending(true)
     setError('')
     try {
-      await fetch('/api/email', {
+      const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: 'hello@gestivio.ca',
-          subject: `Contact form: ${form.subject}`,
-          body: `Name: ${form.name}\nEmail: ${form.email}\nCompany: ${form.company}\n\nMessage:\n${form.message}`,
+          name: form.name,
+          email: form.email,
+          company: form.company,
+          subject: form.subject,
+          message: form.message,
         }),
       })
+      if (!res.ok) throw new Error(await res.text())
       setSent(true)
     } catch {
       setError(lang === 'fr'
-        ? 'Échec de l\'envoi du message. Veuillez nous écrire directement à hello@gestivio.ca'
-        : 'Failed to send message. Please email us directly at hello@gestivio.ca')
+        ? 'Échec de l\'envoi du message. Veuillez nous écrire directement à support@gestivio.ca'
+        : 'Failed to send message. Please email us directly at support@gestivio.ca')
     } finally {
       setSending(false)
     }
@@ -155,7 +158,7 @@ export default function ContactPage() {
                 {lang === 'fr' ? 'Coordonnées' : 'Contact information'}
               </h3>
               {[
-                { icon: Mail, label: lang === 'fr' ? 'Courriel' : 'Email', value: 'hello@gestivio.ca', href: 'mailto:hello@gestivio.ca' },
+                { icon: Mail, label: lang === 'fr' ? 'Courriel' : 'Email', value: 'support@gestivio.ca', href: 'mailto:support@gestivio.ca' },
                 { icon: Phone, label: lang === 'fr' ? 'Téléphone' : 'Phone', value: lang === 'fr' ? 'Bientôt disponible' : 'Coming soon', href: null },
                 { icon: MapPin, label: lang === 'fr' ? 'Emplacement' : 'Location', value: lang === 'fr' ? 'Québec, Canada' : 'Québec, Canada', href: null },
               ].map((item) => (

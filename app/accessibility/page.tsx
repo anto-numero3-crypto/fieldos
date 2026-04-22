@@ -162,10 +162,7 @@ export default function AccessibilityPage() {
             </p>
             <div className="mt-3 rounded-xl bg-gray-50 p-4">
               <p><strong>{lang === 'fr' ? 'Coordonnateur de l\'accessibilité, Gestivio Inc.' : 'Accessibility Coordinator, Gestivio Inc.'}</strong></p>
-              <p>{lang === 'fr' ? 'Courriel : ' : 'Email: '}accessibility@gestivio.ca</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {lang === 'fr' ? 'Nous visons à répondre dans les 5 jours ouvrables.' : 'We aim to respond within 5 business days.'}
-              </p>
+              <p>{lang === 'fr' ? 'Courriel : ' : 'Email: '}support@gestivio.ca</p>
             </div>
           </section>
 

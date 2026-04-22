@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({
           to: user.email,
           subject: 'Votre compte Gestivio a été supprimé / Your Gestivio account has been deleted',
-          body: `Votre compte Gestivio et toutes les données associées ont été supprimés définitivement. Si ce n'était pas vous, contactez-nous immédiatement à security@gestivio.ca.\n\nYour Gestivio account and all associated data have been permanently deleted. If this wasn't you, contact us immediately at security@gestivio.ca.`,
+          body: `Votre compte Gestivio et toutes les données associées ont été supprimés définitivement. Si ce n'était pas vous, contactez-nous immédiatement à support@gestivio.ca.\n\nYour Gestivio account and all associated data have been permanently deleted. If this wasn't you, contact us immediately at support@gestivio.ca.`,
         }),
       })
     } catch {

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 
 function adminClient() {
   return createClient(
@@ -21,6 +22,8 @@ async function sendEmail(payload: Record<string, unknown>) {
 }
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, { key: 'booking-custom', limit: 15, windowMs: 60 * 60 * 1000 })
+  if (limited) return limited
   const body = await req.json()
   const {
     orgSlug,

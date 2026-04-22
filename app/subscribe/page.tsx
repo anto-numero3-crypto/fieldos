@@ -5,6 +5,7 @@ import { supabase } from '../supabase'
 import { toast } from 'sonner'
 import { useLanguage } from '@/lib/LanguageContext'
 import { PLAN_PRICING } from '@/lib/plan-limits'
+import { trackCheckoutStarted } from '@/lib/analytics'
 import { Check, Loader2, Sparkles, Tag, X } from 'lucide-react'
 import GestivioLogo from '@/components/GestivioLogo'
 
@@ -93,6 +94,8 @@ export default function SubscribePage() {
         setLoading(null)
         return
       }
+      const pricing = { demarrage: { monthly: 39, annual: 420 }, pro: { monthly: 79, annual: 852 }, croissance: { monthly: 149, annual: 1608 } }
+      trackCheckoutStarted({ plan: planId, cycle, value: pricing[planId][cycle === 'annual' ? 'annual' : 'monthly'] })
       window.location.href = data.url
     } catch (err) {
       console.error('[subscribe]', err)

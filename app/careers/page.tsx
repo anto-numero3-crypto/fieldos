@@ -39,7 +39,7 @@ export default function CareersPage() {
         </p>
         <p className="text-gray-500 mb-8">
           {lang === 'fr' ? 'Entre-temps, envoyez votre CV à ' : 'In the meantime, send your résumé to '}
-          <a href="mailto:jobs@gestivio.ca" className="text-indigo-600 hover:underline">jobs@gestivio.ca</a>
+          <a href="mailto:support@gestivio.ca" className="text-indigo-600 hover:underline">support@gestivio.ca</a>
         </p>
         <Link href="/" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
           {lang === 'fr' ? 'Retour à l\'accueil' : 'Back to homepage'} <ArrowRight className="h-4 w-4" />

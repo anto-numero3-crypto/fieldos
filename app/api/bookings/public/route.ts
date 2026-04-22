@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 
 function adminClient() {
   return createClient(
@@ -22,6 +23,8 @@ async function sendEmail(payload: Record<string, unknown>) {
 
 // POST /api/bookings/public — create a booking from public booking page
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, { key: 'booking-public', limit: 15, windowMs: 60 * 60 * 1000 })
+  if (limited) return limited
   const body = await req.json()
   const {
     orgSlug,

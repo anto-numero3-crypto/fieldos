@@ -39,7 +39,7 @@ export default function PressPage() {
         </p>
         <div className="flex items-center gap-2 text-gray-500 mb-8">
           <Mail className="h-4 w-4" />
-          <a href="mailto:press@gestivio.ca" className="text-indigo-600 hover:underline">press@gestivio.ca</a>
+          <a href="mailto:support@gestivio.ca" className="text-indigo-600 hover:underline">support@gestivio.ca</a>
         </div>
         <Link href="/" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors">
           {lang === 'fr' ? 'Retour à l\'accueil' : 'Back to homepage'} <ArrowRight className="h-4 w-4" />

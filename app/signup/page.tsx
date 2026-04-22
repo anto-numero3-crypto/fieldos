@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { supabase } from '../supabase'
 import { useLanguage } from '@/lib/LanguageContext'
+import { trackSignup } from '@/lib/analytics'
 import {
   Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle,
   ArrowLeft, ArrowRight, Building2, Phone, MapPin, RefreshCw,
@@ -147,6 +148,7 @@ export default function SignupPage() {
           body: JSON.stringify({ type: 'welcome_trial', to: email, name: business || undefined }),
         })
       } catch { /* ignore */ }
+      trackSignup({ method: 'email' })
       setCooldown(60)
       setStep('done')
     }

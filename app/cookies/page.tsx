@@ -202,8 +202,8 @@ export default function CookiesPage() {
             </h2>
             <p>
               {lang === 'fr'
-                ? <>Questions sur notre utilisation des témoins ? Contactez-nous à <strong>privacy@gestivio.ca</strong>.</>
-                : <>Questions about our use of cookies? Contact us at <strong>privacy@gestivio.ca</strong>.</>}
+                ? <>Questions sur notre utilisation des témoins ? Contactez-nous à <strong>support@gestivio.ca</strong>.</>
+                : <>Questions about our use of cookies? Contact us at <strong>support@gestivio.ca</strong>.</>}
             </p>
           </section>
         </div>

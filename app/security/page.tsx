@@ -200,12 +200,12 @@ export default function SecurityPage() {
               : 'If you discover a security vulnerability in Gestivio, please report it responsibly. We will investigate all reports promptly and publicly acknowledge valid discoveries.'}
           </p>
           <p className="text-sm text-gray-700">
-            {lang === 'fr' ? 'Contact : ' : 'Contact: '}<strong>security@gestivio.ca</strong>
+            {lang === 'fr' ? 'Contact : ' : 'Contact: '}<strong>support@gestivio.ca</strong>
           </p>
           <p className="text-xs text-gray-500 mt-2">
             {lang === 'fr'
-              ? 'Veuillez ne pas divulguer publiquement les vulnérabilités avant que nous ayons eu la chance d\'y remédier. Nous visons à répondre à tous les rapports de sécurité dans les 48 heures.'
-              : 'Please do not publicly disclose vulnerabilities before we have had a chance to address them. We aim to respond to all security reports within 48 hours.'}
+              ? 'Veuillez ne pas divulguer publiquement les vulnérabilités avant que nous ayons eu la chance d\'y remédier.'
+              : 'Please do not publicly disclose vulnerabilities before we have had a chance to address them.'}
           </p>
         </div>
       </div>
