@@ -113,6 +113,45 @@ function jobDuration(j: Job): number {
   return e - s
 }
 
+// Lane-packing for overlapping jobs in a single day.
+// Returns a map of jobId → { lane, laneCount } so overlapping jobs render
+// side-by-side (lane = column index; laneCount = total columns in its cluster).
+function computeJobLanes(dayJobs: Job[]): Map<string, { lane: number; laneCount: number }> {
+  const out = new Map<string, { lane: number; laneCount: number }>()
+  const timed = dayJobs
+    .filter((j) => j.start_time)
+    .map((j) => {
+      const s = minutesFromTime(j.start_time) as number
+      return { job: j, start: s, end: s + jobDuration(j) }
+    })
+    .sort((a, b) => a.start - b.start || a.end - b.end)
+
+  let cluster: { id: string; lane: number }[] = []
+  let laneEnds: number[] = []
+
+  const flush = () => {
+    const laneCount = laneEnds.length
+    for (const c of cluster) out.set(c.id, { lane: c.lane, laneCount })
+    cluster = []
+    laneEnds = []
+  }
+
+  for (const e of timed) {
+    // If this event starts at/after every active lane's end, the cluster is done.
+    if (laneEnds.length > 0 && laneEnds.every((end) => end <= e.start)) flush()
+    let lane = laneEnds.findIndex((end) => end <= e.start)
+    if (lane === -1) {
+      lane = laneEnds.length
+      laneEnds.push(e.end)
+    } else {
+      laneEnds[lane] = e.end
+    }
+    cluster.push({ id: e.job.id, lane })
+  }
+  flush()
+  return out
+}
+
 // ---------- Component ----------
 
 export default function SchedulePage() {
@@ -514,10 +553,12 @@ function TimeGridView(props: {
                   />
                 ))}
 
-                {/* Job blocks */}
-                {jobsByDay[i]
-                  .filter((j) => j.start_time)
-                  .map((job) => {
+                {/* Job blocks (lane-packed so overlapping jobs render side-by-side) */}
+                {(() => {
+                  const lanes = computeJobLanes(jobsByDay[i])
+                  return jobsByDay[i]
+                    .filter((j) => j.start_time)
+                    .map((job) => {
                     const startMin = minutesFromTime(job.start_time) as number
                     const dur = jobDuration(job)
                     const top = Math.max(0, startMin - HOUR_START * 60)
@@ -526,6 +567,10 @@ function TimeGridView(props: {
                     const cfg = JOB_STATUS_CONFIG[eff] || JOB_STATUS_CONFIG.scheduled
                     const bg = isDark ? cfg.darkBg : cfg.bg
                     const text = isDark ? cfg.darkText : cfg.text
+                    const slot = lanes.get(job.id) || { lane: 0, laneCount: 1 }
+                    const gap = 2 // px between adjacent lanes
+                    const leftPct = (slot.lane / slot.laneCount) * 100
+                    const widthPct = 100 / slot.laneCount
                     return (
                       <button
                         key={job.id}
@@ -535,8 +580,8 @@ function TimeGridView(props: {
                         style={{
                           top,
                           height,
-                          left: 3,
-                          width: 'calc(100% - 6px)',
+                          left: `calc(${leftPct}% + ${slot.lane === 0 ? 3 : gap / 2}px)`,
+                          width: `calc(${widthPct}% - ${slot.lane === 0 || slot.lane === slot.laneCount - 1 ? 3 + gap / 2 : gap}px)`,
                           backgroundColor: bg,
                           borderLeft: `3px solid ${cfg.border}`,
                           color: text,
@@ -554,7 +599,8 @@ function TimeGridView(props: {
                         )}
                       </button>
                     )
-                  })}
+                  })
+                })()}
 
                 {/* Current-time solid dot segment (thicker line on today) */}
                 {nowVisible && isToday && (
