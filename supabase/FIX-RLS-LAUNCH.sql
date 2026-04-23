@@ -9,6 +9,10 @@
 -- and services across all tenants. This locks every table down to the
 -- tenant that owns the row while keeping the public booking portal working.
 --
+-- Note: all auth.uid() comparisons are cast to text on both sides because
+-- different tables store user_id as UUID or TEXT. ::text cast is safe
+-- either way.
+--
 -- Safe to re-run: every statement is idempotent (ENABLE RLS is a no-op if
 -- already on; DROP POLICY IF EXISTS + CREATE POLICY is a clean replace).
 -- ═══════════════════════════════════════════════════════════════════
@@ -67,13 +71,13 @@ BEGIN
     EXECUTE format('DROP POLICY IF EXISTS %I_update ON public.%I', t, t);
     EXECUTE format('DROP POLICY IF EXISTS %I_delete ON public.%I', t, t);
     EXECUTE format(
-      'CREATE POLICY %I_select ON public.%I FOR SELECT TO authenticated USING (auth.uid() = user_id)', t, t);
+      'CREATE POLICY %I_select ON public.%I FOR SELECT TO authenticated USING ((auth.uid())::text = (user_id)::text)', t, t);
     EXECUTE format(
-      'CREATE POLICY %I_insert ON public.%I FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id)', t, t);
+      'CREATE POLICY %I_insert ON public.%I FOR INSERT TO authenticated WITH CHECK ((auth.uid())::text = (user_id)::text)', t, t);
     EXECUTE format(
-      'CREATE POLICY %I_update ON public.%I FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id)', t, t);
+      'CREATE POLICY %I_update ON public.%I FOR UPDATE TO authenticated USING ((auth.uid())::text = (user_id)::text) WITH CHECK ((auth.uid())::text = (user_id)::text)', t, t);
     EXECUTE format(
-      'CREATE POLICY %I_delete ON public.%I FOR DELETE TO authenticated USING (auth.uid() = user_id)', t, t);
+      'CREATE POLICY %I_delete ON public.%I FOR DELETE TO authenticated USING ((auth.uid())::text = (user_id)::text)', t, t);
   END LOOP;
 END $$;
 
@@ -86,11 +90,11 @@ DROP POLICY IF EXISTS organizations_insert ON public.organizations;
 DROP POLICY IF EXISTS organizations_update ON public.organizations;
 
 CREATE POLICY organizations_select ON public.organizations
-  FOR SELECT TO authenticated USING (auth.uid() = owner_user_id);
+  FOR SELECT TO authenticated USING ((auth.uid())::text = (owner_user_id)::text);
 CREATE POLICY organizations_insert ON public.organizations
-  FOR INSERT TO authenticated WITH CHECK (auth.uid() = owner_user_id);
+  FOR INSERT TO authenticated WITH CHECK ((auth.uid())::text = (owner_user_id)::text);
 CREATE POLICY organizations_update ON public.organizations
-  FOR UPDATE TO authenticated USING (auth.uid() = owner_user_id) WITH CHECK (auth.uid() = owner_user_id);
+  FOR UPDATE TO authenticated USING ((auth.uid())::text = (owner_user_id)::text) WITH CHECK ((auth.uid())::text = (owner_user_id)::text);
 -- No DELETE from client; service role handles account deletion.
 
 
@@ -102,11 +106,11 @@ DROP POLICY IF EXISTS profiles_insert ON public.profiles;
 DROP POLICY IF EXISTS profiles_update ON public.profiles;
 
 CREATE POLICY profiles_select ON public.profiles
-  FOR SELECT TO authenticated USING (auth.uid() = id);
+  FOR SELECT TO authenticated USING ((auth.uid())::text = (id)::text);
 CREATE POLICY profiles_insert ON public.profiles
-  FOR INSERT TO authenticated WITH CHECK (auth.uid() = id);
+  FOR INSERT TO authenticated WITH CHECK ((auth.uid())::text = (id)::text);
 CREATE POLICY profiles_update ON public.profiles
-  FOR UPDATE TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+  FOR UPDATE TO authenticated USING ((auth.uid())::text = (id)::text) WITH CHECK ((auth.uid())::text = (id)::text);
 
 
 -- ────────────────────────────────────────────────────────────────────
@@ -117,11 +121,11 @@ DROP POLICY IF EXISTS team_members_select_member ON public.team_members;
 DROP POLICY IF EXISTS team_members_modify_owner  ON public.team_members;
 
 CREATE POLICY team_members_select_owner ON public.team_members
-  FOR SELECT TO authenticated USING (auth.uid() = user_id);
+  FOR SELECT TO authenticated USING ((auth.uid())::text = (user_id)::text);
 CREATE POLICY team_members_select_member ON public.team_members
-  FOR SELECT TO authenticated USING (auth.uid() = member_user_id);
+  FOR SELECT TO authenticated USING ((auth.uid())::text = (member_user_id)::text);
 CREATE POLICY team_members_modify_owner ON public.team_members
-  FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+  FOR ALL TO authenticated USING ((auth.uid())::text = (user_id)::text) WITH CHECK ((auth.uid())::text = (user_id)::text);
 
 
 -- ────────────────────────────────────────────────────────────────────
@@ -138,21 +142,21 @@ BEGIN
     EXECUTE format('DROP POLICY IF EXISTS %I_delete ON public.%I', t, t);
     EXECUTE format($q$
       CREATE POLICY %I_select ON public.%I FOR SELECT TO authenticated USING (
-        EXISTS (SELECT 1 FROM public.organizations o WHERE o.id = %I.org_id AND o.owner_user_id = auth.uid())
+        EXISTS (SELECT 1 FROM public.organizations o WHERE (o.id)::text = (%I.org_id)::text AND (o.owner_user_id)::text = (auth.uid())::text)
       )$q$, t, t, t);
     EXECUTE format($q$
       CREATE POLICY %I_insert ON public.%I FOR INSERT TO authenticated WITH CHECK (
-        EXISTS (SELECT 1 FROM public.organizations o WHERE o.id = %I.org_id AND o.owner_user_id = auth.uid())
+        EXISTS (SELECT 1 FROM public.organizations o WHERE (o.id)::text = (%I.org_id)::text AND (o.owner_user_id)::text = (auth.uid())::text)
       )$q$, t, t, t);
     EXECUTE format($q$
       CREATE POLICY %I_update ON public.%I FOR UPDATE TO authenticated USING (
-        EXISTS (SELECT 1 FROM public.organizations o WHERE o.id = %I.org_id AND o.owner_user_id = auth.uid())
+        EXISTS (SELECT 1 FROM public.organizations o WHERE (o.id)::text = (%I.org_id)::text AND (o.owner_user_id)::text = (auth.uid())::text)
       ) WITH CHECK (
-        EXISTS (SELECT 1 FROM public.organizations o WHERE o.id = %I.org_id AND o.owner_user_id = auth.uid())
+        EXISTS (SELECT 1 FROM public.organizations o WHERE (o.id)::text = (%I.org_id)::text AND (o.owner_user_id)::text = (auth.uid())::text)
       )$q$, t, t, t, t);
     EXECUTE format($q$
       CREATE POLICY %I_delete ON public.%I FOR DELETE TO authenticated USING (
-        EXISTS (SELECT 1 FROM public.organizations o WHERE o.id = %I.org_id AND o.owner_user_id = auth.uid())
+        EXISTS (SELECT 1 FROM public.organizations o WHERE (o.id)::text = (%I.org_id)::text AND (o.owner_user_id)::text = (auth.uid())::text)
       )$q$, t, t, t);
   END LOOP;
 END $$;
@@ -167,15 +171,15 @@ DROP POLICY IF EXISTS job_assignments_delete ON public.job_assignments;
 
 CREATE POLICY job_assignments_select ON public.job_assignments
   FOR SELECT TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.jobs j WHERE j.id = job_assignments.job_id AND j.user_id = auth.uid())
+    EXISTS (SELECT 1 FROM public.jobs j WHERE (j.id)::text = (job_assignments.job_id)::text AND (j.user_id)::text = (auth.uid())::text)
   );
 CREATE POLICY job_assignments_insert ON public.job_assignments
   FOR INSERT TO authenticated WITH CHECK (
-    EXISTS (SELECT 1 FROM public.jobs j WHERE j.id = job_assignments.job_id AND j.user_id = auth.uid())
+    EXISTS (SELECT 1 FROM public.jobs j WHERE (j.id)::text = (job_assignments.job_id)::text AND (j.user_id)::text = (auth.uid())::text)
   );
 CREATE POLICY job_assignments_delete ON public.job_assignments
   FOR DELETE TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.jobs j WHERE j.id = job_assignments.job_id AND j.user_id = auth.uid())
+    EXISTS (SELECT 1 FROM public.jobs j WHERE (j.id)::text = (job_assignments.job_id)::text AND (j.user_id)::text = (auth.uid())::text)
   );
 
 
@@ -185,14 +189,13 @@ CREATE POLICY job_assignments_delete ON public.job_assignments
 DROP POLICY IF EXISTS payments_select ON public.payments;
 CREATE POLICY payments_select ON public.payments
   FOR SELECT TO authenticated USING (
-    EXISTS (SELECT 1 FROM public.invoices i WHERE i.id = payments.invoice_id AND i.user_id = auth.uid())
+    EXISTS (SELECT 1 FROM public.invoices i WHERE (i.id)::text = (payments.invoice_id)::text AND (i.user_id)::text = (auth.uid())::text)
   );
 -- Writes happen only via service role (Stripe webhook).
 
 
 -- ────────────────────────────────────────────────────────────────────
 -- 9. booking_requests — public INSERT (booking portal) but owner-only reads
---    The public booking form submits a row; only the merchant sees it.
 -- ────────────────────────────────────────────────────────────────────
 DROP POLICY IF EXISTS booking_requests_select ON public.booking_requests;
 DROP POLICY IF EXISTS booking_requests_insert_public ON public.booking_requests;
@@ -201,13 +204,13 @@ DROP POLICY IF EXISTS booking_requests_update ON public.booking_requests;
 DROP POLICY IF EXISTS booking_requests_delete ON public.booking_requests;
 
 CREATE POLICY booking_requests_select ON public.booking_requests
-  FOR SELECT TO authenticated USING (auth.uid() = user_id);
+  FOR SELECT TO authenticated USING ((auth.uid())::text = (user_id)::text);
 CREATE POLICY booking_requests_insert_public ON public.booking_requests
   FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY booking_requests_update ON public.booking_requests
-  FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+  FOR UPDATE TO authenticated USING ((auth.uid())::text = (user_id)::text) WITH CHECK ((auth.uid())::text = (user_id)::text);
 CREATE POLICY booking_requests_delete ON public.booking_requests
-  FOR DELETE TO authenticated USING (auth.uid() = user_id);
+  FOR DELETE TO authenticated USING ((auth.uid())::text = (user_id)::text);
 
 
 -- ────────────────────────────────────────────────────────────────────
@@ -223,13 +226,13 @@ DROP POLICY IF EXISTS services_delete ON public.services;
 CREATE POLICY services_select_public ON public.services
   FOR SELECT TO anon, authenticated USING (is_active = true);
 CREATE POLICY services_select_owner ON public.services
-  FOR SELECT TO authenticated USING (auth.uid() = user_id);
+  FOR SELECT TO authenticated USING ((auth.uid())::text = (user_id)::text);
 CREATE POLICY services_insert ON public.services
-  FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+  FOR INSERT TO authenticated WITH CHECK ((auth.uid())::text = (user_id)::text);
 CREATE POLICY services_update ON public.services
-  FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+  FOR UPDATE TO authenticated USING ((auth.uid())::text = (user_id)::text) WITH CHECK ((auth.uid())::text = (user_id)::text);
 CREATE POLICY services_delete ON public.services
-  FOR DELETE TO authenticated USING (auth.uid() = user_id);
+  FOR DELETE TO authenticated USING ((auth.uid())::text = (user_id)::text);
 
 
 -- ────────────────────────────────────────────────────────────────────
@@ -247,18 +250,17 @@ BEGIN
     EXECUTE format(
       'CREATE POLICY %I_select_public ON public.%I FOR SELECT TO anon, authenticated USING (true)', t, t);
     EXECUTE format(
-      'CREATE POLICY %I_insert ON public.%I FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id)', t, t);
+      'CREATE POLICY %I_insert ON public.%I FOR INSERT TO authenticated WITH CHECK ((auth.uid())::text = (user_id)::text)', t, t);
     EXECUTE format(
-      'CREATE POLICY %I_update ON public.%I FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id)', t, t);
+      'CREATE POLICY %I_update ON public.%I FOR UPDATE TO authenticated USING ((auth.uid())::text = (user_id)::text) WITH CHECK ((auth.uid())::text = (user_id)::text)', t, t);
     EXECUTE format(
-      'CREATE POLICY %I_delete ON public.%I FOR DELETE TO authenticated USING (auth.uid() = user_id)', t, t);
+      'CREATE POLICY %I_delete ON public.%I FOR DELETE TO authenticated USING ((auth.uid())::text = (user_id)::text)', t, t);
   END LOOP;
 END $$;
 
 
 -- ────────────────────────────────────────────────────────────────────
 -- 12. promo_codes, promo_code_attempts — no client access.
---     The /api/promo/* routes use the service role key (bypasses RLS).
 -- ────────────────────────────────────────────────────────────────────
 DROP POLICY IF EXISTS promo_codes_no_anon ON public.promo_codes;
 DROP POLICY IF EXISTS promo_code_attempts_no_anon ON public.promo_code_attempts;
@@ -268,16 +270,13 @@ CREATE POLICY promo_codes_no_anon ON public.promo_codes
 CREATE POLICY promo_code_attempts_no_anon ON public.promo_code_attempts
   FOR ALL TO anon, authenticated USING (false) WITH CHECK (false);
 
--- promo_code_redemptions: users can see their own redemption history.
 DROP POLICY IF EXISTS promo_code_redemptions_select ON public.promo_code_redemptions;
 CREATE POLICY promo_code_redemptions_select ON public.promo_code_redemptions
-  FOR SELECT TO authenticated USING (auth.uid() = user_id);
+  FOR SELECT TO authenticated USING ((auth.uid())::text = (user_id)::text);
 
 
 -- ────────────────────────────────────────────────────────────────────
 -- 13. newsletter_subscribers — no client access.
---     Writes happen from the /api/newsletter/subscribe route using
---     the service role key; nobody needs to read this client-side.
 -- ────────────────────────────────────────────────────────────────────
 DROP POLICY IF EXISTS newsletter_no_anon ON public.newsletter_subscribers;
 CREATE POLICY newsletter_no_anon ON public.newsletter_subscribers
@@ -287,5 +286,4 @@ CREATE POLICY newsletter_no_anon ON public.newsletter_subscribers
 -- ────────────────────────────────────────────────────────────────────
 -- 14. Post-check — every table should show rowsecurity = true
 -- ────────────────────────────────────────────────────────────────────
--- Run this manually after the migration to confirm:
 -- SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;
