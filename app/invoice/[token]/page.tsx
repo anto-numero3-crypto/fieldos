@@ -2,7 +2,6 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
-import { createClient } from '@supabase/supabase-js'
 import { CheckCircle, Clock, AlertCircle, CreditCard, Phone, Mail, Printer, Lock } from 'lucide-react'
 import { fmtMoney, fmtDate } from '@/lib/format'
 import { secureUrl } from '@/lib/secure-url'
@@ -66,11 +65,6 @@ interface OrgData {
   other_licence_number?: string | null
 }
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 // Legacy formatter kept for backward compat with any remaining usages
 const fmt = (n: number) =>
   `$${parseFloat(String(n || 0)).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -91,48 +85,28 @@ function PublicInvoiceContent() {
 
   useEffect(() => {
     const load = async () => {
-      // Step 1: fetch invoice by token
-      const { data: invData, error } = await supabase
-        .from('invoices')
-        .select(`
-          id, user_id, token, invoice_number, amount, subtotal,
-          tax_rate, tax_amount, tax_name,
-          tax2_rate, tax2_amount, tax2_name,
-          discount, status, due_date, created_at, paid_at,
-          client_notes, terms, line_items,
-          customers(name, email, phone, address)
-        `)
-        .eq('token', token)
-        .single()
-
-      if (error || !invData) {
-        setNotFound(true)
-        setLoading(false)
-        return
-      }
-
-      setInvoice(invData as unknown as PublicInvoice)
-
-      // Step 2: fetch org separately by owner_user_id
-      if (invData.user_id) {
-        const { data: orgData } = await supabase
-          .from('organizations')
-          .select('name, email, phone, address, city, state, zip, tax_number, logo_url, stripe_connect_charges_enabled, plan, tps_number, tvq_number, neq_number, rbq_number, cmeq_number, cmmtq_number, other_licence_name, other_licence_number')
-          .eq('owner_user_id', invData.user_id)
-          .single()
+      // Public invoice view no longer reads Supabase directly — the API route
+      // uses the service role server-side so RLS on invoices stays locked.
+      try {
+        const res = await fetch(`/api/invoices/public/${token}`)
+        if (!res.ok) { setNotFound(true); setLoading(false); return }
+        const { invoice: invData, org: orgData } = await res.json()
+        if (!invData) { setNotFound(true); setLoading(false); return }
+        setInvoice(invData as PublicInvoice)
         if (orgData) setOrg(orgData as OrgData)
-      }
 
-      // Mark as viewed via track-view API (fire-and-forget, ignore errors)
-      if (invData.status !== 'paid') {
-        fetch('/api/invoices/track-view', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token }),
-        }).catch(() => {})
+        if (invData.status !== 'paid') {
+          fetch('/api/invoices/track-view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token }),
+          }).catch(() => {})
+        }
+      } catch {
+        setNotFound(true)
+      } finally {
+        setLoading(false)
       }
-
-      setLoading(false)
     }
     load()
   }, [token])
