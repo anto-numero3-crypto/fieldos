@@ -23,7 +23,7 @@ import { getEffectiveJobStatus } from '@/lib/job-status'
 import { JOB_COLORS } from '@/lib/status-colors'
 import {
   Briefcase, Plus, X, Calendar, User, CheckCircle,
-  Search, ChevronRight, MoreHorizontal, Trash2, Clock, Zap, Flag, Lock, Users,
+  Search, ChevronRight, MoreHorizontal, Trash2, Clock, Zap, Flag, Lock, Users, Wallet,
 } from 'lucide-react'
 import EmployeePicker from '@/components/EmployeePicker'
 
@@ -471,6 +471,28 @@ export default function JobsPage() {
                                       </button>
                                     ))}
                                     <div className="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
+                                      <button
+                                        onClick={async () => {
+                                          setMenuOpen(null)
+                                          const amtStr = window.prompt(fr ? 'Montant de l\'acompte ($)' : 'Deposit amount ($)')
+                                          const amt = Number(amtStr)
+                                          if (!Number.isFinite(amt) || amt <= 0) return
+                                          try {
+                                            const res = await fetch(`/api/jobs/${job.id}/request-deposit`, {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ amount: amt, sendEmail: true }),
+                                            })
+                                            const data = await res.json()
+                                            if (!res.ok) { toast.error(data.error || 'Erreur'); return }
+                                            try { await navigator.clipboard.writeText(data.link) } catch { /* ignore */ }
+                                            toast.success(fr ? `Lien d\'acompte copié — ${data.link}` : `Deposit link copied — ${data.link}`)
+                                          } catch { toast.error('Erreur') }
+                                        }}
+                                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-950/30 transition-colors"
+                                      >
+                                        <Wallet className="h-4 w-4" /> {fr ? 'Demander un acompte' : 'Request deposit'}
+                                      </button>
                                       <button onClick={() => deleteJob(job.id)} className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"><Trash2 className="h-4 w-4" /> {fr ? 'Supprimer' : 'Delete'}</button>
                                     </div>
                                   </div>

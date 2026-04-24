@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     const { data: invoice } = await supabase
       .from('invoices')
-      .select('id, user_id, amount, invoice_number, token, customers(name, email)')
+      .select('id, user_id, amount, deposit_amount_applied, invoice_number, token, customers(name, email)')
       .eq('id', invoiceId)
       .single()
 
@@ -31,9 +31,14 @@ export async function POST(req: NextRequest) {
 
     const customer = invoice.customers as unknown as { name: string; email?: string } | null
     const origin = req.headers.get('origin') || 'https://gestivio.ca'
-    const amountCents = Math.round(parseFloat(String(invoice.amount)) * 100)
+    // Charge the balance after any applied deposit credit.
+    const balanceDue = Math.max(
+      0,
+      parseFloat(String(invoice.amount)) - parseFloat(String(invoice.deposit_amount_applied || 0)),
+    )
+    const amountCents = Math.round(balanceDue * 100)
     if (!Number.isFinite(amountCents) || amountCents <= 0) {
-      return NextResponse.json({ error: 'Montant de facture invalide.' }, { status: 400 })
+      return NextResponse.json({ error: 'Aucun solde à payer.' }, { status: 400 })
     }
 
     // Resolve the business's Stripe Connect account (optional)

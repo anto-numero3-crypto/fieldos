@@ -18,8 +18,9 @@ import { ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   FileSignature, Plus, X, Search, User, Calendar, DollarSign,
-  Trash2, Send, ChevronRight, Tag, CheckCircle, Briefcase,
+  Trash2, Send, ChevronRight, Tag, CheckCircle, Briefcase, Link2, Wallet,
 } from 'lucide-react'
+import { computeDepositAmount } from '@/lib/deposit-math'
 
 interface LineItem { id: string; description: string; qty: number; unit_price: number }
 interface Quote {
@@ -27,6 +28,10 @@ interface Quote {
   created_at: string; quote_number: string | null
   customer_id?: string | null
   notes?: string | null
+  token?: string | null
+  deposit_required?: boolean | null
+  deposit_amount?: number | null
+  deposit_paid_at?: string | null
   customers: { name: string; email?: string | null } | null
 }
 interface Customer { id: string; name: string }
@@ -102,6 +107,11 @@ export default function QuotesPage() {
   const [taxRate, setTaxRate]     = useState(0)
   const [notes, setNotes]         = useState('')
   const [lineItems, setLineItems] = useState<LineItem[]>([newItem()])
+  // Deposit fields
+  const [depositRequired, setDepositRequired] = useState(false)
+  const [depositType, setDepositType] = useState<'percentage' | 'fixed'>('percentage')
+  const [depositValue, setDepositValue] = useState<number>(30)
+  const [depositTaxesIncluded, setDepositTaxesIncluded] = useState(false)
 
   useEffect(() => {
     const init = async () => {
@@ -142,6 +152,10 @@ export default function QuotesPage() {
     setTouched({ title: true })
     if (formInvalid) { toast.error(t.errors.required); return }
     setLoading(true)
+    const depositAmount = computeDepositAmount(
+      { required: depositRequired, type: depositType, value: depositValue, taxesIncluded: depositTaxesIncluded },
+      { subtotal, taxAmount, tax2Amount: 0, total },
+    )
     const { error } = await supabase.from('quotes').insert({
       user_id: user!.id,
       customer_id: customerId || null,
@@ -151,11 +165,17 @@ export default function QuotesPage() {
       subtotal, tax_rate: taxRate, tax_amount: taxAmount, total,
       valid_until: validUntil || null,
       notes: notes.trim() || null,
+      deposit_required: depositRequired,
+      deposit_type: depositRequired ? depositType : null,
+      deposit_value: depositRequired ? depositValue : null,
+      deposit_taxes_included: depositTaxesIncluded,
+      deposit_amount: depositRequired ? depositAmount : null,
     })
     if (error) { toast.error(error.message) }
     else {
       toast.success(t.success.created)
       setTitle(''); setCustId(''); setValidUntil(''); setTaxRate(0); setNotes(''); setLineItems([newItem()])
+      setDepositRequired(false); setDepositType('percentage'); setDepositValue(30); setDepositTaxesIncluded(false)
       await fetchQuotes(user!.id)
       setPanelOpen(false)
     }
@@ -163,7 +183,9 @@ export default function QuotesPage() {
   }
 
   const updateStatus = async (id: string, status: string) => {
-    await supabase.from('quotes').update({ status }).eq('id', id)
+    const patch: Record<string, unknown> = { status }
+    if (status === 'sent') patch.sent_at = new Date().toISOString()
+    await supabase.from('quotes').update(patch).eq('id', id)
     setQuotes((prev) => prev.map((q) => q.id === id ? { ...q, status } : q))
   }
 
@@ -280,10 +302,27 @@ export default function QuotesPage() {
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-1">
+                            {q.token && q.status !== 'draft' && (
+                              <button
+                                onClick={async () => {
+                                  const url = `${window.location.origin}/devis/${q.token}`
+                                  try { await navigator.clipboard.writeText(url); toast.success(fr ? 'Lien copié' : 'Link copied') } catch { toast.error('Clipboard unavailable') }
+                                }}
+                                className="rounded-lg p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                title={fr ? 'Copier le lien client' : 'Copy customer link'}
+                              >
+                                <Link2 className="h-4 w-4" />
+                              </button>
+                            )}
                             {q.status === 'draft' && (
                               <button onClick={() => updateStatus(q.id, 'sent')} className="rounded-lg p-1.5 text-blue-500 hover:bg-blue-50 transition-colors" title={fr ? 'Marquer comme envoyé' : 'Mark as sent'}>
                                 <Send className="h-4 w-4" />
                               </button>
+                            )}
+                            {q.deposit_required && q.deposit_paid_at && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 dark:bg-violet-950/40 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:text-violet-300" title={fr ? 'Acompte versé' : 'Deposit paid'}>
+                                <Wallet className="h-3 w-3" /> {fr ? 'Acompte' : 'Deposit'}
+                              </span>
                             )}
                             {ACCEPTABLE.has(q.status) && (
                               <button
@@ -421,6 +460,83 @@ export default function QuotesPage() {
                   <span>{fr ? 'Total' : 'Total'}</span>
                   <span className="text-indigo-600">{fmt(total)}</span>
                 </div>
+              </div>
+
+              {/* Deposit */}
+              <div className="rounded-xl border border-violet-100 dark:border-violet-950/50 bg-violet-50/30 dark:bg-violet-950/10 p-4 space-y-3">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={depositRequired}
+                    onChange={(e) => setDepositRequired(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-900 dark:text-white">
+                      <Wallet className="h-4 w-4 text-violet-600" />
+                      {fr ? 'Demander un acompte' : 'Require a deposit'}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {fr
+                        ? 'Le client paiera un acompte en acceptant le devis. Le reste sera facturé à la fin du travail.'
+                        : 'The customer pays a deposit when accepting the quote. The balance is billed when work is done.'}
+                    </p>
+                  </div>
+                </label>
+
+                {depositRequired && (
+                  <div className="pl-7 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="inline-flex rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setDepositType('percentage')}
+                          className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${depositType === 'percentage' ? 'bg-violet-600 text-white' : 'text-gray-500'}`}
+                        >%</button>
+                        <button
+                          type="button"
+                          onClick={() => setDepositType('fixed')}
+                          className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-all ${depositType === 'fixed' ? 'bg-violet-600 text-white' : 'text-gray-500'}`}
+                        >$</button>
+                      </div>
+                      <div className="relative flex-1 max-w-[120px]">
+                        {depositType === 'fixed' && (
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                        )}
+                        <input
+                          type="number"
+                          min={0}
+                          max={depositType === 'percentage' ? 100 : undefined}
+                          step={depositType === 'percentage' ? 1 : 0.01}
+                          value={depositValue}
+                          onChange={(e) => setDepositValue(parseFloat(e.target.value) || 0)}
+                          className={`block w-full rounded-lg border border-gray-200 dark:border-gray-700 ${depositType === 'fixed' ? 'pl-6' : 'pl-3'} pr-2 py-1.5 text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20`}
+                        />
+                        {depositType === 'percentage' && (
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">%</span>
+                        )}
+                      </div>
+                      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 ml-auto">
+                        = {fmt(computeDepositAmount(
+                          { required: depositRequired, type: depositType, value: depositValue, taxesIncluded: depositTaxesIncluded },
+                          { subtotal, taxAmount, tax2Amount: 0, total },
+                        ))}
+                      </span>
+                    </div>
+
+                    {depositType === 'percentage' && (
+                      <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={depositTaxesIncluded}
+                          onChange={(e) => setDepositTaxesIncluded(e.target.checked)}
+                          className="h-3.5 w-3.5 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+                        />
+                        {fr ? 'Calculer le pourcentage sur le total (taxes incluses)' : 'Apply percentage to total (taxes included)'}
+                      </label>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>

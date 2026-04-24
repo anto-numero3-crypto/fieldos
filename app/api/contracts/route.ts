@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
     price_per_visit, billing_type, billing_frequency,
     include_tps, include_tvq,
     notes, internal_notes, description,
+    deposit_required, deposit_type, deposit_value, deposit_taxes_included,
   } = body
 
   if (!title || !customer_id || !start_date || !end_date || !recurrence_type || !service_name) {
@@ -66,6 +67,21 @@ export async function POST(req: NextRequest) {
     : estimateVisitCount(start_date, end_date, recurrence_type, recurrence_days || [])
 
   const total_price = (price_per_visit || 0) * visitCount
+
+  // Compute deposit amount if required
+  let depositAmount: number | null = null
+  if (deposit_required && deposit_type && deposit_value) {
+    const tpsRate = include_tps !== false ? 0.05 : 0
+    const tvqRate = include_tvq !== false ? 0.09975 : 0
+    const withTax = total_price * (1 + tpsRate + tvqRate)
+    if (deposit_type === 'fixed') {
+      depositAmount = Math.min(Number(deposit_value), withTax)
+    } else {
+      const pct = Math.min(Math.max(Number(deposit_value), 0), 100) / 100
+      const base = deposit_taxes_included ? withTax : total_price
+      depositAmount = Math.round(base * pct * 100) / 100
+    }
+  }
 
   const { data, error } = await supabase
     .from('contracts')
@@ -93,6 +109,11 @@ export async function POST(req: NextRequest) {
       jobs_generated_count: 0,
       next_job_date: null,
       last_job_generated_at: null,
+      deposit_required: !!deposit_required,
+      deposit_type: deposit_required ? deposit_type : null,
+      deposit_value: deposit_required ? Number(deposit_value) || null : null,
+      deposit_taxes_included: !!deposit_taxes_included,
+      deposit_amount: depositAmount,
     })
     .select()
     .single()

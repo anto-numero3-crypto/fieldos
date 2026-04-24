@@ -40,6 +40,8 @@ interface PublicInvoice {
   client_notes: string | null
   terms: string | null
   line_items: LineItem[] | null
+  deposit_amount_applied: number | null
+  deposit_paid_date: string | null
   customers: { name: string; email: string | null; phone: string | null; address: string | null } | null
 }
 
@@ -461,11 +463,20 @@ function PublicInvoiceContent() {
               </div>
             </div>
 
-            {/* Amount due — prominent */}
+            {/* Amount due — prominent (shows balance after deposit if any) */}
             {!isPaid && (
               <div className="mx-6 sm:mx-8 mb-2 rounded-2xl bg-indigo-600 px-6 py-5 text-white text-center">
-                <p className="text-sm font-medium text-indigo-200 mb-1">{ti.amountDue}</p>
-                <p className="text-4xl font-black">{fmtMoney(total, lang)}</p>
+                <p className="text-sm font-medium text-indigo-200 mb-1">
+                  {(inv.deposit_amount_applied || 0) > 0 ? (fr ? 'Solde dû' : 'Balance due') : ti.amountDue}
+                </p>
+                <p className="text-4xl font-black">
+                  {fmtMoney(Math.max(0, total - (inv.deposit_amount_applied || 0)), lang)}
+                </p>
+                {(inv.deposit_amount_applied || 0) > 0 && (
+                  <p className="text-xs text-indigo-200 mt-1">
+                    {fr ? `Total: ${fmtMoney(total, lang)} − acompte versé: ${fmtMoney(inv.deposit_amount_applied || 0, lang)}` : `Total: ${fmtMoney(total, lang)} − deposit paid: ${fmtMoney(inv.deposit_amount_applied || 0, lang)}`}
+                  </p>
+                )}
               </div>
             )}
 
@@ -553,8 +564,29 @@ function PublicInvoiceContent() {
                 )}
                 <div className="flex justify-between w-full border-t border-gray-200 pt-2 mt-1">
                   <span className="font-bold text-gray-900">Total</span>
-                  <span className="text-2xl font-black text-gray-900">{fmtMoney(total, lang)}</span>
+                  <span className="text-xl font-bold text-gray-900">{fmtMoney(total, lang)}</span>
                 </div>
+                {(inv.deposit_amount_applied || 0) > 0 && (
+                  <>
+                    <div className="flex justify-between w-full text-sm">
+                      <span className="text-violet-700">
+                        {fr ? 'Acompte versé' : 'Deposit paid'}
+                        {inv.deposit_paid_date && (
+                          <span className="text-gray-400 ml-1">
+                            ({new Date(inv.deposit_paid_date).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA')})
+                          </span>
+                        )}
+                      </span>
+                      <span className="font-medium text-violet-700">-{fmtMoney(inv.deposit_amount_applied || 0, lang)}</span>
+                    </div>
+                    <div className="flex justify-between w-full border-t border-gray-200 pt-2 mt-1 bg-indigo-50 dark:bg-indigo-950/20 -mx-2 px-2 rounded-lg">
+                      <span className="font-bold text-indigo-900 dark:text-indigo-200">{fr ? 'Solde dû' : 'Balance due'}</span>
+                      <span className="text-2xl font-black text-indigo-900 dark:text-indigo-200">
+                        {fmtMoney(Math.max(0, total - (inv.deposit_amount_applied || 0)), lang)}
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 

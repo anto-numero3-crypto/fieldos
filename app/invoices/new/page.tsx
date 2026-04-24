@@ -280,17 +280,26 @@ export default function NewInvoicePage() {
       return
     }
     setSaving(true)
+    let newId: string | null = null
     if (draftId) {
       const { error } = await supabase.from('invoices').update(buildPayload('draft')).eq('id', draftId)
       if (error) { toast.error(error.message); setSaving(false); return }
-      toast.success(fr ? 'Brouillon sauvegardé' : 'Draft saved')
-      router.push(`/invoices/${draftId}`)
+      newId = draftId
     } else {
       const { data, error } = await supabase.from('invoices').insert(buildPayload('draft')).select('id').single()
       if (error) { toast.error(error.message); setSaving(false); return }
-      toast.success(fr ? 'Brouillon sauvegardé' : 'Draft saved')
-      router.push(`/invoices/${data.id}`)
+      newId = data.id
     }
+    // Auto-apply any paid deposit
+    try {
+      await fetch('/api/invoices/apply-deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoiceId: newId }),
+      })
+    } catch { /* non-fatal */ }
+    toast.success(fr ? 'Brouillon sauvegardé' : 'Draft saved')
+    router.push(`/invoices/${newId}`)
   }
 
   const saveAndSend = async () => {
@@ -310,6 +319,15 @@ export default function NewInvoicePage() {
       if (error) { toast.error(error.message); setSending(false); return }
       invoiceId = data.id
     }
+
+    // Auto-apply any paid deposit tied to the source quote/job
+    try {
+      await fetch('/api/invoices/apply-deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoiceId }),
+      })
+    } catch { /* non-fatal */ }
 
     // Send email
     const cust = customers.find((c) => c.id === customerId)

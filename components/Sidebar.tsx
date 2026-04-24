@@ -8,7 +8,7 @@ import { useLanguage } from '@/lib/LanguageContext'
 import {
   LayoutDashboard, Users, Briefcase, FileText, Sparkles, X, LogOut,
   Calendar, FileSignature, BarChart3, Settings, Users2,
-  Clock, Package,
+  Clock, Package, Wallet,
 } from 'lucide-react'
 import { isModuleEnabled } from '@/lib/modules'
 import GestivioLogo from '@/components/GestivioLogo'
@@ -38,6 +38,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       label: fr ? 'FINANCES' : 'FINANCES',
       items: [
         { href: '/invoices',  label: fr ? 'Factures' : 'Invoices',   icon: FileText },
+        { href: '/deposits',  label: fr ? 'Acomptes' : 'Deposits',   icon: Wallet },
         { href: '/customers', label: fr ? 'Clients' : 'Customers',   icon: Users },
       ],
     },

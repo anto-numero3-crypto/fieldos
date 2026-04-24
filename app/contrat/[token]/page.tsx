@@ -41,6 +41,12 @@ interface ContractData {
   client_signed_at: string | null
   client_signed_name: string | null
   fully_executed_at: string | null
+  deposit_required?: boolean
+  deposit_type?: 'fixed' | 'percentage' | null
+  deposit_value?: number | null
+  deposit_taxes_included?: boolean
+  deposit_amount?: number | null
+  deposit_paid_at?: string | null
 }
 
 interface OrgData {
@@ -53,6 +59,7 @@ interface OrgData {
   state: string | null
   zip: string | null
   tax_number: string | null
+  stripe_connect_charges_enabled?: boolean | null
 }
 
 export default function ContractApprovalPage() {
@@ -761,6 +768,38 @@ export default function ContractApprovalPage() {
                 {signing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
                 {fr ? 'Signer et approuver le contrat' : 'Sign and approve the contract'}
               </button>
+
+              {contract.deposit_required && contract.deposit_amount && (contract.deposit_paid_at ? (
+                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 px-4 py-3 flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0" />
+                  <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
+                    {fr ? `Acompte de ${fmtMoney(contract.deposit_amount, lang)} versé` : `Deposit of ${fmtMoney(contract.deposit_amount, lang)} paid`}
+                  </p>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('/api/stripe/deposit-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ source: 'contract', token: contract.approval_token }),
+                      })
+                      const data = await res.json()
+                      if (!res.ok || !data.url) throw new Error(data.error || 'Checkout failed')
+                      window.location.href = data.url
+                    } catch (e) {
+                      alert(e instanceof Error ? e.message : 'Erreur')
+                    }
+                  }}
+                  disabled={!org?.stripe_connect_charges_enabled}
+                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                  title={!org?.stripe_connect_charges_enabled ? (fr ? 'Paiements en ligne non activés' : 'Online payments not enabled') : undefined}
+                >
+                  {fr ? `Payer l'acompte de ${fmtMoney(contract.deposit_amount, lang)}` : `Pay deposit of ${fmtMoney(contract.deposit_amount, lang)}`}
+                </button>
+              ))}
 
               {/* Request modifications */}
               <div className="text-center">

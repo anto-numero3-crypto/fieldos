@@ -50,6 +50,9 @@ interface Invoice {
   internal_notes?: string | null
   viewed_count?: number
   viewed_at?: string | null
+  deposit_amount_applied?: number | null
+  deposit_paid_date?: string | null
+  source_quote_id?: string | null
   customers: { id: string; name: string; email?: string; phone?: string; address?: string } | null
   jobs: { id: string; title: string } | null
 }
@@ -429,8 +432,25 @@ export default function InvoiceDetailPage() {
                     )}
                     <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-3 mt-2">
                       <span className="text-lg font-bold text-gray-900 dark:text-white">Total</span>
-                      <span className="text-2xl font-black text-gray-900 dark:text-white">{fmt(invoice.amount)}</span>
+                      <span className="text-xl font-bold text-gray-900 dark:text-white">{fmt(invoice.amount)}</span>
                     </div>
+                    {Number(invoice.deposit_amount_applied || 0) > 0 && (
+                      <>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-violet-700 dark:text-violet-400">
+                            {fr ? 'Acompte versé' : 'Deposit paid'}
+                            {invoice.deposit_paid_date && (
+                              <span className="text-gray-400 ml-1">({new Date(invoice.deposit_paid_date).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA')})</span>
+                            )}
+                          </span>
+                          <span className="font-medium text-violet-700 dark:text-violet-400">-{fmt(Number(invoice.deposit_amount_applied))}</span>
+                        </div>
+                        <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-3 mt-1 bg-indigo-50 dark:bg-indigo-950/30 -mx-2 px-2 rounded-lg">
+                          <span className="text-lg font-bold text-indigo-900 dark:text-indigo-200">{fr ? 'Solde dû' : 'Balance due'}</span>
+                          <span className="text-2xl font-black text-indigo-900 dark:text-indigo-200">{fmt(Math.max(0, Number(invoice.amount) - Number(invoice.deposit_amount_applied || 0)))}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </>
               ) : (

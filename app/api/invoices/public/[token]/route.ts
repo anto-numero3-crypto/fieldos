@@ -30,6 +30,7 @@ export async function GET(
       tax2_rate, tax2_amount, tax2_name,
       discount, status, due_date, created_at, paid_at,
       client_notes, terms, line_items,
+      deposit_amount_applied, deposit_paid_date, source_quote_id,
       customers(name, email, phone, address)
     `)
     .eq('token', token)

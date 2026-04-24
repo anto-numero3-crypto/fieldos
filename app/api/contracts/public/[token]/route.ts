@@ -20,7 +20,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
   // Fetch org info
   const { data: org } = await sb
     .from('organizations')
-    .select('name, phone, email, logo_url, address, city, state, zip, tax_number')
+    .select('name, phone, email, logo_url, address, city, state, zip, tax_number, stripe_connect_charges_enabled')
     .eq('id', contract.org_id)
     .maybeSingle()
 
@@ -52,6 +52,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     client_signed_at: contract.client_signed_at || null,
     client_signed_name: contract.client_signed_name || null,
     fully_executed_at: contract.fully_executed_at || null,
+    deposit_required: contract.deposit_required || false,
+    deposit_type: contract.deposit_type || null,
+    deposit_value: contract.deposit_value || null,
+    deposit_taxes_included: contract.deposit_taxes_included || false,
+    deposit_amount: contract.deposit_amount || null,
+    deposit_paid_at: contract.deposit_paid_at || null,
   }
 
   return NextResponse.json({ contract: publicContract, org: org || null })

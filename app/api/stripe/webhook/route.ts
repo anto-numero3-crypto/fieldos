@@ -57,6 +57,118 @@ export async function POST(req: NextRequest) {
         const invoiceToken = meta.invoice_token
         let invoiceId = meta.invoiceId
 
+        // ── Deposit payment (quote / contract / job) ──────────────────
+        if (meta.kind === 'deposit') {
+          const depSource = meta.deposit_source as 'quote' | 'contract' | 'job' | undefined
+          const depSourceId = meta.deposit_source_id
+          const depUserId = meta.user_id
+          const amountPaid = (session.amount_total || 0) / 100
+          const paidAt = new Date().toISOString()
+          const paymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : null
+
+          console.log(`${LOG} deposit paid: source=${depSource} id=${depSourceId} amount=${amountPaid} pi=${paymentIntentId}`)
+
+          if (!depSource || !depSourceId || !depUserId) {
+            console.error(`${LOG} deposit missing metadata`, meta)
+            break
+          }
+
+          // 1. Mark the source record as having a paid deposit
+          const sourceTable = depSource === 'quote' ? 'quotes' : depSource === 'contract' ? 'contracts' : 'jobs'
+          const sourcePatch: Record<string, unknown> = {
+            deposit_paid_at: paidAt,
+            deposit_payment_intent_id: paymentIntentId,
+          }
+          if (depSource === 'quote') {
+            // Paying a deposit on a quote implies acceptance
+            sourcePatch.status = 'accepted'
+            sourcePatch.accepted_at = paidAt
+          }
+          const { data: sourceRow, error: srcErr } = await supabase
+            .from(sourceTable)
+            .update(sourcePatch)
+            .eq('id', depSourceId)
+            .select('id, customer_id, title, quote_number')
+            .maybeSingle()
+          if (srcErr) console.error(`${LOG} deposit source update failed:`, srcErr)
+
+          // 2. Resolve org_id for the deposits row
+          const { data: depOrg } = await supabase
+            .from('organizations')
+            .select('id, name, email')
+            .eq('owner_user_id', depUserId)
+            .maybeSingle()
+
+          // Retrieve charge id (best-effort; needed for refunds on Connect)
+          let chargeId: string | null = null
+          try {
+            if (paymentIntentId) {
+              const pi = await stripe.paymentIntents.retrieve(
+                paymentIntentId,
+                {},
+                connectAccountId ? { stripeAccount: connectAccountId } : undefined,
+              )
+              chargeId = (pi as unknown as { latest_charge?: string | null }).latest_charge || null
+            }
+          } catch (e) {
+            console.error(`${LOG} PI lookup for charge id failed`, e)
+          }
+
+          // 3. Insert deposits row
+          const { error: depInsErr } = await supabase.from('deposits').insert({
+            user_id: depUserId,
+            org_id: depOrg?.id || null,
+            customer_id: sourceRow?.customer_id || null,
+            quote_id: depSource === 'quote' ? depSourceId : null,
+            contract_id: depSource === 'contract' ? depSourceId : null,
+            job_id: depSource === 'job' ? depSourceId : null,
+            amount: amountPaid,
+            source: depSource,
+            status: 'paid',
+            stripe_payment_intent_id: paymentIntentId,
+            stripe_charge_id: chargeId,
+            paid_at: paidAt,
+          })
+          if (depInsErr) console.error(`${LOG} deposits insert failed:`, depInsErr)
+
+          // 4. Notify merchant
+          const amtLabel = amountPaid.toLocaleString('en-CA', { style: 'currency', currency: 'CAD', minimumFractionDigits: 2 })
+          const srcLabel = depSource === 'quote' ? (sourceRow?.quote_number || sourceRow?.title || '')
+            : depSource === 'contract' ? (sourceRow?.title || '')
+            : (sourceRow?.title || '')
+          await supabase.from('notifications').insert({
+            user_id: depUserId,
+            type: 'success',
+            title: `Acompte reçu — ${amtLabel}`,
+            body: srcLabel ? `Acompte versé pour « ${srcLabel} ».` : 'Un acompte a été versé.',
+            link: depSource === 'quote' ? '/quotes' : depSource === 'contract' ? '/contrats' : '/jobs',
+          })
+
+          // 5. Merchant email (best effort)
+          if (process.env.RESEND_API_KEY && depOrg?.email) {
+            try {
+              const resend = new Resend(process.env.RESEND_API_KEY)
+              await resend.emails.send({
+                from: `Gestivio <noreply@gestivio.ca>`,
+                to: depOrg.email,
+                subject: `Acompte reçu — ${amtLabel}`,
+                html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#111827">
+                  <div style="background:#7c3aed;padding:24px 32px;border-radius:12px 12px 0 0">
+                    <h1 style="color:white;margin:0;font-size:20px">Acompte reçu</h1>
+                  </div>
+                  <div style="background:#f9fafb;padding:32px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+                    <p>Un acompte de <strong style="color:#7c3aed">${amtLabel}</strong> a été versé${srcLabel ? ` pour <strong>${srcLabel}</strong>` : ''}.</p>
+                    <p style="color:#6b7280;font-size:13px">Le montant sera automatiquement crédité sur la facture finale lorsque vous la créerez.</p>
+                  </div>
+                </div>`,
+              })
+            } catch (emailErr) {
+              console.error(`${LOG} deposit merchant email failed:`, emailErr)
+            }
+          }
+          break
+        }
+
         // If we only have the token, resolve to id (also confirms token authenticity)
         if (!invoiceId && invoiceToken) {
           const { data: inv } = await supabase
