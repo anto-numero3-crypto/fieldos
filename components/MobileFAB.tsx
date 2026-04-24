@@ -21,7 +21,9 @@ export default function MobileFAB({ href, onClick, label, icon, className = '' }
       {label && <span className="sr-only">{label}</span>}
     </>
   )
-  const classes = `fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg active:bg-indigo-700 transition-all lg:hidden ${className}`
+  // bottom-36 puts the FAB above the Floating AI Chat bubble (bottom-20) and
+  // clear of the mobile tab bar (h-16 at bottom-0).
+  const classes = `fixed bottom-36 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg active:bg-indigo-700 transition-all lg:hidden ${className}`
   if (href) {
     return (
       <Link href={href} aria-label={label || 'Nouvelle action'} className={classes}>

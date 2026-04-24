@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import MobileFAB from '@/components/MobileFAB'
 import { useLanguage } from '@/lib/LanguageContext'
 import { usePlan } from '@/lib/hooks/usePlan'
 import { normalizePlan } from '@/lib/plan-limits'
@@ -550,6 +551,7 @@ export default function TeamPage() {
           </div>
         </div>
       )}
+      <MobileFAB onClick={openCreateModal} label={fr ? 'Ajouter un membre' : 'Add member'} />
     </AppLayout>
   )
 }

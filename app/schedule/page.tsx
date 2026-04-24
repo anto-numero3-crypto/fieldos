@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '../supabase'
 import AppLayout from '@/components/AppLayout'
+import MobileFAB from '@/components/MobileFAB'
 import { useLanguage } from '@/lib/LanguageContext'
 import { getEffectiveJobStatus, JOB_STATUS_CONFIG } from '@/lib/job-status'
 import { formatTime, formatTimeRange } from '@/lib/format-time'
@@ -411,6 +412,7 @@ export default function SchedulePage() {
           </div>
         </div>
       </div>
+      <MobileFAB href="/jobs" label={fr ? 'Nouvelle intervention' : 'New job'} />
     </AppLayout>
   )
 }

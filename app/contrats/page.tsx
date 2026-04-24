@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import AppLayout from '@/components/AppLayout'
+import MobileFAB from '@/components/MobileFAB'
 import EmptyState from '@/components/EmptyState'
 import UpgradePrompt from '@/components/UpgradePrompt'
 import { SkeletonListRow } from '@/components/ui/skeleton'
@@ -308,6 +309,7 @@ export default function ContractsPage() {
           </div>
         )}
       </div>
+      <MobileFAB href="/contrats/nouveau" label={fr ? 'Nouveau contrat' : 'New contract'} />
     </AppLayout>
   )
 }
