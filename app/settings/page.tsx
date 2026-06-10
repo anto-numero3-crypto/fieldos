@@ -171,6 +171,7 @@ export default function SettingsPage() {
   const [user, setUser]     = useState<{ id: string; email?: string } | null>(null)
   const [orgId, setOrgId]     = useState<string | null>(null)
   const [orgSlug, setOrgSlug] = useState<string | null>(null)
+  const [slugInput, setSlugInput] = useState<string>('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved]   = useState(false)
   const [error, setError]   = useState<string | null>(null)
@@ -377,7 +378,7 @@ export default function SettingsPage() {
 
       if (org) {
         setOrgId(org.id)
-        if (org.slug) setOrgSlug(org.slug)
+        if (org.slug) { setOrgSlug(org.slug); setSlugInput(org.slug) }
         setGoogleConnected(!!org.google_calendar_connected)
         setGoogleEmail(org.google_calendar_email || null)
         if (org.name)            setBizName(org.name)
@@ -442,11 +443,27 @@ export default function SettingsPage() {
     }
     setSaving(true); setError(null); setSaved(false)
 
-    // Generate slug from business name if not already set
-    let nextSlug = orgSlug
-    if (!nextSlug && bizName) {
+    // Use slugInput if edited, otherwise auto-generate from business name if none set yet
+    const desiredSlug = slugInput.trim() ? slugify(slugInput.trim()) : (orgSlug || (bizName ? slugify(bizName) : ''))
+    let nextSlug = desiredSlug || null
+    if (nextSlug && nextSlug !== orgSlug) {
+      // Uniqueness check only when slug changed
+      let candidate = nextSlug
+      let n = 2
+      while (true) {
+        const { data: clash } = await supabase
+          .from('organizations')
+          .select('id')
+          .eq('slug', candidate)
+          .maybeSingle()
+        if (!clash || clash.id === orgId) break
+        candidate = `${nextSlug}-${n++}`
+        if (n > 50) break
+      }
+      nextSlug = candidate
+    } else if (!nextSlug && bizName) {
+      // No slug at all yet — auto-generate
       const base = slugify(bizName) || 'entreprise'
-      // Ensure uniqueness
       let candidate = base
       let n = 2
       while (true) {
@@ -523,7 +540,7 @@ export default function SettingsPage() {
       toast.error(data.error || (fr ? 'Échec de la sauvegarde' : 'Save failed'))
     } else {
       if (data.org?.id) setOrgId(data.org.id)
-      if (data.org?.slug) setOrgSlug(data.org.slug)
+      if (data.org?.slug) { setOrgSlug(data.org.slug); setSlugInput(data.org.slug) }
       // Re-baseline address snapshot so subsequent saves correctly detect changes.
       setOriginalAddress({ address: bizAddress, city: bizCity, state: bizState, zip: bizZip })
       toast.success(t.success.saved)
@@ -691,8 +708,9 @@ export default function SettingsPage() {
     setConnectLoading(false)
   }
 
-  const bookingLink = orgSlug
-    ? `https://gestivio.ca/book/${orgSlug}`
+  const previewSlug = slugInput.trim() ? slugify(slugInput.trim()) : orgSlug
+  const bookingLink = previewSlug
+    ? `https://gestivio.ca/book/${previewSlug}`
     : orgId ? `${window.location.origin}/book?biz=${orgId}` : null
 
   const copyBookingLink = () => {
@@ -1166,6 +1184,17 @@ export default function SettingsPage() {
                 <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-300">{fr ? 'Lien de votre portail de reservation' : 'Your booking portal link'}</p>
               </div>
               <p className="text-xs text-indigo-600 dark:text-indigo-400/80 mb-3">{fr ? 'Partagez ce lien avec vos clients pour qu\'ils puissent reserver via votre agent IA.' : 'Share this link with clients so they can book through your AI agent.'}</p>
+              {/* Slug editor */}
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs text-indigo-600 dark:text-indigo-400 font-mono shrink-0">gestivio.ca/book/</span>
+                <input
+                  type="text"
+                  value={slugInput}
+                  onChange={e => setSlugInput(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '').slice(0, 60))}
+                  placeholder={fr ? 'mon-entreprise' : 'my-business'}
+                  className="flex-1 rounded-xl bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-800 px-3 py-2 text-xs font-mono text-gray-700 dark:text-gray-300 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                />
+              </div>
               <div className="flex items-center gap-2">
                 <div className="flex-1 rounded-xl bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-800 px-3 py-2 text-xs font-mono text-gray-700 dark:text-gray-300 truncate">
                   {bookingLink || (fr ? 'Sauvegardez le nom de votre entreprise pour generer votre lien' : 'Save your business name to generate your link')}
