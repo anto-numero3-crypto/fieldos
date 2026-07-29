@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
       const { data: existingOrg } = await admin
         .from('organizations')
-        .select('id, name')
+        .select('id, name, onboarding_completed')
         .eq('owner_user_id', data.user.id)
         .maybeSingle()
 
@@ -85,18 +85,14 @@ export async function GET(request: NextRequest) {
         } catch { /* non-fatal */ }
       }
 
-      // Send to /onboarding if they haven't finished setup yet:
-      // no org yet (edge case) OR no customers imported OR default placeholder name.
-      const needsOnboarding =
-        !existingOrg ||
-        !existingOrg.name ||
-        existingOrg.name === 'Mon entreprise'
-      const { count: customerCount } = await admin
-        .from('customers')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', data.user.id)
+      // Send to /onboarding only if they haven't explicitly finished the
+      // wizard yet. Onboarding's customer/job steps are optional and
+      // skippable, so we can't infer completion from customerCount === 0 —
+      // that false-positives on every skip and loops the user back into
+      // onboarding on their next code exchange instead of the dashboard.
+      const needsOnboarding = !existingOrg || !existingOrg.onboarding_completed
 
-      const redirectTo = (needsOnboarding || (customerCount ?? 0) === 0)
+      const redirectTo = needsOnboarding
         ? `${origin}/onboarding`
         : `${origin}${next}`
       return NextResponse.redirect(redirectTo)

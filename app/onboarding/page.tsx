@@ -58,6 +58,10 @@ export default function OnboardingPage() {
       const { data } = await supabase.auth.getUser()
       if (!data.user) { router.push('/login'); return }
       setUserId(data.user.id)
+      await supabase
+        .from('organizations')
+        .update({ name: bizName.trim(), phone: bizPhone.trim() || null, service_types: [bizType] })
+        .eq('owner_user_id', data.user.id)
       setStep(2)
     } else if (step === 2) {
       if (custName.trim() && userId) {
@@ -79,6 +83,12 @@ export default function OnboardingPage() {
       }
       setStep(4)
     } else if (step === 4) {
+      if (userId) {
+        await supabase
+          .from('organizations')
+          .update({ onboarding_completed: true })
+          .eq('owner_user_id', userId)
+      }
       router.push('/dashboard')
     }
     setLoading(false)
