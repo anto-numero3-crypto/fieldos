@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../supabase'
 import {
   CheckCircle, Users, Briefcase, FileText, ArrowRight,
-  ArrowLeft, Building2, Mail, Phone, User, Calendar, Sparkles,
+  ArrowLeft, Building2, Mail, User, Calendar, Sparkles,
 } from 'lucide-react'
 import GestivioLogo from '@/components/GestivioLogo'
 import { useLanguage } from '@/lib/LanguageContext'
@@ -27,8 +27,9 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
   const [userId, setUserId]   = useState<string | null>(null)
 
+  // Business name/phone were already collected at signup — step 1 just
+  // confirms them and asks the one thing signup didn't: service type.
   const [bizName, setBizName]   = useState('')
-  const [bizPhone, setBizPhone] = useState('')
   const [bizType, setBizType]   = useState('hvac')
 
   const [custName, setCustName]   = useState('')
@@ -40,6 +41,18 @@ export default function OnboardingPage() {
   const [jobTitle, setJobTitle]     = useState('')
   const [jobDate, setJobDate]       = useState('')
   const [jobDesc, setJobDesc]       = useState('')
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) return
+      supabase
+        .from('organizations')
+        .select('name')
+        .eq('owner_user_id', data.user.id)
+        .maybeSingle()
+        .then(({ data: org }) => { if (org?.name) setBizName(org.name) })
+    })
+  }, [])
 
   const SERVICE_TYPES = [
     { value: 'hvac',        label: fr ? 'CVCA' : 'HVAC',         emoji: '❄️' },
@@ -60,7 +73,7 @@ export default function OnboardingPage() {
       setUserId(data.user.id)
       await supabase
         .from('organizations')
-        .update({ name: bizName.trim(), phone: bizPhone.trim() || null, service_types: [bizType] })
+        .update({ service_types: [bizType] })
         .eq('owner_user_id', data.user.id)
       setStep(2)
     } else if (step === 2) {
@@ -94,10 +107,7 @@ export default function OnboardingPage() {
     setLoading(false)
   }
 
-  const canProceed = () => {
-    if (step === 1) return bizName.trim().length > 0
-    return true
-  }
+  const canProceed = () => true
 
   const currentStep = STEPS[step - 1]
 
@@ -148,16 +158,12 @@ export default function OnboardingPage() {
 
           {step === 1 && (
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  {fr ? "Nom de l'entreprise" : 'Business name'} <span className="text-red-500">*</span>
-                </label>
-                <div className="relative"><Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="text" placeholder="ABC HVAC Services" value={bizName} onChange={(e) => setBizName(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 pl-9 pr-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" /></div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{fr ? 'Numéro de téléphone' : 'Phone number'}</label>
-                <div className="relative"><Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" /><input type="tel" placeholder="+1 (555) 000-0000" value={bizPhone} onChange={(e) => setBizPhone(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 pl-9 pr-3.5 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" /></div>
-              </div>
+              {bizName && (
+                <div className="flex items-center gap-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 px-3.5 py-2.5">
+                  <Building2 className="h-4 w-4 text-gray-400 shrink-0" />
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{bizName}</p>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">{fr ? 'Type de service' : 'Service type'}</label>
                 <div className="grid grid-cols-4 gap-2">

@@ -61,10 +61,12 @@ export async function GET(request: NextRequest) {
           (data.user.user_metadata?.business_name as string | undefined) ||
           (data.user.user_metadata?.full_name as string | undefined) ||
           'Mon entreprise'
+        const bizPhone = (data.user.user_metadata?.phone as string | undefined) || null
         const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
         await admin.from('organizations').insert({
           owner_user_id: data.user.id,
           name: bizName,
+          phone: bizPhone,
           email: data.user.email,
           plan: 'pro',
           plan_status: 'trial',
