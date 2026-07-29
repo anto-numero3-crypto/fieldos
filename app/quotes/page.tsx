@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Pagination } from '@/components/Pagination'
 import { usePagination } from '@/lib/hooks/usePagination'
 import { supabase } from '../supabase'
@@ -59,6 +60,7 @@ const ACCEPTABLE  = new Set(['sent', 'viewed'])
 const newItem = (): LineItem => ({ id: Date.now().toString(), description: '', qty: 1, unit_price: 0 })
 
 export default function QuotesPage() {
+  const router = useRouter()
   const [user, setUser]     = useState<{ id: string } | null>(null)
   const [quotes, setQuotes] = useState<Quote[]>([])
   const [customers, setCustomers] = useState<Customer[]>([])
@@ -72,6 +74,11 @@ export default function QuotesPage() {
   const [title, setTitle]         = useState('')
   const [customerId, setCustId]   = useState('')
   const [touched, setTouched]     = useState<Record<string, boolean>>({})
+  const [newCustomerMode, setNewCustomerMode] = useState(false)
+  const [newCustName, setNewCustName]   = useState('')
+  const [newCustEmail, setNewCustEmail] = useState('')
+  const [newCustPhone, setNewCustPhone] = useState('')
+  const [creatingCustomer, setCreatingCustomer] = useState(false)
   const confirm = useConfirm()
   const { lang, t } = useLanguage()
   const fr = lang === 'fr'
@@ -189,6 +196,26 @@ export default function QuotesPage() {
     setCustomers(data || [])
   }
 
+  const createInlineCustomer = async () => {
+    if (!newCustName.trim() || !user) { toast.error(t.errors.required); return }
+    setCreatingCustomer(true)
+    const { data, error } = await supabase.from('customers').insert({
+      user_id: user.id,
+      name: newCustName.trim(),
+      email: newCustEmail.trim() || null,
+      phone: newCustPhone.trim() || null,
+    }).select('id, name').single()
+    setCreatingCustomer(false)
+    if (error) { toast.error(error.message); return }
+    if (data) {
+      setCustomers((prev) => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)))
+      setCustId(data.id)
+    }
+    toast.success(t.success.created)
+    setNewCustomerMode(false)
+    setNewCustName(''); setNewCustEmail(''); setNewCustPhone('')
+  }
+
   const updateItem = (id: string, field: keyof LineItem, value: string | number) => {
     setLineItems((prev) => prev.map((item) => item.id === id ? { ...item, [field]: value } : item))
   }
@@ -231,6 +258,7 @@ export default function QuotesPage() {
       toast.success(t.success.created)
       setTitle(''); setCustId(''); setValidUntil(''); setTaxRate(0); setNotes(''); setLineItems([newItem()])
       setDepositRequired(false); setDepositType('percentage'); setDepositValue(30); setDepositTaxesIncluded(false)
+      setNewCustomerMode(false); setNewCustName(''); setNewCustEmail(''); setNewCustPhone('')
       await fetchQuotes(user!.id)
       setPanelOpen(false)
     }
@@ -333,9 +361,9 @@ export default function QuotesPage() {
                   {paged.map((q) => {
                     const scls = STATUS_CLS[q.status]
                     return (
-                      <tr key={q.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
+                      <tr key={q.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group cursor-pointer" onClick={() => router.push(`/quotes/${q.id}`)}>
                         <td className="px-5 py-4">
-                          <Link href={`/quotes/${q.id}`} className="text-sm font-semibold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{q.title}</Link>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{q.title}</p>
                           {q.quote_number && <p className="text-xs text-gray-400">{q.quote_number}</p>}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -348,7 +376,7 @@ export default function QuotesPage() {
                         <td className="px-5 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${scls || ''}`}>{tStatus(q.status)}</span>
                         </td>
-                        <td className="px-5 py-4 whitespace-nowrap">
+                        <td className="px-5 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center gap-1">
                             {q.token && q.status !== 'draft' && (
                               <button
@@ -453,17 +481,43 @@ export default function QuotesPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{fr ? 'Client' : 'Customer'}</label>
-                  <select value={customerId} onChange={(e) => setCustId(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
-                    <option value="">{fr ? 'Sélectionner un client' : 'Select a customer'}</option>
-                    {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{fr ? 'Client' : 'Customer'}</label>
+                    {!newCustomerMode && (
+                      <button type="button" onClick={() => setNewCustomerMode(true)} className="text-xs font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-1">
+                        <Plus className="h-3 w-3" /> {fr ? 'Nouveau client' : 'New customer'}
+                      </button>
+                    )}
+                  </div>
+                  {!newCustomerMode && (
+                    <select value={customerId} onChange={(e) => setCustId(e.target.value)} className="block w-full appearance-none rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all">
+                      <option value="">{fr ? 'Sélectionner un client' : 'Select a customer'}</option>
+                      {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{fr ? "Valide jusqu'au" : 'Valid until'}</label>
                   <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} className="block w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                 </div>
               </div>
+
+              {newCustomerMode && (
+                <div className="rounded-xl border border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/40 dark:bg-indigo-950/20 p-4 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-indigo-700 dark:text-indigo-300">{fr ? 'Nouveau client' : 'New customer'}</p>
+                    <button type="button" onClick={() => setNewCustomerMode(false)} className="text-gray-400 hover:text-gray-600"><X className="h-3.5 w-3.5" /></button>
+                  </div>
+                  <input type="text" placeholder={fr ? 'Nom *' : 'Name *'} value={newCustName} onChange={(e) => setNewCustName(e.target.value)} className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="email" placeholder={fr ? 'Courriel' : 'Email'} value={newCustEmail} onChange={(e) => setNewCustEmail(e.target.value)} className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                    <input type="tel" placeholder={fr ? 'Téléphone' : 'Phone'} value={newCustPhone} onChange={(e) => setNewCustPhone(e.target.value)} className="block w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                  </div>
+                  <button type="button" onClick={createInlineCustomer} disabled={creatingCustomer || !newCustName.trim()} className="w-full rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-60 transition-colors">
+                    {creatingCustomer ? (fr ? 'Création...' : 'Creating...') : (fr ? 'Créer et sélectionner' : 'Create and select')}
+                  </button>
+                </div>
+              )}
 
               {/* Line items */}
               <div>
