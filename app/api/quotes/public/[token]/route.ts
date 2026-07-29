@@ -43,7 +43,7 @@ export async function GET(
   if (quote.user_id) {
     const { data: orgData } = await supabase
       .from('organizations')
-      .select('name, email, phone, address, city, state, zip, logo_url, stripe_connect_charges_enabled, tps_number, tvq_number')
+      .select('name, email, phone, address, city, state, zip, logo_url, stripe_connect_charges_enabled, plan, tps_number, tvq_number, neq_number, rbq_number, cmeq_number, cmmtq_number, other_licence_name, other_licence_number')
       .eq('owner_user_id', quote.user_id)
       .maybeSingle()
     org = orgData
