@@ -7,6 +7,25 @@ import { PLAN_PRICING, normalizePlan } from '@/lib/plan-limits'
 
 const LOG = '[stripe webhook]'
 
+// Internal alert to the Gestivio platform owner — separate from the
+// customer-facing emails below, which go to the business using Gestivio.
+const OWNER_NOTIFICATION_EMAIL = process.env.OWNER_NOTIFICATION_EMAIL || 'anto-numero3@hotmail.com'
+
+async function notifyOwner(subject: string, html: string) {
+  if (!process.env.RESEND_API_KEY) return
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY)
+    await resend.emails.send({
+      from: 'Gestivio <noreply@gestivio.ca>',
+      to: OWNER_NOTIFICATION_EMAIL,
+      subject,
+      html: `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;color:#111827">${html}</div>`,
+    })
+  } catch (err) {
+    console.error(`${LOG} owner notification failed:`, err)
+  }
+}
+
 export async function POST(req: NextRequest) {
   if (!process.env.STRIPE_SECRET_KEY) {
     return NextResponse.json({ error: 'Stripe not configured' }, { status: 503 })
@@ -208,6 +227,13 @@ export async function POST(req: NextRequest) {
               planPrice: `${info.monthly} $ CAD/mois`,
             })
           }
+          if (info) {
+            await notifyOwner(
+              `💰 Nouveau client payant — ${orgRow?.name || 'Gestivio'}`,
+              `<h2 style="margin:0 0 12px">Nouveau client payant !</h2>
+               <p><strong>${orgRow?.name || '(sans nom)'}</strong> (${orgRow?.email || 'sans courriel'}) vient de s'abonner au forfait <strong>${info.label}</strong> (${info.monthly} $ CAD/mois).</p>`
+            )
+          }
         } else if (invoiceId) {
           // Client paying a business invoice
           const amountPaid = (session.amount_total || 0) / 100
@@ -387,6 +413,11 @@ export async function POST(req: NextRequest) {
           if (orgRow?.email) {
             await sendPlanEmail('subscription_cancelled', { to: orgRow.email, name: orgRow.name || undefined })
           }
+          await notifyOwner(
+            `⚠️ Abonnement annulé — ${orgRow?.name || 'Gestivio'}`,
+            `<h2 style="margin:0 0 12px">Un client a annulé son abonnement</h2>
+             <p><strong>${orgRow?.name || '(sans nom)'}</strong> (${orgRow?.email || 'sans courriel'}) n'est plus un client payant.</p>`
+          )
         }
         break
       }
@@ -412,6 +443,11 @@ export async function POST(req: NextRequest) {
           if (orgRow?.email) {
             await sendPlanEmail('payment_failed', { to: orgRow.email, name: orgRow.name || undefined })
           }
+          await notifyOwner(
+            `🔴 Paiement échoué — ${orgRow?.name || 'Gestivio'}`,
+            `<h2 style="margin:0 0 12px">Le paiement d'un client a échoué</h2>
+             <p><strong>${orgRow?.name || '(sans nom)'}</strong> (${orgRow?.email || 'sans courriel'}) — le paiement de son abonnement a échoué. Si la carte n'est pas mise à jour, l'abonnement sera annulé.</p>`
+          )
         }
         break
       }
