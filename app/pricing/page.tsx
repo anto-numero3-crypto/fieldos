@@ -52,7 +52,7 @@ export default function PricingPage() {
       title: fr ? 'Équipe et opérations' : 'Team & operations',
       rows: [
         { label: fr ? 'Gestion d\'équipe'                    : 'Team management',             demarrage: false, pro: true, croissance: true },
-        { label: fr ? 'App mobile employé (assignations)'    : 'Employee mobile app',         demarrage: false, pro: true, croissance: true },
+        { label: fr ? 'Vue mobile employé (assignations)'    : 'Employee mobile view',         demarrage: false, pro: true, croissance: true },
         { label: fr ? 'Interventions sur plusieurs jours'    : 'Multi-day jobs',              demarrage: false, pro: true, croissance: true },
         { label: fr ? 'Contrats récurrents'                  : 'Recurring contracts',         demarrage: false, pro: true, croissance: true },
         { label: fr ? 'Suivi du temps (poinçonnage mobile)'  : 'Time tracking (mobile punch)', demarrage: false, pro: true, croissance: true },

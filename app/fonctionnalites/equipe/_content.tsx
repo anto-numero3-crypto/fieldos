@@ -113,7 +113,7 @@ export default function EquipeContent() {
               { icon: Shield, title: fr ? 'Accès sécurisé et limité' : 'Secure limited access', desc: fr ? 'Chaque employé ne voit que ses interventions. Vos données financières et clients restent protégées.' : 'Each employee only sees their jobs. Your financial and client data stays protected.' },
               { icon: Smartphone, title: fr ? 'Vue mobile optimisée' : 'Optimized mobile view', desc: fr ? 'Une interface mobile pensée pour le terrain : simple, rapide et accessible même avec des gants.' : 'A mobile interface designed for the field: simple, fast and accessible even with gloves.' },
               { icon: Users, title: fr ? 'Multi-assignation' : 'Multi-assignment', desc: fr ? 'Assignez plusieurs techniciens à une même intervention pour les gros travaux d\'équipe.' : 'Assign multiple technicians to the same job for bigger team projects.' },
-              { icon: Clock, title: fr ? 'Pointage début/fin' : 'Punch in/out', desc: fr ? 'Vos employés pointent leur arrivée et leur départ en un tap depuis l\'application mobile.' : 'Your employees punch in and out with one tap from the mobile app.' },
+              { icon: Clock, title: fr ? 'Pointage début/fin' : 'Punch in/out', desc: fr ? 'Vos employés pointent leur arrivée et leur départ en un tap depuis leur navigateur mobile.' : 'Your employees punch in and out with one tap from their mobile browser.' },
               { icon: FileSpreadsheet, title: fr ? 'Feuilles de temps' : 'Timesheets', desc: fr ? 'Les feuilles de temps se génèrent automatiquement à partir des pointages de chaque employé.' : 'Timesheets are generated automatically from each employee\'s punches.' },
             ].map((f, i) => (
               <div key={i} className="flex items-start gap-4 p-5 rounded-xl border border-gray-100 dark:border-gray-800 hover:border-indigo-100 hover:bg-indigo-50/30 transition-colors">
@@ -203,7 +203,7 @@ export default function EquipeContent() {
             />
             <FaqItem
               question={fr ? 'Le pointage fonctionne-t-il sur mobile ?' : 'Does punch in/out work on mobile?'}
-              answer={fr ? 'Oui. Vos techniciens pointent leur arrivée et leur départ directement depuis l\'application mobile en un seul tap. Les pauses sont aussi enregistrées.' : 'Yes. Your technicians clock in and out directly from the mobile app in a single tap. Breaks are also recorded.'}
+              answer={fr ? 'Oui. Vos techniciens pointent leur arrivée et leur départ directement depuis le navigateur de leur téléphone en un seul tap — aucune application à télécharger. Les pauses sont aussi enregistrées.' : 'Yes. Your technicians clock in and out directly from their phone\'s browser in a single tap — no app to download. Breaks are also recorded.'}
             />
             <FaqItem
               question={fr ? 'Combien d\'employés puis-je ajouter ?' : 'How many employees can I add?'}

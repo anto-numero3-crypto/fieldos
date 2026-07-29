@@ -191,7 +191,7 @@ export default function SuiviTempsContent() {
           <div className="divide-y divide-gray-200 dark:divide-gray-800 rounded-2xl bg-white dark:bg-gray-900 p-6 shadow-sm">
             <FaqItem
               question={fr ? 'Comment mes employés pointent-ils leurs heures ?' : 'How do my employees clock their hours?'}
-              answer={fr ? 'Depuis l\'application mobile, vos employés appuient sur Début pour commencer, Pause pour les pauses et Fin pour terminer. Les heures sont enregistrées automatiquement et liées à l\'intervention en cours.' : 'From the mobile app, your employees tap Start to begin, Pause for breaks and Stop to finish. Hours are recorded automatically and linked to the current job.'}
+              answer={fr ? 'Depuis le navigateur de leur téléphone, vos employés appuient sur Début pour commencer, Pause pour les pauses et Fin pour terminer — aucune application à télécharger. Les heures sont enregistrées automatiquement et liées à l\'intervention en cours.' : 'From their phone\'s browser, your employees tap Start to begin, Pause for breaks and Stop to finish — no app to download. Hours are recorded automatically and linked to the current job.'}
             />
             <FaqItem
               question={fr ? 'Puis-je exporter les feuilles de temps ?' : 'Can I export timesheets?'}
