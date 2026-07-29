@@ -9,6 +9,8 @@ import { useConfirm } from '@/components/ui/confirm-dialog'
 import { useLanguage } from '@/lib/LanguageContext'
 import { fmtMoney, fmtDate } from '@/lib/format'
 import ConvertQuoteModal from '@/components/ConvertQuoteModal'
+import { secureUrl } from '@/lib/secure-url'
+import { getPlanLimits, normalizePlan } from '@/lib/plan-limits'
 import { toast } from 'sonner'
 import {
   ArrowLeft, FileSignature, User, CheckCircle, Clock,
@@ -42,6 +44,26 @@ interface Quote {
   customers: { id: string; name: string; email?: string; phone?: string; address?: string } | null
 }
 
+interface OrgData {
+  name: string | null
+  email: string | null
+  phone: string | null
+  address: string | null
+  city: string | null
+  state: string | null
+  zip: string | null
+  logo_url: string | null
+  plan?: string | null
+  tps_number?: string | null
+  tvq_number?: string | null
+  neq_number?: string | null
+  rbq_number?: string | null
+  cmeq_number?: string | null
+  cmmtq_number?: string | null
+  other_licence_name?: string | null
+  other_licence_number?: string | null
+}
+
 const CONVERTIBLE = new Set(['sent', 'viewed', 'approved', 'accepted'])
 const ACCEPTABLE  = new Set(['sent', 'viewed'])
 
@@ -67,6 +89,7 @@ export default function QuoteDetailPage() {
 
   const [quote, setQuote] = useState<Quote | null>(null)
   const [businessName, setBusinessName] = useState('')
+  const [org, setOrg] = useState<OrgData | null>(null)
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [accepting, setAccepting] = useState(false)
@@ -86,8 +109,15 @@ export default function QuoteDetailPage() {
         }
         setQuote(data)
         if (data.user_id) {
-          const { data: org } = await supabase.from('organizations').select('name').eq('owner_user_id', data.user_id).single()
-          if (org?.name) setBusinessName(org.name)
+          const { data: orgData } = await supabase
+            .from('organizations')
+            .select('name, email, phone, address, city, state, zip, logo_url, plan, tps_number, tvq_number, neq_number, rbq_number, cmeq_number, cmmtq_number, other_licence_name, other_licence_number')
+            .eq('owner_user_id', data.user_id)
+            .single()
+          if (orgData) {
+            setOrg(orgData)
+            if (orgData.name) setBusinessName(orgData.name)
+          }
         }
       }
     } catch (e) {
@@ -205,9 +235,173 @@ export default function QuoteDetailPage() {
   const sub = quote.subtotal ?? items.reduce((s, li) => s + li.qty * li.unit_price, 0)
   const tax = quote.tax_amount ?? sub * ((quote.tax_rate || 0) / 100)
 
+  const printHasLogo = !!org?.logo_url
+  const printOrgAddressLine = org?.address
+    ? org.address.includes(',')
+      ? org.address
+      : [org.address, org.city, org.state, org.zip].filter(Boolean).join(', ')
+    : [org?.city, org?.state, org?.zip].filter(Boolean).join(', ')
+  const printTaxLine = [
+    org?.tps_number && `N° TPS: ${org.tps_number}`,
+    org?.tvq_number && `N° TVQ: ${org.tvq_number}`,
+    org?.neq_number && `NEQ: ${org.neq_number}`,
+  ].filter(Boolean).join(' · ')
+  const printLicenceLine = [
+    org?.rbq_number && `RBQ: ${org.rbq_number}`,
+    org?.cmeq_number && `CMEQ: ${org.cmeq_number}`,
+    org?.cmmtq_number && `CMMTQ: ${org.cmmtq_number}`,
+    org?.other_licence_name && org?.other_licence_number && `${org.other_licence_name}: ${org.other_licence_number}`,
+  ].filter(Boolean).join(' · ')
+  const printShowBranding = getPlanLimits(normalizePlan(org?.plan)).showGestivioBranding
+  const printItems = items.filter((li) => li.description?.trim())
+  const printQuoteNumber = quote.quote_number || `DEV-${quote.id.slice(0, 8).toUpperCase()}`
+
   return (
     <AppLayout title={quote.quote_number || (fr ? 'Devis' : 'Quote')}>
-      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          @page { size: letter; margin: 0.45in 0.5in; }
+          html, body { background: white !important; font-size: 9pt !important; line-height: 1.3 !important; }
+          .print-section { page-break-inside: avoid; break-inside: avoid; }
+          .print-footer { page-break-inside: avoid; }
+        }
+      `}} />
+
+      {/* ═══════ PRINT-ONLY PROFESSIONAL QUOTE ═══════ */}
+      <div className="print-only" style={{ fontFamily: "-apple-system, 'Segoe UI', sans-serif", color: '#111', background: '#ffffff', position: 'relative' }}>
+        {['approved', 'accepted', 'converted'].includes(quote.status) && (
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-35deg)', fontSize: '60pt', fontWeight: 800, color: '#16a34a', opacity: 0.08, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+            {fr ? 'ACCEPTÉ' : 'ACCEPTED'}
+          </div>
+        )}
+
+        <div className="print-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ maxWidth: '60%' }}>
+            {printHasLogo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={secureUrl(org!.logo_url!)} alt={businessName} style={{ maxWidth: '95px', maxHeight: '32px', objectFit: 'contain', display: 'block', marginBottom: '2px' }} />
+            ) : (
+              <div style={{ fontSize: '13pt', fontWeight: 800, marginBottom: '1px' }}>{businessName}</div>
+            )}
+            {printOrgAddressLine && <div style={{ fontSize: '7.5pt', color: '#555' }}>{printOrgAddressLine}</div>}
+            {(org?.phone || org?.email) && (
+              <div style={{ fontSize: '7.5pt', color: '#555' }}>{[org?.phone, org?.email].filter(Boolean).join(' · ')}</div>
+            )}
+            {printTaxLine && <div style={{ fontSize: '7pt', color: '#888' }}>{printTaxLine}</div>}
+            {printLicenceLine && <div style={{ fontSize: '7pt', color: '#888' }}>{printLicenceLine}</div>}
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '18pt', fontWeight: 800, letterSpacing: '2px', color: '#111', marginBottom: '4px' }}>
+              {fr ? 'DEVIS' : 'QUOTE'}
+            </div>
+            <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '3px 6px', textAlign: 'left', fontSize: '8pt', lineHeight: 1.5 }}>
+              <div><strong>{fr ? 'Numéro' : 'Number'}:</strong> {printQuoteNumber}</div>
+              <div><strong>Date:</strong> {fmtDate(quote.created_at, lang)}</div>
+              {quote.valid_until && <div><strong>{fr ? 'Valide jusqu\'au' : 'Valid until'}:</strong> {fmtDate(quote.valid_until, lang)}</div>}
+              <div><strong>{fr ? 'Statut' : 'Status'}:</strong> {tStatus(quote.status)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ borderTop: '1.5px solid #000', margin: '3px 0' }} />
+
+        {quote.customers && (
+          <div className="print-section" style={{ marginBottom: '4px' }}>
+            <div style={{ fontSize: '6pt', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1px' }}>
+              {fr ? 'DEVIS POUR' : 'QUOTE FOR'}
+            </div>
+            <div style={{ fontSize: '9.5pt', fontWeight: 700 }}>{quote.customers.name}</div>
+            <div style={{ fontSize: '8pt', color: '#555' }}>
+              {[quote.customers.address, quote.customers.phone, quote.customers.email].filter(Boolean).join(' · ')}
+            </div>
+          </div>
+        )}
+
+        <div className="print-section" style={{ fontSize: '10.5pt', fontWeight: 700, margin: '6px 0 4px' }}>{quote.title}</div>
+
+        <table className="print-section" style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '6px' }}>
+          <thead>
+            <tr style={{ background: '#1f2937', color: 'white' }}>
+              <th style={{ textAlign: 'left', padding: '3px 6px', fontSize: '7.5pt', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</th>
+              <th style={{ textAlign: 'center', padding: '3px 6px', fontSize: '7.5pt', textTransform: 'uppercase', width: '50px' }}>{fr ? 'Qté' : 'Qty'}</th>
+              <th style={{ textAlign: 'right', padding: '3px 6px', fontSize: '7.5pt', textTransform: 'uppercase', width: '80px' }}>{fr ? 'Prix unit.' : 'Unit price'}</th>
+              <th style={{ textAlign: 'right', padding: '3px 6px', fontSize: '7.5pt', textTransform: 'uppercase', width: '80px' }}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(printItems.length > 0 ? printItems : [{ description: quote.title || 'Services', qty: 1, unit_price: sub } as LineItem]).map((li, i) => (
+              <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 ? '#fafafa' : 'white' }}>
+                <td style={{ padding: '3px 6px', fontSize: '8.5pt' }}>{li.description}</td>
+                <td style={{ textAlign: 'center', padding: '3px 6px', fontSize: '8.5pt' }}>{li.qty}</td>
+                <td style={{ textAlign: 'right', padding: '3px 6px', fontSize: '8.5pt' }}>{fmt(li.unit_price)}</td>
+                <td style={{ textAlign: 'right', padding: '3px 6px', fontSize: '8.5pt', fontWeight: 600 }}>{fmt((li.qty || 1) * (li.unit_price || 0))}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="print-section" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '6px' }}>
+          <div style={{ width: '220px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9pt', color: '#555' }}>
+              <span>{fr ? 'Sous-total' : 'Subtotal'}</span><span>{fmt(sub)}</span>
+            </div>
+            {tax > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9pt', color: '#555' }}>
+                <span>{fr ? 'Taxes' : 'Taxes'}{quote.tax_rate ? ` (${quote.tax_rate}%)` : ''}</span><span>{fmt(tax)}</span>
+              </div>
+            )}
+            <div style={{ borderTop: '2px solid #000', marginTop: '4px', paddingTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '11pt', fontWeight: 800 }}>
+              <span>TOTAL</span><span>{fmt(quote.total)}</span>
+            </div>
+            {quote.deposit_required && Number(quote.deposit_amount || 0) > 0 && (
+              <div style={{ marginTop: '6px', border: '1px solid #ddd', borderRadius: '4px', padding: '5px 8px' }}>
+                <div style={{ fontSize: '7pt', fontWeight: 700, color: '#7c3aed', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '2px' }}>
+                  {fr ? 'Acompte requis' : 'Required deposit'}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9.5pt', fontWeight: 700 }}>
+                  <span>{fmt(Number(quote.deposit_amount || 0))}</span>
+                  {quote.deposit_paid_at && <span style={{ color: '#16a34a', fontSize: '8pt' }}>{fr ? 'Payé' : 'Paid'}</span>}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="print-section">
+          {['approved', 'accepted', 'converted'].includes(quote.status) ? (
+            <div style={{ border: '2px solid #16a34a', borderRadius: '4px', background: '#f0fdf4', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <span style={{ color: '#16a34a', fontWeight: 700, fontSize: '9pt' }}>&#10003; {fr ? 'ACCEPTÉ' : 'ACCEPTED'}</span>
+            </div>
+          ) : (
+            <div style={{ border: '2px solid #111', borderRadius: '4px', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <span style={{ fontWeight: 700, fontSize: '9pt' }}>{fr ? 'EN ATTENTE D’ACCEPTATION' : 'PENDING ACCEPTANCE'}</span>
+            </div>
+          )}
+        </div>
+
+        {quote.notes && (
+          <div className="print-section" style={{ borderLeft: '3px solid #ddd', padding: '4px 8px', marginBottom: '6px', background: '#fafafa' }}>
+            <div style={{ fontSize: '7pt', fontWeight: 700, color: '#888', marginBottom: '2px' }}>Notes</div>
+            <div style={{ fontSize: '8pt', color: '#555', whiteSpace: 'pre-wrap' }}>{quote.notes}</div>
+          </div>
+        )}
+
+        <div className="print-footer" style={{ borderTop: '1px solid #ddd', paddingTop: '6px', textAlign: 'center' }}>
+          <div style={{ fontSize: '8pt', color: '#888', fontStyle: 'italic', marginBottom: '2px' }}>
+            {fr ? 'Merci pour votre confiance.' : 'Thank you for your business.'}
+          </div>
+          <div style={{ fontSize: '7pt', color: '#999' }}>
+            {businessName}{org?.phone ? ` · ${org.phone}` : ''}{org?.email ? ` · ${org.email}` : ''}
+          </div>
+          {printShowBranding && (
+            <div style={{ fontSize: '7pt', color: '#ccc', marginTop: '4px' }}>
+              {fr ? 'Devis généré via Gestivio · gestivio.ca' : 'Quote generated via Gestivio · gestivio.ca'}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="screen-only p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-3 mb-6">
