@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { Pagination } from '@/components/Pagination'
 import { usePagination } from '@/lib/hooks/usePagination'
 import { supabase } from '../supabase'
@@ -29,6 +30,10 @@ interface Quote {
   customer_id?: string | null
   notes?: string | null
   token?: string | null
+  line_items?: LineItem[] | null
+  subtotal?: number | null
+  tax_rate?: number | null
+  tax_amount?: number | null
   deposit_required?: boolean | null
   deposit_amount?: number | null
   deposit_paid_at?: string | null
@@ -74,6 +79,56 @@ export default function QuotesPage() {
   const fmt = (n: number) => fmtMoney(n, lang)
   const [convertingQuote, setConvertingQuote] = useState<Quote | null>(null)
   const [acceptingId, setAcceptingId] = useState<string | null>(null)
+  const [sendingId, setSendingId] = useState<string | null>(null)
+  const [businessName, setBusinessName] = useState('')
+
+  const sendQuote = async (q: Quote) => {
+    if (!q.customers?.email) { toast.error(fr ? "Ce client n'a pas de courriel." : 'This customer has no email.'); return }
+    setSendingId(q.id)
+    try {
+      let token = q.token
+      if (!token) {
+        token = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`).replace(/-/g, '')
+        const { error: tokenErr } = await supabase.from('quotes').update({ token }).eq('id', q.id)
+        if (tokenErr) { toast.error(tokenErr.message); return }
+      }
+      const items = q.line_items || []
+      const sub = q.subtotal ?? items.reduce((s, li) => s + li.qty * li.unit_price, 0)
+      const taxAmt = q.tax_amount ?? sub * ((q.tax_rate || 0) / 100)
+      const res = await fetch('/api/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'quote',
+          to: q.customers.email,
+          customerName: q.customers.name,
+          quoteTitle: q.title,
+          quoteNumber: q.quote_number || undefined,
+          amount: fmt(q.total),
+          subtotal: items.length > 0 ? fmt(sub) : undefined,
+          taxAmount: taxAmt > 0 ? fmt(taxAmt) : undefined,
+          validUntil: q.valid_until ? fmtDate(q.valid_until, lang) : undefined,
+          quoteLink: `${window.location.origin}/devis/${token}`,
+          lineItems: items.length > 0 ? items : undefined,
+          businessName: businessName || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        const patch: Record<string, unknown> = { token }
+        if (q.status === 'draft') { patch.status = 'sent'; patch.sent_at = new Date().toISOString() }
+        await supabase.from('quotes').update(patch).eq('id', q.id)
+        setQuotes((prev) => prev.map((p) => p.id === q.id ? { ...p, ...patch } as Quote : p))
+        toast.success(t.success.sent)
+      } else {
+        toast.error(data.error || t.errors.unknown)
+      }
+    } catch {
+      toast.error(t.errors.unknown)
+    } finally {
+      setSendingId(null)
+    }
+  }
 
   const acceptQuote = async (q: Quote) => {
     setAcceptingId(q.id)
@@ -87,11 +142,9 @@ export default function QuotesPage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              type: 'quote',
+              type: 'custom',
               to: q.customers.email,
               customerName: q.customers.name,
-              quoteTitle: q.title,
-              amount: `$${q.total.toFixed(2)}`,
               subject: `Devis accepté — ${q.title || q.quote_number || ''}`,
               body: `Votre devis a \u00e9t\u00e9 accept\u00e9. Nous vous contacterons sous peu pour planifier l\u2019intervention.`,
             }),
@@ -119,6 +172,8 @@ export default function QuotesPage() {
       if (!data.user) { window.location.href = '/login'; return }
       setUser(data.user)
       await Promise.all([fetchQuotes(data.user.id), fetchCustomers(data.user.id)])
+      const { data: org } = await supabase.from('organizations').select('name').eq('owner_user_id', data.user.id).single()
+      if (org?.name) setBusinessName(org.name)
       setPageLoading(false)
     }
     init()
@@ -180,13 +235,6 @@ export default function QuotesPage() {
       setPanelOpen(false)
     }
     setLoading(false)
-  }
-
-  const updateStatus = async (id: string, status: string) => {
-    const patch: Record<string, unknown> = { status }
-    if (status === 'sent') patch.sent_at = new Date().toISOString()
-    await supabase.from('quotes').update(patch).eq('id', id)
-    setQuotes((prev) => prev.map((q) => q.id === id ? { ...q, status } : q))
   }
 
   const deleteQuote = async (id: string) => {
@@ -287,7 +335,7 @@ export default function QuotesPage() {
                     return (
                       <tr key={q.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
                         <td className="px-5 py-4">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-white">{q.title}</p>
+                          <Link href={`/quotes/${q.id}`} className="text-sm font-semibold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{q.title}</Link>
                           {q.quote_number && <p className="text-xs text-gray-400">{q.quote_number}</p>}
                         </td>
                         <td className="px-5 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -314,9 +362,14 @@ export default function QuotesPage() {
                                 <Link2 className="h-4 w-4" />
                               </button>
                             )}
-                            {q.status === 'draft' && (
-                              <button onClick={() => updateStatus(q.id, 'sent')} className="rounded-lg p-1.5 text-blue-500 hover:bg-blue-50 transition-colors" title={fr ? 'Marquer comme envoyé' : 'Mark as sent'}>
-                                <Send className="h-4 w-4" />
+                            {['draft', 'sent', 'viewed'].includes(q.status) && q.customers?.email && (
+                              <button
+                                onClick={() => sendQuote(q)}
+                                disabled={sendingId === q.id}
+                                className="rounded-lg p-1.5 text-blue-500 hover:bg-blue-50 disabled:opacity-60 transition-colors"
+                                title={q.status === 'draft' ? (fr ? 'Envoyer le devis' : 'Send quote') : (fr ? 'Renvoyer le devis' : 'Resend quote')}
+                              >
+                                {sendingId === q.id ? <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-200 border-t-blue-500" /> : <Send className="h-4 w-4" />}
                               </button>
                             )}
                             {q.deposit_required && q.deposit_paid_at && (
@@ -358,7 +411,7 @@ export default function QuotesPage() {
               {filtered.map((q) => {
                 const scls = STATUS_CLS[q.status]
                 return (
-                  <div key={q.id} className="p-4">
+                  <Link key={q.id} href={`/quotes/${q.id}`} className="block p-4 active:bg-gray-50 dark:active:bg-gray-800/50">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div>
                         <p className="text-sm font-semibold text-gray-900 dark:text-white">{q.title}</p>
@@ -369,7 +422,7 @@ export default function QuotesPage() {
                         <span className="text-sm font-bold text-gray-900 dark:text-white">{fmt(q.total)}</span>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 )
               })}
             </div>

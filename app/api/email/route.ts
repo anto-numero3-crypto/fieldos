@@ -29,6 +29,9 @@ interface EmailPayload {
   discount?: string
   dueDate?: string
   quoteTitle?: string
+  quoteNumber?: string
+  validUntil?: string
+  quoteLink?: string
   paymentLink?: string
   lineItems?: LineItemEmail[]
   // Job fields
@@ -175,26 +178,61 @@ function buildEmailContent(payload: EmailPayload): { subject: string; html: stri
       }
     }
 
-    case 'quote':
+    case 'quote': {
+      const quoteLineItemsHtml = payload.lineItems && payload.lineItems.length > 0
+        ? `<table style="width:100%;border-collapse:collapse;margin-bottom:0">
+            <thead>
+              <tr style="border-bottom:2px solid #e5e7eb">
+                <th style="padding:8px 6px;text-align:left;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em">Description</th>
+                <th style="padding:8px 6px;text-align:center;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em">Qté</th>
+                <th style="padding:8px 6px;text-align:right;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em">Prix unit.</th>
+                <th style="padding:8px 6px;text-align:right;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${payload.lineItems.map(li => `<tr style="border-bottom:1px solid #f3f4f6">
+                <td style="padding:10px 6px;font-size:14px;color:#111827">${li.description}</td>
+                <td style="padding:10px 6px;text-align:center;font-size:14px;color:#6b7280">${li.qty}</td>
+                <td style="padding:10px 6px;text-align:right;font-size:14px;color:#6b7280">${fmtAmt(li.unit_price)}</td>
+                <td style="padding:10px 6px;text-align:right;font-size:14px;font-weight:600;color:#111827">${fmtAmt(li.qty * li.unit_price)}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+          <div style="border-top:2px solid #e5e7eb;padding-top:12px;margin-top:4px">
+            ${payload.subtotal ? `<div style="display:flex;justify-content:space-between;padding:4px 6px;font-size:14px;color:#6b7280"><span>Sous-total</span><span>${payload.subtotal}</span></div>` : ''}
+            ${payload.taxAmount ? `<div style="display:flex;justify-content:space-between;padding:4px 6px;font-size:14px;color:#6b7280"><span>${payload.taxName || 'TPS'}</span><span>${payload.taxAmount}</span></div>` : ''}
+            ${payload.tax2Amount ? `<div style="display:flex;justify-content:space-between;padding:4px 6px;font-size:14px;color:#6b7280"><span>${payload.tax2Name || 'TVQ'}</span><span>${payload.tax2Amount}</span></div>` : ''}
+            <div style="display:flex;justify-content:space-between;padding:8px 6px;font-size:18px;font-weight:700;color:#111827;border-top:1px solid #e5e7eb;margin-top:4px"><span>Total</span><span style="color:#4f46e5">${payload.amount || '—'}</span></div>
+          </div>`
+        : `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0">
+            <span style="font-size:14px;color:#6b7280">Montant du devis</span>
+            <span style="font-size:24px;font-weight:700;color:#4f46e5">${payload.amount || '—'}</span>
+          </div>`
       return {
-        subject: `Quote from ${biz}: ${payload.quoteTitle || ''}`,
+        subject: `Devis ${payload.quoteNumber || ''} de ${biz}${payload.quoteTitle ? ` — ${payload.quoteTitle}` : ''}`.replace(/\s+/g, ' ').trim(),
         html: `
-          <div style="font-family:sans-serif;max-width:560px;margin:0 auto;color:#111827">
-            <div style="background:#4f46e5;padding:24px 32px;border-radius:12px 12px 0 0">
-              <h1 style="color:white;margin:0;font-size:20px">Quote from ${biz}</h1>
+          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#111827">
+            <div style="background:#4f46e5;padding:28px 36px;border-radius:12px 12px 0 0">
+              <h1 style="color:white;margin:0 0 4px;font-size:22px;font-weight:700">${biz}</h1>
+              <p style="color:#c7d2fe;margin:0;font-size:14px">Devis ${payload.quoteNumber || ''}${payload.quoteTitle ? ` — ${payload.quoteTitle}` : ''}</p>
             </div>
-            <div style="background:#f9fafb;padding:32px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
-              <p>Hi ${payload.customerName},</p>
-              <p>We've prepared a quote for <strong>${payload.quoteTitle || 'your request'}</strong>.</p>
-              <div style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin-bottom:24px">
-                <table style="width:100%;border-collapse:collapse">
-                  <tr><td style="padding:6px 0;color:#6b7280">Quote Total</td><td style="padding:6px 0;font-weight:700;font-size:18px;color:#4f46e5;text-align:right">${payload.amount || '—'}</td></tr>
-                </table>
+            <div style="background:#f9fafb;padding:36px;border:1px solid #e5e7eb;border-top:0;border-radius:0 0 12px 12px">
+              <p style="margin:0 0 8px;font-size:16px">Bonjour ${payload.customerName},</p>
+              <p style="margin:0 0 28px;color:#6b7280;font-size:14px">Voici le détail du devis que nous avons préparé pour vous.</p>
+              <div style="background:white;border:1px solid #e5e7eb;border-radius:10px;padding:4px 20px 20px;margin-bottom:28px">
+                ${payload.validUntil ? `<div style="padding:16px 6px 12px;border-bottom:1px solid #f3f4f6;margin-bottom:12px">
+                  <p style="margin:0;font-size:13px;color:#6b7280">Valide jusqu'au <strong style="color:#111827">${payload.validUntil}</strong></p>
+                </div>` : ''}
+                ${quoteLineItemsHtml}
               </div>
-              <p style="color:#6b7280;font-size:13px">Reply to this email to accept or request changes.</p>
+              ${payload.quoteLink ? `<div style="text-align:center;margin:28px 0">
+                <a href="${payload.quoteLink}" style="background:#4f46e5;color:white;padding:16px 40px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;display:inline-block;letter-spacing:.01em">Voir et accepter le devis</a>
+              </div>` : ''}
+              <p style="color:#9ca3af;font-size:13px;margin:0;border-top:1px solid #e5e7eb;padding-top:20px">Pour toute question, répondez directement à cet email.</p>
             </div>
           </div>`,
       }
+    }
 
     case 'job_confirmation':
       return {
