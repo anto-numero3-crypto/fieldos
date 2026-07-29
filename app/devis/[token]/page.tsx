@@ -193,7 +193,7 @@ export default function PublicQuotePage() {
       `}} />
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 print:!bg-white print:!p-0 print:!m-0">
         {/* ═══════ PRINT-ONLY PROFESSIONAL QUOTE ═══════ */}
-        <div className="print-only" style={{ fontFamily: "-apple-system, 'Segoe UI', sans-serif", color: '#111', position: 'relative' }}>
+        <div className="print-only" style={{ fontFamily: "-apple-system, 'Segoe UI', sans-serif", color: '#111', background: '#ffffff', position: 'relative' }}>
 
           {(accepted || depositPaid) && (
             <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-35deg)', fontSize: '60pt', fontWeight: 800, color: '#16a34a', opacity: 0.08, pointerEvents: 'none', whiteSpace: 'nowrap' }}>

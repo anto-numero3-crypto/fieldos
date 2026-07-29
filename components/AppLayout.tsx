@@ -151,7 +151,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 print:block print:h-auto print:overflow-visible print:bg-white">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 print:!block print:!h-auto print:!overflow-visible print:!bg-white">
       <CommandPalette />
       <div className="print:hidden">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -294,7 +294,7 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
         )}
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 pb-20 lg:pb-0 print:overflow-visible print:pb-0 print:bg-white">
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 pb-20 lg:pb-0 print:!overflow-visible print:!pb-0 print:!bg-white">
           <div className="print:hidden"><TrialBanner /></div>
           <div className="max-w-screen-2xl mx-auto">
             {children}

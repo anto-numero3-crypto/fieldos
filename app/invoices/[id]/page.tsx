@@ -381,7 +381,7 @@ export default function InvoiceDetailPage() {
       `}} />
 
       {/* ═══════ PRINT-ONLY PROFESSIONAL INVOICE ═══════ */}
-      <div className="print-only" style={{ fontFamily: "-apple-system, 'Segoe UI', sans-serif", color: '#111', position: 'relative' }}>
+      <div className="print-only" style={{ fontFamily: "-apple-system, 'Segoe UI', sans-serif", color: '#111', background: '#ffffff', position: 'relative' }}>
         {displayStatus === 'paid' && (
           <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-35deg)', fontSize: '60pt', fontWeight: 800, color: '#16a34a', opacity: 0.08, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
             {fr ? 'PAYÉE' : 'PAID'}
