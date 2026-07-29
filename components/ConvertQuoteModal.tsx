@@ -106,6 +106,7 @@ export default function ConvertQuoteModal({ open, quote, onClose, onConverted }:
       if (qErr) {
         // Job is already created — surface but don't block.
         console.error('[convert] quote status update failed:', qErr)
+        toast.error(fr ? "Intervention créée, mais le statut du devis n'a pas pu être mis à jour." : "Job created, but the quote's status could not be updated.")
       }
 
       toast.success(fr ? 'Intervention créée avec succès' : 'Job created successfully')
