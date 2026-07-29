@@ -10,6 +10,8 @@ import { useLanguage } from '@/lib/LanguageContext'
 import { fmtMoney, fmtDate } from '@/lib/format'
 import { getInvoiceDisplayStatus, invoiceStatusLabel, INVOICE_STATUS_CLS } from '@/lib/invoice-status'
 import { writeAuditLog } from '@/lib/audit'
+import { secureUrl } from '@/lib/secure-url'
+import { getPlanLimits, normalizePlan } from '@/lib/plan-limits'
 import { toast } from 'sonner'
 import {
   ArrowLeft, FileText, User, Calendar, DollarSign,
@@ -64,6 +66,26 @@ interface ActivityEvent {
   created_at: string
 }
 
+interface OrgData {
+  name: string | null
+  email: string | null
+  phone: string | null
+  address: string | null
+  city: string | null
+  state: string | null
+  zip: string | null
+  logo_url: string | null
+  plan?: string | null
+  tps_number?: string | null
+  tvq_number?: string | null
+  neq_number?: string | null
+  rbq_number?: string | null
+  cmeq_number?: string | null
+  cmmtq_number?: string | null
+  other_licence_name?: string | null
+  other_licence_number?: string | null
+}
+
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
@@ -78,6 +100,7 @@ export default function InvoiceDetailPage() {
 
   const [invoice, setInvoice] = useState<Invoice | null>(null)
   const [businessName, setBusinessName] = useState('')
+  const [org, setOrg] = useState<OrgData | null>(null)
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [activity, setActivity] = useState<ActivityEvent[]>([])
@@ -105,8 +128,15 @@ export default function InvoiceDetailPage() {
         }
         setInvoice(data)
         if (data.user_id) {
-          const { data: org } = await supabase.from('organizations').select('name').eq('owner_user_id', data.user_id).single()
-          if (org?.name) setBusinessName(org.name)
+          const { data: orgData } = await supabase
+            .from('organizations')
+            .select('name, email, phone, address, city, state, zip, logo_url, plan, tps_number, tvq_number, neq_number, rbq_number, cmeq_number, cmmtq_number, other_licence_name, other_licence_number')
+            .eq('owner_user_id', data.user_id)
+            .single()
+          if (orgData) {
+            setOrg(orgData)
+            if (orgData.name) setBusinessName(orgData.name)
+          }
         }
       }
     } catch (e) {
@@ -319,9 +349,185 @@ export default function InvoiceDetailPage() {
     return map[m] || { fr: m, en: m, icon: <DollarSign className="h-4 w-4" /> }
   }
 
+  const bizHasLogo = !!org?.logo_url
+  const bizOrgAddressLine = org?.address
+    ? org.address.includes(',')
+      ? org.address
+      : [org.address, org.city, org.state, org.zip].filter(Boolean).join(', ')
+    : [org?.city, org?.state, org?.zip].filter(Boolean).join(', ')
+  const bizTaxLine = [
+    org?.tps_number && `N° TPS: ${org.tps_number}`,
+    org?.tvq_number && `N° TVQ: ${org.tvq_number}`,
+    org?.neq_number && `NEQ: ${org.neq_number}`,
+  ].filter(Boolean).join(' · ')
+  const bizLicenceLine = [
+    org?.rbq_number && `RBQ: ${org.rbq_number}`,
+    org?.cmeq_number && `CMEQ: ${org.cmeq_number}`,
+    org?.cmmtq_number && `CMMTQ: ${org.cmmtq_number}`,
+    org?.other_licence_name && org?.other_licence_number && `${org.other_licence_name}: ${org.other_licence_number}`,
+  ].filter(Boolean).join(' · ')
+  const showBranding = getPlanLimits(normalizePlan(org?.plan)).showGestivioBranding
+  const printItems = displayItems.filter((li) => li.description?.trim())
+
   return (
     <AppLayout title={invoice.invoice_number || (fr ? 'Facture' : 'Invoice')}>
-      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          @page { size: letter; margin: 0.45in 0.5in; }
+          html, body { background: white !important; font-size: 9pt !important; line-height: 1.3 !important; }
+          .print-section { page-break-inside: avoid; break-inside: avoid; }
+          .print-footer { page-break-inside: avoid; }
+        }
+      `}} />
+
+      {/* ═══════ PRINT-ONLY PROFESSIONAL INVOICE ═══════ */}
+      <div className="print-only" style={{ fontFamily: "-apple-system, 'Segoe UI', sans-serif", color: '#111', position: 'relative' }}>
+        {displayStatus === 'paid' && (
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-35deg)', fontSize: '60pt', fontWeight: 800, color: '#16a34a', opacity: 0.08, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+            {fr ? 'PAYÉE' : 'PAID'}
+          </div>
+        )}
+        {invoice.status === 'draft' && (
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-35deg)', fontSize: '60pt', fontWeight: 800, color: '#888', opacity: 0.08, pointerEvents: 'none', whiteSpace: 'nowrap' }}>
+            {fr ? 'BROUILLON' : 'DRAFT'}
+          </div>
+        )}
+
+        <div className="print-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ maxWidth: '60%' }}>
+            {bizHasLogo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={secureUrl(org!.logo_url!)} alt={businessName} style={{ maxWidth: '95px', maxHeight: '32px', objectFit: 'contain', display: 'block', marginBottom: '2px' }} />
+            ) : (
+              <div style={{ fontSize: '13pt', fontWeight: 800, marginBottom: '1px' }}>{businessName}</div>
+            )}
+            {bizOrgAddressLine && <div style={{ fontSize: '7.5pt', color: '#555' }}>{bizOrgAddressLine}</div>}
+            {(org?.phone || org?.email) && (
+              <div style={{ fontSize: '7.5pt', color: '#555' }}>{[org?.phone, org?.email].filter(Boolean).join(' · ')}</div>
+            )}
+            {bizTaxLine && <div style={{ fontSize: '7pt', color: '#888' }}>{bizTaxLine}</div>}
+            {bizLicenceLine && <div style={{ fontSize: '7pt', color: '#888' }}>{bizLicenceLine}</div>}
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '18pt', fontWeight: 800, letterSpacing: '2px', color: '#111', marginBottom: '4px' }}>
+              {fr ? 'FACTURE' : 'INVOICE'}
+            </div>
+            <div style={{ border: '1px solid #ddd', borderRadius: '4px', padding: '3px 6px', textAlign: 'left', fontSize: '8pt', lineHeight: 1.5 }}>
+              <div><strong>{fr ? 'Numéro' : 'Number'}:</strong> {invoice.invoice_number || `INV-${invoice.id.slice(0, 8).toUpperCase()}`}</div>
+              <div><strong>Date:</strong> {fmtDate(invoice.created_at, lang)}</div>
+              {invoice.due_date && <div><strong>{fr ? 'Échéance' : 'Due'}:</strong> {fmtDate(invoice.due_date, lang)}</div>}
+              <div><strong>{fr ? 'Statut' : 'Status'}:</strong> {invoiceStatusLabel(displayStatus, fr)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ borderTop: '1.5px solid #000', margin: '3px 0' }} />
+
+        {invoice.customers && (
+          <div className="print-section" style={{ marginBottom: '4px' }}>
+            <div style={{ fontSize: '6pt', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1px' }}>
+              {fr ? 'FACTURÉ À' : 'BILLED TO'}
+            </div>
+            <div style={{ fontSize: '9.5pt', fontWeight: 700 }}>{invoice.customers.name}</div>
+            <div style={{ fontSize: '8pt', color: '#555' }}>
+              {[invoice.customers.address, invoice.customers.phone, invoice.customers.email].filter(Boolean).join(' · ')}
+            </div>
+          </div>
+        )}
+
+        <table className="print-section" style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '6px' }}>
+          <thead>
+            <tr style={{ background: '#1f2937', color: 'white' }}>
+              <th style={{ textAlign: 'left', padding: '3px 6px', fontSize: '7.5pt', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</th>
+              <th style={{ textAlign: 'center', padding: '3px 6px', fontSize: '7.5pt', textTransform: 'uppercase', width: '50px' }}>{fr ? 'Qté' : 'Qty'}</th>
+              <th style={{ textAlign: 'right', padding: '3px 6px', fontSize: '7.5pt', textTransform: 'uppercase', width: '80px' }}>{fr ? 'Prix unit.' : 'Unit price'}</th>
+              <th style={{ textAlign: 'right', padding: '3px 6px', fontSize: '7.5pt', textTransform: 'uppercase', width: '80px' }}>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(printItems.length > 0 ? printItems : [{ description: invoice.invoice_number || 'Services', qty: 1, unit_price: displaySubtotal || invoice.amount } as LineItem]).map((li, i) => (
+              <tr key={i} style={{ borderBottom: '1px solid #eee', background: i % 2 ? '#fafafa' : 'white' }}>
+                <td style={{ padding: '3px 6px', fontSize: '8.5pt' }}>{li.description}{li.unit && li.unit !== 'unité' && li.unit !== 'unit' ? ` (${li.unit})` : ''}</td>
+                <td style={{ textAlign: 'center', padding: '3px 6px', fontSize: '8.5pt' }}>{li.qty}</td>
+                <td style={{ textAlign: 'right', padding: '3px 6px', fontSize: '8.5pt' }}>{fmtMoney(li.unit_price, lang)}</td>
+                <td style={{ textAlign: 'right', padding: '3px 6px', fontSize: '8.5pt', fontWeight: 600 }}>{fmtMoney((li.qty || 1) * (li.unit_price || 0), lang)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="print-section" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '6px' }}>
+          <div style={{ width: '220px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9pt', color: '#555' }}>
+              <span>{fr ? 'Sous-total' : 'Subtotal'}</span><span>{fmtMoney(displaySubtotal, lang)}</span>
+            </div>
+            {displayDiscount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9pt', color: '#16a34a' }}>
+                <span>{fr ? 'Rabais' : 'Discount'}</span><span>-{fmtMoney(displayDiscount, lang)}</span>
+              </div>
+            )}
+            {displayTax > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9pt', color: '#555' }}>
+                <span>{invoice.tax_name || 'TPS'}{invoice.tax_rate ? ` (${invoice.tax_rate}%)` : ''}</span><span>{fmtMoney(displayTax, lang)}</span>
+              </div>
+            )}
+            {displayTax2 > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9pt', color: '#555' }}>
+                <span>{invoice.tax2_name || 'TVQ'}{invoice.tax2_rate ? ` (${invoice.tax2_rate}%)` : ''}</span><span>{fmtMoney(displayTax2, lang)}</span>
+              </div>
+            )}
+            <div style={{ borderTop: '2px solid #000', marginTop: '4px', paddingTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '11pt', fontWeight: 800 }}>
+              <span>TOTAL</span><span>{fmtMoney(invoice.amount, lang)}</span>
+            </div>
+            {Number(invoice.deposit_amount_applied || 0) > 0 && (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9pt', color: '#7c3aed' }}>
+                  <span>{fr ? 'Acompte versé' : 'Deposit paid'}</span><span>-{fmtMoney(Number(invoice.deposit_amount_applied), lang)}</span>
+                </div>
+                <div style={{ borderTop: '2px solid #000', marginTop: '4px', paddingTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '11pt', fontWeight: 800 }}>
+                  <span>{fr ? 'SOLDE DÛ' : 'BALANCE DUE'}</span><span>{fmtMoney(Math.max(0, Number(invoice.amount) - Number(invoice.deposit_amount_applied || 0)), lang)}</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="print-section">
+          {displayStatus === 'paid' ? (
+            <div style={{ border: '2px solid #16a34a', borderRadius: '4px', background: '#f0fdf4', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <span style={{ color: '#16a34a', fontWeight: 700, fontSize: '9pt' }}>&#10003; {fr ? 'PAYÉE' : 'PAID'}</span>
+              {invoice.paid_at && <span style={{ fontSize: '8pt', color: '#555' }}>{fr ? 'Reçu le' : 'Received'} {fmtDate(invoice.paid_at, lang)}</span>}
+            </div>
+          ) : (
+            <div style={{ border: '2px solid #111', borderRadius: '4px', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <span style={{ fontWeight: 700, fontSize: '9pt' }}>{fr ? 'SOLDE DÛ' : 'BALANCE DUE'}: {fmtMoney(Math.max(0, Number(invoice.amount) - Number(invoice.deposit_amount_applied || 0)), lang)}</span>
+            </div>
+          )}
+        </div>
+
+        {invoice.client_notes && (
+          <div className="print-section" style={{ borderLeft: '3px solid #ddd', padding: '4px 8px', marginBottom: '6px', background: '#fafafa' }}>
+            <div style={{ fontSize: '7pt', fontWeight: 700, color: '#888', marginBottom: '2px' }}>Notes</div>
+            <div style={{ fontSize: '8pt', color: '#555', whiteSpace: 'pre-wrap' }}>{invoice.client_notes}</div>
+          </div>
+        )}
+
+        <div className="print-footer" style={{ borderTop: '1px solid #ddd', paddingTop: '6px', textAlign: 'center' }}>
+          <div style={{ fontSize: '8pt', color: '#888', fontStyle: 'italic', marginBottom: '2px' }}>
+            {fr ? 'Merci pour votre confiance.' : 'Thank you for your business.'}
+          </div>
+          <div style={{ fontSize: '7pt', color: '#999' }}>
+            {businessName}{org?.phone ? ` · ${org.phone}` : ''}{org?.email ? ` · ${org.email}` : ''}
+          </div>
+          {showBranding && (
+            <div style={{ fontSize: '7pt', color: '#ccc', marginTop: '4px' }}>
+              {fr ? 'Facture générée via Gestivio · gestivio.ca' : 'Invoice generated via Gestivio · gestivio.ca'}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="screen-only p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-3 mb-6">

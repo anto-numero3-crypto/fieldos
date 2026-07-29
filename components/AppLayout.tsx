@@ -151,13 +151,15 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 print:block print:h-auto print:overflow-visible print:bg-white">
       <CommandPalette />
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="print:hidden">
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      </div>
 
-      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0 print:block print:overflow-visible">
         {/* Top bar */}
-        <header className="flex h-14 shrink-0 items-center justify-between border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 sm:px-6 gap-3">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 sm:px-6 gap-3 print:hidden">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <button
               type="button"
@@ -285,15 +287,15 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
 
         {/* Page title bar (desktop) */}
         {title && (
-          <div className="hidden sm:flex items-center justify-between px-6 py-3 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <div className="hidden sm:flex items-center justify-between px-6 py-3 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 print:hidden">
             <h1 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h1>
             {actions && <div className="flex items-center gap-2">{actions}</div>}
           </div>
         )}
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 pb-20 lg:pb-0">
-          <TrialBanner />
+        <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 pb-20 lg:pb-0 print:overflow-visible print:pb-0 print:bg-white">
+          <div className="print:hidden"><TrialBanner /></div>
           <div className="max-w-screen-2xl mx-auto">
             {children}
           </div>
@@ -301,10 +303,10 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
       </div>
 
       {/* Floating AI Chat — available on every page */}
-      <FloatingAIChat />
+      <div className="print:hidden"><FloatingAIChat /></div>
 
       {/* Mobile bottom tab bar */}
-      <MobileTabBar />
+      <div className="print:hidden"><MobileTabBar /></div>
 
       {/* Global keyboard shortcuts */}
       <KeyboardShortcuts />
