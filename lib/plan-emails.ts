@@ -2,6 +2,7 @@
 // Call sendPlanEmail() from webhook handlers, cron, or signup flow.
 
 import { Resend } from 'resend'
+import { PLAN_PRICING } from '@/lib/plan-limits'
 
 const FROM = 'Gestivio <noreply@gestivio.ca>'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://gestivio.ca'
@@ -53,7 +54,7 @@ function render(type: PlanEmailType, ctx: Ctx): { subject: string; html: string 
           'Bienvenue sur Gestivio 🎉',
           `<p>${hi}</p>
            <p>Votre essai <strong>Pro de 14 jours</strong> est actif. Vous avez accès à toutes les fonctionnalités Pro: clients illimités, interventions illimitées, assistant IA, portail de réservation, personnalisation, rapports, et plus.</p>
-           <p>Après 14 jours, vous passerez automatiquement au forfait Starter à moins d'ajouter un moyen de paiement pour conserver Pro.</p>
+           <p>Après 14 jours, vous passerez automatiquement au forfait ${PLAN_PRICING.demarrage.label} à moins d'ajouter un moyen de paiement pour conserver Pro.</p>
            <p>Besoin d'aide pour démarrer ? Répondez simplement à ce courriel.</p>`,
           'Accéder à mon tableau de bord',
           DASHBOARD,
@@ -65,14 +66,14 @@ function render(type: PlanEmailType, ctx: Ctx): { subject: string; html: string 
         html: shell(
           'Votre essai Pro se termine bientôt',
           `<p>${hi}</p>
-           <p>Il vous reste <strong>${ctx.daysLeft || 3} jours</strong> sur votre essai Gestivio Pro. Après l'expiration, votre compte passera au forfait Starter et certaines fonctionnalités seront restreintes:</p>
+           <p>Il vous reste <strong>${ctx.daysLeft || 3} jours</strong> sur votre essai Gestivio Pro. Après l'expiration, votre compte passera au forfait ${PLAN_PRICING.demarrage.label} et certaines fonctionnalités seront restreintes:</p>
            <ul style="margin:0;padding-left:20px">
              <li>Limite de 50 clients et 30 interventions/mois</li>
              <li>Assistant IA limité à 20 messages/mois</li>
              <li>Portail de réservation désactivé</li>
              <li>Gestion d'équipe, rapports et campagnes indisponibles</li>
            </ul>
-           <p>Pour conserver vos fonctionnalités Pro — <strong>99 $/mois</strong> (ou 79 $/mois en annuel).</p>`,
+           <p>Pour conserver vos fonctionnalités Pro — <strong>${PLAN_PRICING.pro.monthly} $/mois</strong> (ou ${PLAN_PRICING.pro.annual} $/mois en annuel, facturé annuellement).</p>`,
           'Conserver mon forfait Pro',
           BILLING,
         ),
@@ -83,9 +84,9 @@ function render(type: PlanEmailType, ctx: Ctx): { subject: string; html: string 
         html: shell(
           'Votre essai est terminé',
           `<p>${hi}</p>
-           <p>Votre essai Pro est terminé. Votre compte est maintenant sur le forfait <strong>Starter</strong>. Toutes vos données sont préservées — vous pouvez continuer à les utiliser, mais certaines fonctionnalités sont restreintes.</p>
+           <p>Votre essai Pro est terminé. Votre compte est maintenant sur le forfait <strong>${PLAN_PRICING.demarrage.label}</strong>. Toutes vos données sont préservées — vous pouvez continuer à les utiliser, mais certaines fonctionnalités sont restreintes.</p>
            <p>Pour restaurer l'accès complet (clients illimités, IA illimitée, portail de réservation, personnalisation, rapports):</p>`,
-          'Passer à Pro — 99 $/mois',
+          `Passer à Pro — ${PLAN_PRICING.pro.monthly} $/mois`,
           BILLING,
         ),
       }
@@ -113,7 +114,7 @@ function render(type: PlanEmailType, ctx: Ctx): { subject: string; html: string 
           'Problème de paiement',
           `<p>${hi}</p>
            <p>Nous n'avons pas pu traiter le paiement de votre abonnement Gestivio. Aucune action n'est requise pour l'instant — nous réessayerons automatiquement.</p>
-           <p>Si le problème persiste, votre compte passera au forfait Starter dans <strong>7 jours</strong>. Pour éviter toute interruption, mettez à jour votre moyen de paiement dès que possible.</p>`,
+           <p>Si le problème persiste, votre compte passera au forfait ${PLAN_PRICING.demarrage.label} dans <strong>7 jours</strong>. Pour éviter toute interruption, mettez à jour votre moyen de paiement dès que possible.</p>`,
           'Mettre à jour mon paiement',
           BILLING,
         ),
@@ -125,7 +126,7 @@ function render(type: PlanEmailType, ctx: Ctx): { subject: string; html: string 
           'Abonnement annulé',
           `<p>${hi}</p>
            <p>Votre abonnement Gestivio a été annulé. Vous conservez l'accès à vos fonctionnalités jusqu'à la fin de votre période de facturation${ctx.nextBilling ? ` (jusqu'au ${ctx.nextBilling})` : ''}.</p>
-           <p>Ensuite, votre compte passera au forfait Starter. <strong>Toutes vos données resteront préservées.</strong> Vous pouvez réactiver votre abonnement à tout moment.</p>`,
+           <p>Ensuite, votre compte passera au forfait ${PLAN_PRICING.demarrage.label}. <strong>Toutes vos données resteront préservées.</strong> Vous pouvez réactiver votre abonnement à tout moment.</p>`,
           'Réactiver mon abonnement',
           BILLING,
         ),
