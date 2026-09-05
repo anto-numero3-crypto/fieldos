@@ -140,7 +140,8 @@ export default function QuotesPage() {
   const acceptQuote = async (q: Quote) => {
     setAcceptingId(q.id)
     try {
-      await supabase.from('quotes').update({ status: 'approved' }).eq('id', q.id)
+      const { error } = await supabase.from('quotes').update({ status: 'approved' }).eq('id', q.id)
+      if (error) { toast.error(error.message); return }
       setQuotes((prev) => prev.map((p) => p.id === q.id ? { ...p, status: 'approved' } : p))
       // Fire-and-forget acceptance email
       if (q.customers?.email) {
@@ -272,7 +273,8 @@ export default function QuotesPage() {
       confirmLabel: fr ? 'Supprimer' : 'Delete',
     })
     if (!confirmed) return
-    await supabase.from('quotes').delete().eq('id', id)
+    const { error } = await supabase.from('quotes').delete().eq('id', id)
+    if (error) { toast.error(error.message); return }
     setQuotes((prev) => prev.filter((q) => q.id !== id))
   }
 

@@ -162,7 +162,8 @@ export default function InvoicesPage() {
   const bulkMarkPaid = async () => {
     if (selected.size === 0) return
     const ids = Array.from(selected)
-    await supabase.from('invoices').update({ status: 'paid', paid_at: new Date().toISOString() }).in('id', ids)
+    const { error } = await supabase.from('invoices').update({ status: 'paid', paid_at: new Date().toISOString() }).in('id', ids)
+    if (error) { toast.error(error.message); return }
     toast.success(fr ? `${ids.length} facture(s) marquée(s) payée(s)` : `${ids.length} invoice(s) marked as paid`)
     setSelected(new Set())
     fetchInvoices()

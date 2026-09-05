@@ -36,7 +36,7 @@ export async function POST(
   const totalAmount = Number(deposit.amount)
   const alreadyRefunded = Number(deposit.refunded_amount || 0)
   const maxRefundable = Math.max(0, totalAmount - alreadyRefunded)
-  let refundAmount = Number(body.amount ?? maxRefundable)
+  const refundAmount = Number(body.amount ?? maxRefundable)
   if (!Number.isFinite(refundAmount) || refundAmount <= 0 || refundAmount > maxRefundable) {
     return NextResponse.json({ error: `Montant invalide (max ${maxRefundable.toFixed(2)})` }, { status: 400 })
   }
@@ -78,12 +78,22 @@ export async function POST(
   const fullRefund = newRefundedAmount >= totalAmount - 0.005
   const newStatus = fullRefund ? 'refunded' : 'partial_refunded'
 
-  await supabase.from('deposits').update({
+  const { error: depositUpdateError } = await supabase.from('deposits').update({
     refunded_amount: newRefundedAmount,
     status: newStatus,
     refunded_at: new Date().toISOString(),
     refund_reason: reason,
   }).eq('id', id)
+
+  if (depositUpdateError) {
+    // The Stripe refund already succeeded and cannot be undone from here —
+    // surface this loudly so the owner knows the bookkeeping is now wrong,
+    // instead of silently returning ok:true with a stale "paid" status.
+    console.error('[deposit refund] Stripe refund succeeded but DB update failed:', depositUpdateError)
+    return NextResponse.json({
+      error: `Remboursement Stripe effectué (${refundAmount.toFixed(2)} $), mais la mise à jour du dossier a échoué : ${depositUpdateError.message}. Contactez le support pour corriger l'enregistrement.`,
+    }, { status: 500 })
+  }
 
   // Clear deposit markers on the source if fully refunded
   if (fullRefund) {
