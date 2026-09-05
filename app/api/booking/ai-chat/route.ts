@@ -141,7 +141,7 @@ Do NOT output BOOKING_CONFIRMED until you have ALL required fields (name, email,
       : []
 
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-5',
       max_tokens: 1024,
       system: systemPrompt,
       messages: [...safeHistory, { role: 'user' as const, content: message }],
