@@ -49,8 +49,15 @@ export async function POST(req: NextRequest) {
     let customerId = profile?.stripe_customer_id
 
     if (!customerId) {
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('name')
+        .eq('owner_user_id', user.id)
+        .maybeSingle()
+
       const customer = await stripe.customers.create({
         email: user.email || profile?.email || undefined,
+        name: org?.name || undefined,
         metadata: { userId: user.id },
       })
       customerId = customer.id

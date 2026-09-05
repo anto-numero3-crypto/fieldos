@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
     const { data: org } = await supabase
       .from('organizations')
-      .select('plan, stripe_subscription_id, stripe_customer_id')
+      .select('plan, stripe_subscription_id, stripe_customer_id, name')
       .eq('owner_user_id', user.id)
       .single()
 
@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
       if (!customerId) {
         const customer = await stripe.customers.create({
           email: user.email || profile?.email || undefined,
+          name: org?.name || undefined,
           metadata: { userId: user.id },
         })
         customerId = customer.id
