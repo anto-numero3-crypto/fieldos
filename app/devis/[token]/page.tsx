@@ -20,6 +20,10 @@ interface PublicQuote {
   subtotal: number
   tax_rate: number | null
   tax_amount: number | null
+  tax_name?: string | null
+  tax2_rate?: number | null
+  tax2_amount?: number | null
+  tax2_name?: string | null
   total: number
   valid_until: string | null
   notes: string | null
@@ -280,7 +284,12 @@ export default function PublicQuotePage() {
               </div>
               {(quote.tax_amount || 0) > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9pt', color: '#555' }}>
-                  <span>{fr ? 'Taxes' : 'Taxes'}{quote.tax_rate ? ` (${quote.tax_rate}%)` : ''}</span><span>{fmtMoney(quote.tax_amount || 0, lang)}</span>
+                  <span>{quote.tax_name || 'TPS'}{quote.tax_rate ? ` (${quote.tax_rate}%)` : ''}</span><span>{fmtMoney(quote.tax_amount || 0, lang)}</span>
+                </div>
+              )}
+              {(quote.tax2_amount || 0) > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9pt', color: '#555' }}>
+                  <span>{quote.tax2_name || 'TVQ'}{quote.tax2_rate ? ` (${quote.tax2_rate}%)` : ''}</span><span>{fmtMoney(quote.tax2_amount || 0, lang)}</span>
                 </div>
               )}
               <div style={{ borderTop: '2px solid #000', marginTop: '4px', paddingTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '11pt', fontWeight: 800 }}>
@@ -442,8 +451,14 @@ export default function PublicQuotePage() {
                   </div>
                   {(quote.tax_amount || 0) > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">{fr ? 'Taxes' : 'Taxes'} ({quote.tax_rate}%)</span>
+                      <span className="text-gray-500">{quote.tax_name || 'TPS'} ({quote.tax_rate}%)</span>
                       <span className="text-gray-900 dark:text-white">{fmtMoney(quote.tax_amount || 0, lang)}</span>
+                    </div>
+                  )}
+                  {(quote.tax2_amount || 0) > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">{quote.tax2_name || 'TVQ'} ({quote.tax2_rate}%)</span>
+                      <span className="text-gray-900 dark:text-white">{fmtMoney(quote.tax2_amount || 0, lang)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-200 dark:border-gray-700">

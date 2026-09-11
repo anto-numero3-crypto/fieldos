@@ -25,7 +25,7 @@ export async function GET(
     .from('quotes')
     .select(`
       id, user_id, customer_id, title, quote_number, status,
-      line_items, subtotal, tax_rate, tax_amount, total,
+      line_items, subtotal, tax_rate, tax_amount, tax_name, tax2_rate, tax2_amount, tax2_name, total,
       valid_until, notes, created_at, sent_at, accepted_at,
       deposit_required, deposit_type, deposit_value, deposit_taxes_included,
       deposit_amount, deposit_paid_at, deposit_payment_intent_id,

@@ -31,6 +31,10 @@ interface Quote {
   subtotal: number
   tax_rate?: number | null
   tax_amount?: number | null
+  tax_name?: string | null
+  tax2_rate?: number | null
+  tax2_amount?: number | null
+  tax2_name?: string | null
   total: number
   valid_until: string | null
   notes?: string | null
@@ -141,7 +145,7 @@ export default function QuoteDetailPage() {
     try {
       const items = quote.line_items || []
       const sub = quote.subtotal ?? items.reduce((s, li) => s + li.qty * li.unit_price, 0)
-      const taxAmt = quote.tax_amount ?? sub * ((quote.tax_rate || 0) / 100)
+      const taxAmt = (quote.tax_amount ?? sub * ((quote.tax_rate || 0) / 100)) + (quote.tax2_amount ?? sub * ((quote.tax2_rate || 0) / 100))
 
       const res = await fetch('/api/email', {
         method: 'POST',
@@ -234,6 +238,7 @@ export default function QuoteDetailPage() {
   const items = quote.line_items || []
   const sub = quote.subtotal ?? items.reduce((s, li) => s + li.qty * li.unit_price, 0)
   const tax = quote.tax_amount ?? sub * ((quote.tax_rate || 0) / 100)
+  const tax2 = quote.tax2_amount ?? sub * ((quote.tax2_rate || 0) / 100)
 
   const printHasLogo = !!org?.logo_url
   const printOrgAddressLine = org?.address
@@ -347,7 +352,12 @@ export default function QuoteDetailPage() {
             </div>
             {tax > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9pt', color: '#555' }}>
-                <span>{fr ? 'Taxes' : 'Taxes'}{quote.tax_rate ? ` (${quote.tax_rate}%)` : ''}</span><span>{fmt(tax)}</span>
+                <span>{quote.tax_name || 'TPS'}{quote.tax_rate ? ` (${quote.tax_rate}%)` : ''}</span><span>{fmt(tax)}</span>
+              </div>
+            )}
+            {tax2 > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0', fontSize: '9pt', color: '#555' }}>
+                <span>{quote.tax2_name || 'TVQ'}{quote.tax2_rate ? ` (${quote.tax2_rate}%)` : ''}</span><span>{fmt(tax2)}</span>
               </div>
             )}
             <div style={{ borderTop: '2px solid #000', marginTop: '4px', paddingTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '11pt', fontWeight: 800 }}>
@@ -487,8 +497,14 @@ export default function QuoteDetailPage() {
                     </div>
                     {tax > 0 && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500 dark:text-gray-400">{fr ? 'Taxe' : 'Tax'} ({quote.tax_rate || 0}%)</span>
+                        <span className="text-gray-500 dark:text-gray-400">{quote.tax_name || 'TPS'} ({quote.tax_rate || 0}%)</span>
                         <span className="font-medium text-gray-900 dark:text-white">{fmt(tax)}</span>
+                      </div>
+                    )}
+                    {tax2 > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500 dark:text-gray-400">{quote.tax2_name || 'TVQ'} ({quote.tax2_rate || 0}%)</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{fmt(tax2)}</span>
                       </div>
                     )}
                     <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-3 mt-2">

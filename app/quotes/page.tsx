@@ -35,6 +35,10 @@ interface Quote {
   subtotal?: number | null
   tax_rate?: number | null
   tax_amount?: number | null
+  tax_name?: string | null
+  tax2_rate?: number | null
+  tax2_amount?: number | null
+  tax2_name?: string | null
   deposit_required?: boolean | null
   deposit_amount?: number | null
   deposit_paid_at?: string | null
@@ -101,7 +105,7 @@ export default function QuotesPage() {
       }
       const items = q.line_items || []
       const sub = q.subtotal ?? items.reduce((s, li) => s + li.qty * li.unit_price, 0)
-      const taxAmt = q.tax_amount ?? sub * ((q.tax_rate || 0) / 100)
+      const taxAmt = (q.tax_amount ?? sub * ((q.tax_rate || 0) / 100)) + (q.tax2_amount ?? sub * ((q.tax2_rate || 0) / 100))
       const res = await fetch('/api/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -165,7 +169,8 @@ export default function QuotesPage() {
     }
   }
   const [validUntil, setValidUntil] = useState('')
-  const [taxRate, setTaxRate]     = useState(0)
+  const [applyTps, setApplyTps]   = useState(true)
+  const [applyTvq, setApplyTvq]   = useState(true)
   const [notes, setNotes]         = useState('')
   const [lineItems, setLineItems] = useState<LineItem[]>([newItem()])
   // Deposit fields
@@ -180,8 +185,10 @@ export default function QuotesPage() {
       if (!data.user) { window.location.href = '/login'; return }
       setUser(data.user)
       await Promise.all([fetchQuotes(data.user.id), fetchCustomers(data.user.id)])
-      const { data: org } = await supabase.from('organizations').select('name').eq('owner_user_id', data.user.id).single()
+      const { data: org } = await supabase.from('organizations').select('name, invoice_default_tps, invoice_default_tvq').eq('owner_user_id', data.user.id).single()
       if (org?.name) setBusinessName(org.name)
+      if (org?.invoice_default_tps === false) setApplyTps(false)
+      if (org?.invoice_default_tvq === false) setApplyTvq(false)
       setPageLoading(false)
     }
     init()
@@ -223,7 +230,9 @@ export default function QuotesPage() {
   const removeItem = (id: string) => setLineItems((prev) => prev.filter((i) => i.id !== id))
 
   const subtotal = lineItems.reduce((s, i) => s + i.qty * i.unit_price, 0)
-  const taxAmount = subtotal * (taxRate / 100)
+  const tpsAmt = applyTps ? subtotal * 0.05 : 0
+  const tvqAmt = applyTvq ? subtotal * 0.09975 : 0
+  const taxAmount = tpsAmt + tvqAmt
   const total = subtotal + taxAmount
 
   const errTitle = touched.title ? validateRequired(title) : ''
@@ -237,7 +246,7 @@ export default function QuotesPage() {
     setLoading(true)
     const depositAmount = computeDepositAmount(
       { required: depositRequired, type: depositType, value: depositValue, taxesIncluded: depositTaxesIncluded },
-      { subtotal, taxAmount, tax2Amount: 0, total },
+      { subtotal, taxAmount: tpsAmt, tax2Amount: tvqAmt, total },
     )
     const { error } = await supabase.from('quotes').insert({
       user_id: user!.id,
@@ -245,7 +254,10 @@ export default function QuotesPage() {
       title: title.trim(),
       status: 'draft',
       line_items: lineItems,
-      subtotal, tax_rate: taxRate, tax_amount: taxAmount, total,
+      subtotal,
+      tax_name: 'TPS', tax_rate: applyTps ? 5 : 0, tax_amount: tpsAmt,
+      tax2_name: 'TVQ', tax2_rate: applyTvq ? 9.975 : 0, tax2_amount: tvqAmt,
+      total,
       valid_until: validUntil || null,
       notes: notes.trim() || null,
       deposit_required: depositRequired,
@@ -257,7 +269,7 @@ export default function QuotesPage() {
     if (error) { toast.error(error.message) }
     else {
       toast.success(t.success.created)
-      setTitle(''); setCustId(''); setValidUntil(''); setTaxRate(0); setNotes(''); setLineItems([newItem()])
+      setTitle(''); setCustId(''); setValidUntil(''); setNotes(''); setLineItems([newItem()])
       setDepositRequired(false); setDepositType('percentage'); setDepositValue(30); setDepositTaxesIncluded(false)
       setNewCustomerMode(false); setNewCustName(''); setNewCustEmail(''); setNewCustPhone('')
       await fetchQuotes(user!.id)
@@ -555,16 +567,31 @@ export default function QuotesPage() {
                   <span className="font-medium">{fmt(subtotal)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">{fr ? 'Taux de taxe' : 'Tax rate'}</span>
-                  <div className="flex items-center gap-1.5">
-                    <input type="number" value={taxRate} onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)} min={0} max={100} step="0.5" className="w-16 rounded-lg border border-gray-200 px-2 py-1 text-sm text-right text-gray-900 focus:border-indigo-500 focus:outline-none" />
-                    <span className="text-gray-500">%</span>
+                  <span className="text-gray-500">TPS (5%)</span>
+                  <button type="button" onClick={() => setApplyTps(!applyTps)}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${applyTps ? 'bg-indigo-600' : 'bg-gray-200'}`}>
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${applyTps ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-500">TVQ (9,975%)</span>
+                  <button type="button" onClick={() => setApplyTvq(!applyTvq)}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ${applyTvq ? 'bg-indigo-600' : 'bg-gray-200'}`}>
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200 ${applyTvq ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                  </button>
+                </div>
+                {applyTps && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">TPS (5%)</span>
+                    <span className="font-medium">{fmt(tpsAmt)}</span>
                   </div>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">{fr ? 'Taxe' : 'Tax'}</span>
-                  <span className="font-medium">{fmt(taxAmount)}</span>
-                </div>
+                )}
+                {applyTvq && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">TVQ (9,975%)</span>
+                    <span className="font-medium">{fmt(tvqAmt)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-base font-bold border-t border-gray-200 pt-2 mt-2">
                   <span>{fr ? 'Total' : 'Total'}</span>
                   <span className="text-indigo-600">{fmt(total)}</span>
@@ -628,7 +655,7 @@ export default function QuotesPage() {
                       <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 ml-auto">
                         = {fmt(computeDepositAmount(
                           { required: depositRequired, type: depositType, value: depositValue, taxesIncluded: depositTaxesIncluded },
-                          { subtotal, taxAmount, tax2Amount: 0, total },
+                          { subtotal, taxAmount: tpsAmt, tax2Amount: tvqAmt, total },
                         ))}
                       </span>
                     </div>
