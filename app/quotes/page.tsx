@@ -548,7 +548,7 @@ export default function QuotesPage() {
                       <input type="number" placeholder={fr ? 'Qté' : 'Qty'} value={item.qty} min={1} onChange={(e) => updateItem(item.id, 'qty', parseInt(e.target.value) || 1)} className="w-16 rounded-xl border border-gray-200 px-2 py-2 text-sm text-gray-900 text-center focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                       <div className="relative w-28">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
-                        <input type="number" placeholder="0.00" step="0.01" min="0" value={item.unit_price} onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)} className="block w-full rounded-xl border border-gray-200 pl-6 pr-2 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
+                        <input type="number" placeholder="0.00" step="0.01" min="0" value={item.unit_price || ''} onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)} className="block w-full rounded-xl border border-gray-200 pl-6 pr-2 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all" />
                       </div>
                       {lineItems.length > 1 && (
                         <button type="button" onClick={() => removeItem(item.id)} className="rounded-lg p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors">
