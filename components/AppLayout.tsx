@@ -82,9 +82,13 @@ export default function AppLayout({ children, title, actions }: AppLayoutProps) 
       setUserId(data.user.id)
       fetchNotifications(data.user.id)
 
-      // Real-time notification updates
+      // Real-time notification updates. The channel name must be unique per
+      // mount — AppLayout remounts on every page navigation, and reusing a
+      // fixed topic ('notif-badge') raced with the previous mount's async
+      // removeChannel() cleanup, throwing "cannot add postgres_changes
+      // callbacks... after channel has already been created" in production.
       const channel = supabase
-        .channel('notif-badge')
+        .channel(`notif-badge-${data.user.id}-${Date.now()}`)
         .on('postgres_changes', {
           event: 'INSERT',
           schema: 'public',
